@@ -1,0 +1,135 @@
+---
+interface Props {
+    post: any; // Type should be CollectionEntry<'blog'> ideally but 'any' or refined type works for now
+}
+
+const { post } = Astro.props;
+---
+
+<article class="blog-card glass-panel">
+    <a href={`/blog/${post.slug}`} class="card-link">
+        {post.data.image && (
+             <div class="card-image-wrapper">
+                <img src={post.data.image} alt={post.data.title} loading="lazy" />
+            </div>
+        )}
+        <div class="card-content">
+            <div class="meta">
+                <time>{post.data.pubDate.toLocaleDateString('es-ES', { dateStyle: 'long' })}</time>
+                {post.data.tags && (
+                    <div class="tags">
+                        {post.data.tags.slice(0, 2).map((tag: string) => (
+                             <span class="tag">#{tag}</span>
+                        ))}
+                    </div>
+                )}
+            </div>
+            <h3>{post.data.title}</h3>
+            <p>{post.data.description}</p>
+            <span class="read-more">Leer más &rarr;</span>
+        </div>
+    </a>
+</article>
+
+<style>
+    .blog-card {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .blog-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--color-primary);
+    }
+
+    .card-link {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .card-image-wrapper {
+        aspect-ratio: 16/9;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .card-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .blog-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .card-content {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .meta {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin-bottom: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .tags {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .tag {
+        color: var(--color-primary);
+        font-size: 0.75rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
+        font-weight: 700;
+        color: var(--color-text-heading);
+    }
+
+    p {
+        color: var(--color-text-muted);
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .read-more {
+        margin-top: auto;
+        color: var(--color-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: gap 0.2s ease;
+    }
+    
+    .blog-card:hover .read-more {
+        gap: 0.5rem;
+    }
+</style>

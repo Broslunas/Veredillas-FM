@@ -3,7 +3,7 @@
 // Persisted player component that listens for 'play-episode' events
 ---
 
-<div id="mini-player" class="mini-player hidden" transition:persist>
+<div id="mini-player" class="mini-player hidden" transition:persist="verified-player">
   <div class="player-wrapper">
       <div id="player-placeholder"></div>
       <button id="close-player" aria-label="Cerrar reproductor">
@@ -19,8 +19,7 @@
         }
     }
 
-    // Use a WeakSet or window flag to prevent duplicate listeners across navigations
-    // if the script is re-executed
+    // Initialize listener only once
     if (!window.hasGlobalPlayerListener) {
         window.hasGlobalPlayerListener = true;
 

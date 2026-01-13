@@ -22,7 +22,137 @@ const { title, description = "El podcast oficial de Veredillas." } = Astro.props
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		<title>{title} | Veredillas FM</title>
-        <ClientRouter />
+        
+        <script>
+            // Custom SPA Router to prevent Iframe Reloads
+            // This replaces Astro's ClientRouter because moving an iframe in DOM (which standard ViewTransitions does) forces a reload.
+            // By only swapping the <main> content, the footer/mini-player remain untouched in the DOM.
+
+            async function navigate(url: string, push = true) {
+                try {
+                    // Fetch new page
+                    const response = await fetch(url);
+                    const html = await response.text();
+                    
+                    // Parse
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // Handle New Styles (CSS)
+                    // We must inject new styles found in the fetched page to the current head
+                    const newHead = doc.head;
+                    const newStyles = newHead.querySelectorAll('style, link[rel="stylesheet"]');
+                    
+                    newStyles.forEach(newStyle => {
+                        let exists = false;
+                        if (newStyle.tagName === 'LINK') {
+                             const href = newStyle.getAttribute('href');
+                             if (href && document.head.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
+                                 exists = true;
+                             }
+                        } else if (newStyle.tagName === 'STYLE') {
+                             // Check text content to avoid duplicates
+                             const currentStyles = document.head.querySelectorAll('style');
+                             for (const style of currentStyles) {
+                                  if (style.innerHTML === newStyle.innerHTML) {
+                                      exists = true;
+                                      break;
+                                  }
+                             }
+                        }
+                        
+                        if (!exists) {
+                            document.head.appendChild(newStyle.cloneNode(true));
+                        }
+                    });
+                    
+                    // Handle New Scripts (Head)
+                    const newScripts = newHead.querySelectorAll('script');
+                    newScripts.forEach(newScript => {
+                        if (newScript.src) {
+                            if (!document.head.querySelector(`script[src="${newScript.src}"]`)) {
+                                const s = document.createElement('script');
+                                Array.from(newScript.attributes).forEach(attr => s.setAttribute(attr.name, attr.value));
+                                document.head.appendChild(s);
+                            }
+                        } else {
+                            // Inline head scripts - careful with duplicates, maybe ignore or check content?
+                            // For now, let's assume inline head scripts (like theme init) don't need re-running or we skip
+                        }
+                    });
+                    
+                    // Swap Content
+                    const oldMain = document.querySelector('main');
+                    const newMain = doc.querySelector('main');
+                    const newTitle = doc.querySelector('title');
+
+                    if (oldMain && newMain) {
+                        // Optional: Fade out effect
+                         oldMain.style.opacity = '0';
+                         oldMain.style.transition = 'opacity 0.2s';
+                         
+                         setTimeout(() => {
+                             oldMain.innerHTML = newMain.innerHTML;
+                             // Copy attributes/classes if main changed (e.g. layout shifts)
+                             oldMain.className = newMain.className;
+                             
+                             // EXECUTE SCRIPTS IN MAIN
+                             // innerHTML does not execute scripts. We must manually replace them.
+                             oldMain.querySelectorAll('script').forEach(script => {
+                                 const newScript = document.createElement('script');
+                                 Array.from(script.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                                 newScript.appendChild(document.createTextNode(script.innerHTML));
+                                 if (script.parentNode) script.parentNode.replaceChild(newScript, script);
+                             });
+                             
+                             // Scroll to top
+                             window.scrollTo(0, 0);
+                             
+                             oldMain.style.opacity = '1';
+
+                             // Update Title
+                             if (newTitle) document.title = newTitle.innerText;
+
+                             // Update History
+                             if (push) history.pushState({}, '', url);
+
+                             // Fire Astro Event
+                             // We wait a tick to ensure scripts have parsed/run
+                             setTimeout(() => {
+                                 document.dispatchEvent(new Event('astro:page-load'));
+                             }, 50);
+                         }, 200);
+                    }
+
+                } catch (e) {
+                    console.error("Navigation failed", e);
+                    window.location.href = url; // Fallback
+                }
+            }
+
+            // Intercept Clicks
+            document.addEventListener('click', (e) => {
+                const link = (e.target as Element).closest('a');
+                if (link) {
+                    const href = link.getAttribute('href');
+                    if (href && href.startsWith('/') && !href.startsWith('#') && !link.hasAttribute('download') && link.target !== '_blank') {
+                        e.preventDefault();
+                        navigate(href);
+                    }
+                }
+            });
+
+            // Handle Back/Forward
+            window.addEventListener('popstate', () => {
+                navigate(window.location.pathname, false);
+            });
+            
+            // Initial load event
+            document.addEventListener('DOMContentLoaded', () => {
+                 document.dispatchEvent(new Event('astro:page-load'));
+            });
+        </script>
+
         <script is:inline>
             // Initialize theme
             const theme = localStorage.getItem('theme');
@@ -38,7 +168,7 @@ const { title, description = "El podcast oficial de Veredillas." } = Astro.props
 			<slot />
 		</main>
 		<Footer />
-        <MiniPlayer transition:persist />
+        <MiniPlayer />
 	</body>
 </html>
 

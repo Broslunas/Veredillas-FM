@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import EpisodeCard from '../components/EpisodeCard.astro';
+import PostCard from '../components/PostCard.astro';
 import FeaturedSlider from '../components/FeaturedSlider.astro';
 import { getCollection } from 'astro:content';
 import 'swiper/css';
@@ -10,6 +11,9 @@ import 'swiper/css/pagination';
 const allEpisodes = await getCollection('episodios');
 // Get latest 6 episodes for the slider
 const recentEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 6);
+
+const allPosts = await getCollection('blog');
+const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);
 ---
 
 <Layout title="Inicio">
@@ -116,6 +120,27 @@ const recentEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.d
             <span>• ENTREVISTAS EXCLUSIVAS • MÚSICA EN VIVO • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA •</span>
         </div>
     </div>
+
+    <!-- Recent Posts Section -->
+    <section class="blog-section">
+        <div class="container">
+             <div class="section-header gs-fade-up">
+                 <div>
+                    <h2 class="section-title">Actualidad</h2>
+                    <p class="section-subtitle">Lo último que pasa en el Veredillas</p>
+                </div>
+                <div class="header-action">
+                     <a href="/blog" class="btn btn-outline">Leer el blog</a>
+                </div>
+            </div>
+
+            <div class="blog-grid gs-fade-up">
+                {recentPosts.map(post => (
+                    <PostCard post={post} />
+                ))}
+            </div>
+        </div>
+    </section>
 
     <!-- About Feature -->
     <section class="info-section">
@@ -621,6 +646,18 @@ const recentEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.d
     .info-card p {
         color: var(--color-text-muted);
         line-height: 1.6;
+    }
+
+    /* Blog Section */
+    .blog-section {
+        padding: 6rem 0;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
     }
 
     /* Marquee */
