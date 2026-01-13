@@ -1,0 +1,118 @@
+---
+import Layout from '../layouts/Layout.astro';
+import dbConnect from '../lib/mongodb';
+import Comment from '../models/Comment';
+
+export const prerender = false;
+
+const token = Astro.url.searchParams.get('token');
+let success = false;
+let message = '';
+let slug = '/';
+
+if (token) {
+  try {
+    await dbConnect();
+    // Use select('+verificationToken') because it is deselected by default
+    const comment = await Comment.findOne({ verificationToken: token }).select('+verificationToken');
+
+    if (comment) {
+      comment.isVerified = true;
+      comment.verificationToken = undefined; // Remove token to prevent reuse
+      await comment.save();
+      
+      success = true;
+      message = '¡Tu comentario ha sido verificado correctamente!';
+      slug = `/ep/${comment.slug}`; // Redirect back to episode
+    } else {
+      message = 'El enlace de verificación es inválido o ya ha sido usado.';
+    }
+  } catch (error) {
+    console.error(error);
+    message = 'Ocurrió un error al verificar el comentario.';
+  }
+} else {
+  message = 'No se proporcionó ningún token de verificación.';
+}
+---
+
+<Layout title="Verificación de Comentario">
+  <main class="verify-container">
+    <div class="verify-card">
+      <div class="icon">
+        {success ? '✅' : '❌'}
+      </div>
+      <h1>{success ? '¡Verificado!' : 'Error'}</h1>
+      <p>{message}</p>
+      
+      {success ? (
+        <a href={slug} class="btn btn-primary">Volver al episodio</a>
+      ) : (
+        <a href="/" class="btn btn-secondary">Volver al inicio</a>
+      )}
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .verify-container {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .verify-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    padding: 3rem;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+  }
+
+  .icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-family: var(--font-display);
+    color: var(--color-text-main);
+  }
+
+  p {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    border-radius: 99px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-main);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+  }
+</style>

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import Comments from '../../components/Comments.astro';
 
 export async function getStaticPaths() {
   const episodes = await getCollection('episodios');
@@ -77,6 +78,12 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                     </ul>
                 </div>
             </div>
+        </div>
+
+
+        <!-- Comments Section -->
+        <div class="container" style="max-width: 1000px; margin-bottom: 6rem;">
+            <Comments slug={entry.slug} />
         </div>
     </article>
 </Layout>
