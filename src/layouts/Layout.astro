@@ -23,6 +23,12 @@ const { title, description = "El podcast oficial de Veredillas." } = Astro.props
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		<title>{title} | Veredillas FM</title>
+		
+		<!-- RSS Feed -->
+		<link rel="alternate" type="application/rss+xml" title="Veredillas FM RSS Feed" href="/rss.xml" />
+		
+		<!-- Humans.txt -->
+		<link rel="author" type="text/plain" href="/humans.txt" />
         
         <script>
             // Custom SPA Router to prevent Iframe Reloads

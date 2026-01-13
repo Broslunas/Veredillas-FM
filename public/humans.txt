@@ -1,0 +1,15 @@
+/* TEAM */
+  Name: Equipo Veredillas FM
+  Site: https://veredillasfm.es
+  Email: contacto@veredillasfm.es
+  Location: Canarias, España
+
+/* DESIGN & DEVELOPMENT */
+  Name: Broslunas
+  Site: https://broslunas.com
+  Email: contacto@broslunas.com
+
+/* SITE */
+  Standards: HTML5, CSS3, Astro
+  Components: Accessible
+  Software: VS Code
