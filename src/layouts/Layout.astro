@@ -35,9 +35,9 @@ const { title, description = "El podcast oficial de Veredillas." } = Astro.props
             // This replaces Astro's ClientRouter because moving an iframe in DOM (which standard ViewTransitions does) forces a reload.
             // By only swapping the <main> content, the footer/mini-player remain untouched in the DOM.
 
-            const pageCache = new Map();
+            const pageCache = new Map<string, string>();
 
-            async function prefetch(url) {
+            async function prefetch(url: string) {
                 if (pageCache.has(url)) return;
                 try {
                     const response = await fetch(url);
@@ -50,12 +50,12 @@ const { title, description = "El podcast oficial de Veredillas." } = Astro.props
                 }
             }
 
-            async function navigate(url, push = true) {
+            async function navigate(url: string, push: boolean = true) {
                 try {
                     // Fetch new page (check cache first)
-                    let html;
+                    let html: string;
                     if (pageCache.has(url)) {
-                        html = pageCache.get(url);
+                        html = pageCache.get(url)!;
                     } else {
                         const response = await fetch(url);
                         html = await response.text();
