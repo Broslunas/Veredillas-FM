@@ -1,11 +1,532 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import EpisodeCard from '../components/EpisodeCard.astro';
+import { getCollection } from 'astro:content';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const allEpisodes = await getCollection('episodios');
+// Get latest 3 episodes
+const recentEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Inicio">
+    <!-- Background Decor Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 blur-[120px] rounded-full mix-blend-screen opacity-50 animate-pulse-slow"></div>
+        <div class="absolute top-[20%] right-[-5%] w-[400px] h-[400px] bg-blue-500/10 blur-[100px] rounded-full mix-blend-screen opacity-40"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <div class="badge fade-in-up">
+                    <span class="pulse-dot"></span>
+                    En vivo desde el instituto
+                </div>
+                <h1 class="fade-in-up delay-100">
+                    Tu voz, tu música, <br />
+                    <span class="text-gradient">Veredillas FM</span>
+                </h1>
+                <p class="hero-description fade-in-up delay-200">
+                    Descubre el talento de nuestros estudiantes. Historias fascinantes, entrevistas exclusivas y la mejor música, creada 100% en el Instituto Veredillas.
+                </p>
+                <div class="hero-actions fade-in-up delay-300">
+                    <a href="/episodios" class="btn btn-primary btn-lg">
+                        <span class="icon">▶</span> Escuchar ahora
+                    </a>
+                    <a href="/about" class="btn btn-outline btn-lg">
+                        Conoce el equipo
+                    </a>
+                </div>
+                
+                <div class="stats fade-in-up delay-300">
+                    <div class="stat-item">
+                        <span class="stat-val">{allEpisodes.length}+</span>
+                        <span class="stat-label">Episodios</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-val">100%</span>
+                        <span class="stat-label">Alumnos</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="hero-visual fade-in-up delay-200">
+                <div class="floating-cards">
+                    <div class="glass-card card-1 animate-float">
+                        <div class="card-icon">🎙️</div>
+                        <h3>Entrevistas</h3>
+                        <div class="wave-visual">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <div class="glass-card card-2 animate-float delay-1000">
+                        <div class="card-icon">🎸</div>
+                        <h3>Música</h3>
+                        <div class="album-art"></div>
+                    </div>
+                    <div class="glass-card card-3 animate-float delay-2000">
+                        <div class="card-icon">📻</div>
+                        <h3>Actualidad</h3>
+                    </div>
+                </div>
+                <div class="glow-bg"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features container">
+        <div class="section-badge">¿Por qué escucharnos?</div>
+        <h2>La voz de una <span class="text-gradient">nueva generación</span></h2>
+        
+        <div class="features-grid">
+            <div class="feature-card glass-panel">
+                <div class="feature-icon">🎓</div>
+                <h3>Hecho por Alumnos</h3>
+                <p>Todo el contenido es producido, grabado y editado por los estudiantes del centro.</p>
+            </div>
+            <div class="feature-card glass-panel">
+                <div class="feature-icon">🌍</div>
+                <h3>Temas Diversos</h3>
+                <p>Desde cultura y ciencia hasta deportes y entretenimiento. Hay algo para todos.</p>
+            </div>
+            <div class="feature-card glass-panel">
+                <div class="feature-icon">🚀</div>
+                <h3>Innovación</h3>
+                <p>Utilizamos las últimas tecnologías para llevar la radio escolar al siguiente nivel.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Latest Episodes -->
+    <section class="recent-episodes container">
+        <div class="section-header">
+            <div>
+                <h2>Últimos Episodios</h2>
+                <p class="section-subtitle">No te pierdas lo más reciente</p>
+            </div>
+            <a href="/episodios" class="view-all-btn">
+                Ver todos los episodios 
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+        
+        <div class="episodes-grid">
+            {recentEpisodes.map((post, index) => (
+                <div class={`fade-in-up delay-${(index + 1) * 100}`}>
+                    <EpisodeCard post={post} />
+                </div>
+            ))}
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box glass-panel">
+                <div class="cta-content">
+                    <h2>¿Quieres participar?</h2>
+                    <p>Si eres alumno del Veredillas y tienes algo que contar, ¡te esperamos!</p>
+                    <a href="/contact" class="btn btn-primary">Únete al equipo</a>
+                </div>
+                <div class="cta-visual">
+                    <span class="giant-emoji">👋</span>
+                </div>
+            </div>
+        </div>
+    </section>
 </Layout>
+
+<style>
+    /* Hero */
+    .hero {
+        position: relative;
+        padding: 8rem 0 4rem;
+        overflow: visible;
+    }
+
+    .hero-content {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: var(--spacing-2xl);
+        align-items: center;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: var(--radius-full);
+        color: var(--color-primary);
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--color-primary);
+        border-radius: 50%;
+        box-shadow: 0 0 0 rgba(139, 92, 246, 0.4);
+        animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+        0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+    }
+
+    h1 {
+        font-size: clamp(3.5rem, 6vw, 5rem);
+        line-height: 1.1;
+        margin-bottom: var(--spacing-lg);
+        letter-spacing: -0.03em;
+    }
+
+    .hero-description {
+        font-size: 1.25rem;
+        color: var(--color-text-muted);
+        margin-bottom: var(--spacing-xl);
+        max-width: 540px;
+        line-height: 1.6;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .btn-lg {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+    
+    .icon { margin-right: 0.5rem; font-size: 0.9em; }
+
+    .stats {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+        padding-top: var(--spacing-lg);
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-val {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--color-text-main);
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+    }
+    
+    .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: rgba(255,255,255,0.1);
+    }
+
+    /* Hero Visual */
+    .hero-visual {
+        position: relative;
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1000px;
+    }
+
+    .floating-cards {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    .glass-card {
+        position: absolute;
+        background: rgba(20, 20, 25, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    [data-theme="light"] .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(0, 0, 0, 0.05);
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-1 {
+        top: 10%;
+        right: 10%;
+        width: 220px;
+        height: 280px;
+        z-index: 2;
+        transform: rotate(-5deg);
+    }
+
+    .card-2 {
+        bottom: 15%;
+        left: 5%;
+        width: 200px;
+        height: 240px;
+        z-index: 3;
+        transform: rotate(3deg);
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(20, 20, 25, 0.8));
+    }
+
+    .card-3 {
+        top: 40%;
+        right: -5%;
+        width: 180px;
+        height: 180px;
+        z-index: 1;
+        transform: rotate(10deg);
+        filter: blur(1px);
+        opacity: 0.8;
+    }
+
+    .card-icon {
+        font-size: 3rem;
+        background: rgba(255,255,255,0.05);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .wave-visual {
+        display: flex;
+        gap: 4px;
+        align-items: flex-end;
+        height: 30px;
+    }
+    
+    .wave-visual span {
+        width: 4px;
+        background: var(--color-primary);
+        border-radius: 2px;
+        animation: wave 1s infinite ease-in-out;
+    }
+    .wave-visual span:nth-child(1) { height: 15px; animation-delay: 0s; }
+    .wave-visual span:nth-child(2) { height: 30px; animation-delay: 0.1s; }
+    .wave-visual span:nth-child(3) { height: 20px; animation-delay: 0.2s; }
+    .wave-visual span:nth-child(4) { height: 25px; animation-delay: 0.3s; }
+
+    @keyframes wave {
+        0%, 100% { transform: scaleY(1); }
+        50% { transform: scaleY(0.5); }
+    }
+
+    .glow-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at center, var(--color-primary-glow) 0%, transparent 70%);
+        filter: blur(60px);
+        z-index: 0;
+        opacity: 0.3;
+    }
+
+    /* Features */
+    .features {
+        padding: var(--spacing-2xl) var(--spacing-md);
+        text-align: center;
+    }
+    
+    .section-badge {
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .features h2 {
+        font-size: 2.5rem;
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .feature-card {
+        padding: var(--spacing-xl) var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .feature-card h3 {
+        margin-bottom: var(--spacing-sm);
+        font-size: 1.5rem;
+    }
+    
+    .feature-card p {
+        color: var(--color-text-muted);
+    }
+
+    /* Recent Episodes */
+    .recent-episodes {
+        padding: var(--spacing-2xl) var(--spacing-md);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .section-subtitle {
+        color: var(--color-text-muted);
+        margin-top: 0.5rem;
+    }
+
+    .view-all-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-text-main);
+        font-weight: 600;
+        transition: gap 0.2s ease;
+    }
+    
+    .view-all-btn:hover {
+        gap: 0.75rem;
+        color: var(--color-primary);
+    }
+
+    .episodes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    /* CTA Section */
+    .cta-section {
+        padding: var(--spacing-2xl) 0;
+    }
+
+    .cta-box {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        background: linear-gradient(135deg, rgba(20, 20, 25, 0.9), rgba(139, 92, 246, 0.1));
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2xl);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .cta-content {
+        z-index: 2;
+    }
+    
+    .cta-content h2 {
+        font-size: 2.5rem;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .cta-content p {
+        color: var(--color-text-muted);
+        font-size: 1.25rem;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .cta-visual {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .giant-emoji {
+        font-size: 10rem;
+        position: absolute;
+        right: -20px;
+        transform: rotate(15deg);
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        transition: transform 0.3s ease;
+    }
+    
+    .cta-box:hover .giant-emoji {
+        transform: rotate(25deg) scale(1.1);
+    }
+
+    @media (max-width: 960px) {
+        .hero-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .hero-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-actions {
+            justify-content: center;
+        }
+        
+        .stats {
+            justify-content: center;
+        }
+
+        .hero-visual {
+            margin-top: var(--spacing-xl);
+            height: 400px;
+        }
+        
+        .card-1 { right: 50%; transform: translateX(50%) rotate(-5deg); top: 0; }
+        .card-2 { left: 50%; transform: translateX(-80%) rotate(5deg); bottom: 10%; }
+        .card-3 { display: none; }
+        
+        .cta-box {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+        
+        .cta-visual {
+            display: none;
+        }
+    }
+</style>

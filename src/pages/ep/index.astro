@@ -1,0 +1,52 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import EpisodeCard from '../../components/EpisodeCard.astro';
+import { getCollection } from 'astro:content';
+
+const allEpisodes = await getCollection('episodios');
+const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title="EP">
+    <div class="container page-header">
+        <h1>Veredillas EP</h1>
+        <p class="subtitle">Extended Play: Nuestros episodios y podcasts</p>
+    </div>
+
+    <div class="container">
+        <div class="episodes-grid">
+            {sortedEpisodes.map((post, index) => (
+                <div class={`fade-in-up delay-${(index % 3 + 1) * 100}`}>
+                     <EpisodeCard post={post} />
+                </div>
+            ))}
+        </div>
+    </div>
+</Layout>
+
+<style>
+    .page-header {
+        padding: var(--spacing-2xl) var(--spacing-md);
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-sm);
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+        color: var(--color-text-muted);
+        font-size: 1.25rem;
+    }
+
+    .episodes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-2xl);
+    }
+</style>

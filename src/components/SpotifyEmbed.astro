@@ -1,0 +1,59 @@
+---
+interface Props {
+  url: string;
+  width?: string;
+  height?: string;
+  compact?: boolean;
+}
+
+const { url, width = "100%", height = "152", compact = false } = Astro.props;
+
+// Helper to convert standard Spotify URL to Embed URL
+function getEmbedUrl(inputUrl: string) {
+  try {
+    const urlObj = new URL(inputUrl);
+    // If already an embed URL, return as is
+    if (urlObj.pathname.includes('/embed/')) {
+        return inputUrl;
+    }
+    // If it's a track/episode/show/playlist URL, add /embed/
+    // input: https://open.spotify.com/episode/xyz
+    // output: https://open.spotify.com/embed/episode/xyz
+    
+    // Check if it already has 'embed' in path segments (handle edge cases)
+    const segments = urlObj.pathname.split('/').filter(Boolean);
+    if (segments[0] !== 'embed') {
+        return `${urlObj.origin}/embed${urlObj.pathname}`;
+    }
+    return inputUrl;
+  } catch (e) {
+    return inputUrl;
+  }
+}
+
+const finalUrl = getEmbedUrl(url);
+const finalHeight = compact ? "80" : height;
+---
+
+<div class="spotify-embed-container">
+    <iframe 
+        style="border-radius:12px" 
+        src={finalUrl} 
+        width={width} 
+        height={finalHeight} 
+        frameborder="0" 
+        allowfullscreen="" 
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+        loading="lazy">
+    </iframe>
+</div>
+
+<style>
+    .spotify-embed-container {
+        width: 100%;
+        margin: var(--spacing-md) 0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border-radius: 12px;
+        background: #282828; /* Spotify placeholder color */
+    }
+</style>

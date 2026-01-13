@@ -1,0 +1,128 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog');
+const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title="Blog">
+    <div class="container page-header">
+        <h1>Blog Veredillas</h1>
+        <p class="subtitle">Noticias, historias y el día a día de nuestro instituto.</p>
+    </div>
+
+    <div class="container blog-grid">
+        {sortedPosts.map(post => (
+            <article class="blog-card glass-panel">
+                <a href={`/blog/${post.slug}`} class="card-link">
+                    {post.data.image && (
+                         <div class="card-image-wrapper">
+                            <img src={post.data.image} alt={post.data.title} loading="lazy" />
+                        </div>
+                    )}
+                    <div class="card-content">
+                        <div class="meta">
+                            <time>{post.data.pubDate.toLocaleDateString('es-ES', { dateStyle: 'long' })}</time>
+                        </div>
+                        <h2>{post.data.title}</h2>
+                        <p>{post.data.description}</p>
+                        <span class="read-more">Leer más &rarr;</span>
+                    </div>
+                </a>
+            </article>
+        ))}
+    </div>
+</Layout>
+
+<style>
+    .page-header {
+        padding: var(--spacing-2xl) var(--spacing-md);
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .subtitle {
+        color: var(--color-text-muted);
+        font-size: 1.25rem;
+    }
+
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: var(--spacing-lg);
+        padding-bottom: var(--spacing-2xl);
+    }
+
+    .blog-card {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .blog-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--color-primary);
+    }
+
+    .card-link {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .card-image-wrapper {
+        aspect-ratio: 16/9;
+        overflow: hidden;
+    }
+
+    .card-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .blog-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .card-content {
+        padding: var(--spacing-lg);
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .meta {
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-sm);
+        line-height: 1.2;
+    }
+
+    p {
+        color: var(--color-text-muted);
+        margin-bottom: var(--spacing-lg);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .read-more {
+        margin-top: auto;
+        color: var(--color-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+</style>

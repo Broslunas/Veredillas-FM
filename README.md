@@ -1,46 +1,46 @@
-# Astro Starter Kit: Basics
+# Veredillas FM Website
 
-```sh
-npm create astro@latest -- --template basics
+Este es el sitio web oficial para el podcast escolar Veredillas FM.
+
+## 🚀 Cómo empezar
+
+1.  Instala dependencias:
+    ```bash
+    npm install
+    ```
+2.  Inicia el servidor de desarrollo:
+    ```bash
+    npm run dev
+    ```
+
+## 🎙️ Cómo publicar un nuevo episodio
+
+1.  Ve a la carpeta `src/content/ep/`.
+2.  Crea un nuevo archivo `.md` (ejemplo: `entrevista-director.md`).
+3.  Copia el siguiente formato:
+
+```markdown
+---
+title: "Título del Episodio"
+description: "Breve descripción de qué trata este episodio."
+pubDate: 2025-11-20
+author: "Equipo de Radio"
+spotifyUrl: "https://open.spotify.com/episode/TU_ENLACE_DE_SPOTIFY"
+duration: "25 min"
+season: 1
+episode: 3
+---
+
+Aquí escribe las notas del programa. Puedes usar:
+- Listas
+- **Negritas**
+- Enlaces
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+4.  Guarda el archivo. ¡El episodio aparecerá automáticamente en la web!
 
-## 🚀 Project Structure
+## 🎨 Personalización
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
-
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+-   **Estilos Globales**: `src/styles/global.css`
+-   **Componentes**: `src/components/`
+-   **Páginas**: `src/pages/`

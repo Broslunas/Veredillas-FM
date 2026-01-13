@@ -1,0 +1,221 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+	post: CollectionEntry<'episodios'>;
+}
+
+const { post } = Astro.props;
+
+// Format date
+const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+});
+---
+
+<article class="episode-card glass-panel group">
+	<a href={`/ep/${post.slug}`} class="card-link">
+        {post.data.image ? (
+            <div class="card-image-wrapper">
+                <img src={post.data.image} alt={post.data.title} class="card-image" />
+                <div class="play-overlay">
+                    <span class="play-icon">▶</span>
+                </div>
+            </div>
+        ) : (
+            <div class="card-image-placeholder">
+                <span class="placeholder-icon">🎙️</span>
+                 <div class="play-overlay">
+                    <span class="play-icon">▶</span>
+                </div>
+            </div>
+        )}
+        
+		<div class="card-content">
+            <div class="meta">
+                <span class="season-badge">Temporada {post.data.season || 1} • Ep. {post.data.episode || 1}</span>
+                <time datetime={post.data.pubDate.toISOString()}>{formattedDate}</time>
+            </div>
+            
+			<h3 class="title group-hover:text-primary transition-colors">{post.data.title}</h3>
+            
+            <p class="description">
+                {post.data.description}
+            </p>
+            
+            <div class="footer-meta">
+                <span class="duration">⏱️ {post.data.duration || 'N/A'}</span>
+                <span class="listen-text">Escuchar</span>
+            </div>
+		</div>
+	</a>
+</article>
+
+<style>
+	.episode-card {
+		border-radius: var(--radius-lg);
+		transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+	}
+
+    .episode-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--color-primary);
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+    }
+    
+    [data-theme="light"] .episode-card:hover {
+         box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
+    }
+
+	.card-link {
+		text-decoration: none;
+		color: inherit;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+	}
+
+    .card-image-wrapper, .card-image-placeholder {
+        width: 100%;
+        height: 180px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .episode-card:hover .card-image {
+        transform: scale(1.05);
+    }
+
+    .card-image-placeholder {
+        background: linear-gradient(135deg, var(--color-surface-hover), var(--color-surface));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .placeholder-icon {
+        font-size: 3rem;
+        opacity: 0.5;
+    }
+
+    /* Play Overlay */
+    .play-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        backdrop-filter: blur(2px);
+    }
+
+    .episode-card:hover .play-overlay {
+        opacity: 1;
+    }
+
+    .play-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--color-primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        padding-left: 4px; /* Optical center adjustment */
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        transform: scale(0.8);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .episode-card:hover .play-icon {
+        transform: scale(1);
+    }
+
+    .card-content {
+        padding: var(--spacing-lg);
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        margin-bottom: var(--spacing-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    
+    .season-badge {
+        color: var(--color-secondary);
+    }
+
+	.title {
+		font-size: 1.25rem;
+		margin-bottom: var(--spacing-sm);
+		line-height: 1.3;
+        color: var(--color-text-main);
+        font-weight: 700;
+	}
+
+    .description {
+        color: var(--color-text-muted);
+        margin-bottom: var(--spacing-lg); /* Space before footer */
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        flex-grow: 1; /* Pushes footer down */
+    }
+
+    .footer-meta {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        padding-top: var(--spacing-md);
+        font-size: 0.875rem;
+        color: var(--color-text-dim);
+    }
+    
+    [data-theme="light"] .footer-meta {
+        border-top-color: rgba(0,0,0,0.05);
+    }
+
+    .listen-text {
+        color: var(--color-primary);
+        font-weight: 600;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: all 0.3s ease;
+    }
+    
+    .episode-card:hover .listen-text {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>

@@ -1,0 +1,151 @@
+<button id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema">
+    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+</button>
+
+<script>
+    function setupThemeToggle() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // Ensure button exists safely
+        if (!themeToggle) return;
+
+        // Cleanup previous listeners if any (though setupThemeToggle usually runs once per nav in View Transitions)
+        const toggleTheme = (e: MouseEvent) => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            // Check if View Transitions API is supported
+            if (document.startViewTransition) {
+                 const x = e.clientX;
+                 const y = e.clientY;
+                 const endRadius = Math.hypot(
+                     Math.max(x, innerWidth - x),
+                     Math.max(y, innerHeight - y)
+                 );
+
+                const transition = document.startViewTransition(() => {
+                    html.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                });
+
+                transition.ready.then(() => {
+                    const clipPath = [
+                        `circle(0px at ${x}px ${y}px)`,
+                        `circle(${endRadius}px at ${x}px ${y}px)`
+                    ];
+                    document.documentElement.animate(
+                        {
+                            clipPath: currentTheme === 'light' ? [...clipPath].reverse() : clipPath,
+                        },
+                        {
+                            duration: 500,
+                            easing: 'ease-in-out',
+                            pseudoElement: currentTheme === 'light' 
+                                ? '::view-transition-old(root)' 
+                                : '::view-transition-new(root)',
+                        }
+                    );
+                });
+            } else {
+                // Fallback for browsers without View Transitions
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            }
+        };
+
+        themeToggle.addEventListener('click', (e) => toggleTheme(e as MouseEvent));
+    }
+    
+    // Initial setup
+    setupThemeToggle();
+
+    // Re-run setup on View Transitions navigation
+    document.addEventListener('astro:page-load', setupThemeToggle);
+</script>
+
+<style>
+    .theme-toggle {
+        background: transparent;
+        border: 1px solid var(--color-border);
+        color: var(--color-text-main);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .theme-toggle:hover {
+        background: var(--color-surface);
+        border-color: var(--color-text-main);
+        transform: scale(1.05);
+    }
+    
+    .theme-toggle:active {
+        transform: scale(0.95);
+    }
+
+    /* Icon visibility logic */
+    :global([data-theme="light"]) .sun-icon {
+        display: none;
+    }
+    :global([data-theme="light"]) .moon-icon {
+        display: block;
+        animation: rotate-in 0.5s ease;
+    }
+
+    :global(:root:not([data-theme="light"])) .sun-icon {
+        display: block;
+        animation: rotate-in 0.5s ease;
+    }
+    :global(:root:not([data-theme="light"])) .moon-icon {
+        display: none;
+    }
+
+    @keyframes rotate-in {
+        from { transform: rotate(-90deg) scale(0.5); opacity: 0; }
+        to { transform: rotate(0) scale(1); opacity: 1; }
+    }
+
+    /* View Transition CSS specific for the circular clip effect */
+    :global(::view-transition-old(root)),
+    :global(::view-transition-new(root)) {
+        animation: none;
+        mix-blend-mode: normal;
+    }
+    
+    :global(::view-transition-old(root)) {
+        z-index: 1;
+    }
+    :global(::view-transition-new(root)) {
+        z-index: 9999;
+    }
+    
+    /* Ensure the toggle button stays on top during transition if needed */
+    :global([data-theme="dark"]::view-transition-old(root)) {
+        z-index: 9999;
+    }
+    :global([data-theme="dark"]::view-transition-new(root)) {
+        z-index: 1;
+    }
+</style>

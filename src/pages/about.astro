@@ -1,0 +1,181 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const team = [
+  { name: 'Abel Fernández', role: 'Guionista' },
+  { name: 'Pablo Luna', role: 'Web, Sonido y Programación', link: 'https://broslunas.com' },
+  { name: 'Pablo Santamaría', role: 'Diseño Web y Sonido' },
+  { name: 'Omar Reyes', role: 'Diseñador Web' },
+  { name: 'Dylan Jorge', role: 'Redactor Jefe' },
+  { name: 'Pablo Pérez', role: 'Integrante del Podcast' },
+  { name: 'Miguel Salazar', role: 'Estrategia Digital' },
+];
+---
+
+<Layout title="Sobre Nosotros">
+    <div class="container about-page">
+        <section class="intro">
+            <h1>Sobre Veredillas FM</h1>
+            <p class="big-text">
+                Impulsado por los estudiantes de 2º de Bachillerato B. <br/>
+                Donde te mantenemos al pendiente de los temas y salseos del insti.
+            </p>
+        </section>
+
+        <section class="mission">
+            <div class="mission-grid">
+                <div class="card">
+                    <h3>🎙️ Misión</h3>
+                    <p>Proporcionar un espacio dinámico y accesible para la libre expresión, el debate constructivo y el entretenimiento dentro del marco escolar, facilitando la interacción entre estudiantes y docentes.</p>
+                </div>
+                <div class="card">
+                    <h3>👁️ Visión</h3>
+                    <p>Convertirnos en el referente de comunicación digital del instituto, demostrando cómo la aplicación práctica de habilidades técnicas y de comunicación puede enriquecer la experiencia educativa.</p>
+                </div>
+                <div class="card">
+                    <h3>🎧 Contenido y Emisión</h3>
+                    <p>Temática universal abordando asuntos de relevancia social, cultural y académica. Un nuevo episodio lanzado semanalmente.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="team">
+            <h2>Equipo de Producción</h2>
+            <div class="team-grid">
+                {team.map(member => (
+                    <div class="member-card">
+                        <div class="avatar-placeholder">{member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>
+                        <h3>
+                            {member.link ? (
+                                <a href={member.link} target="_blank" rel="noopener noreferrer" class="member-link">
+                                    {member.name}
+                                </a>
+                            ) : (
+                                member.name
+                            )}
+                        </h3>
+                        <p>{member.role}</p>
+                    </div>
+                ))}
+            </div>
+        </section>
+    </div>
+</Layout>
+
+<style>
+    .about-page {
+        padding: var(--spacing-2xl) var(--spacing-md);
+    }
+
+    .intro {
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto var(--spacing-2xl);
+    }
+
+    .intro h1 {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .big-text {
+        font-size: 1.5rem;
+        color: var(--color-text-muted);
+        line-height: 1.4;
+    }
+
+    .mission-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .card {
+        background: var(--color-surface);
+        padding: var(--spacing-xl);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-border);
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        border-color: var(--color-primary);
+    }
+
+    .card h3 {
+        color: var(--color-primary);
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .card p {
+        color: var(--color-text-muted);
+        line-height: 1.6;
+    }
+
+    .team h2 {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .member-card {
+        text-align: center;
+        background: var(--color-surface);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-border);
+        transition: all 0.3s ease;
+    }
+
+    .member-card:hover {
+        background: var(--color-surface-hover);
+        transform: scale(1.02);
+    }
+
+    .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        border-radius: 50%;
+        margin: 0 auto var(--spacing-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+        text-transform: uppercase;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    
+    .member-card h3 {
+        font-size: 1.25rem;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .member-link {
+        text-decoration: none;
+        color: inherit;
+        border-bottom: 1px dashed var(--color-text-muted);
+        transition: color 0.2s;
+    }
+    
+    .member-link:hover {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+    }
+
+    .member-card p {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+</style>

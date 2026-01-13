@@ -1,0 +1,132 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(entry => ({
+    params: { slug: entry.slug }, props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+
+const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+});
+---
+
+<Layout title={entry.data.title} description={entry.data.description}>
+    <article class="blog-post container-sm">
+        <header class="post-header">
+             <div class="meta">
+                <time>{formattedDate}</time>
+                <span class="dot">•</span>
+                <span class="author">{entry.data.author}</span>
+            </div>
+            <h1>{entry.data.title}</h1>
+            {entry.data.image && (
+                <div class="featured-image">
+                    <img src={entry.data.image} alt={entry.data.title} />
+                </div>
+            )}
+        </header>
+
+        <div class="post-content">
+            <Content />
+        </div>
+    </article>
+</Layout>
+
+<style>
+    .container-sm {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 var(--spacing-md);
+    }
+
+    .post-header {
+        padding: var(--spacing-2xl) 0 var(--spacing-lg);
+        text-align: center;
+    }
+
+    .meta {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+        margin-bottom: var(--spacing-md);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .dot { margin: 0 var(--spacing-sm); }
+
+    h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        margin-bottom: var(--spacing-xl);
+        line-height: 1.1;
+    }
+
+    .featured-image {
+        margin: 0 -2rem var(--spacing-2xl);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
+    }
+
+    .featured-image img {
+        width: 100%;
+        height: auto;
+    }
+
+    .post-content {
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: var(--color-text-main);
+        padding-bottom: var(--spacing-2xl);
+    }
+
+    /* Markdown Typography */
+    .post-content :global(p) {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .post-content :global(h2) {
+        font-size: 1.75rem;
+        margin-top: var(--spacing-2xl);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .post-content :global(h3) {
+        font-size: 1.4rem;
+        margin-top: var(--spacing-xl);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .post-content :global(ul), .post-content :global(ol) {
+        margin-bottom: var(--spacing-lg);
+        padding-left: var(--spacing-lg);
+    }
+    
+    .post-content :global(li) {
+        margin-bottom: 0.5rem;
+    }
+
+    .post-content :global(a) {
+        color: var(--color-primary);
+        text-decoration: underline;
+    }
+    
+    .post-content :global(img) {
+        border-radius: var(--radius-md);
+        margin: var(--spacing-lg) 0;
+    }
+    
+    @media (max-width: 768px) {
+        .featured-image {
+            margin: 0 0 var(--spacing-xl);
+        }
+    }
+</style>
