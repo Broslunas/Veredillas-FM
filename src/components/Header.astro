@@ -6,7 +6,15 @@ const navItems = [
   { label: 'EP', href: '/ep', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="8" x2="16" y1="22" y2="22"/></svg>' },
   { label: 'Calendario', href: '/calendario', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
   { label: 'Equipo', href: '/about', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+  { label: 'Contacto', href: '/contacto', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>' },
 ];
+
+const currentPath = Astro.url.pathname;
+
+const isActive = (href: string) => {
+    if (href === '/') return currentPath === '/';
+    return currentPath.startsWith(href);
+};
 ---
 
 <header class="header-wrapper">
@@ -24,7 +32,7 @@ const navItems = [
       <ul class="nav-list">
         {navItems.map((item) => (
           <li>
-            <a href={item.href} class="nav-link">
+            <a href={item.href} class={`nav-link ${isActive(item.href) ? 'active' : ''}`}>
               <span class="nav-icon" set:html={item.icon}></span>
               <span class="nav-text">{item.label}</span>
             </a>
@@ -165,12 +173,21 @@ const navItems = [
       background: rgba(0, 0, 0, 0.05);
   }
 
+  /* Active State - New Visual style */
   .nav-link.active {
-      color: var(--color-text-main);
+      color: #3b82f6; /* Blue-500 equivalent */
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 600;
+  }
+  
+  :global([data-theme="light"]) .nav-link.active {
+      color: var(--color-primary);
+      background: rgba(0, 0, 0, 0.05);
   }
 
   .nav-icon {
       font-size: 1.1rem;
+      display: flex;
   }
 
   /* Divider */
@@ -226,25 +243,96 @@ const navItems = [
           padding: var(--spacing-sm);
       }
       
+      .nav-links {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: var(--color-surface); /* Fallback */
+          background: rgba(14, 14, 17, 0.95);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
+          border-top: 1px solid var(--color-border);
+          justify-content: space-around;
+          z-index: 999; /* Below MiniPlayer (9999) */
+          display: flex;
+          box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+      }
+
+      [data-theme="light"] .nav-links {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+      }
+      
       .nav-text {
-          display: none; /* Hide text, show icons only on mobile */
+          display: none;
       }
       
       .nav-pill {
-          gap: 0.75rem;
-          padding: 0.4rem 0.75rem;
+          padding: 0.5rem;
+          background: transparent;
+          border: none;
+          color: var(--color-text-dim);
+          border-radius: 50%;
       }
       
+      .nav-pill.active {
+          color: var(--color-primary);
+          background: rgba(139, 92, 246, 0.1);
+      }
+
       .divider {
           display: none;
       }
 
       .logo-text {
-          display: none; /* Just icon on very small screens */
+          display: block; /* Keep logo visible on top */
+          font-size: 1.1rem;
       }
       
       .logo-pill {
           padding-right: 0.5rem;
+          background: transparent;
+          border: none;
+      }
+      
+      .logo-pill .logo-icon {
+           width: 32px;
+           height: 32px;
+      }
+      
+      .header-right {
+           gap: 0.5rem;
+      }
+      
+      /* Ensure body has padding bottom for nav bar */
+      :global(body) {
+          padding-bottom: 80px; 
       }
   }
 </style>
+
+<script>
+  // Update active state on navigation (Client-side)
+  document.addEventListener('astro:page-load', () => {
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      // Normalize paths (remove trailing slashes for comparison if needed)
+      // Simple logic: Exact match for home, startsWith for others
+      if (href === '/') {
+        if (currentPath === '/') link.classList.add('active');
+        else link.classList.remove('active');
+      } else {
+         if (href && currentPath.startsWith(href)) {
+             link.classList.add('active');
+         } else {
+             link.classList.remove('active');
+         }
+      }
+    });
+  });
+</script>

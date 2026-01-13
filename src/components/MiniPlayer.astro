@@ -242,7 +242,8 @@
                 top 0.5s ease, 
                 left 0.5s ease, 
                 width 0.5s ease, 
-                height 0.5s ease;
+                height 0.5s ease,
+                bottom 0.3s ease; /* Animate bottom change */
   }
   
   .mini-player.hidden {
@@ -275,6 +276,19 @@
        max-width: 600px; /* Slightly narrower for better aesthetic */
        margin: 0 auto;
        height: 152px !important; /* Force standard Spotify embed height */
+  }
+
+  /* Floating Mobile Adjustment */
+  @media (max-width: 768px) {
+      .mini-player.floating.visible {
+          bottom: 74px; /* Height of bottom nav (approx) + padding */
+      }
+      
+      .mini-player.floating .player-wrapper {
+          border-radius: 12px;
+          margin: 0 10px; /* Side margins */
+          width: calc(100% - 20px);
+      }
   }
 
   /* Inline Specifics */

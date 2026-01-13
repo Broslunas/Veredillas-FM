@@ -57,21 +57,55 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
                 </div>
 
                 <div class="hero-visual gs-visual">
-                    <div class="vinyl-container">
-                        <div class="vinyl-record">
-                            <div class="vinyl-label">
-                                <img src="/logo.png" alt="VFM" class="vinyl-logo-img" />
+                    {recentEpisodes.length > 0 ? (
+                        <a href={`/ep/${recentEpisodes[0].slug}`} class="vinyl-container" aria-label={`Escuchar ${recentEpisodes[0].data.title}`}>
+                            <div class="vinyl-record">
+                                <div class="vinyl-label">
+                                    <img src="/logo.png" alt="VFM" class="vinyl-logo-img" />
+                                </div>
                             </div>
-                        </div>
-                        <div class="vinyl-cover">
-                            <div class="cover-art">
-                                <div class="spectrum-bars">
-                                    <span></span><span></span><span></span><span></span><span></span>
-                                    <span></span><span></span><span></span><span></span><span></span>
+                            <div class="vinyl-cover">
+                                <img 
+                                    src={recentEpisodes[0].data.image} 
+                                    alt={recentEpisodes[0].data.title}
+                                />
+                                <div class="spectrum-overlay">
+                                    <div class="vinyl-meta-top">
+                                        <h3 class="vinyl-title">{recentEpisodes[0].data.title}</h3>
+                                    </div>
+                                    <div class="spectrum-bars">
+                                        <span></span><span></span><span></span><span></span><span></span>
+                                        <span></span><span></span><span></span><span></span><span></span>
+                                    </div>
+                                    <div class="vinyl-meta-bottom">
+                                        <time class="vinyl-date">
+                                            {recentEpisodes[0].data.pubDate.toLocaleDateString('es-ES', { 
+                                                year: 'numeric', 
+                                                month: 'long', 
+                                                day: 'numeric' 
+                                            })}
+                                        </time>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    ) : (
+                        <div class="vinyl-container">
+                            <div class="vinyl-record">
+                                <div class="vinyl-label">
+                                    <img src="/logo.png" alt="VFM" class="vinyl-logo-img" />
+                                </div>
+                            </div>
+                            <div class="vinyl-cover">
+                                <div class="cover-art">
+                                    <div class="spectrum-bars">
+                                        <span></span><span></span><span></span><span></span><span></span>
+                                        <span></span><span></span><span></span><span></span><span></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -116,8 +150,8 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
     <!-- Marquee Text -->
     <div class="marquee-container">
         <div class="marquee-content">
-            <span>• ENTREVISTAS EXCLUSIVAS • MÚSICA EN VIVO • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA •</span>
-            <span>• ENTREVISTAS EXCLUSIVAS • MÚSICA EN VIVO • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA •</span>
+            <span>• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
+            <span>• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
         </div>
     </div>
 
@@ -177,7 +211,7 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
             <div class="cta-inner gs-scale-up">
                 <h2>¿Tienes algo que contar?</h2>
                 <p>El micrófono está abierto para ti. Únete al equipo de Veredillas FM.</p>
-                <a href="/contact" class="btn btn-primary btn-xl">Participar</a>
+                <a href="/contacto" class="btn btn-primary btn-xl">Participar</a>
             </div>
         </div>
     </section>
@@ -739,5 +773,66 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
             align-items: flex-start;
             gap: 1rem;
         }
+    }
+
+    /* Vinyl New Styles */
+    a.vinyl-container {
+        display: block;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .vinyl-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+    .spectrum-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+    }
+
+    .vinyl-meta-top {
+        width: 100%;
+        text-align: center;
+    }
+
+    .vinyl-title {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: white;
+        text-transform: uppercase;
+        line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .vinyl-meta-bottom {
+        width: 100%;
+        text-align: center;
+    }
+
+    .vinyl-date {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        background: rgba(0,0,0,0.3);
+        padding: 0.25rem 0.75rem;
+        border-radius: 100px;
+        backdrop-filter: blur(4px);
     }
 </style>

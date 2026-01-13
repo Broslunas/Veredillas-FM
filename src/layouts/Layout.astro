@@ -29,11 +29,33 @@ const { title, description = "El podcast oficial de Veredillas." } = Astro.props
             // This replaces Astro's ClientRouter because moving an iframe in DOM (which standard ViewTransitions does) forces a reload.
             // By only swapping the <main> content, the footer/mini-player remain untouched in the DOM.
 
-            async function navigate(url: string, push = true) {
+            const pageCache = new Map();
+
+            async function prefetch(url) {
+                if (pageCache.has(url)) return;
                 try {
-                    // Fetch new page
                     const response = await fetch(url);
-                    const html = await response.text();
+                    if (response.ok) {
+                        const html = await response.text();
+                        pageCache.set(url, html);
+                    }
+                } catch (e) {
+                    console.log("Prefetch failed", e);
+                }
+            }
+
+            async function navigate(url, push = true) {
+                try {
+                    // Fetch new page (check cache first)
+                    let html;
+                    if (pageCache.has(url)) {
+                        html = pageCache.get(url);
+                    } else {
+                        const response = await fetch(url);
+                        html = await response.text();
+                        // Cache it for subsequent back/forward navs
+                        pageCache.set(url, html);
+                    }
                     
                     // Parse
                     const parser = new DOMParser();
@@ -130,6 +152,27 @@ const { title, description = "El podcast oficial de Veredillas." } = Astro.props
                     window.location.href = url; // Fallback
                 }
             }
+            
+            // Prefetch on hover
+            document.addEventListener('mouseover', (e) => {
+                const link = (e.target as Element).closest('a');
+                if (link) {
+                    const href = link.getAttribute('href');
+                     if (href && href.startsWith('/') && !href.startsWith('#') && !link.hasAttribute('download') && link.target !== '_blank') {
+                        prefetch(href);
+                    }
+                }
+            });
+            
+            document.addEventListener('touchstart', (e) => {
+                 const link = (e.target as Element).closest('a');
+                 if (link) {
+                     const href = link.getAttribute('href');
+                      if (href && href.startsWith('/') && !href.startsWith('#') && !link.hasAttribute('download') && link.target !== '_blank') {
+                         prefetch(href);
+                     }
+                 }
+            }, { passive: true });
 
             // Intercept Clicks
             document.addEventListener('click', (e) => {
