@@ -40,6 +40,7 @@
                 const transition = document.startViewTransition(() => {
                     html.setAttribute('data-theme', newTheme);
                     localStorage.setItem('theme', newTheme);
+                    document.cookie = `theme=${newTheme}; path=/; max-age=31536000; SameSite=Lax`;
                 });
 
                 transition.ready.then(() => {
@@ -64,6 +65,7 @@
                 // Fallback for browsers without View Transitions
                 html.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
+                document.cookie = `theme=${newTheme}; path=/; max-age=31536000; SameSite=Lax`;
             }
         };
 

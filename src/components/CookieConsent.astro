@@ -1,0 +1,120 @@
+---
+// src/components/CookieConsent.astro
+---
+<div id="cookie-consent" class="cookie-banner hidden">
+    <div class="cookie-content">
+        <p>
+            Utilizamos <strong>cookies</strong> para recordar tu tema preferido y mejorar tu experiencia. 
+            Al continuar navegando, aceptas su uso.
+        </p>
+        <button id="accept-cookies" class="btn btn-primary btn-sm">
+            Entendido
+        </button>
+    </div>
+</div>
+
+<script>
+    function checkCookieConsent() {
+        // We can check localStorage or a specific "consent" cookie
+        const content = localStorage.getItem('cookie-consent');
+        const banner = document.getElementById('cookie-consent');
+        
+        if (!content && banner) {
+            // Show banner if not accepted yet
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('visible');
+            }, 100);
+            
+            const btn = document.getElementById('accept-cookies');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    localStorage.setItem('cookie-consent', 'true');
+                    banner.classList.remove('visible');
+                    setTimeout(() => {
+                        banner.classList.add('hidden');
+                    }, 300);
+                });
+            }
+        }
+    }
+
+    // Run on initial load and view transitions
+    document.addEventListener('astro:page-load', checkCookieConsent);
+    // Also run immediately just in case
+    checkCookieConsent();
+</script>
+
+<style>
+    .cookie-banner {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 100%;
+        max-width: 400px;
+        background: rgba(15, 15, 20, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: var(--radius-lg);
+        z-index: 9990; /* Below MiniPlayer (9999) */
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        display: none;
+    }
+    
+    .cookie-banner.visible {
+        opacity: 1;
+        transform: translateY(0);
+        display: block;
+    }
+
+    /* Wait, display block needs to be set before opacity transition */
+    .cookie-banner:not(.hidden) {
+        display: block;
+    }
+
+    :global([data-theme="light"]) .cookie-banner {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(0,0,0,0.1);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    .cookie-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .cookie-content p {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+        line-height: 1.5;
+        margin: 0;
+    }
+    
+    .cookie-content strong {
+        color: var(--color-text-main);
+    }
+    
+    .btn-sm {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+        .cookie-banner {
+            bottom: 0;
+            right: 0;
+            left: 0;
+            max-width: 100%;
+            border-radius: 0;
+            border-top-left-radius: var(--radius-lg);
+            border-top-right-radius: var(--radius-lg);
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+    }
+</style>

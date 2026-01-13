@@ -42,15 +42,7 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
         <!-- Player -->
         <div class="player-container container">
             {entry.data.spotifyUrl && (
-                <div class="play-trigger-wrapper glass-panel">
-                     <button class="play-trigger-btn" data-spotify-url={entry.data.spotifyUrl}>
-                        <span class="icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        </span>
-                        <span class="text">Escuchar Episodio</span>
-                    </button>
-                    <p class="play-note">Reproducir en mini-player continuo</p>
-                </div>
+                <div id="episode-player-placeholder" data-spotify-url={entry.data.spotifyUrl}></div>
             )}
         </div>
 
@@ -97,9 +89,10 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
 
 <style>
     .article-header {
-        padding: var(--spacing-2xl) var(--spacing-md) var(--spacing-lg);
+        padding: var(--spacing-md) var(--spacing-md) var(--spacing-lg);
         text-align: center;
         max-width: 900px;
+        margin: 0 auto; /* Center horizontally */
     }
 
     .meta-row {
@@ -143,43 +136,14 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
     .player-container {
         max-width: 800px;
         margin-bottom: var(--spacing-2xl);
+        position: relative; /* Context for absolute potentially, but we use body-relative usually */
     }
-    
-    .play-trigger-wrapper {
-        padding: var(--spacing-xl);
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--spacing-md);
-        border-radius: var(--radius-lg);
-    }
-    
-    .play-trigger-btn {
-        background: var(--color-primary);
-        color: white;
-        border: none;
-        padding: 1rem 2.5rem;
-        border-radius: var(--radius-full);
-        font-size: 1.25rem;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 20px var(--color-primary-glow);
-    }
-    
-    .play-trigger-btn:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 8px 30px var(--color-primary-glow);
-    }
-    
-    .play-note {
-        font-size: 0.9rem;
-        color: var(--color-text-muted);
-        opacity: 0.8;
+
+    #episode-player-placeholder {
+        width: 100%;
+        height: 160px; /* Standard height for expanded Spotify embed */
+        border-radius: 12px;
+        background: rgba(255,255,255,0.05); /* Visual placeholder */
     }
 
     .content-container {

@@ -16,163 +16,318 @@
     declare global {
         interface Window {
             hasGlobalPlayerListener: boolean;
+            playerCurrentUrl: string | null;
         }
     }
 
-    // Initialize listener only once
     if (!window.hasGlobalPlayerListener) {
         window.hasGlobalPlayerListener = true;
+        window.playerCurrentUrl = null;
 
+        // Function to update position
+        const updatePlayerState = () => {
+            const player = document.getElementById('mini-player');
+            const placeholder = document.getElementById('episode-player-placeholder');
+            const iframe = document.getElementById('spotify-iframe') as HTMLIFrameElement;
+            const container = document.getElementById('player-placeholder');
+
+            if (!player || !container) return;
+
+            if (placeholder) {
+                // INLINE MODE CANDIDATE
+                const url = placeholder.getAttribute('data-spotify-url');
+                
+                // CHECK CONFLICT: If playing something else
+                if (window.playerCurrentUrl && url && window.playerCurrentUrl !== url) {
+                    
+                    // 1. Keep Player FLOATING (Show current audio)
+                    if (container.hasChildNodes()) {
+                        player.classList.remove('inline', 'hidden');
+                        player.classList.add('floating', 'visible');
+                        
+                        // Apply floating styles explicitly
+                        player.style.position = 'fixed';
+                        player.style.top = 'auto';
+                        player.style.bottom = '0';
+                        player.style.left = '0';
+                        player.style.width = '100%';
+                        player.style.height = 'auto';
+                        player.style.transform = '';
+                        
+                        const closeBtn = document.getElementById('close-player');
+                        if(closeBtn) closeBtn.style.display = 'flex';
+
+                        document.body.style.paddingBottom = '100px';
+                    }
+
+                    // 2. Render Prompt in Placeholder (if not already there)
+                    if (!placeholder.hasAttribute('data-rendered-prompt')) {
+                        placeholder.setAttribute('data-rendered-prompt', 'true');
+                        placeholder.innerHTML = `
+                            <div class="conflict-wrapper" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background: rgba(255,255,255,0.03); border-radius:12px; border: 1px dashed rgba(255,255,255,0.1);">
+                                <p style="margin:0; color: #a1a1aa; font-size: 0.95rem; font-weight: 500;">Estás escuchando otro episodio</p>
+                                <button id="force-play-btn" class="btn-conflict" style="cursor: pointer; background: white; color: black; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; transition: transform 0.2s;">
+                                    Reproducir este en su lugar
+                                </button>
+                            </div>
+                        `;
+                        
+                        const btn = placeholder.querySelector('#force-play-btn');
+                        if(btn) {
+                            btn.addEventListener('click', () => {
+                                // Force play: Clear state to trigger reload
+                                window.playerCurrentUrl = null; 
+                                container.innerHTML = ''; // Force clear old iframe
+                                updatePlayerState();
+                            });
+                        }
+                    }
+                    return; // Stop here, do not proceed to inline logic
+                }
+                
+                // NO CONFLICT -> Standard Inline Logic
+                // Auto-load if needed
+                if (url && (window.playerCurrentUrl !== url || !iframe)) {
+                    window.playerCurrentUrl = url;
+                    let finalUrl = url;
+                    try {
+                        const urlObj = new URL(url);
+                        if (!urlObj.pathname.includes('/embed/')) {
+                            const segments = urlObj.pathname.split('/').filter(Boolean);
+                            if (segments[0] !== 'embed') finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
+                        }
+                    } catch(e) {}
+                    
+                    container.innerHTML = `
+                        <iframe 
+                        id="spotify-iframe"
+                        style="border-radius:12px" 
+                        src="${finalUrl}?autoplay=0" 
+                        width="100%" 
+                        height="100%" 
+                        frameBorder="0" 
+                        allowfullscreen="" 
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                        loading="lazy">
+                    </iframe>
+                    `;
+                }
+
+                // Calculate Position
+                const rect = placeholder.getBoundingClientRect();
+                const scrollX = window.scrollX || window.pageXOffset;
+                const scrollY = window.scrollY || window.pageYOffset;
+
+                player.classList.remove('floating', 'hidden');
+                player.classList.add('inline');
+                player.classList.add('visible'); // Ensure it's visible
+
+                player.style.position = 'absolute';
+                player.style.top = `${rect.top + scrollY}px`;
+                player.style.left = `${rect.left + scrollX}px`;
+                player.style.width = `${rect.width}px`;
+                player.style.height = `${rect.height}px`;
+                player.style.transform = 'none';
+                
+                // Hide close button in inline mode
+                const closeBtn = document.getElementById('close-player');
+                if(closeBtn) closeBtn.style.display = 'none';
+
+                // Reset body padding
+                document.body.style.paddingBottom = '0';
+
+            } else {
+                // FLOATING MODE
+                // Only content if we have something playing
+                if (container.hasChildNodes()) {
+                    player.classList.remove('inline', 'hidden');
+                    player.classList.add('floating');
+                    player.classList.add('visible');
+
+                    player.style.position = 'fixed';
+                    player.style.top = 'auto';
+                    player.style.bottom = '0';
+                    player.style.left = '0';
+                    player.style.width = '100%';
+                    player.style.height = 'auto'; // Let CSS handle height
+                    player.style.transform = ''; // Clear inline transform if any
+
+                    const closeBtn = document.getElementById('close-player');
+                    if(closeBtn) closeBtn.style.display = 'flex';
+
+                    document.body.style.paddingBottom = '100px';
+                } else {
+                    player.classList.add('hidden');
+                    player.classList.remove('visible');
+                    document.body.style.paddingBottom = '0';
+                }
+            }
+        };
+
+        // Listeners
+        document.addEventListener('astro:page-load', updatePlayerState);
+        window.addEventListener('resize', updatePlayerState);
+        
+        // Listen to custom play event (from other buttons if any)
         document.addEventListener('play-episode', ((e: Event) => {
              const customEvent = e as CustomEvent<{ url: string }>;
              const { url } = customEvent.detail;
              
-             const player = document.getElementById('mini-player');
+             // Just set the URL logic like above, but maybe force floating if on non-episode page
+             const iframe = document.getElementById('spotify-iframe');
              const container = document.getElementById('player-placeholder');
+             const player = document.getElementById('mini-player');
              
-             if(player && container) {
-                // Prepare Embed URL
-                let finalUrl = url;
-                try {
-                    const urlObj = new URL(url);
-                    if (!urlObj.pathname.includes('/embed/')) {
-                         const segments = urlObj.pathname.split('/').filter(Boolean);
-                         if (segments[0] !== 'embed') {
-                             // Assuming standard open.spotify.com/episode/... format
-                             finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
-                         }
-                    }
-                } catch(err) {
-                    console.error("Invalid Spotify URL", err);
-                }
+             if (container && player) {
+                 window.playerCurrentUrl = url;
+                 // Load iframe logic...
+                 // (Simplified repetition)
+                 let finalUrl = url;
+                 try {
+                     const urlObj = new URL(url);
+                     if (!urlObj.pathname.includes('/embed/')) {
+                            const segments = urlObj.pathname.split('/').filter(Boolean);
+                            if (segments[0] !== 'embed') finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
+                     }
+                 } catch(e) {}
 
-                // Inject iframe
-                // We recreate the iframe to force load the new URL
-                container.innerHTML = `
-                    <iframe 
-                       style="border-radius:12px" 
-                       src="${finalUrl}?autoplay=1" 
-                       width="100%" 
-                       height="80" 
-                       frameBorder="0" 
-                       allowfullscreen="" 
-                       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                       loading="lazy">
-                   </iframe>
-                `;
-
-                player.classList.remove('hidden');
-                // Small delay to allow display:block to apply before opacity transition if we were using it,
-                // but here we use transform.
-                requestAnimationFrame(() => {
-                    player.classList.add('visible');
-                    document.body.style.paddingBottom = '100px';
-                });
+                     container.innerHTML = `
+                         <iframe 
+                         id="spotify-iframe"
+                         style="border-radius:12px" 
+                         src="${finalUrl}?autoplay=1" 
+                         width="100%" 
+                         height="100%" 
+                         frameBorder="0" 
+                         allowfullscreen="" 
+                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                         loading="lazy">
+                     </iframe>
+                  `;
+                 
+                 // Trigger state update to decide floating vs inline
+                 updatePlayerState();
              }
         }));
-    }
 
-    // Handle Close Button - we can delegate this or attach once
-    // Since close button is inside the persisted element, we can attach once.
-    // However, if the script re-runs, we might attach multiple times if we aren't careful.
-    // We'll use the same flag or check logic.
-    
-    // Actually, simple way:
-    document.addEventListener('click', (e: Event) => {
-        const target = e.target as HTMLElement;
-        if (target && (target.closest('#close-player') || target.closest('.close-player-btn'))) {
-            const player = document.getElementById('mini-player');
-            const container = document.getElementById('player-placeholder');
-            if (player) {
-                player.classList.remove('visible');
-                document.body.style.paddingBottom = '0';
-                setTimeout(() => {
-                    player.classList.add('hidden');
-                    if (container) container.innerHTML = ''; // Stop audio
-                }, 300); // Wait for transition
+        // Close logic
+         document.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            if (target && (target.closest('#close-player'))) {
+                const player = document.getElementById('mini-player');
+                const container = document.getElementById('player-placeholder');
+                if (player) {
+                    player.classList.remove('visible');
+                    document.body.style.paddingBottom = '0';
+                    setTimeout(() => {
+                        player.classList.add('hidden');
+                        if (container) container.innerHTML = '';
+                        window.playerCurrentUrl = null;
+                    }, 300);
+                }
             }
-        }
-    });
-
-    // Re-apply padding on page navigation if player is visible
-    document.addEventListener('astro:page-load', () => {
-        const player = document.getElementById('mini-player');
-        if (player && player.classList.contains('visible')) {
-            document.body.style.paddingBottom = '100px';
-        }
-    });
-
+        });
+    }
 </script>
 
 <style>
   .mini-player {
-    position: fixed;
+    position: fixed; /* Default start */
     bottom: 0;
     left: 0;
     width: 100%;
     z-index: 9999;
-    padding: 10px;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                top 0.5s ease, 
+                left 0.5s ease, 
+                width 0.5s ease, 
+                height 0.5s ease;
   }
   
   .mini-player.hidden {
-      display: none; /* Just to be safe initially, but we use transform for animation */
-      transform: translateY(100%);
+      display: none;
+      transform: translateY(120%);
   }
   
-  /* When visible class is added, we override display/transform */
   .mini-player.visible {
       display: block;
       transform: translateY(0);
   }
 
-  /* Wait, if it's display:none, it can't animate transform. 
-     Better to just use transform off-screen.
-  */
-  .mini-player {
-      /* Reset hidden behavior for animation */
-      display: block; 
-      transform: translateY(120%); 
-  }
-
   .player-wrapper {
-    max-width: 800px; /* Limit width for "Mini" feel */
-    margin: 0 auto;
-    background: #282828; /* Spotify Dark */
+    width: 100%;
+    height: 100%;
+    background: #282828;
     backdrop-filter: blur(10px);
-    border-radius: 12px;
+    border-radius: 12px; /* Always rounded */
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     position: relative;
-    padding: 0;
-    overflow: hidden; /* For border radius */
+    overflow: hidden;
+  }
+  
+  /* Floating Specifics */
+  .mini-player.floating {
+      padding: 10px;
+  }
+  
+  .mini-player.floating .player-wrapper {
+       max-width: 600px; /* Slightly narrower for better aesthetic */
+       margin: 0 auto;
+       height: 152px !important; /* Force standard Spotify embed height */
+  }
+
+  /* Inline Specifics */
+  .mini-player.inline {
+      padding: 0;
+      z-index: 10; 
+      box-shadow: none;
+  }
+  
+  .mini-player.inline .player-wrapper {
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+      max-width: none;
+      border-radius: 12px;
+      height: 100%; /* Fill the placeholder */
   }
 
   #player-placeholder {
-      /* The iframe goes here */
       width: 100%;
-      height: 80px; 
-      /* Height 80 is compact mode for Spotify */
+      height: 100%;
+      min-height: 80px; 
   }
   
   #close-player {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(0,0,0,0.5);
-    border: none;
+    top: -10px;
+    right: -10px;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.2);
     color: white;
     cursor: pointer;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.2s;
-    z-index: 10;
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
   }
   
-  #close-player:hover {
-    background: rgba(0,0,0,0.8);
+  .mini-player.floating:hover #close-player {
+      opacity: 1;
+      pointer-events: auto;
+  }
+
+  /* Force iframe to fit container */
+  :global(#spotify-iframe) {
+      width: 100% !important;
+      height: 100% !important;
   }
 </style>
