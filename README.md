@@ -331,6 +331,6 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 **Hecho con ❤️ por el equipo de Veredillas FM**
 
-[🎧 Escúchanos](https://veredillasfm.es) · [📧 Contacto](https://veredillasfm.es/contacto) · [📱 Twitter](https://twitter.com/VeredillasFM)
+[🎧 Escúchanos](https://veredillasfm.es) · [📧 Contacto](https://veredillasfm.es/contacto) · [📱 Instagram](https://www.instagram.com/veredillas.fm)
 
 </div>
