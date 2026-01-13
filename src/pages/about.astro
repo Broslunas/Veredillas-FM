@@ -61,17 +61,23 @@ const team = [
         <section class="mission fade-in-up delay-100">
             <div class="mission-grid">
                 <div class="card glass-panel">
-                    <div class="icon-box">🎙️</div>
+                    <div class="icon-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="8" x2="16" y1="22" y2="22"/></svg>
+                    </div>
                     <h3>Nuestra Misión</h3>
                     <p>Crear un espacio dinámico y abierto para la libre expresión, donde cada estudiante tenga una voz y cada historia merezca ser contada.</p>
                 </div>
                 <div class="card glass-panel">
-                    <div class="icon-box">👁️</div>
+                    <div class="icon-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
                     <h3>Nuestra Visión</h3>
                     <p>Ser el referente de comunicación digital del instituto, demostrando que la tecnología y la creatividad pueden transformar la educación.</p>
                 </div>
                 <div class="card glass-panel">
-                    <div class="icon-box">⚡</div>
+                    <div class="icon-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
                     <h3>Nuestra Pasión</h3>
                     <p>Nos mueve la curiosidad. Desde salseos del insti hasta debates profundos, lo cubrimos todo con un estilo único.</p>
                 </div>
@@ -97,7 +103,9 @@ const team = [
                                 {member.link ? (
                                     <a href={member.link} target="_blank" rel="noopener noreferrer" class="member-link">
                                         {member.name}
-                                        <span class="link-icon">↗</span>
+                                        <span class="link-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                                        </span>
                                     </a>
                                 ) : (
                                     member.name

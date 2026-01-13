@@ -1,0 +1,179 @@
+---
+// src/components/MiniPlayer.astro
+// Persisted player component that listens for 'play-episode' events
+---
+
+<div id="mini-player" class="mini-player hidden" transition:persist>
+  <div class="player-wrapper">
+      <div id="player-placeholder"></div>
+      <button id="close-player" aria-label="Cerrar reproductor">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+  </div>
+</div>
+
+<script>
+    declare global {
+        interface Window {
+            hasGlobalPlayerListener: boolean;
+        }
+    }
+
+    // Use a WeakSet or window flag to prevent duplicate listeners across navigations
+    // if the script is re-executed
+    if (!window.hasGlobalPlayerListener) {
+        window.hasGlobalPlayerListener = true;
+
+        document.addEventListener('play-episode', ((e: Event) => {
+             const customEvent = e as CustomEvent<{ url: string }>;
+             const { url } = customEvent.detail;
+             
+             const player = document.getElementById('mini-player');
+             const container = document.getElementById('player-placeholder');
+             
+             if(player && container) {
+                // Prepare Embed URL
+                let finalUrl = url;
+                try {
+                    const urlObj = new URL(url);
+                    if (!urlObj.pathname.includes('/embed/')) {
+                         const segments = urlObj.pathname.split('/').filter(Boolean);
+                         if (segments[0] !== 'embed') {
+                             // Assuming standard open.spotify.com/episode/... format
+                             finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
+                         }
+                    }
+                } catch(err) {
+                    console.error("Invalid Spotify URL", err);
+                }
+
+                // Inject iframe
+                // We recreate the iframe to force load the new URL
+                container.innerHTML = `
+                    <iframe 
+                       style="border-radius:12px" 
+                       src="${finalUrl}?autoplay=1" 
+                       width="100%" 
+                       height="80" 
+                       frameBorder="0" 
+                       allowfullscreen="" 
+                       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                       loading="lazy">
+                   </iframe>
+                `;
+
+                player.classList.remove('hidden');
+                // Small delay to allow display:block to apply before opacity transition if we were using it,
+                // but here we use transform.
+                requestAnimationFrame(() => {
+                    player.classList.add('visible');
+                    document.body.style.paddingBottom = '100px';
+                });
+             }
+        }));
+    }
+
+    // Handle Close Button - we can delegate this or attach once
+    // Since close button is inside the persisted element, we can attach once.
+    // However, if the script re-runs, we might attach multiple times if we aren't careful.
+    // We'll use the same flag or check logic.
+    
+    // Actually, simple way:
+    document.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+        if (target && (target.closest('#close-player') || target.closest('.close-player-btn'))) {
+            const player = document.getElementById('mini-player');
+            const container = document.getElementById('player-placeholder');
+            if (player) {
+                player.classList.remove('visible');
+                document.body.style.paddingBottom = '0';
+                setTimeout(() => {
+                    player.classList.add('hidden');
+                    if (container) container.innerHTML = ''; // Stop audio
+                }, 300); // Wait for transition
+            }
+        }
+    });
+
+    // Re-apply padding on page navigation if player is visible
+    document.addEventListener('astro:page-load', () => {
+        const player = document.getElementById('mini-player');
+        if (player && player.classList.contains('visible')) {
+            document.body.style.paddingBottom = '100px';
+        }
+    });
+
+</script>
+
+<style>
+  .mini-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    padding: 10px;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .mini-player.hidden {
+      display: none; /* Just to be safe initially, but we use transform for animation */
+      transform: translateY(100%);
+  }
+  
+  /* When visible class is added, we override display/transform */
+  .mini-player.visible {
+      display: block;
+      transform: translateY(0);
+  }
+
+  /* Wait, if it's display:none, it can't animate transform. 
+     Better to just use transform off-screen.
+  */
+  .mini-player {
+      /* Reset hidden behavior for animation */
+      display: block; 
+      transform: translateY(120%); 
+  }
+
+  .player-wrapper {
+    max-width: 800px; /* Limit width for "Mini" feel */
+    margin: 0 auto;
+    background: #282828; /* Spotify Dark */
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    position: relative;
+    padding: 0;
+    overflow: hidden; /* For border radius */
+  }
+
+  #player-placeholder {
+      /* The iframe goes here */
+      width: 100%;
+      height: 80px; 
+      /* Height 80 is compact mode for Spotify */
+  }
+  
+  #close-player {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: white;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 10;
+  }
+  
+  #close-player:hover {
+    background: rgba(0,0,0,0.8);
+  }
+</style>
