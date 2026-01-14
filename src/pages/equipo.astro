@@ -92,7 +92,7 @@ const allMembers = [
             {allMembers.map((member, index) => (
                 <article 
                     class="member-card glass-panel" 
-                    data-member={JSON.stringify(member)}
+                    data-index={index}
                     role="button"
                     tabindex="0"
                     aria-label={`Ver información de ${member.name}`}
@@ -151,6 +151,10 @@ const allMembers = [
 
 </Layout>
 
+<script is:inline define:vars={{ allMembers }}>
+    window.teamMembers = allMembers;
+</script>
+
 <script>
     import { gsap } from "gsap";
     
@@ -168,7 +172,7 @@ const allMembers = [
         const modal = document.getElementById('member-modal') as HTMLDialogElement;
         const closeBtn = document.getElementById('close-modal');
         const cards = document.querySelectorAll('.member-card');
-
+        
         // Elements to update
         const mImg = document.getElementById('modal-img') as HTMLImageElement;
         const mName = document.getElementById('modal-name');
@@ -177,12 +181,28 @@ const allMembers = [
         const mBio = document.getElementById('modal-bio');
         const mLinks = document.getElementById('modal-links');
 
-        function openModal(data) {
+        interface MemberLink {
+            label: string;
+            url: string;
+        }
+
+        interface Member {
+            name: string;
+            role: string;
+            department?: string;
+            image: string;
+            links?: MemberLink[];
+            bio?: string;
+        }
+
+        function openModal(data: Member) {
             if(!modal) return;
             
             // Populate data
-            if(mImg) mImg.src = data.image;
-            if(mImg) mImg.alt = data.name;
+            if(mImg && data.image) {
+                mImg.src = data.image;
+                mImg.alt = data.name;
+            }
             if(mName) mName.textContent = data.name;
             if(mRole) mRole.textContent = data.role;
             if(mDept) mDept.textContent = data.department || 'Equipo';
@@ -229,12 +249,12 @@ const allMembers = [
             document.body.style.overflow = '';
         }
 
-        cards.forEach(card => {
+        cards.forEach((card) => {
             card.addEventListener('click', () => {
-                const dataRaw = (card as HTMLElement).dataset.member;
-                if(dataRaw) {
-                    const data = JSON.parse(dataRaw);
-                    openModal(data);
+                const index = (card as HTMLElement).dataset.index;
+                const members = (window as any).teamMembers;
+                if(index !== undefined && members && members[index]) {
+                    openModal(members[index]);
                 }
             });
 
@@ -242,10 +262,10 @@ const allMembers = [
             card.addEventListener('keydown', (e: any) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    const dataRaw = (card as HTMLElement).dataset.member;
-                    if(dataRaw) {
-                        const data = JSON.parse(dataRaw);
-                        openModal(data);
+                    const index = (card as HTMLElement).dataset.index;
+                    const members = (window as any).teamMembers;
+                    if(index !== undefined && members && members[index]) {
+                        openModal(members[index]);
                     }
                 }
             });
@@ -324,6 +344,7 @@ const allMembers = [
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         cursor: pointer;
         opacity: 1;
+        position: relative;
         overflow: hidden;
     }
     
@@ -332,6 +353,17 @@ const allMembers = [
         background: rgba(255, 255, 255, 0.08);
         border-color: rgba(255, 255, 255, 0.1);
         box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    
+    .card-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+    
+    .image-wrapper, .member-info {
+        position: relative;
+        z-index: 2;
     }
 
     .image-wrapper {
@@ -401,6 +433,7 @@ const allMembers = [
         opacity: 0;
         transform: scale(0.9);
         transition: opacity 0.3s ease, transform 0.3s ease;
+        z-index: 9999;
     }
 
     .modal-dialog[open] {
