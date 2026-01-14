@@ -96,6 +96,8 @@ export const POST: APIRoute = async ({ params, request }) => {
         const protocol = hostname.includes('localhost') ? 'http' : 'https';
         const verificationLink = `${protocol}://${hostname}/verify-comment?token=${verificationToken}`;
         
+        console.log('Sending webhook to:', webhookUrl);
+
         const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -108,10 +110,12 @@ export const POST: APIRoute = async ({ params, request }) => {
             })
         });
 
+        const responseText = await response.text();
+        console.log('Webhook Response:', response.status, responseText);
+
         if (!response.ok) {
-            console.error(`Webhook Error: ${response.status} ${response.statusText}`, await response.text());
             await Comment.findByIdAndDelete(comment._id); // Rollback
-            throw new Error(`Failed to send verification email. Status: ${response.status}`);
+            throw new Error(`Failed to send verification email. Status: ${response.status} - ${responseText}`);
         }
         
     } catch (webhookError) {
