@@ -4,6 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import Comments from '../../components/Comments.astro';
 import SocialShare from '../../components/SocialShare.astro';
 import RelatedEpisodes from '../../components/RelatedEpisodes.astro';
+import EpisodeParticipants from '../../components/EpisodeParticipants.astro';
 
 export const prerender = false;
 
@@ -84,6 +85,8 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                         </li>
                     </ul>
                 </div>
+                
+                <EpisodeParticipants participants={entry.data.participants} />
             </div>
         </div>
 

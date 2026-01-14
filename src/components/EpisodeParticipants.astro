@@ -1,0 +1,119 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  participants?: string[];
+}
+
+const { participants } = Astro.props;
+
+// If no participants listed, render nothing
+if (!participants || participants.length === 0) {
+  return;
+}
+
+const allGuests = await getCollection('guests');
+const episodeGuests = allGuests.filter(guest => participants.includes(guest.data.name));
+
+// If no matching guests found, render nothing
+if (episodeGuests.length === 0) {
+  return;
+}
+---
+
+<div class="participants-widget">
+  <h3>Invitados Especiales</h3>
+  <ul class="participants-list">
+    {episodeGuests.map(guest => (
+      <li>
+        <div class="participant-card">
+          {guest.data.image ? (
+            <img src={guest.data.image} alt={guest.data.name} class="participant-avatar" />
+          ) : (
+            <div class="participant-avatar-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+          )}
+          <div class="participant-info">
+            <span class="participant-name">{guest.data.name}</span>
+            {guest.data.role && <span class="participant-role">{guest.data.role}</span>}
+          </div>
+        </div>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .participants-widget {
+    margin-top: var(--spacing-lg);
+    background: var(--color-surface);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+  }
+
+  h3 {
+    margin-bottom: var(--spacing-md);
+    font-size: 1.25rem;
+    color: var(--color-text-heading);
+    font-weight: 700;
+  }
+
+  .participants-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .participant-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xs) 0;
+  }
+
+  .participant-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-primary);
+  }
+
+  .participant-avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--color-primary);
+    color: var(--color-text-muted);
+  }
+
+  .participant-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .participant-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-text-main);
+  }
+
+  .participant-role {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    line-height: 1.2;
+  }
+</style>

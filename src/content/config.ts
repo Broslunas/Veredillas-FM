@@ -27,4 +27,18 @@ const blog = defineCollection({
 	}),
 });
 
-export const collections = { episodios, blog };
+const guests = defineCollection({
+	schema: z.object({
+		name: z.string(),
+		image: z.string().optional(),
+		role: z.string().optional(),
+		description: z.string().optional(),
+        social: z.object({
+            twitter: z.string().optional(),
+            instagram: z.string().optional(),
+            website: z.string().optional(),
+        }).optional(),
+	}),
+});
+
+export const collections = { episodios, blog, guests };
