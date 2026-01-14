@@ -19,15 +19,15 @@ export const GET: APIRoute = async ({ params }) => {
   try {
     await dbConnect();
     // Sort by newest first, only show verified comments
-    const comments = await Comment.find({ slug, isVerified: true }).sort({ createdAt: -1 });
+    const comments = await Comment.find({ slug, isVerified: true }).sort({ createdAt: -1 }).lean();
 
-    const commentsWithAvatar = comments.map((c) => {
+    const commentsWithAvatar = comments.map((c: any) => {
       // Handle legacy comments that might not have an email
       const email = c.email ? c.email.trim().toLowerCase() : 'anonymous@example.com';
       const emailHash = crypto.createHash('md5').update(email).digest('hex');
       
       return {
-        ...c.toObject(),
+        ...c,
         avatar: `https://www.gravatar.com/avatar/${emailHash}?d=retro&s=100`
       };
     });
@@ -37,7 +37,12 @@ export const GET: APIRoute = async ({ params }) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ success: false, error: 'Failed to fetch comments' }), {
+    console.error('API Error:', error);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
