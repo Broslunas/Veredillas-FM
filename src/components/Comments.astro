@@ -225,6 +225,7 @@ const { slug } = Astro.props;
     btn.innerHTML = '<span class="loader-dots">Enviando...</span>';
 
     try {
+      // 1. Create Comment in DB (Server)
       const res = await fetch(`/api/comments/${slug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -232,14 +233,29 @@ const { slug } = Astro.props;
       });
       const json = await res.json();
 
-      if (json.success) {
-         form.reset();
-         if (json.pending) {
-            showToast('¡Casi listo! Revisa tu email para verificar.', 'info');
-         } else {
-             showToast('¡Comentario publicado!', 'success');
-             fetchComments(); 
-         }
+      if (json.success && json.verificationToken) {
+          // 2. Trigger Email via n8n (Client-side to bypass Cloudflare server blocks)
+          try {
+             const verificationLink = `${window.location.origin}/verify-comment?token=${json.verificationToken}`;
+             
+             await fetch('https://n8n.broslunas.com/webhook/veredillasfm-comments', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({
+                     name: data.name,
+                     email: data.email,
+                     text: data.text,
+                     slug,
+                     verificationLink
+                 })
+             });
+             
+             form.reset();
+             showToast('¡Casi listo! Revisa tu email para verificar.', 'info');
+          } catch (webhookErr) {
+             console.error(webhookErr);
+             showToast('Error al enviar el correo de verificación.', 'error');
+          }
       } else {
          showToast(json.error || 'Error al publicar', 'error');
       }
