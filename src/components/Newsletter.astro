@@ -38,7 +38,15 @@ const { standalone = false } = Astro.props;
               <rect width="20" height="16" x="2" y="4" rx="2"></rect>
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
             </svg>
-            <input type="email" name="email" placeholder="tu@email.com" required autocomplete="email" />
+            <input 
+              type="email" 
+              name="email" 
+              placeholder="tu@email.com" 
+              required 
+              autocomplete="email"
+              pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
+              title="Por favor introduce un email válido (ejemplo: usuario@dominio.com)"
+            />
           </div>
         </div>
 
@@ -75,9 +83,22 @@ const { standalone = false } = Astro.props;
       submitBtn?.classList.add('loading');
       
       const formData = new FormData(form);
+      const email = formData.get('email') as string;
+      const name = formData.get('name') as string;
+
+      // Superior verification
+      const emailRegex = /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/i;
+      if (!email || !emailRegex.test(email)) {
+        messageEl!.textContent = 'Por favor, introduce un email válido para continuar.';
+        messageEl!.classList.remove('hidden');
+        messageEl!.classList.add('error');
+        submitBtn?.classList.remove('loading');
+        return;
+      }
+
       const data = {
-        name: formData.get('name'),
-        email: formData.get('email')
+        name,
+        email
       };
 
       try {
