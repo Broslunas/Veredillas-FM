@@ -79,11 +79,11 @@ import Layout from '../layouts/Layout.astro';
 
 <style>
   .error-section {
-    min-height: 80vh;
+    min-height: calc(100vh - 100px); /* Fill remaining viewport height */
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--spacing-2xl) 0;
+    padding: 0;
   }
 
   .container {

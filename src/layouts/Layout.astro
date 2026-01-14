@@ -17,6 +17,7 @@ interface Props {
 	author?: string;
 	tags?: string[];
 	canonicalURL?: string;
+	showFooter?: boolean;
 }
 
 const { 
@@ -29,7 +30,8 @@ const {
 	modifiedTime,
 	author = "Veredillas FM",
 	tags = [],
-	canonicalURL = new URL(Astro.url.pathname, Astro.site).href
+	canonicalURL = new URL(Astro.url.pathname, Astro.site).href,
+	showFooter = true
 } = Astro.props;
 
 // Asegurar que la imagen sea una URL completa
@@ -347,7 +349,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
 		<main>
 			<slot />
 		</main>
-		<Footer />
+		{showFooter && <Footer />}
         <MiniPlayer />
         <CookieConsent />
 	</body>
