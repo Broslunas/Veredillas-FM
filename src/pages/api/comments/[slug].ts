@@ -96,7 +96,7 @@ export const POST: APIRoute = async ({ params, request }) => {
         const protocol = hostname.includes('localhost') ? 'http' : 'https';
         const verificationLink = `${protocol}://${hostname}/verify-comment?token=${verificationToken}`;
         
-        await fetch(webhookUrl, {
+        const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -107,6 +107,12 @@ export const POST: APIRoute = async ({ params, request }) => {
                 verificationLink
             })
         });
+
+        if (!response.ok) {
+            console.error(`Webhook Error: ${response.status} ${response.statusText}`, await response.text());
+        } else {
+            console.log('Webhook sent successfully');
+        }
     } catch (webhookError) {
         console.error('Webhook failed:', webhookError);
     }
