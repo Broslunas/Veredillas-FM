@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import EpisodeCard from '../components/EpisodeCard.astro';
 import PostCard from '../components/PostCard.astro';
 import FeaturedSlider from '../components/FeaturedSlider.astro';
+import Newsletter from '../components/Newsletter.astro';
 import { getCollection } from 'astro:content';
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -209,6 +210,9 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
             </div>
         </div>
     </section>
+
+    <!-- Newsletter Section -->
+    <Newsletter />
 
     <!-- CTA Final -->
     <section class="final-cta">

@@ -1,0 +1,184 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+export const prerender = false;
+
+const { searchParams } = Astro.url;
+const email = searchParams.get('email');
+const token = searchParams.get('token');
+
+let success = false;
+let message = '';
+
+if (!email || !token) {
+  success = false;
+  message = 'Enlace de confirmación inválido. Faltan datos necesarios.';
+} else {
+  try {
+    const webhookUrl = "https://n8n.broslunas.com/webhook/veredillasfm-newsletter-confirm";
+    
+    // Call N8N webhook to verify token
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, token })
+    });
+
+    if (response.ok) {
+        const text = await response.text();
+        // Try to parse JSON if possible, otherwise assume success based on 200 OK
+        try {
+            const json = JSON.parse(text);
+            if (json.status === 'confirm' || json.message === 'confirmed') {
+                success = true;
+                message = '¡Tu suscripción ha sido confirmada correctamente!';
+            } else {
+                 success = false;
+                 message = 'No se pudo confirmar la suscripción. El token puede haber expirado o ser inválido.';
+            }
+        } catch (e) {
+            // Fallback if response is not JSON but 200 OK
+             success = true;
+             message = '¡Tu suscripción ha sido confirmada correctamente!';
+        }
+    } else {
+      success = false;
+      message = 'Hubo un error al comunicarse con el servidor de verificación.';
+    }
+  } catch (error) {
+    console.error('Confirmation error:', error);
+    success = false;
+    message = 'Error interno al procesar la solicitud.';
+  }
+}
+---
+
+<Layout title={success ? "Suscripción Confirmada" : "Error de Confirmación"}>
+  <main class="confirm-page">
+    <div class="confirm-card">
+      <div class={`icon-wrapper ${success ? 'success' : 'error'}`}>
+        {success ? (
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        )}
+      </div>
+
+      <h1>{success ? '¡Suscripción Confirmada!' : 'Error de Confirmación'}</h1>
+      <p class="message">{message}</p>
+
+      <a href="/" class="home-btn">
+        Volver al Inicio
+      </a>
+    </div>
+
+    <div class="background-glow"></div>
+  </main>
+</Layout>
+
+<style>
+  .confirm-page {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .confirm-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 4rem 2rem;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+  }
+
+  .icon-wrapper.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+  }
+
+  .icon-wrapper.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    margin: 0;
+  }
+
+  .message {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .home-btn {
+    margin-top: 1rem;
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: var(--color-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .home-btn:hover {
+    background: var(--color-primary-dark, #2563eb);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(var(--color-primary-rgb), 0.4);
+  }
+
+  .background-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(var(--color-primary-rgb), 0.15) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+</style>

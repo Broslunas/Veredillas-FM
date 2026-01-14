@@ -1,0 +1,26 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Newsletter from '../../components/Newsletter.astro';
+---
+
+<Layout 
+  title="Newsletter - Veredillas FM" 
+  description="Suscríbete a nuestra newsletter para recibir las últimas noticias, episodios exclusivos y contenido especial del IES Veredillas."
+>
+  <div class="page-container">
+    <Newsletter standalone={true} />
+  </div>
+</Layout>
+
+<style>
+  .page-container {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  /* Override section margin for this specific page if needed, 
+     though the component's margin-top: 4rem actually works well 
+     to separate from the header. */
+</style>
