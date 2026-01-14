@@ -111,7 +111,7 @@ const { standalone = false } = Astro.props;
         const result = await response.json();
 
         if (response.ok) {
-          messageEl!.textContent = '!Gracias por suscribirte! Si tu correo es correcto, recibirás una notificación para confirmar tu correo.';
+          messageEl!.textContent = '¡Gracias por suscribirte! Si tu correo es correcto, recibirás una notificación para confirmar tu correo.';
           messageEl!.classList.remove('hidden');
           messageEl!.classList.add('success');
           form.reset();
