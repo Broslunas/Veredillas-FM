@@ -93,33 +93,56 @@ export const POST: APIRoute = async ({ params, request }) => {
     try {
         const webhookUrl = 'https://n8n.broslunas.com/webhook/veredillasfm-comments';
         const hostname = request.headers.get('host') || 'veredillasfm.es';
-        const protocol = hostname.includes('localhost') ? 'http' : 'https';
+        // Better protocol detection for Vercel
+        const protoHeader = request.headers.get('x-forwarded-proto');
+        const protocol = protoHeader ? protoHeader : (hostname.includes('localhost') ? 'http' : 'https');
         const verificationLink = `${protocol}://${hostname}/verify-comment?token=${verificationToken}`;
         
         console.log('Sending webhook to:', webhookUrl);
 
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'User-Agent': 'VeredillasFM/1.0 (Node.js)'
-            },
-            body: JSON.stringify({
-                name,
-                email,
-                text,
-                slug,
-                verificationLink
-            })
-        });
+        let response;
+        let attempts = 0;
+        const maxAttempts = 3;
 
-        const responseText = await response.text();
-        console.log('Webhook Response:', response.status, responseText);
+        while (attempts < maxAttempts) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
-        if (!response.ok) {
-            await Comment.findByIdAndDelete(comment._id); // Rollback
-            throw new Error(`Failed to send verification email. Status: ${response.status} - ${responseText}`);
+                response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'VeredillasFM/1.0 (Node.js)'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        text,
+                        slug,
+                        verificationLink
+                    }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (response.ok) break; // Success!
+
+                console.warn(`Webhook attempt ${attempts + 1} failed: ${response.status}`);
+            } catch (err) {
+                 console.warn(`Webhook attempt ${attempts + 1} network error: ${err}`);
+            }
+            attempts++;
+            if (attempts < maxAttempts) await new Promise(r => setTimeout(r, 1000)); // Wait 1s
         }
+
+        if (!response || !response.ok) {
+            const errorText = response ? await response.text() : 'No response';
+            await Comment.findByIdAndDelete(comment._id); // Rollback
+            throw new Error(`Failed to send verification email after ${maxAttempts} attempts. Last status: ${response?.status} - ${errorText}`);
+        }
+
+
         
     } catch (webhookError) {
         console.error('Webhook failed:', webhookError);
