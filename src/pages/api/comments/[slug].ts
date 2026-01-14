@@ -110,11 +110,22 @@ export const POST: APIRoute = async ({ params, request }) => {
 
         if (!response.ok) {
             console.error(`Webhook Error: ${response.status} ${response.statusText}`, await response.text());
-        } else {
-            console.log('Webhook sent successfully');
+            await Comment.findByIdAndDelete(comment._id); // Rollback
+            throw new Error(`Failed to send verification email. Status: ${response.status}`);
         }
+        
     } catch (webhookError) {
         console.error('Webhook failed:', webhookError);
+        // Ensure we rollback if it wasn't already deleted
+        await Comment.findByIdAndDelete(comment._id); 
+        
+        return new Response(JSON.stringify({ 
+            success: false, 
+            error: 'Could not send verification email. Please try again later.' 
+        }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 
     return new Response(JSON.stringify({ 
