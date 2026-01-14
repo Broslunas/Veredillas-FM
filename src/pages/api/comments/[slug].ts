@@ -89,12 +89,35 @@ export const POST: APIRoute = async ({ params, request }) => {
       verificationToken
     });
     
-    // Return token to client so it can trigger the webhook (Client-side)
+    // Server-side Webhook Dispatch
+    const origin = request.headers.get('origin') || import.meta.env.SITE || 'https://veredillasfm.es';
+    const verificationLink = `${origin}/verify-comment?token=${verificationToken}`;
+    const webhookSecret = import.meta.env.CONTACT_WEBHOOK_SECRET;
+
+    try {
+        await fetch('https://n8n.broslunas.com/webhook/veredillasfm-comments', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${webhookSecret}`
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                text,
+                slug,
+                verificationLink
+            })
+        });
+    } catch (webhookError) {
+        console.error('Webhook dispatch failed:', webhookError);
+        // Continue, as the comment is created. User might need to retry verification or we log it.
+    }
+    
     return new Response(JSON.stringify({ 
         success: true, 
-        message: 'Comment pending verification', 
-        pending: true,
-        verificationToken // Expose token for client-side webhook call
+        message: 'Comment pending verification. Check your email.', 
+        pending: true
     }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' }
@@ -135,16 +158,33 @@ export const DELETE: APIRoute = async ({ request }) => {
     comment.deletionToken = deletionToken;
     await comment.save();
 
+    // Server-side Webhook Dispatch
+    const origin = request.headers.get('origin') || import.meta.env.SITE || 'https://veredillasfm.es';
+    const deleteLink = `${origin}/verify-delete?token=${deletionToken}`;
+    const webhookSecret = import.meta.env.CONTACT_WEBHOOK_SECRET;
+
+    try {
+        await fetch('https://n8n.broslunas.com/webhook/veredillasfm-comments-delete', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${webhookSecret}`
+            },
+            body: JSON.stringify({
+                name: comment.name,
+                email: comment.email,
+                text: comment.text,
+                slug: comment.slug,
+                deleteLink
+            })
+        });
+    } catch (webhookError) {
+        console.error('Webhook dispatch failed:', webhookError);
+    }
+
     return new Response(JSON.stringify({ 
         success: true, 
-        message: 'Verification email sent',
-        deletionToken,
-        comment: {
-            name: comment.name,
-            email: comment.email,
-            text: comment.text,
-            slug: comment.slug
-        }
+        message: 'Verification email sent'
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

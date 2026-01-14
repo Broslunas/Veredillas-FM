@@ -177,28 +177,8 @@ const { slug } = Astro.props;
           });
           const json = await res.json();
           
-          if (json.success && json.deletionToken) {
-              // 2. Trigger Email via n8n (Client-side)
-              try {
-                  const deleteLink = `${window.location.origin}/verify-delete?token=${json.deletionToken}`;
-                  
-                  await fetch('https://n8n.broslunas.com/webhook/veredillasfm-comments-delete', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                          name: json.comment.name,
-                          email: json.comment.email,
-                          text: json.comment.text,
-                          slug: json.comment.slug,
-                          deleteLink
-                      })
-                  });
-
-                  showToast('Enlace de confirmación enviado a tu correo.', 'info');
-              } catch (webhookErr) {
-                  console.error(webhookErr);
-                  showToast('Error al enviar el correo de borrado.', 'error');
-              }
+          if (json.success) {
+              showToast('Enlace de confirmación enviado a tu correo.', 'info');
           } else {
               showToast(json.error || 'Error al solicitar el borrado.', 'error');
           }
@@ -255,29 +235,9 @@ const { slug } = Astro.props;
       });
       const json = await res.json();
 
-      if (json.success && json.verificationToken) {
-          // 2. Trigger Email via n8n (Client-side to bypass Cloudflare server blocks)
-          try {
-             const verificationLink = `${window.location.origin}/verify-comment?token=${json.verificationToken}`;
-             
-             await fetch('https://n8n.broslunas.com/webhook/veredillasfm-comments', {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({
-                     name: data.name,
-                     email: data.email,
-                     text: data.text,
-                     slug,
-                     verificationLink
-                 })
-             });
-             
-             form.reset();
-             showToast('¡Casi listo! Revisa tu email para verificar.', 'info');
-          } catch (webhookErr) {
-             console.error(webhookErr);
-             showToast('Error al enviar el correo de verificación.', 'error');
-          }
+      if (json.success) {
+         form.reset();
+         showToast('¡Casi listo! Revisa tu email para verificar.', 'info');
       } else {
          showToast(json.error || 'Error al publicar', 'error');
       }

@@ -19,12 +19,14 @@ export const POST: APIRoute = async ({ request }) => {
     
     // N8N Webhook URL
     const webhookUrl = "https://n8n.broslunas.com/webhook/veredillasfm-newsletter-send-email";
+    const secret = import.meta.env.CONTACT_WEBHOOK_SECRET;
 
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Origin": origin
+        "Origin": origin,
+        "Authorization": `Bearer ${secret}`
       },
       body: JSON.stringify({ 
         name, 
