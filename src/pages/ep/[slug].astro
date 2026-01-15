@@ -53,7 +53,12 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
 
         {entry.data.image && (
             <div class="featured-image container">
-                <img src={entry.data.image} alt={entry.data.title} class="hero-image" />
+                <img 
+                    src={entry.data.image} 
+                    alt={entry.data.title} 
+                    class="hero-image" 
+                    transition:name={`cover-${entry.slug}`}
+                />
             </div>
         )}
 

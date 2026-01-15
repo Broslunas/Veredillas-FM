@@ -3,9 +3,10 @@ import type { CollectionEntry } from 'astro:content';
 
 interface Props {
 	post: CollectionEntry<'episodios'>;
+    disableTransition?: boolean;
 }
 
-const { post } = Astro.props;
+const { post, disableTransition = false } = Astro.props;
 
 // Format date
 const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
@@ -19,7 +20,12 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
 	<a href={`/ep/${post.slug}`} class="card-link">
         {post.data.image ? (
             <div class="card-image-wrapper">
-                <img src={post.data.image} alt={post.data.title} class="card-image" />
+                <img 
+                    src={post.data.image} 
+                    alt={post.data.title} 
+                    class="card-image" 
+                    transition:name={!disableTransition ? `cover-${post.slug}` : undefined}
+                />
                 <div class="play-overlay">
                     <span class="play-icon">▶</span>
                 </div>

@@ -74,6 +74,7 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
                                 <img 
                                     src={recentEpisodes[0].data.image} 
                                     alt={recentEpisodes[0].data.title}
+                                    transition:name={`cover-${recentEpisodes[0].slug}`}
                                 />
                                 <div class="spectrum-overlay">
                                     <div class="vinyl-meta-top">
@@ -138,9 +139,9 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
 
             <div class="swiper episodes-swiper gs-fade-up">
                 <div class="swiper-wrapper">
-                    {recentEpisodes.map((post) => (
+                    {recentEpisodes.map((post, index) => (
                         <div class="swiper-slide">
-                            <EpisodeCard post={post} />
+                            <EpisodeCard post={post} disableTransition={index === 0} />
                         </div>
                     ))}
                 </div>
