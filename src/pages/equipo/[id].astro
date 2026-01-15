@@ -1,0 +1,300 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { teamMembers } from '../../data/team';
+
+export function getStaticPaths() {
+  return teamMembers.map((member) => {
+    // Simple slugify: "Miguel Salazar" -> "miguel-salazar"
+    const slug = member.name
+      .toLowerCase()
+      .trim()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]+/g, '');
+      
+    return {
+      params: { id: slug },
+      props: { member },
+    };
+  });
+}
+
+const { member } = Astro.props;
+---
+
+<Layout 
+  title={`${member.name} | Equipo Veredillas FM`}
+  description={`${member.role} en Veredillas FM. ${member.bio}`}
+  image={member.image}
+  robots="noindex, nofollow"
+  showFooter={false}
+>
+    <!-- Background Elements -->
+    <div class="page-bg">
+        <div class="bg-gradient"></div>
+        <img class="bg-image" src={member.image} alt="" aria-hidden="true" />
+    </div>
+
+    <div class="container container-full">
+        <a href="/equipo" class="back-btn glass-panel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span>Volver al equipo</span>
+        </a>
+
+        <main class="profile-layout glass-panel gs-reveal">
+            
+            <div class="profile-visual">
+                <img src={member.image} alt={member.name} />
+                <div class="visual-gradient"></div>
+            </div>
+
+            <div class="profile-content">
+                <div class="content-header">
+                   <div class="badges">
+                        <span class="dept-badge">{member.department || 'Equipo'}</span>
+                   </div>
+                   <h1>{member.name}</h1>
+                   <h2 class="role">{member.role}</h2>
+                </div>
+
+                <div class="content-body">
+                    <p class="bio">{member.bio}</p>
+                    
+                    {member.links && member.links.length > 0 && (
+                        <div class="social-links">
+                            {member.links.map((link) => (
+                                <a href={link.url} target="_blank" rel="noopener noreferrer" class="social-btn">
+                                    <span>{link.label}</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+                                </a>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+        </main>
+    </div>
+</Layout>
+
+<script>
+    import { gsap } from "gsap";
+    
+    document.addEventListener('astro:page-load', () => {
+        gsap.from(".gs-reveal", {
+            y: 30,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power2.out"
+        });
+    });
+</script>
+
+<style>
+    /* Override Main Layout Padding */
+    :global(main) {
+        padding-top: 0 !important;
+    }
+
+    .page-bg {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        overflow: hidden;
+    }
+
+    .bg-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.15;
+        filter: blur(80px);
+        transform: scale(1.1);
+    }
+
+    .bg-gradient {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, transparent 0%, var(--color-bg) 80%);
+        z-index: 1;
+    }
+
+    .container-full {
+        height: 100vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .back-btn {
+        position: absolute;
+        top: 2rem;
+        left: 2rem;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        color: var(--color-text-main);
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateX(-5px);
+    }
+
+    .profile-layout {
+        width: 100%;
+        max-width: 850px; /* Slightly tighter width */
+        background: #18181b;
+        border-radius: 24px;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 280px 1fr; /* Smaller image col */
+        box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255,255,255,0.08);
+        height: auto;
+        max-height: 80vh; /* Allow a bit more height if needed */
+    }
+
+    .profile-visual {
+        position: relative;
+        height: 100%;
+        background: #000;
+        min-height: 350px;
+    }
+
+    .profile-visual img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .profile-content {
+        padding: 2.5rem; /* Reduced padding */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .content-header {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 1.5rem;
+    }
+
+    .dept-badge {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--color-primary);
+        font-weight: 700;
+        background: rgba(139, 92, 246, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    h1 {
+        font-size: 2.5rem; /* Smaller H1 */
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 0.25rem;
+        color: #fff;
+    }
+
+    .role {
+        font-size: 1.1rem; /* Smaller role */
+        color: var(--color-text-muted);
+        font-weight: 400;
+        margin-top: 0.5rem;
+    }
+
+    .content-body .bio {
+        font-size: 0.95rem; /* Smaller body text */
+        line-height: 1.6;
+        color: rgba(255,255,255,0.85);
+        margin-bottom: 2rem;
+        max-width: 100%;
+        display: -webkit-box;
+        -webkit-line-clamp: 6; /* limit lines if absolutely necessary, but font size should prevent it */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .social-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    .social-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: var(--color-primary);
+        color: white;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        border: 1px solid transparent;
+    }
+
+    .social-btn:hover {
+        background: var(--color-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px -5px rgba(139, 92, 246, 0.4);
+    }
+
+    @media (max-width: 900px) {
+        .container-full {
+             height: auto;
+             min-height: 100vh;
+             padding: 4rem 1.5rem;
+             overflow-y: auto;
+        }
+
+        .profile-layout {
+            grid-template-columns: 1fr;
+            max-width: 400px;
+            max-height: none; /* Let it grow on mobile */
+            height: auto;
+        }
+
+        .profile-visual {
+            height: 300px;
+        }
+
+        .profile-content {
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+
+        .back-btn {
+            top: 1.5rem;
+            left: 1.5rem;
+            background: rgba(0,0,0,0.6);
+        }
+    }
+</style>

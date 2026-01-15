@@ -4,7 +4,6 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import MiniPlayer from '../components/MiniPlayer.astro';
 import CookieConsent from '../components/CookieConsent.astro';
-import { ClientRouter } from 'astro:transitions';
 import ToastNotification from '../components/ToastNotification.astro';
 
 interface Props {
@@ -19,6 +18,7 @@ interface Props {
 	tags?: string[];
 	canonicalURL?: string;
 	showFooter?: boolean;
+    robots?: string;
 }
 
 const { 
@@ -32,7 +32,8 @@ const {
 	author = "Veredillas FM",
 	tags = [],
 	canonicalURL = new URL(Astro.url.pathname, Astro.site).href,
-	showFooter = true
+	showFooter = true,
+    robots = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
 } = Astro.props;
 
 // Asegurar que la imagen sea una URL completa
@@ -94,7 +95,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
 		<meta name="twitter:site" content="@VeredillasFM" />
 		
 		<!-- Additional SEO Meta Tags -->
-		<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+		<meta name="robots" content={robots} />
 		<meta name="googlebot" content="index, follow" />
 		<meta name="language" content="Spanish" />
 		<meta name="revisit-after" content="7 days" />
@@ -170,7 +171,13 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
             }
 
             async function navigate(url: string, push: boolean = true) {
+                const loader = document.getElementById('global-loader');
                 try {
+                    // Show Loader
+                    if (loader) loader.classList.add('visible');
+                    // Small delay
+                    await new Promise(r => setTimeout(r, 300));
+
                     // Fetch new page (check cache first)
                     let html: string;
                     if (pageCache.has(url)) {
@@ -250,45 +257,39 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
                     const newTitle = doc.querySelector('title');
 
                     if (oldMain && newMain) {
-                        // Optional: Fade out effect
-                         oldMain.style.opacity = '0';
-                         oldMain.style.transition = 'opacity 0.2s';
-                         
-                         setTimeout(() => {
-                             oldMain.innerHTML = newMain.innerHTML;
-                             // Copy attributes/classes if main changed (e.g. layout shifts)
-                             oldMain.className = newMain.className;
-                             
-                             // EXECUTE SCRIPTS IN MAIN
-                             // innerHTML does not execute scripts. We must manually replace them.
-                             oldMain.querySelectorAll('script').forEach(script => {
-                                 const newScript = document.createElement('script');
-                                 Array.from(script.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                                 newScript.appendChild(document.createTextNode(script.innerHTML));
-                                 if (script.parentNode) script.parentNode.replaceChild(newScript, script);
-                             });
-                             
-                             // Scroll to top
-                             window.scrollTo(0, 0);
-                             
-                             oldMain.style.opacity = '1';
+                        oldMain.innerHTML = newMain.innerHTML;
+                        // Copy attributes/classes if main changed (e.g. layout shifts)
+                        oldMain.className = newMain.className;
+                        
+                        // EXECUTE SCRIPTS IN MAIN
+                        // innerHTML does not execute scripts. We must manually replace them.
+                        oldMain.querySelectorAll('script').forEach(script => {
+                            const newScript = document.createElement('script');
+                            Array.from(script.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                            newScript.appendChild(document.createTextNode(script.innerHTML));
+                            if (script.parentNode) script.parentNode.replaceChild(newScript, script);
+                        });
+                        
+                        // Scroll to top
+                        window.scrollTo(0, 0);
 
-                             // Update Title
-                             if (newTitle) document.title = newTitle.innerText;
+                        // Update Title
+                        if (newTitle) document.title = newTitle.innerText;
 
-                             // Update History
-                             if (push) history.pushState({}, '', url);
+                        // Update History
+                        if (push) history.pushState({}, '', url);
 
-                             // Fire Astro Event
-                             // We wait a tick to ensure scripts have parsed/run
-                             setTimeout(() => {
-                                 document.dispatchEvent(new Event('astro:page-load'));
-                             }, 50);
-                         }, 200);
+                        // Fire Astro Event
+                        setTimeout(() => {
+                            document.dispatchEvent(new Event('astro:page-load'));
+                            // Hide Loader
+                            if (loader) loader.classList.remove('visible');
+                        }, 50);
                     }
 
                 } catch (e) {
                     console.error("Navigation failed", e);
+                    if (loader) loader.classList.remove('visible');
                     window.location.href = url; // Fallback
                 }
             }
@@ -357,6 +358,15 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
 
 	<body>
 		<Header />
+        
+        <!-- Global Loader -->
+        <div id="global-loader" aria-hidden="true">
+            <div class="loader-content">
+                <img src="/logo.png" alt="Veredillas FM" class="loader-logo" />
+                <div class="loader-spinner"></div>
+            </div>
+        </div>
+
 		<main>
 			<slot />
 		</main>
@@ -377,6 +387,55 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         main {
             padding-top: 80px; /* Smaller header on mobile */
         }
+    }
+
+    /* Loader Styles */
+    #global-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: var(--color-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    #global-loader.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .loader-content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .loader-logo {
+        width: 80px;
+        height: 80px;
+        position: relative;
+        z-index: 2;
+        border-radius: 50%;
+    }
+
+    .loader-spinner {
+        position: absolute;
+        inset: -10px;
+        border: 2px solid transparent;
+        border-top-color: var(--color-primary);
+        border-right-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 

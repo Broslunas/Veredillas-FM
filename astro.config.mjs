@@ -45,7 +45,9 @@ export default defineConfig({
       filter: (page) => 
         !page.includes('/newsletter/confirm') &&
         !page.includes('/verify-comment') &&
-        !page.includes('/verify-delete'),
+        !page.includes('/verify-delete') &&
+        // Exclude specific team members, but allow the main index
+        !(page.includes('/equipo/') && page.split('/').filter(Boolean).length > 2),
       serialize: (item) => {
         // Default values
         item.changefreq = 'monthly';
