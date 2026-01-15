@@ -107,6 +107,16 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                         <li>
                             <strong>Duración:</strong> {entry.data.duration}
                         </li>
+                        {entry.data.tags && (
+                            <li class="tags-row">
+                                <strong>Etiquetas:</strong> 
+                                <div class="tags-list">
+                                    {entry.data.tags.map(tag => (
+                                        <a href={`/ep?tag=${tag}`} class="tag-link">#{tag}</a>
+                                    ))}
+                                </div>
+                            </li>
+                        )}
                     </ul>
                 </div>
                 
@@ -316,6 +326,33 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
     
     .details-list strong {
         color: var(--color-text-muted);
+    }
+
+    .tags-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem;
+    }
+
+    .tags-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .tag-link {
+        color: var(--color-primary);
+        background: rgba(139, 92, 246, 0.1);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .tag-link:hover {
+        background: var(--color-primary);
+        color: white;
     }
 
     @media (max-width: 768px) {

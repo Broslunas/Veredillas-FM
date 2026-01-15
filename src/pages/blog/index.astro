@@ -67,13 +67,31 @@ const allTags = ['Todos', ...new Set(posts.flatMap(post => post.data.tags || [])
 </Layout>
 
 <script>
-    document.addEventListener('astro:page-load', () => {
+    document.addEventListener('DOMContentLoaded', () => {
         const filterBtns = document.querySelectorAll('.filter-btn');
         const items = document.querySelectorAll('.post-item');
         const noResults = document.getElementById('no-results');
         const resetBtn = document.getElementById('reset-filter');
 
-        function filterItems(category: string) {
+        // Helper to get current tag from URL
+        function getTagFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('tag') || 'Todos';
+        }
+
+        // Helper to update URL
+        function setTagInUrl(tag: string) {
+            const url = new URL(window.location.href);
+            if (tag === 'Todos') {
+                url.searchParams.delete('tag');
+            } else {
+                url.searchParams.set('tag', tag);
+            }
+            window.history.pushState({}, '', url);
+        }
+
+        function filterItems() {
+            const category = getTagFromUrl();
             let visibleCount = 0;
 
             // Update Active State
@@ -106,15 +124,23 @@ const allTags = ['Todos', ...new Set(posts.flatMap(post => post.data.tags || [])
             }
         }
 
+        // Initial Filter
+        filterItems();
+
+        // Listen for popstate (browser back/forward)
+        window.addEventListener('popstate', filterItems);
+
         filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const category = btn.getAttribute('data-filter') || 'Todos';
-                filterItems(category);
+                setTagInUrl(category);
+                filterItems();
             });
         });
         
         resetBtn?.addEventListener('click', () => {
-            filterItems('Todos');
+            setTagInUrl('Todos');
+            filterItems();
         });
     });
 </script>

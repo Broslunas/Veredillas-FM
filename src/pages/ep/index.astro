@@ -23,18 +23,7 @@ const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data
         <!-- Filter System -->
         <div class="filter-wrapper fade-in-up">
             <!-- Search Bar -->
-            <div class="search-bar-container">
-                <span class="search-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                </span>
-                <input 
-                    type="text" 
-                    id="episode-search" 
-                    class="search-input" 
-                    placeholder="Buscar por título, temática o participantes..." 
-                    autocomplete="off"
-                />
-            </div>
+
 
             <!-- Tags -->
             <div class="filter-container">
@@ -77,17 +66,31 @@ const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data
 </Layout>
 
 <script>
-    document.addEventListener('astro:page-load', () => {
+    document.addEventListener('DOMContentLoaded', () => {
         const filterBtns = document.querySelectorAll('.filter-btn');
-        const searchInput = document.getElementById('episode-search') as HTMLInputElement;
         const items = document.querySelectorAll('.episode-item');
         const noResults = document.getElementById('no-results');
         const resetBtn = document.getElementById('reset-filter');
 
-        let currentCategory = 'Todos';
-        let currentSearch = '';
+        // Helper to get current tag from URL
+        function getTagFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('tag') || 'Todos';
+        }
+
+        // Helper to update URL
+        function setTagInUrl(tag: string) {
+            const url = new URL(window.location.href);
+            if (tag === 'Todos') {
+                url.searchParams.delete('tag');
+            } else {
+                url.searchParams.set('tag', tag);
+            }
+            window.history.pushState({}, '', url);
+        }
 
         function filterItems() {
+            const currentCategory = getTagFromUrl();
             let visibleCount = 0;
 
             // Update Active State for Buttons
@@ -99,16 +102,14 @@ const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data
                 }
             });
 
-            // Show/Hide Items based on BOTH criteria
+            // Show/Hide Items
             items.forEach((item) => {
                 const itemEl = item as HTMLElement;
                 const tags = itemEl.getAttribute('data-tags')?.split(',') || [];
-                const searchContent = itemEl.getAttribute('data-search-content') || '';
                 
                 const matchesCategory = currentCategory === 'Todos' || tags.includes(currentCategory);
-                const matchesSearch = currentSearch === '' || searchContent.includes(currentSearch);
 
-                if (matchesCategory && matchesSearch) {
+                if (matchesCategory) {
                     itemEl.style.display = '';
                     visibleCount++;
                 } else {
@@ -124,25 +125,24 @@ const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data
             }
         }
 
+        // Initial Filter
+        filterItems();
+
+        // Listen for popstate (browser back/forward)
+        window.addEventListener('popstate', filterItems);
+
         // Tag Click Handler
         filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                currentCategory = btn.getAttribute('data-filter') || 'Todos';
+                const category = btn.getAttribute('data-filter') || 'Todos';
+                setTagInUrl(category);
                 filterItems();
             });
-        });
-
-        // Search Input Handler
-        searchInput?.addEventListener('input', (e) => {
-            currentSearch = (e.target as HTMLInputElement).value.toLowerCase();
-            filterItems();
         });
         
         // Reset Handler
         resetBtn?.addEventListener('click', () => {
-            currentCategory = 'Todos';
-            currentSearch = '';
-            if(searchInput) searchInput.value = '';
+            setTagInUrl('Todos');
             filterItems();
         });
     });

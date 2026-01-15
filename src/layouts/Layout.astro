@@ -203,6 +203,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         }
     }
 
+
     /* Loader Styles */
     #global-loader {
         position: fixed;
@@ -212,14 +213,14 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         display: flex;
         align-items: center;
         justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
+        opacity: 1;
+        transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
     }
 
-    #global-loader.visible {
-        opacity: 1;
-        pointer-events: auto;
+    #global-loader.fade-out {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
     }
 
     .loader-content {
@@ -235,14 +236,15 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         position: relative;
         z-index: 2;
         border-radius: 50%;
+        animation: pulse 2s infinite ease-in-out;
     }
 
     .loader-spinner {
         position: absolute;
-        inset: -10px;
-        border: 2px solid transparent;
+        inset: -15px;
+        border: 3px solid transparent;
         border-top-color: var(--color-primary);
-        border-right-color: var(--color-primary);
+        border-right-color: var(--color-accent, #ec4899);
         border-radius: 50%;
         animation: spin 1s linear infinite;
     }
@@ -251,6 +253,23 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(0.95); opacity: 0.8; }
+    }
 </style>
+
+<script>
+    // Handle Loader
+    window.addEventListener('load', () => {
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            setTimeout(() => {
+                loader.classList.add('fade-out');
+            }, 500); // Small delay for smoother experience
+        }
+    });
+</script>
 
 

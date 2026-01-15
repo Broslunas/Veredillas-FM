@@ -561,6 +561,6 @@
       document.addEventListener('keydown', handleKeydown);
   }
 
-  // Hook into Astro View Transitions
-  document.addEventListener('astro:page-load', initCommandPalette);
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', initCommandPalette);
 </script>

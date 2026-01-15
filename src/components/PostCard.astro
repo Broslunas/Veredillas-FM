@@ -6,8 +6,8 @@ interface Props {
 const { post } = Astro.props;
 ---
 
-<article class="blog-card glass-panel">
-    <a href={`/blog/${post.slug}`} class="card-link">
+<article class="blog-card glass-panel post-item" data-tags={post.data.tags?.join(',') || ''}>
+    <div class="card-inner">
         {post.data.image && (
              <div class="card-image-wrapper">
                 <img src={post.data.image} alt={post.data.title} loading="lazy" />
@@ -19,7 +19,7 @@ const { post } = Astro.props;
                 {post.data.tags && (
                     <div class="tags">
                         {post.data.tags.slice(0, 2).map((tag: string) => (
-                             <span class="tag">#{tag}</span>
+                             <a href={`/blog?tag=${tag}`} class="tag">#{tag}</a>
                         ))}
                     </div>
                 )}
@@ -28,7 +28,8 @@ const { post } = Astro.props;
             <p>{post.data.description}</p>
             <span class="read-more">Leer más &rarr;</span>
         </div>
-    </a>
+    </div>
+    <a href={`/blog/${post.slug}`} class="full-card-link" aria-label={`Leer ${post.data.title}`}></a>
 </article>
 
 <style>
@@ -40,6 +41,7 @@ const { post } = Astro.props;
         display: flex;
         flex-direction: column;
         border: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
     }
 
     .blog-card:hover {
@@ -47,12 +49,17 @@ const { post } = Astro.props;
         border-color: var(--color-primary);
     }
 
-    .card-link {
+    .card-inner {
         display: flex;
         flex-direction: column;
         height: 100%;
-        text-decoration: none;
         color: inherit;
+    }
+
+    .full-card-link {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
     }
 
     .card-image-wrapper {
@@ -92,11 +99,20 @@ const { post } = Astro.props;
     .tags {
         display: flex;
         gap: 0.5rem;
+        position: relative;
+        z-index: 2; /* Above full card link */
     }
     
     .tag {
         color: var(--color-primary);
         font-size: 0.75rem;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .tag:hover {
+        color: var(--color-text-main);
+        text-decoration: underline;
     }
 
     h3 {

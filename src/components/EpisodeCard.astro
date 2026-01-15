@@ -17,7 +17,7 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
 ---
 
 <article class="episode-card glass-panel group">
-	<a href={`/ep/${post.slug}`} class="card-link">
+	<div class="card-inner">
         {post.data.image ? (
             <div class="card-image-wrapper">
                 <img 
@@ -46,6 +46,14 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
                 <span class="season-badge">Temporada {post.data.season || 1} • Ep. {post.data.episode || 1}</span>
                 <time datetime={post.data.pubDate.toISOString()}>{formattedDate}</time>
             </div>
+
+            {post.data.tags && (
+                <div class="tags">
+                    {post.data.tags.slice(0, 3).map((tag: string) => (
+                        <a href={`/ep?tag=${tag}`} class="tag">#{tag}</a>
+                    ))}
+                </div>
+            )}
             
 			<h3 class="title group-hover:text-primary transition-colors">{post.data.title}</h3>
             
@@ -70,7 +78,8 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
                 <span class="listen-text">Escuchar</span>
             </div>
 		</div>
-	</a>
+	</div>
+    <a href={`/ep/${post.slug}`} class="full-card-link" aria-label={`Escuchar ${post.data.title}`}></a>
 </article>
 
 <style>
@@ -94,13 +103,18 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
          box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
     }
 
-	.card-link {
-		text-decoration: none;
+	.card-inner {
 		color: inherit;
         display: flex;
         flex-direction: column;
         height: 100%;
 	}
+
+    .full-card-link {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
 
     .card-image-wrapper, .card-image-placeholder {
         width: 100%;
@@ -189,6 +203,27 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
     
     .season-badge {
         color: var(--color-secondary);
+    }
+
+    .tags {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 2;
+        flex-wrap: wrap;
+    }
+
+    .tag {
+        color: var(--color-primary);
+        font-size: 0.75rem;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .tag:hover {
+        color: var(--color-text-main);
+        text-decoration: underline;
     }
 
 	.title {
