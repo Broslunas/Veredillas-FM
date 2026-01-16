@@ -10,6 +10,8 @@ participants: ["Carlos", "Anaysa", "Gisselle"]
 tags: ["Eventos"]
 ---
 
+<iframe id="radio-iframe" src="https://radio-veredillas.vercel.app/005" allow="fullscreen" title="Reproductor de Veredillas FM" style="width: 100%; height: 220px; border: none; overflow: hidden; border-radius: 12px; margin: 2rem 0;"></iframe>
+
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
 
 ¡Bienvenidos de nuevo a este espacio donde, por un momento, aparcamos los libros para iluminar las historias y los proyectos que hacen de nuestra clase un lugar único!
@@ -23,7 +25,5 @@ Hoy, vamos a dejar los apuntes y las fechas de exámenes a un lado para hablar d
 Prepárate para conocer el lado más activo, coordinado y humano de nuestros compañeros. Sube el volumen, relájate y pulsa 'Play'.
 
 **¡Comenzamos la entrevista con Carlos, Gisselle y Anaysa para descubrir el funcionamiento del Mercadillo Escolar!**
-
-<iframe id="radio-iframe" src="https://radio-veredillas.vercel.app/005" allow="fullscreen" title="Reproductor de Veredillas FM" style="width: 100%; height: 220px; border: none; overflow: hidden; border-radius: 12px; margin: 2rem 0;"></iframe>
 
 Esperemos que hayas disfrutado de la entrevista.

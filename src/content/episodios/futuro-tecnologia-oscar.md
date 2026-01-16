@@ -9,6 +9,7 @@ duration: "32 min"
 participants: ["Prof. Oscar"]
 tags: ["Profesorado", "Tecnología", "Innovación", "Profesorado"]
 ---
+<iframe id="radio-iframe" src="https://radio-veredillas.vercel.app/001" allow="fullscreen" title="Reproductor de Veredillas FM" style="width: 100%; height: 220px; border: none; overflow: hidden; border-radius: 12px; margin: 2rem 0;"></iframe>
 
 ¡Hola a todos y bienvenidos de nuevo al blog de **Veredillas FM**!
 
@@ -17,8 +18,6 @@ Estamos de enhorabuena. Esta semana hemos tenido el inmenso placer de sentarnos 
 Ha sido una conversación fascinante donde hablamos de su vida estudiantil, experiencias vividas, entre otros muchos temas. ¿Te lo vas a perder?
 
 ¡Dale al play y disfruta de la entrevista!
-
-<iframe id="radio-iframe" src="https://radio-veredillas.vercel.app/001" allow="fullscreen" title="Reproductor de Veredillas FM" style="width: 100%; height: 220px; border: none; overflow: hidden; border-radius: 12px; margin: 2rem 0;"></iframe>
 
 No podemos estar más agradecidos con el profesor por dedicarnos su tiempo y compartir su pasión con nosotros. ¡Ha sido un verdadero lujo!
 
