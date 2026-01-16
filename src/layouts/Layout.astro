@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import MiniPlayer from '../components/MiniPlayer.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import ToastNotification from '../components/ToastNotification.astro';
+import Chatbox from '../components/Chatbox.astro';
 
 
 interface Props {
@@ -189,6 +190,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
 		</main>
 		{showFooter && <Footer />}
         <MiniPlayer />
+        <Chatbox />
         <CookieConsent />
         <ToastNotification />
 	</body>

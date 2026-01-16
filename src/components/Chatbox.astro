@@ -1,0 +1,809 @@
+---
+---
+<div id="chatbox-root" class="chatbox-root">
+    <!-- Floating Launcher Button -->
+    <button id="chat-launcher" class="chat-launcher" aria-label="Abrir chat">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </button>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="chat-modal hidden">
+        <div class="chat-container">
+            <!-- Header -->
+            <div class="chat-header">
+                <div class="header-info">
+                    <div class="avatar-circle">
+                        <img src="/logo.png" alt="AI" />
+                        <span class="status-dot"></span>
+                    </div>
+                    <div class="header-text">
+                        <div class="title-row">
+                            <h3>Veredillas AI</h3>
+                            <span class="badge">BETA</span>
+                        </div>
+                        <p class="subtitle">✨ Listo para ayudar.</p>
+                    </div>
+                </div>
+                <button id="close-chat" class="close-btn" aria-label="Cerrar chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="chat-messages" class="chat-messages">
+                <!-- Welcome Message -->
+                <div class="message ai">
+                    <div class="message-content">
+                        ¡Hola! Soy la IA de Veredillas FM. ¿En qué puedo ayudarte hoy?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-footer">
+                <form id="chat-form" class="chat-input-container">
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        placeholder="Escribe tu pregunta..." 
+                        autocomplete="off"
+                    />
+                    <button type="submit" class="send-btn" aria-label="Enviar mensaje">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </form>
+                <div class="disclaimer">
+                    Veredillas AI puede cometer errores. Verifica la información importante.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style is:global>
+    /* Variables matching the image dark theme */
+    :root {
+        --chat-bg: #0f1117;
+        --chat-header-bg: #161b22;
+        --chat-border: #30363d;
+        --chat-user-bg: #2563eb;
+        --chat-ai-bg: #1f2937;
+        --chat-text: #e5e7eb;
+        --chat-text-muted: #9ca3af;
+        --chat-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+    }
+
+    .chatbox-root {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 100000; /* Higher than standard modals/loaders */
+        font-family: 'Inter', system-ui, sans-serif;
+        isolation: isolate;
+    }
+
+    /* Launcher Button */
+    .chat-launcher {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--color-primary, #6366f1);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, background-color 0.2s;
+        position: relative;
+        z-index: 2;
+    }
+
+    .chat-launcher:hover {
+        transform: scale(1.05);
+        background: var(--color-primary-dark, #4f46e5);
+    }
+
+    /* Modal Container */
+    .chat-modal {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 400px;
+        height: 600px;
+        background: var(--chat-bg);
+        border: 1px solid var(--chat-border);
+        border-radius: 16px;
+        box-shadow: var(--chat-shadow);
+        overflow: hidden;
+        opacity: 1;
+        transform: translateY(0);
+        transform-origin: bottom right;
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+        display: flex;
+        flex-direction: column;
+        visibility: visible;
+        z-index: 1;
+    }
+
+    .chat-modal.hidden {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 480px) {
+        .chat-modal {
+            width: calc(100vw - 32px);
+            right: 0;
+            height: 70vh;
+            bottom: 75px; 
+        }
+        
+        .chatbox-root {
+            right: 16px;
+            bottom: 16px;
+        }
+    }
+
+    /* Content Layout */
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.05), transparent 40%),
+                    radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.05), transparent 40%);
+    }
+
+    /* Header */
+    .chat-header {
+        padding: 16px;
+        background: var(--chat-header-bg);
+        border-bottom: 1px solid var(--chat-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-shrink: 0;
+    }
+
+    .header-info {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .avatar-circle {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #000;
+        border: 2px solid #3b82f6;
+        padding: 2px;
+        flex-shrink: 0;
+    }
+    
+    .avatar-circle img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .status-dot {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 10px;
+        height: 10px;
+        background: #10b981;
+        border: 2px solid var(--chat-header-bg);
+        border-radius: 50%;
+    }
+
+    .header-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .title-row h3 {
+        margin: 0;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .badge {
+        background: #1d4ed8;
+        color: #bfdbfe;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+        margin: 0;
+        color: var(--chat-text-muted);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .close-btn {
+        background: transparent;
+        border: none;
+        color: var(--chat-text-muted);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+
+    .close-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+    }
+
+    /* Messages */
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--chat-border) transparent;
+    }
+
+    .message {
+        display: flex;
+        flex-direction: column;
+        max-width: 85%;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .message.user {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+
+    .message.ai {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+
+    .message-content {
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        position: relative;
+        word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+        background: var(--chat-user-bg);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message.ai .message-content {
+        background: var(--chat-ai-bg);
+        color: var(--chat-text);
+        border: 1px solid var(--chat-border);
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-content strong {
+        font-weight: 700;
+        color: white;
+    }
+    
+    .message-content em {
+        font-style: italic;
+    }
+
+    .message-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+        padding-left: 2px;
+    }
+
+    .action-btn {
+        background: rgba(55, 65, 81, 0.5);
+        color: #e5e7eb;
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        border: 1px solid var(--chat-border);
+    }
+
+    .action-btn:hover {
+        background: rgba(55, 65, 81, 0.8);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* Footer */
+    .chat-footer {
+        padding: 16px;
+        border-top: 1px solid var(--chat-border);
+        background: var(--chat-bg);
+        flex-shrink: 0;
+    }
+
+    .chat-input-container {
+        display: flex;
+        align-items: center;
+        background: #1f2937;
+        border: 1px solid var(--chat-border);
+        border-radius: 24px;
+        padding: 4px 6px 4px 16px;
+        transition: border-color 0.2s;
+    }
+
+    .chat-input-container:focus-within {
+        border-color: #3b82f6;
+    }
+
+    #chat-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 14px;
+        padding: 8px 0;
+        outline: none;
+        min-width: 0;
+    }
+
+    #chat-input::placeholder {
+        color: #6b7280;
+    }
+
+    .send-btn {
+        background: #374151;
+        border: none;
+        color: #9ca3af;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .send-btn:hover {
+        background: #4b5563;
+        color: #fff;
+    }
+
+    .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .disclaimer {
+        text-align: center;
+        font-size: 10px;
+        color: #6b7280;
+        margin-top: 8px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Loading Dots */
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 8px 12px;
+        background: var(--chat-ai-bg);
+        border-radius: 12px;
+        border: 1px solid var(--chat-border);
+        width: fit-content;
+    }
+    
+    .dot {
+        width: 6px;
+        height: 6px;
+        background: #9ca3af;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out;
+    }
+    
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+</style>
+
+<script>
+    // @ts-nocheck
+    class Chatbox {
+        // Class fields declaration (Standard JS)
+        isOpen = false;
+        messages = [];
+        isLoading = false;
+
+        launcher = null;
+        modal = null;
+        closeBtn = null;
+        form = null;
+        input = null;
+        messagesContainer = null;
+
+        constructor() {
+            this.launcher = document.getElementById('chat-launcher');
+            this.modal = document.getElementById('chat-modal');
+            this.closeBtn = document.getElementById('close-chat');
+            this.form = document.getElementById('chat-form');
+            this.input = document.getElementById('chat-input');
+            this.messagesContainer = document.getElementById('chat-messages');
+
+            if (this.launcher && this.modal && this.closeBtn && this.form && this.input && this.messagesContainer) {
+                this.initListeners();
+            } else {
+                console.error('Chatbox: Failed to find required elements (JS fallback)');
+            }
+        }
+
+        initListeners() {
+            this.launcher.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleChat();
+            });
+            
+            this.closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleChat();
+            });
+
+            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+            
+            // Close on click outside
+            document.addEventListener('click', (e) => {
+                if (this.isOpen && 
+                    !this.modal.contains(e.target) && 
+                    !this.launcher.contains(e.target)) {
+                    this.toggleChat();
+                }
+            });
+        }
+
+        toggleChat() {
+            if (!this.modal || !this.input) return;
+
+            this.isOpen = !this.isOpen;
+            if (this.isOpen) {
+                this.modal.classList.remove('hidden');
+                // Use a small delay to ensure visibility transition has started
+                // and element is interactive
+                setTimeout(() => this.input.focus(), 50);
+            } else {
+                this.modal.classList.add('hidden');
+                this.input.blur();
+            }
+        }
+
+        async handleSubmit(e) {
+            e.preventDefault();
+            if (!this.input) return;
+            
+            const message = this.input.value.trim();
+            if (!message || this.isLoading) return;
+
+            // Clear input
+            this.input.value = '';
+
+            // Add user message
+            this.addMessage(message, 'user');
+            
+            // Show loading
+            this.isLoading = true;
+            const loadingId = this.addLoadingIndicator();
+
+            try {
+                // Call API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message,
+                        currentUrl: window.location.href 
+                    })
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    console.error('Chatbox: Failed to parse JSON response', parseError);
+                    data = { response: 'Error de formato en la respuesta del servidor.' };
+                }
+                
+                // Remove loading
+                this.removeMessage(loadingId);
+                
+                // Add AI response
+                if (data && data.response) {
+                    this.addMessage(data.response, 'ai');
+                } else if (data && data.message) {
+                    this.addMessage(data.message, 'ai');
+                } else {
+                    this.addMessage('Lo siento, hubo un error al procesar tu solicitud.', 'ai');
+                }
+
+            } catch (error) {
+                console.error('Chatbox Error:', error);
+                this.removeMessage(loadingId);
+                this.addMessage('Error de conexión. Por favor intenta de nuevo.', 'ai');
+            } finally {
+                this.isLoading = false;
+                // Refocus input for continued conversation
+                if (this.isOpen) {
+                    this.input.focus();
+                }
+            }
+        }
+
+        addMessage(text, sender) {
+            if (!this.messagesContainer) return;
+
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            
+            // Render text content
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = this.formatText(text);
+            div.appendChild(contentDiv);
+
+            // If AI message, check for URLs and add buttons
+            if (sender === 'ai') {
+                const rawUrls = this.extractUrls(text);
+                if (rawUrls.length > 0) {
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'message-actions';
+                    
+                    // Deduplicate URLs intelligently
+                    // 1. Normalize URLs (remove trailing slash, lowercase protocol/domain)
+                    // 2. Use a Set to store unique normalized keys
+                    // 3. Keep the original URL for the first occurrence
+                    const uniqueUrlsMap = new Map();
+                    
+                    rawUrls.forEach(url => {
+                        try {
+                            // Ensure protocol
+                            let validUrl = url;
+                            if (!/^https?:\/\//i.test(url)) {
+                                validUrl = 'https://' + url;
+                            }
+                            
+                            const urlObj = new URL(validUrl);
+                            // Normalize: lowercase hostname + pathname without trailing slash
+                            const normalizedKey = urlObj.origin.toLowerCase() + urlObj.pathname.replace(/\/$/, '') + urlObj.search + urlObj.hash;
+                            
+                            if (!uniqueUrlsMap.has(normalizedKey)) {
+                                uniqueUrlsMap.set(normalizedKey, validUrl);
+                            }
+                        } catch (e) {
+                            // invalid url
+                        }
+                    });
+
+                    uniqueUrlsMap.forEach((validUrl) => {
+                        try {
+                            const urlObj = new URL(validUrl);
+                            const domain = urlObj.hostname.replace('www.', '');
+                            
+                            const btn = document.createElement('a');
+                            btn.href = validUrl;
+                            btn.target = '_blank';
+                            btn.rel = 'noopener noreferrer';
+                            btn.className = 'action-btn';
+                            btn.innerHTML = `
+                                <span>Abrir ${domain}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            `;
+                            actionsDiv.appendChild(btn);
+                        } catch (e) {
+                            // Should catch invalid URLs
+                        }
+                    });
+                    
+                    if (actionsDiv.hasChildNodes()) {
+                        div.appendChild(actionsDiv);
+                    }
+                }
+            }
+
+            this.messagesContainer.appendChild(div);
+            this.scrollToBottom();
+        }
+
+        extractUrls(text) {
+            if (!text) return [];
+            
+            const urls = [];
+            const foundUrls = new Set(); // Track normalized to avoid obvious dupes early
+
+            // Helper to clean and validate
+            const cleanAndAdd = (url) => {
+                try {
+                    // Remove trailing punctuation common in text (.,;:)] )
+                    // We need to be careful not to break the URL if it ends in valid chars
+                    // but ) or ] at the very end usually means end of sentence or bracket.
+                    let clean = url.replace(/[.,;:)\]]+$/, '');
+                    
+                    if (!/^https?:\/\//i.test(clean)) {
+                        clean = 'https://' + clean;
+                    }
+
+                    // Basic validation check
+                    new URL(clean);
+                    
+                    urls.push(clean);
+                } catch (e) {
+                    // invalid
+                }
+            };
+
+            // 1. Extract from Markdown links: [label](url)
+            // We replace them in a temp text so raw regex doesn't match the label or url again poorly
+            let tempText = text;
+            const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+            let match;
+            
+            while ((match = markdownLinkRegex.exec(text)) !== null) {
+                const url = match[2];
+                cleanAndAdd(url);
+                // "Blank out" this match in tempText with spaces to preserve length or just remove it
+                // We'll replace the exact full match with a placeholder that doesn't look like a URL
+                // We use split/join to replace all identical occurrences if any, which is safe enough here
+                // or better, just reconstruct tempText. But regex exec loop on original text is safest.
+            }
+            // Create a masked text for step 2
+            tempText = text.replace(markdownLinkRegex, ' ---LINK--- ');
+
+            // 2. Extract raw URLs (http/https)
+            // Regex that strictly matches http protocol to avoid false positives, 
+            // and excludes common trailing chars.
+            const rawUrlRegex = /(https?:\/\/[^\s<)\]]+)/g;
+            let rawMatch;
+            while ((rawMatch = rawUrlRegex.exec(tempText)) !== null) {
+                cleanAndAdd(rawMatch[1]);
+            }
+            
+            return urls;
+        }
+
+        addLoadingIndicator() {
+            if (!this.messagesContainer) return '';
+
+            const id = 'loading-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = 'message ai';
+            div.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            `;
+            this.messagesContainer.appendChild(div);
+            this.scrollToBottom();
+            return id;
+        }
+
+        removeMessage(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        scrollToBottom() {
+            if (this.messagesContainer) {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+        }
+
+        formatText(text) {
+            if (!text) return '';
+            // Escape HTML (basic)
+            let formatted = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            // Bold **text** -> <strong>text</strong>
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Italic *text* -> <em>text</em>
+            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+            // Markdown Links [label](url) -> <a href="url">label</a>
+            formatted = formatted.replace(
+                /\[([^\]]+)\]\(([^)]+)\)/g, 
+                '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: underline;">$1</a>'
+            );
+
+            // Basic Raw URL linking (only if not inside an anchor tag already - simplified check)
+            // We do a lookbehind to ensure it's not preceded by href=" or ">
+            formatted = formatted.replace(
+                /(?<!href="|">)https?:\/\/[^\s<)]+/g, 
+                (match) => {
+                    // Check if this match is actually part of a markdown link's URL that was just processed
+                    // This is hard with regex replace chain. 
+                    // Simpler approach: The markdown replace above handles [..](url).
+                    // The raw URL replace handles bare URLs.
+                    // If a URL was inside (), it might be matched here if we aren't careful.
+                    // Using a simpler non-conflicting regex or just assuming markdown links are sufficient.
+                    
+                    // Let's use a simpler heuristic: if the URL immediately follows specific chars
+                    return `<a href="${match}" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: underline;">${match}</a>`;
+                }
+            );
+            
+            return formatted;
+        }
+    }
+
+    // Initialization Logic
+    const initChatbox = () => {
+        // Simple singleton check
+        if (!window._chatboxInstance) {
+            window._chatboxInstance = new Chatbox();
+        }
+    };
+
+    // Run immediately if ready
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        initChatbox();
+    } else {
+        document.addEventListener('DOMContentLoaded', initChatbox);
+    }
+    
+    // Also listen for Astro page loads
+    document.addEventListener('astro:page-load', () => {
+        window._chatboxInstance = new Chatbox();
+    });
+</script>

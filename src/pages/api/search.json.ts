@@ -44,12 +44,13 @@ export async function GET() {
     // Páginas Estáticas (Acciones Rápidas)
     { title: 'Inicio', description: 'Ir a la página principal', slug: '/', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
     { title: 'Blog', description: 'Ver todos los artículos', slug: '/blog', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'Episodios', description: 'Escuchar el podcast', slug: '/episodes', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
+    { title: 'Episodios', description: 'Escuchar el podcast', slug: '/ep', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
     { title: 'Equipo', description: 'Conoce a los creadores', slug: '/equipo', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
     { title: 'Contacto', description: 'Envíanos un mensaje', slug: '/contacto', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
     { title: 'Newsletter', description: 'Suscríbete a nuestro newsletter', slug: '/newsletter', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
     { title: 'Calendario', description: 'Ver calendario de eventos', slug: '/calendario', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
     { title: 'Galeria', description: 'Ver galeria de imagenes', slug: '/galeria', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
+    { title: 'IA Veredillas', description: 'Chat con inteligencia artificial', slug: '#chat-toggle-btn', type: 'Herramienta', date: new Date().toISOString(), image: '/logo.png' },
   ];
 
   // Ordenar por fecha (más reciente primero)
