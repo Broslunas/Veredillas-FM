@@ -2,7 +2,7 @@
 title: "El camino de un docente ft. Jezael Goya"
 description: "Hoy, no vamos a hablar solo de matemáticas, sino de la persona que está detrás de la pizarra: el Profesor Jezael, nuestro querido profesor de Matemáticas y tutor de 2º de Bachillerato B."
 pubDate: 2025-12-02
-image: "https://radio.broslunas.com/img/003-v2.webp"
+image: "https://cdn.veredillasfm.es/img/003-v2.webp"
 spotifyUrl: "https://open.spotify.com/embed/episode/4j57TLbg8OvHXnL8BLwPKW"
 season: 1
 episode: 3

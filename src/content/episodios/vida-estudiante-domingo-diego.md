@@ -2,7 +2,7 @@
 title: "La vida del estudiante ft. Domingo y Diego"
 description: "Hoy, vamos a dejar los exámenes y las materias a un lado para hablar de la vida, de lo que les apasiona y de lo que les preocupa mientras afrontan un curso tan decisivo."
 pubDate: 2025-12-03
-image: "https://radio.broslunas.com/img/004.webp"
+image: "https://cdn.veredillasfm.es/img/004.webp"
 spotifyUrl: "https://open.spotify.com/embed/episode/3WQF20Rsg7LYlbuS2E5ogD"
 season: 1
 episode: 4

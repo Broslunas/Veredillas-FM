@@ -2,7 +2,7 @@
 title: "El Mercadillo ft. Carlos, Anaysa y Gisselle"
 description: "Hoy, el foco se dirige hacia una iniciativa muy especial que está a la vuelta de la esquina: ¡el Mercadillo Escolar del 19 de diciembre!"
 pubDate: 2025-12-10
-image: "https://radio.broslunas.com/img/005.webp"
+image: "https://cdn.veredillasfm.es/img/005.webp"
 season: 1
 episode: 5
 duration: "6 min"

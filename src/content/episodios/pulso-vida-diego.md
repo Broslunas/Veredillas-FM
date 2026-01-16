@@ -2,7 +2,7 @@
 title: "El Pulso de la Vida ft. Diego"
 description: "En este episodio, vamos a dejar los exámenes y las materias a un lado para adentrarnos en un terreno mucho más complejo y universal: el amor."
 pubDate: 2026-01-13
-image: "https://radio.broslunas.com/img/006.webp"
+image: "https://cdn.veredillasfm.es/img/006.webp"
 spotifyUrl: "https://open.spotify.com/embed/episode/1LYXQYIGRE38is2LzS9Jfe"
 season: 1
 episode: 6
