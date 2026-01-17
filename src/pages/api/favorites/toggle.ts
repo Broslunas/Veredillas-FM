@@ -66,14 +66,6 @@ export const POST: APIRoute = async ({ request }) => {
       isFavorite = true;
     }
 
-    console.log('[Favorites] Updating user favorites:', {
-      userId: user._id,
-      oldFavorites: currentFavorites,
-      newFavorites,
-      isFavorite,
-      episodeSlug
-    });
-
     // Usar findByIdAndUpdate para actualización atómica
     const updatedUser = await User.findByIdAndUpdate(
       userPayload.userId,
@@ -85,7 +77,6 @@ export const POST: APIRoute = async ({ request }) => {
       throw new Error('Failed to update user');
     }
 
-    console.log('[Favorites] Successfully saved. Verified favorites:', updatedUser.favorites);
 
     return new Response(JSON.stringify({ 
       success: true,

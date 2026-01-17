@@ -25,10 +25,24 @@ try {
       await mongoose.connect(MONGODB_URI);
     }
   }
-  const user = await User.findById(userPayload.userId).select('favorites');
-  favorites = user?.favorites || [];
+  const userDoc = await User.findById(userPayload.userId);
+  if (userDoc) {
+    favorites = userDoc.favorites || [];
+  }
+  // Assign userDoc to user for template access, ensuring it's not null/undefined if possible
+  // Using 'any' cast or interface to avoid type issues in template if accessing property directly
+  var user = userDoc; 
 } catch (error) {
   console.error('Error loading favorites:', error);
+}
+
+// Fallback user object if DB fails but we have payload
+if (!user && userPayload) {
+  user = {
+    name: userPayload.name,
+    picture: '', // We don't have picture in payload usually
+    favorites: []
+  } as any;
 }
 
 // Obtener episodios favoritos
@@ -48,8 +62,113 @@ const favoriteEpisodes = allEpisodes
         Mis Favoritos
       </h1>
       {favoriteEpisodes.length > 0 && (
-        <p class="favorites-count">{favoriteEpisodes.length} {favoriteEpisodes.length === 1 ? 'episodio' : 'episodios'}</p>
+        <div class="header-actions">
+          <p class="favorites-count">{favoriteEpisodes.length} {favoriteEpisodes.length === 1 ? 'episodio' : 'episodios'}</p>
+          <button class="share-btn" id="share-favorites-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            Compartir
+          </button>
+        </div>
       )}
+    </div>
+
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Compartir mis favoritos</h2>
+          <button class="modal-close" id="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <!-- Tab navigation -->
+          <div class="share-tabs">
+            <button class="share-tab active" data-tab="link">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0  0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+              Enlace
+            </button>
+            <button class="share-tab" data-tab="image">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              Imagen
+            </button>
+          </div>
+
+          <!-- Link tab content -->
+          <div class="tab-content active" data-content="link">
+            <p>Comparte tu lista de favoritos con tus amigos:</p>
+            <div class="share-url-container">
+              <input type="text" id="share-url" readonly class="share-url-input" value="Generando enlace..." />
+              <button id="copy-url-btn" class="copy-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copiar
+              </button>
+            </div>
+            <p class="share-note">Cualquier persona con este enlace podrá ver tu lista de favoritos.</p>
+          </div>
+
+          <!-- Image tab content -->
+          <div class="tab-content" data-content="image">
+            <p>Descarga una imagen de tus favoritos:</p>
+            <div class="image-preview-container">
+              <div id="share-image-card" class="share-image-card">
+                <div class="card-header-img">
+                  <div class="card-logo">
+                    <img src="/logo.png" alt="Veredillas FM" />
+                  </div>
+                  <h3>Mis Favoritos en Veredillas FM</h3>
+                </div>
+                <div class="card-content-img">
+                  <div class="user-info-img">
+                    {user.picture ? (
+                      <img src={user.picture} alt={user.name} class="user-avatar-img" />
+                    ) : (
+                      <div class="user-avatar-placeholder-img">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span class="user-name-img">{user.name}</span>
+                  </div>
+                  <div class="episodes-list-img">
+                    {favoriteEpisodes.slice(0, 5).map((episode, index) => (
+                      <div class="episode-item-img">
+                        <span class="episode-number">{index + 1}</span>
+                        <span class="episode-title-img">{episode.data.title}</span>
+                      </div>
+                    ))}
+                    {favoriteEpisodes.length > 5 && (
+                      <div class="more-episodes">
+                        +{favoriteEpisodes.length - 5} más
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div class="card-footer-img">
+                  <span>{favoriteEpisodes.length} episodios favoritos</span>
+                </div>
+              </div>
+            </div>
+            <button id="download-image-btn" class="download-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Descargar Imagen
+            </button>
+            <p class="share-note">La imagen se descargará en formato PNG.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     {favoriteEpisodes.length === 0 ? (
@@ -98,7 +217,7 @@ const favoriteEpisodes = allEpisodes
   </div>
 </Layout>
 
-<style>
+<style is:global>
   .favorites-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -260,6 +379,370 @@ const favoriteEpisodes = allEpisodes
     opacity: 0.5;
   }
 
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: rgba(139, 92, 246, 0.1);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 50px;
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .share-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: translateY(-2px);
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-content {
+    background: var(--color-surface);
+    border-radius: 20px;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+  }
+
+  .modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--color-text);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .modal-close:hover {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--color-text);
+  }
+
+  .modal-body {
+    padding: 2rem;
+  }
+
+  .modal-body p {
+    color: var(--color-text-muted);
+    margin: 0 0 1rem 0;
+  }
+
+  .share-url-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .share-url-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 12px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: monospace;
+    font-size: 0.9rem;
+  }
+
+  .copy-btn {
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent, #ec4899));
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  }
+
+  .copy-btn.copied {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+  }
+
+  .share-note {
+    font-size: 0.85rem !important;
+    opacity: 0.7;
+  }
+
+  /* Tabs */
+  .share-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .share-tab {
+    background: none;
+    border: none;
+    padding: 0.75rem 1rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .share-tab:hover {
+    color: var(--color-text);
+  }
+
+  .share-tab.active {
+    color: var(--color-primary);
+  }
+
+  .share-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--color-primary);
+  }
+
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* Image Preview Card */
+  .image-preview-container {
+    background: #1a1a1a;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+  }
+
+  .share-image-card {
+    width: 320px;
+    background: linear-gradient(135deg, #1e1e24 0%, #2d2d3a 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .share-image-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #8b5cf6, #ec4899);
+  }
+
+  .card-header-img {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 1rem;
+  }
+
+  .card-logo img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+  }
+
+  .card-header-img h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+    color: white;
+  }
+
+  .user-info-img {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .user-avatar-img, .user-avatar-placeholder-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(139, 92, 246, 0.5);
+  }
+
+  .user-avatar-placeholder-img {
+    background: linear-gradient(135deg, var(--color-primary), #ec4899);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: white;
+  }
+
+  .user-name-img {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .episodes-list-img {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .episode-item-img {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .episode-number {
+    color: #8b5cf6;
+    font-weight: 700;
+    min-width: 1.2rem;
+  }
+
+  .episode-title-img {
+    color: rgba(255,255,255,0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .more-episodes {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    padding-left: 2rem;
+    font-style: italic;
+  }
+
+  .card-footer-img {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+  }
+
+  .download-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
+  }
+
+  .download-btn:hover {
+    background: var(--color-primary-dark, #7c3aed);
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @media (max-width: 768px) {
     .favorites-container {
       padding: 1rem;
@@ -269,9 +752,145 @@ const favoriteEpisodes = allEpisodes
       font-size: 2rem;
     }
 
+    .header-actions {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
     .episodes-grid {
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
+
+    .modal-content {
+      width: 95%;
+    }
+
+    .share-url-container {
+      flex-direction: column;
+    }
   }
 </style>
+
+<script>
+  import { toPng } from 'html-to-image';
+
+  // Share functionality
+  const shareBtn = document.getElementById('share-favorites-btn');
+  const modal = document.getElementById('share-modal');
+  const closeBtn = document.getElementById('close-modal');
+  const copyBtn = document.getElementById('copy-url-btn');
+  const shareUrlInput = document.getElementById('share-url') as HTMLInputElement;
+  const downloadBtn = document.getElementById('download-image-btn');
+  const tabs = document.querySelectorAll('.share-tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  // Tab switching
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-tab');
+      
+      // Update tabs
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      // Update content
+      tabContents.forEach(c => {
+        if (c.getAttribute('data-content') === target) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+    });
+  });
+
+  // Download Image
+  downloadBtn?.addEventListener('click', async () => {
+    const card = document.getElementById('share-image-card');
+    if (!card) return;
+
+    const originalText = downloadBtn.innerHTML;
+    downloadBtn.innerHTML = 'Generando...';
+    downloadBtn.style.pointerEvents = 'none';
+
+    try {
+      const dataUrl = await toPng(card, {
+        quality: 0.95,
+        backgroundColor: '#1a1a1a',
+        style: {
+          transform: 'scale(1)', // Ensure no scaling issues
+        }
+      });
+
+      const link = document.createElement('a');
+      link.download = 'mis-favoritos-veredillas.png';
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('Error generating image:', error);
+      alert('Hubo un error al generar la imagen. Por favor intenta de nuevo.');
+    } finally {
+      downloadBtn.innerHTML = originalText;
+      downloadBtn.style.pointerEvents = 'auto';
+    }
+  });
+
+  shareBtn?.addEventListener('click', async () => {
+    modal?.classList.add('show');
+    
+    // Generate share link
+    try {
+      const response = await fetch('/api/favorites/share', {
+        method: 'POST'
+      });
+      
+      const data = await response.json();
+      
+      if (data.shareUrl) {
+        shareUrlInput.value = data.shareUrl;
+      } else {
+        shareUrlInput.value = 'Error al generar enlace';
+      }
+    } catch (error) {
+      console.error('Error generating share link:', error);
+      shareUrlInput.value = 'Error al generar enlace';
+    }
+  });
+
+  closeBtn?.addEventListener('click', () => {
+    modal?.classList.remove('show');
+  });
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('show');
+    }
+  });
+
+  copyBtn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrlInput.value);
+      copyBtn.classList.add('copied');
+      copyBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Copiado
+      `;
+      
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copiar
+        `;
+      }, 2000);
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      alert('Error al copiar el enlace');
+    }
+  });
+</script>

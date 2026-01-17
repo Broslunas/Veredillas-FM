@@ -9,9 +9,8 @@ Crossfade entre episodios - Transiciones suaves
 Normalización de volumen - Volumen consistente entre episodios
 Modo karaoke/sincronización de letras - Para episodios musicales
 Historial de reproducción - Ver últimos episodios escuchados
+
 👤 Usuario & Personalización (10)
-Sistema de autenticación - Login/registro con email o social
-Perfiles de usuario personalizables - Avatar, bio, preferencias
 Favoritos/Me gusta - Guardar episodios preferidos
 Suscripciones a tags específicos - Notificaciones personalizadas
 Temas personalizables - Múltiples esquemas de color
@@ -20,6 +19,7 @@ Recomendaciones personalizadas basadas en IA
 Smart notifications - Avisos de nuevos episodios según preferencias
 Nivel/badges de oyente - Gamificación por tiempo escuchado
 Configuración de accesibilidad - Tamaño de texto, contraste, etc.
+
 💬 Comunidad & Social (8)
 Sistema de comentarios por episodio - Con hilos de conversación
 Ratings/valoraciones de episodios - Sistema de estrellas

@@ -5,7 +5,6 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   try {
     const data = await request.json();
-    console.log("Contact API received data:", data); // Debug log
 
     const { name, email, phone, subject, message } = data;
 

@@ -16,7 +16,10 @@ const { episodeSlug, className = '' } = Astro.props;
   <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
   </svg>
-  <span class="favorite-text">Favorito</span>
+  <span class="favorite-text">
+    <span class="favorite-label">Favorito</span>
+    <span class="favorite-count" data-count="0">0</span>
+  </span>
 </button>
 
 <style is:global>
@@ -87,6 +90,25 @@ const { episodeSlug, className = '' } = Astro.props;
     pointer-events: none;
   }
 
+  .favorite-text {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    line-height: 1;
+  }
+
+  .favorite-label {
+    font-size: 0.9rem;
+  }
+
+  .favorite-count {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    font-weight: 500;
+    margin-left: 2px;
+  }
+
   @media (max-width: 640px) {
     .favorite-text {
       display: none;
@@ -109,14 +131,22 @@ const { episodeSlug, className = '' } = Astro.props;
       const data = await response.json();
       const favorites = data.favorites || [];
 
-      // Mark favorited buttons
+      // Mark favorited buttons and load counts
       const buttons = document.querySelectorAll('.favorite-btn');
-      buttons.forEach((button) => {
+      
+      for (const button of buttons) {
         const slug = button.getAttribute('data-episode-slug');
+        
+        // Mark if favorited
         if (favorites.includes(slug)) {
           button.classList.add('favorited');
           button.setAttribute('aria-label', 'Quitar de favoritos');
           button.setAttribute('title', 'Quitar de favoritos');
+        }
+
+        // Load favorite count for this episode
+        if (slug) {
+          loadFavoriteCount(slug, button as HTMLElement);
         }
 
         // Add click handler
@@ -124,9 +154,30 @@ const { episodeSlug, className = '' } = Astro.props;
           e.preventDefault();
           await toggleFavorite(button as HTMLButtonElement);
         });
-      });
+      }
     } catch (error) {
       console.error('Error loading favorites:', error);
+    }
+  }
+
+  async function loadFavoriteCount(slug: string, button: HTMLElement) {
+    try {
+      const response = await fetch(`/api/favorites/count?slug=${encodeURIComponent(slug)}`);
+      const data = await response.json();
+      
+      if (data.favoritesCount !== undefined) {
+        updateCountDisplay(button, data.favoritesCount);
+      }
+    } catch (error) {
+      console.error('Error loading favorite count:', error);
+    }
+  }
+
+  function updateCountDisplay(button: HTMLElement, count: number) {
+    const countEl = button.querySelector('.favorite-count');
+    if (countEl) {
+      countEl.textContent = count.toString();
+      countEl.setAttribute('data-count', count.toString());
     }
   }
 
@@ -152,6 +203,21 @@ const { episodeSlug, className = '' } = Astro.props;
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Revert optimistic update immediately
+          if (wasFavorited) {
+            button.classList.add('favorited');
+          } else {
+            button.classList.remove('favorited');
+          }
+          
+          if (window.showToast) {
+            window.showToast('Inicia sesión para guardar favoritos ❤️', 'default');
+          } else {
+            alert('Debes iniciar sesión para guardar favoritos');
+          }
+          return;
+        }
         throw new Error(data.error || 'Error al actualizar favorito');
       }
 
@@ -160,11 +226,16 @@ const { episodeSlug, className = '' } = Astro.props;
         button.classList.add('favorited');
         button.setAttribute('aria-label', 'Quitar de favoritos');
         button.setAttribute('title', 'Quitar de favoritos');
+        if (window.showToast) window.showToast('Añadido a favoritos', 'success');
       } else {
         button.classList.remove('favorited');
         button.setAttribute('aria-label', 'Agregar a favoritos');
         button.setAttribute('title', 'Agregar a favoritos');
+        if (window.showToast) window.showToast('Eliminado de favoritos', 'default');
       }
+
+      // Reload count from server to ensure accuracy
+      await loadFavoriteCount(slug, button);
     } catch (error) {
       console.error('Error toggling favorite:', error);
       // Revert optimistic update on error
@@ -173,7 +244,12 @@ const { episodeSlug, className = '' } = Astro.props;
       } else {
         button.classList.remove('favorited');
       }
-      alert('Error al actualizar favorito. Por favor, intenta de nuevo.');
+      
+      if (window.showToast) {
+         window.showToast('Error al actualizar favorito', 'error');
+      } else {
+        alert('Error al actualizar favorito. Por favor, intenta de nuevo.');
+      }
     } finally {
       button.classList.remove('loading');
     }
