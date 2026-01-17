@@ -1,0 +1,358 @@
+---
+interface Props {
+  transcription?: { time: string; text: string }[];
+}
+
+const { transcription } = Astro.props;
+
+if (!transcription || transcription.length === 0) {
+  return;
+}
+---
+
+<div class="transcription-widget" id="transcription-widget">
+  <div class="header-row">
+      <h3>Transcripción</h3>
+      <button id="btn-expand-transcription" class="icon-btn" aria-label="Ampliar transcripción">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+      </button>
+  </div>
+  
+  <div class="transcription-scroll" id="transcription-scroll">
+    {transcription.map((item, index) => (
+      <div class="transcription-line" data-time={item.time} data-index={index}>
+        <span class="time">{item.time}</span>
+        <p class="text">{item.text}</p>
+      </div>
+    ))}
+  </div>
+</div>
+
+<dialog id="transcription-modal" class="transcription-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Transcripción del Episodio</h2>
+            <button id="btn-close-modal" class="icon-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="transcription-scroll modal-scroll" id="transcription-scroll-modal">
+             {transcription.map((item, index) => (
+              <div class="transcription-line" data-time={item.time} data-index={index}>
+                <span class="time">{item.time}</span>
+                <p class="text">{item.text}</p>
+              </div>
+            ))}
+        </div>
+    </div>
+</dialog>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const widgetScroll = document.getElementById('transcription-scroll');
+        const modalScroll = document.getElementById('transcription-scroll-modal');
+        const modal = document.getElementById('transcription-modal') as HTMLDialogElement;
+        const btnExpand = document.getElementById('btn-expand-transcription');
+        const btnClose = document.getElementById('btn-close-modal');
+        
+        // Modal Logic
+        if(btnExpand && modal) {
+            btnExpand.addEventListener('click', () => {
+                modal.showModal();
+                document.body.style.overflow = 'hidden';
+            });
+        }
+        
+        if(btnClose && modal) {
+            btnClose.addEventListener('click', () => {
+                modal.close();
+                document.body.style.overflow = '';
+            });
+        }
+        
+        if(modal) {
+             modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.close();
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+
+        // Helper: Convert MM:SS to seconds
+        const parseTime = (t: string) => {
+            const p = t.split(':').map(Number);
+            if(p.length === 2) return p[0]*60 + p[1];
+            if(p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
+            return 0;
+        };
+
+        // Collect lines
+        const getLines = (container: HTMLElement | null) => {
+            if(!container) return [];
+            return Array.from(container.querySelectorAll('.transcription-line')).map(el => {
+                const timeStr = el.querySelector('.time')?.textContent || "00:00";
+                return {
+                    el: el as HTMLElement,
+                    time: parseTime(timeStr)
+                };
+            });
+        };
+
+        const widgetLines = getLines(widgetScroll);
+        const modalLines = getLines(modalScroll);
+
+        // Click to Seek
+        const attachSeek = (lines: {el: HTMLElement, time: number}[]) => {
+            lines.forEach(line => {
+                line.el.addEventListener('click', () => {
+                    document.dispatchEvent(new CustomEvent('veredillas:audio-seek', {
+                        detail: { time: line.time }
+                    }));
+                });
+            });
+        };
+        
+        attachSeek(widgetLines);
+        attachSeek(modalLines);
+
+        // Sync Logic
+        document.addEventListener('veredillas:audio-timeupdate', (e: Event) => {
+            const customEvent = e as CustomEvent;
+            const currentTime = customEvent.detail.currentTime;
+            
+            const updateActive = (lines: {el: HTMLElement, time: number}[], container: HTMLElement | null) => {
+                 if(!container) return;
+                 
+                 let activeIdx = -1;
+                 for(let i=0; i < lines.length; i++) {
+                     if (currentTime >= lines[i].time) {
+                         // Check if next line exists and is in future
+                         if (i === lines.length - 1 || currentTime < lines[i+1].time) {
+                             activeIdx = i;
+                             break;
+                         }
+                     }
+                 }
+                 
+                 if (activeIdx !== -1) {
+                     // Remove old active
+                     const currentActive = container.querySelector('.active');
+                     if(currentActive && currentActive !== lines[activeIdx].el) {
+                         currentActive.classList.remove('active');
+                     }
+                     
+                     // Add new active
+                     if (!lines[activeIdx].el.classList.contains('active')) {
+                         lines[activeIdx].el.classList.add('active');
+                         
+                         // Scroll to view
+                         lines[activeIdx].el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                     }
+                 }
+            };
+
+            updateActive(widgetLines, widgetScroll);
+            if(modal && modal.open) {
+                updateActive(modalLines, modalScroll);
+            }
+        });
+    });
+</script>
+
+<style>
+  .transcription-widget {
+    margin-top: var(--spacing-lg);
+    background: var(--color-surface);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    max-height: 500px;
+  }
+  
+  .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--color-text-heading);
+    font-weight: 700;
+  }
+  
+  .icon-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+  }
+  
+  .icon-btn:hover {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+  }
+
+  .transcription-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: var(--spacing-xs);
+    
+    /* Custom Scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary) rgba(255,255,255,0.05);
+  }
+  
+  .transcription-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .transcription-scroll::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+  }
+  
+  .transcription-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary);
+    border-radius: 4px;
+  }
+
+  .transcription-line {
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-direction: column;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  
+  .transcription-line:hover {
+      background: rgba(255,255,255,0.03);
+  }
+  
+  .transcription-line.active {
+      background: rgba(139, 92, 246, 0.15); /* Primary Highlight */
+      border-left: 3px solid var(--color-primary);
+  }
+
+  .time {
+    font-size: 0.75rem;
+    color: var(--color-primary);
+    font-family: monospace;
+    background: rgba(139, 92, 246, 0.1); /* Primary color low opacity */
+    padding: 2px 6px;
+    border-radius: 4px;
+    align-self: flex-start;
+  }
+
+  .text {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+  
+  .transcription-line:hover .text, .transcription-line.active .text {
+      color: var(--color-text-main);
+  }
+  
+  /* Modal Styles */
+  .transcription-modal {
+      border: none;
+      background: transparent;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      position: fixed; /* Force fixed */
+      inset: 0;
+      z-index: 99999; /* Super high z-index */
+      margin: 0;
+  }
+  
+  .transcription-modal:not([open]) {
+      display: none;
+  }
+
+  .transcription-modal::backdrop {
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(5px);
+      position: fixed;
+      inset: 0;
+      z-index: 99998;
+  }
+  
+  .modal-content {
+      background: #0f172a; /* Slate 900 */
+      width: 90%;
+      max-width: 800px;
+      height: 80%;
+      margin: 5vh auto; /* Use vh for vertical centering */
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      z-index: 99999;
+  }
+  
+  .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.95);
+      color: white; /* Ensure text is white */
+  }
+  
+  .modal-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: white;
+  }
+  
+  .modal-scroll {
+      padding: 24px;
+      flex: 1; /* Ensure it takes available space */
+      overflow-y: auto;
+  }
+  
+  .modal-scroll .transcription-line {
+      padding: 16px;
+      margin-bottom: 12px;
+  }
+  
+  .modal-scroll .text {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: #e2e8f0; /* Light gray */
+  }
+  
+  /* Active state in modal */
+  .modal-scroll .transcription-line.active {
+       background: rgba(139, 92, 246, 0.25);
+  }
+  
+  .modal-scroll .transcription-line.active .text {
+      color: white;
+      font-weight: 500;
+  }
+</style>

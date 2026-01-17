@@ -5,6 +5,7 @@ import Comments from '../../components/Comments.astro';
 import SocialShare from '../../components/SocialShare.astro';
 import RelatedEpisodes from '../../components/RelatedEpisodes.astro';
 import EpisodeParticipants from '../../components/EpisodeParticipants.astro';
+import TranscriptionWidget from '../../components/TranscriptionWidget.astro';
 
 export const prerender = false;
 
@@ -81,6 +82,7 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                     data-title={entry.data.title}
                     data-image={entry.data.image}
                     data-author={entry.data.author}
+                    data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
                 ></div>
             ) : null}
         </div>
@@ -118,6 +120,7 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                 </div>
                 
                 <EpisodeParticipants participants={entry.data.participants} />
+                <TranscriptionWidget transcription={entry.data.transcription} />
             </div>
         </div>
 

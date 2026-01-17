@@ -27,7 +27,9 @@
     <div class="immersive-container">
         
         <div class="immersive-controls-top">
-
+            <button id="toggle-lyrics" class="icon-btn" aria-label="Ver Transcripción">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </button>
             <button id="collapse-player" class="icon-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
             </button>
@@ -45,6 +47,34 @@
             </div>
 
             <canvas id="audio-visualizer"></canvas>
+
+            <!-- Immersive Controls -->
+            <div class="immersive-controls-bottom">
+                 <div class="progress-container">
+                    <span id="imm-current-time">00:00</span>
+                    <input type="range" id="imm-seek-bar" value="0" step="0.1">
+                    <span id="imm-duration">00:00</span>
+                 </div>
+                 
+                 <div class="main-buttons">
+                     <button id="imm-back-btn" class="ctrl-btn-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>
+                     </button>
+                     <button id="imm-play-btn" class="play-btn-xl">
+                        <svg id="imm-icon-play" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M5 3l14 9-14 9V3z"/></svg>
+                        <svg id="imm-icon-pause" class="hidden" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+                     </button>
+                     <button id="imm-fwd-btn" class="ctrl-btn-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
+                     </button>
+                 </div>
+            </div>
+                 </div>
+            </div>
+            
+            <div id="immersive-lyrics" class="immersive-lyrics hidden">
+                <p class="lyrics-placeholder">No hay transcripción disponible para este episodio.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -76,64 +106,7 @@
         // Modules are cached, so these run once.
         const fac = new FastAverageColor();
 
-        // ---- Visualizer Logic (Simulated) ----
-        const initVisualizer = () => {
-             const canvas = document.getElementById('audio-visualizer') as HTMLCanvasElement;
-             if (!canvas) return;
-             
-             const ctx = canvas.getContext('2d');
-             if (!ctx) return;
 
-             // Resize
-             const resize = () => {
-                 canvas.width = canvas.offsetWidth;
-                 canvas.height = canvas.offsetHeight;
-             };
-             window.addEventListener('resize', resize);
-             resize();
-
-             if (window.visualizerInterval) cancelAnimationFrame(window.visualizerInterval);
-
-             const bars = 60;
-             let time = 0;
-
-             const draw = () => {
-                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                 
-                 const width = canvas.width / bars;
-                 const center = canvas.height / 2;
-                 
-                 ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary');
-                 
-                 for (let i = 0; i < bars; i++) {
-                     // Simulating wave data based on time and index
-                     const relX = i / bars; // 0 to 1
-                     
-                     // Complex wave function to look like speech/music
-                     const h1 = Math.sin(time * 0.1 + i * 0.2) * 50; 
-                     const h2 = Math.cos(time * 0.2 + i * 0.1) * 30;
-                     const noise = Math.random() * 20;
-                     
-                     // Shape envelope (taper at ends)
-                     const envelope = Math.sin(relX * Math.PI);
-                     
-                     const height = Math.abs((h1 + h2 + noise) * envelope * 2); // Scale up
-                     
-                     const x = i * width;
-                     const y = center - height / 2;
-                     
-                     // Rounded bars
-                     ctx.beginPath();
-                     ctx.roundRect(x + 2, y, width - 4, height, 4);
-                     ctx.fill();
-                 }
-                 
-                 time += 0.5;
-                 window.visualizerInterval = requestAnimationFrame(draw);
-             };
-             
-             draw();
-        };
 
         // ---- Ambient Mode Logic ----
         const updateAmbientTheme = async (imageUrl: string) => {
@@ -150,7 +123,7 @@
             }
         };
 
-        const setupCustomPlayer = (container: HTMLElement, url: string, title: string, cover: string, author: string) => {
+        const setupCustomPlayer = (container: HTMLElement, url: string, title: string, cover: string, author: string, transcription: any[] | null = null) => {
              // 1. Inject HTML
              container.innerHTML = `
 <div class="custom-audio-player">
@@ -211,6 +184,9 @@
            <div class="volume-slider-container">
              <input type="range" id="volumeBar" min="0" max="1" step="0.05" value="1" />
            </div>
+           <button id="maximizeBtn" class="secondary-control" aria-label="Pantalla completa" style="margin-left: 4px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+           </button>
         </div>
     </div>
   </div>
@@ -270,11 +246,21 @@
                  audio.volume = parseFloat(volumeBar.value);
              }
              
+             
              speedBtn.onclick = () => {
                  speedIdx = (speedIdx + 1) % speeds.length;
                  const s = speeds[speedIdx];
                  audio.playbackRate = s;
                  speedBtn.innerText = `${s}x`;
+             }
+
+             // Maximize
+             const maxBtn = container.querySelector('#maximizeBtn') as HTMLElement;
+             if(maxBtn) {
+                 maxBtn.onclick = () => {
+                     const immersive = document.getElementById('immersive-player');
+                     if (immersive) immersive.classList.remove('hidden');
+                 };
              }
 
              // Audio events
@@ -366,10 +352,47 @@
                      let x = 0;
                      ctx.fillStyle = 'rgba(255,255,255,0.3)';
                      
-                     for(let i=0; i<bufferLength; i++) {
-                         const barHeight = dataArray[i] / 2;
-                         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                         x += barWidth + 1;
+
+                     // --- Immersive Drawing ---
+                     const immCanvas = document.getElementById('audio-visualizer') as HTMLCanvasElement;
+                     const immCtx = immCanvas ? immCanvas.getContext('2d') : null;
+                     const immersiveOverlay = document.getElementById('immersive-player');
+                     
+                     if (immersiveOverlay && !immersiveOverlay.classList.contains('hidden') && immCanvas && immCtx) {
+                          // Ensure size matches
+                          if(immCanvas.width !== immCanvas.offsetWidth) {
+                               immCanvas.width = immCanvas.offsetWidth;
+                               immCanvas.height = immCanvas.offsetHeight;
+                          }
+                          
+                          immCtx.clearRect(0, 0, immCanvas.width, immCanvas.height);
+                          const bars = 64; // Use first 64 bins (bass/mid heavy) of the 256 or so
+                          const step = Math.floor(bufferLength / bars);
+                          const width = immCanvas.width / bars;
+                          
+                          immCtx.fillStyle = 'white';
+                          
+                          for(let i=0; i<bars; i++) {
+                               // Average out a chunk for smoother bars
+                               let sum = 0;
+                               for(let j=0; j<step; j++) {
+                                   sum += dataArray[i*step + j];
+                               }
+                               const val = sum / step;
+                               
+                               // Mirror effect for "wave"
+                               // Center is immCanvas.height / 2
+                               const h = (val / 255) * (immCanvas.height / 2); 
+                               
+                               const x = i * width;
+                               const cy = immCanvas.height / 2;
+                               
+                               // Draw symmetric bar
+                               // opacity based on height
+                               immCtx.globalAlpha = Math.max(0.2, val / 255);
+                               immCtx.fillRect(x + 2, cy - h, width - 4, h * 2); 
+                          }
+                          immCtx.globalAlpha = 1;
                      }
                  };
                  renderFrame();
@@ -385,6 +408,169 @@
                      }
                  }).catch(e => console.log(e));
              }
+
+             // --- Initialize Immersive Sync ---
+             const immTitle = document.getElementById('immersive-title');
+             const immAuthor = document.getElementById('immersive-author');
+             const immCover = document.getElementById('immersive-cover') as HTMLImageElement;
+             const immPlayBtn = document.getElementById('imm-play-btn');
+             const immIconPlay = document.getElementById('imm-icon-play');
+             const immIconPause = document.getElementById('imm-icon-pause');
+             const immSeekBar = document.getElementById('imm-seek-bar') as HTMLInputElement;
+             const immCurrentTime = document.getElementById('imm-current-time');
+             const immDuration = document.getElementById('imm-duration');
+             const immBack = document.getElementById('imm-back-btn');
+             const immFwd = document.getElementById('imm-fwd-btn');
+
+             if(immTitle) immTitle.innerText = title;
+             if(immAuthor) immAuthor.innerText = author;
+             if(immCover) immCover.src = cover || '/logo.png';
+             if(cover) updateAmbientTheme(cover);
+
+             // Sync Listeners
+             if(immPlayBtn) {
+                 immPlayBtn.onclick = () => {
+                     if(audio.paused) audio.play();
+                     else audio.pause();
+                 };
+             }
+             if(immBack) immBack.onclick = () => audio.currentTime = Math.max(0, audio.currentTime - 15);
+             if(immFwd) immFwd.onclick = () => audio.currentTime = Math.min(audio.duration, audio.currentTime + 15);
+             
+             // Toggle Lyrics
+             const toggleLyricsBtn = document.getElementById('toggle-lyrics');
+             const lyricsContainer = document.getElementById('immersive-lyrics');
+             
+             if(toggleLyricsBtn && lyricsContainer) {
+                 toggleLyricsBtn.onclick = () => {
+                     lyricsContainer.classList.toggle('hidden');
+                     
+                     // If we are showing lyrics and have transcription, ensure active line is computed
+                     if(!lyricsContainer.classList.contains('hidden') && transcription) {
+                         // trigger update
+                     }
+                 };
+             }
+             
+             // --- GLOBAL SEEK EVENT LISTENER (Cleanup old one if exists?) ---
+             // Ideally we should manage listeners but for this case, we can assume one player active.
+             document.addEventListener('veredillas:audio-seek', (e: Event) => {
+                 const customEvent = e as CustomEvent;
+                 if (customEvent.detail && typeof customEvent.detail.time === 'number') {
+                     audio.currentTime = customEvent.detail.time;
+                     if(audio.paused) audio.play();
+                 }
+             });
+
+             // Render Lyrics
+             let lyricLines: { time: number, el: HTMLElement }[] = [];
+             
+             if (transcription && lyricsContainer) {
+                 lyricsContainer.innerHTML = ''; // Clear placeholder
+                 const parseTime = (t: string) => {
+                    const p = t.split(':').map(Number);
+                    if(p.length === 2) return p[0]*60 + p[1];
+                    if(p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
+                    return 0;
+                 };
+
+                 transcription.forEach((item, idx) => {
+                     const p = document.createElement('p');
+                     p.className = 'lyric-line';
+                     p.innerText = item.text;
+                     const seconds = parseTime(item.time);
+                     p.onclick = () => audio.currentTime = seconds;
+                     lyricsContainer.appendChild(p);
+                     lyricLines.push({ time: seconds, el: p });
+                 });
+                 
+                 // Add dummy end line
+                 lyricLines.push({ time: 999999, el: document.createElement('div') });
+             } else if (lyricsContainer) {
+                 lyricsContainer.innerHTML = '<p class="lyrics-placeholder" style="color:rgba(255,255,255,0.5); text-align:center; margin-top:40px;">No hay transcripción disponible.</p>';
+             }
+
+             if(immSeekBar) {
+                 immSeekBar.oninput = () => {
+                     audio.currentTime = parseFloat(immSeekBar.value);
+                 };
+             }
+
+             // Hook into existing audio events to update Immersive UI
+             const originalTimeUpdate = audio.ontimeupdate;
+             audio.ontimeupdate = (e) => {
+                 if(originalTimeUpdate) originalTimeUpdate.call(audio, e);
+                 
+                 // Update Immersive Seek
+                 if(immSeekBar && document.activeElement !== immSeekBar) {
+                     immSeekBar.value = audio.currentTime.toString();
+                 }
+                 
+                 // Update Lyrics Active Line
+                 if (lyricLines.length > 0 && lyricsContainer && !lyricsContainer.classList.contains('hidden')) {
+                     const ct = audio.currentTime;
+                     let activeIdx = -1;
+                     
+                     for(let i=0; i < lyricLines.length - 1; i++) {
+                         if(ct >= lyricLines[i].time && ct < lyricLines[i+1].time) {
+                             activeIdx = i;
+                             break;
+                         }
+                     }
+                     
+                     if (activeIdx !== -1) {
+                         // clear previous active
+                         const currentActive = lyricsContainer.querySelector('.active');
+                         if(currentActive && currentActive !== lyricLines[activeIdx].el) {
+                             currentActive.classList.remove('active');
+                         }
+                         
+                         if (!lyricLines[activeIdx].el.classList.contains('active')) {
+                             lyricLines[activeIdx].el.classList.add('active');
+                             
+                             // Scroll to view
+                             lyricLines[activeIdx].el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                         }
+                     }
+                 }
+
+                 if(immCurrentTime) {
+                     const m = Math.floor(audio.currentTime / 60);
+                     const s = Math.floor(audio.currentTime % 60);
+                     immCurrentTime.innerText = `${m}:${s < 10 ? '0'+s : s}`;
+                 }
+
+                 // Emit Global Time Update
+                 document.dispatchEvent(new CustomEvent('veredillas:audio-timeupdate', {
+                     detail: { currentTime: audio.currentTime }
+                 }));
+             };
+
+             const originalLoaded = audio.onloadedmetadata;
+             audio.onloadedmetadata = (e) => {
+                 if(originalLoaded) originalLoaded.call(audio, e);
+                 if(immSeekBar) immSeekBar.max = audio.duration.toString();
+                 if(immDuration) {
+                     const m = Math.floor(audio.duration / 60);
+                     const s = Math.floor(audio.duration % 60);
+                     immDuration.innerText = `${m}:${s < 10 ? '0'+s : s}`;
+                 }
+             };
+             
+             const originalPlay = audio.onplay;
+             audio.onplay = (e) => {
+                 if(originalPlay) originalPlay.call(audio, e);
+                 if(immIconPlay) immIconPlay.classList.add('hidden');
+                 if(immIconPause) immIconPause.classList.remove('hidden');
+             };
+             
+             const originalPause = audio.onpause;
+             audio.onpause = (e) => {
+                 if(originalPause) originalPause.call(audio, e);
+                 if(immIconPlay) immIconPlay.classList.remove('hidden');
+                 if(immIconPause) immIconPause.classList.add('hidden');
+             };
+
         };
 
         // Function to update position and metadata
@@ -500,7 +686,9 @@
                         </iframe>
                         `;
                     } else if (audioUrl) {
-                        setupCustomPlayer(container, audioUrl, title || 'Episodio', image || '/logo.png', author || 'Veredillas FM');
+                        const transcriptionStr = placeholder.getAttribute('data-transcription');
+                        const trans = transcriptionStr ? JSON.parse(transcriptionStr) : null;
+                        setupCustomPlayer(container, audioUrl, title || 'Episodio', image || '/logo.png', author || 'Veredillas FM', trans);
                     }
                 }
 
@@ -642,8 +830,10 @@
             if (target && target.closest('#expand-player')) {
                 const immersive = document.getElementById('immersive-player');
                 if (immersive) {
+                if (immersive) {
                     immersive.classList.remove('hidden');
-                    initVisualizer();
+                    // Visualizer is handled by setupCustomPlayer loop
+                }
                 }
             }
 
@@ -900,6 +1090,91 @@
   .icon-btn:hover {
       background: rgba(255,255,255,0.2);
       transform: scale(1.05);
+  }
+
+
+  /* Immersive Controls Bottom */
+  .immersive-controls-bottom {
+      width: 100%;
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+  }
+
+  .progress-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+  }
+  
+  .progress-container input[type="range"] {
+      flex-grow: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1); 
+      /* Accent color will be handled by logic or default */
+      cursor: pointer;
+  }
+  
+  .progress-container input[type="range"]::-webkit-slider-thumb {
+       -webkit-appearance: none;
+       width: 12px;
+       height: 12px;
+       background: white;
+       border-radius: 50%;
+       margin-top: -4px;
+       box-shadow: 0 0 10px rgba(255,255,255,0.4);
+       transition: transform 0.1s;
+  }
+  
+  .progress-container input[type="range"]:hover::-webkit-slider-thumb {
+       transform: scale(1.3);
+  }
+
+  .main-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+  }
+
+  .ctrl-btn-lg {
+      background: transparent;
+      border: none;
+      color: white;
+      opacity: 0.8;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+  
+  .ctrl-btn-lg:hover {
+      opacity: 1;
+      transform: scale(1.1);
+  }
+  
+  .play-btn-xl {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: white;
+      color: black;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  
+  .play-btn-xl:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 40px rgba(255,255,255,0.2);
   }
 
 </style>
@@ -1295,6 +1570,42 @@
       .secondary-control {
           background: transparent; /* Cleaner on mobile */
       }
+  }
+  .immersive-lyrics {
+      width: 100%;
+      height: 300px; /* Max height */
+      overflow-y: auto;
+      margin-top: 20px;
+      padding: 0 20px;
+      text-align: left;
+      mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+      scrollbar-width: none; /* Firefox */
+  }
+  
+  .immersive-lyrics::-webkit-scrollbar {
+      display: none;
+  }
+  
+  .lyric-line {
+      font-size: 1.2rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      line-height: 1.5;
+  }
+  
+  .lyric-line:hover {
+      color: rgba(255,255,255,0.8);
+  }
+  
+  .lyric-line.active {
+      color: white;
+      font-weight: 700;
+      transform: scale(1.02);
+      transform-origin: left;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
   }
 </style>
 
