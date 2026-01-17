@@ -1,0 +1,189 @@
+---
+import SidebarWidget from './SidebarWidget.astro';
+
+interface Section {
+  title: string;
+  time: string; // "MM:SS"
+}
+
+interface Props {
+  sections?: Section[];
+}
+
+const { sections } = Astro.props;
+
+if (!sections || sections.length === 0) {
+  return;
+}
+
+// Convert "MM:SS" to seconds for data attribute
+const parseTime = (t: string) => {
+    const p = t.split(':').map(Number);
+    if(p.length === 2) return p[0]*60 + p[1];
+    if(p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
+    return 0;
+};
+---
+
+<SidebarWidget title="Capítulos del Episodio" isOpen={true}>
+    <ul class="sections-list">
+        {sections.map(sec => (
+            <li>
+                <button class="section-btn" data-time={parseTime(sec.time)}>
+                    <span class="sec-time">{sec.time}</span>
+                    <span class="sec-title">{sec.title}</span>
+                    <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M5 3l14 9-14 9V3z"/></svg>
+                </button>
+            </li>
+        ))}
+    </ul>
+</SidebarWidget>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btns = document.querySelectorAll('.section-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const time = Number(btn.getAttribute('data-time'));
+                if(!isNaN(time)) {
+                    document.dispatchEvent(new CustomEvent('veredillas:audio-seek', {
+                        detail: { time }
+                    }));
+                }
+            });
+        });
+        
+        // Active state highlighting
+        document.addEventListener('veredillas:audio-timeupdate', (e: Event) => {
+            const customEvent = e as CustomEvent;
+            const currentTime = customEvent.detail.currentTime;
+            
+            const btnsArray = Array.from(document.querySelectorAll('.section-btn'));
+            let activeBtnIndex = -1;
+
+            for (let i = 0; i < btnsArray.length; i++) {
+                const btn = btnsArray[i] as HTMLElement;
+                const time = Number(btn.getAttribute('data-time'));
+                // Next section time or Infinity if it's the last one
+                const nextBtn = btnsArray[i+1] as HTMLElement;
+                const nextTime = nextBtn ? Number(nextBtn.getAttribute('data-time')) : Infinity;
+                
+                if (currentTime >= time && currentTime < nextTime) {
+                    activeBtnIndex = i;
+                    break;
+                }
+            }
+
+            btnsArray.forEach((btn, index) => {
+                if (index === activeBtnIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .sections-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 350px; /* Limit height */
+        overflow-y: auto;  /* Enable vertical scroll */
+        padding-right: 4px; /* Space for scrollbar */
+
+        /* Custom Scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-primary) rgba(255,255,255,0.05);
+    }
+
+    .sections-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sections-list::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05);
+        border-radius: 4px;
+    }
+
+    .sections-list::-webkit-scrollbar-thumb {
+        background-color: var(--color-primary);
+        border-radius: 4px;
+    }
+    
+    .section-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        color: var(--color-text-muted);
+        text-align: left;
+        transition: all 0.2s;
+        font-family: inherit;
+        flex-shrink: 0; /* Prevent shrinking in flex container */
+    }
+    
+    .section-btn:hover {
+        background: rgba(255,255,255,0.03);
+        color: var(--color-text-main);
+        border-color: rgba(255,255,255,0.05);
+    }
+
+    .section-btn.active {
+        background: rgba(139, 92, 246, 0.1);
+        color: var(--color-text-main);
+        border-color: rgba(139, 92, 246, 0.3);
+    }
+    
+    .sec-time {
+        font-family: monospace;
+        font-size: 0.85rem;
+        color: var(--color-primary);
+        background: rgba(139, 92, 246, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .section-btn.active .sec-time {
+       background: var(--color-primary);
+       color: #000;
+       font-weight: bold;
+    }
+    
+    .sec-title {
+        flex: 1;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .play-icon {
+        opacity: 0;
+        transform: translateX(-5px);
+        transition: all 0.2s;
+        color: var(--color-text-main);
+    }
+    
+    .section-btn:hover .play-icon {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .section-btn.active .play-icon {
+        opacity: 1;
+        transform: translateX(0);
+        color: var(--color-primary);
+    }
+</style>

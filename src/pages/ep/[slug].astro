@@ -6,6 +6,8 @@ import SocialShare from '../../components/SocialShare.astro';
 import RelatedEpisodes from '../../components/RelatedEpisodes.astro';
 import EpisodeParticipants from '../../components/EpisodeParticipants.astro';
 import TranscriptionWidget from '../../components/TranscriptionWidget.astro';
+import EpisodeSections from '../../components/EpisodeSections.astro';
+import SidebarWidget from '../../components/SidebarWidget.astro';
 
 export const prerender = false;
 
@@ -94,8 +96,7 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
             </div>
             
             <div class="sidebar">
-                <div class="sidebar-widget">
-                    <h3>Detalles</h3>
+                <SidebarWidget title="Detalles" isOpen={false}>
                     <ul class="details-list">
                         <li>
                             <strong>Temporada:</strong> {entry.data.season}
@@ -117,9 +118,10 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                             </li>
                         )}
                     </ul>
-                </div>
+                </SidebarWidget>
                 
                 <EpisodeParticipants participants={entry.data.participants} />
+                <EpisodeSections sections={entry.data.sections} />
                 <TranscriptionWidget transcription={entry.data.transcription} />
             </div>
         </div>

@@ -19,6 +19,10 @@ const episodios = defineCollection({
             text: z.string(),
             speaker: z.string().optional()
         })).optional(),
+        sections: z.array(z.object({
+            title: z.string(),
+            time: z.string(), // "MM:SS"
+        })).optional(),
 	}),
 });
 

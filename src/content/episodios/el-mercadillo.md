@@ -9,6 +9,27 @@ episode: 5
 duration: "6 min"
 participants: ["Carlos", "Anaysa", "Gisselle"]
 tags: ["Eventos"]
+sections:
+  - time: "00:01"
+    title: "Intro / Bienvenida"
+  - time: "00:22"
+    title: "¿Cómo surgió la idea?"
+  - time: "00:52"
+    title: "Respuesta del profesorado"
+  - time: "01:10"
+    title: "Organización y tareas"
+  - time: "01:39"
+    title: "Fecha y Logística"
+  - time: "02:21"
+    title: "Sistema de Puntos"
+  - time: "02:54"
+    title: "Precios y Valor"
+  - time: "03:47"
+    title: "Filtro de productos"
+  - time: "04:31"
+    title: "Impacto en la comunidad"
+  - time: "05:35"
+    title: "Mensaje final y Despedida"
 transcription:
   - time: "00:01"
     text: "Bienvenidos a Veredías FM, donde te mantenemos al pendiente de los temas más candentes. El día de hoy, siguiendo con la temática de entrevistar al alumnado, tenemos a Carlos, Giselle y a Naisa, de segundo bachillerato B, quienes nos van a hablar un poco sobre el mercadillo. Eh, ¿cómo se encuentran en el día de hoy?"

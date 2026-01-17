@@ -5,28 +5,29 @@ interface Props {
 
 const { transcription } = Astro.props;
 
+import SidebarWidget from './SidebarWidget.astro';
+
 if (!transcription || transcription.length === 0) {
   return;
 }
 ---
 
-<div class="transcription-widget" id="transcription-widget">
-  <div class="header-row">
-      <h3>Transcripción</h3>
-      <button id="btn-expand-transcription" class="icon-btn" aria-label="Ampliar transcripción">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-      </button>
-  </div>
-  
-  <div class="transcription-scroll" id="transcription-scroll">
-    {transcription.map((item, index) => (
-      <div class="transcription-line" data-time={item.time} data-index={index}>
-        <span class="time">{item.time}</span>
-        <p class="text">{item.text}</p>
-      </div>
-    ))}
-  </div>
-</div>
+<SidebarWidget title="Transcripción" id="transcription-widget" class="transcription-widget" isOpen={true}>
+    <div slot="header-actions">
+       <button id="btn-expand-transcription" class="icon-btn" aria-label="Ampliar transcripción">
+           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+       </button>
+    </div>
+
+    <div class="transcription-scroll" id="transcription-scroll">
+      {transcription.map((item, index) => (
+        <div class="transcription-line" data-time={item.time} data-index={index}>
+          <span class="time">{item.time}</span>
+          <p class="text">{item.text}</p>
+        </div>
+      ))}
+    </div>
+</SidebarWidget>
 
 <dialog id="transcription-modal" class="transcription-modal">
     <div class="modal-content">
@@ -116,10 +117,20 @@ if (!transcription || transcription.length === 0) {
         attachSeek(widgetLines);
         attachSeek(modalLines);
 
+        // Track if audio has started playing to prevent auto-scroll on page load
+        let hasStartedPlaying = false;
+        let lastTime = 0;
+
         // Sync Logic
         document.addEventListener('veredillas:audio-timeupdate', (e: Event) => {
             const customEvent = e as CustomEvent;
             const currentTime = customEvent.detail.currentTime;
+            
+            // Detect if audio has actually started playing (time moved forward significantly)
+            if (!hasStartedPlaying && currentTime > 1) {
+                hasStartedPlaying = true;
+            }
+            lastTime = currentTime;
             
             const updateActive = (lines: {el: HTMLElement, time: number}[], container: HTMLElement | null) => {
                  if(!container) return;
@@ -146,8 +157,15 @@ if (!transcription || transcription.length === 0) {
                      if (!lines[activeIdx].el.classList.contains('active')) {
                          lines[activeIdx].el.classList.add('active');
                          
-                         // Scroll to view
-                         lines[activeIdx].el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                         // Scroll within container only (not the whole page)
+                         if (hasStartedPlaying) {
+                             // Use 'nearest' to only scroll if needed, and only within the scrollable container
+                             lines[activeIdx].el.scrollIntoView({ 
+                                 behavior: 'smooth', 
+                                 block: 'nearest',
+                                 inline: 'nearest'
+                             });
+                         }
                      }
                  }
             };
@@ -161,52 +179,8 @@ if (!transcription || transcription.length === 0) {
 </script>
 
 <style>
-  .transcription-widget {
-    margin-top: var(--spacing-lg);
-    background: var(--color-surface);
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    display: flex;
-    flex-direction: column;
-    max-height: 500px;
-  }
-  
-  .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-md);
-  }
-
-  h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: var(--color-text-heading);
-    font-weight: 700;
-  }
-  
-  .icon-btn {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--color-text-muted);
-      cursor: pointer;
-      padding: 6px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-  }
-  
-  .icon-btn:hover {
-      background: var(--color-primary);
-      color: white;
-      border-color: var(--color-primary);
-  }
-
   .transcription-scroll {
-    flex: 1;
+    max-height: 350px; /* Limit height for widget */
     overflow-y: auto;
     padding-right: var(--spacing-xs);
     
@@ -227,6 +201,28 @@ if (!transcription || transcription.length === 0) {
   .transcription-scroll::-webkit-scrollbar-thumb {
     background-color: var(--color-primary);
     border-radius: 4px;
+  }
+
+  .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+  }
+  
+  .icon-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--color-text-main);
+  }
+  
+  .icon-btn svg {
+      display: block;
   }
 
   .transcription-line {
@@ -333,6 +329,7 @@ if (!transcription || transcription.length === 0) {
       padding: 24px;
       flex: 1; /* Ensure it takes available space */
       overflow-y: auto;
+      max-height: none; /* Override widget max-height */
   }
   
   .modal-scroll .transcription-line {
