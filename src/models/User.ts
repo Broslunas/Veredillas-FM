@@ -8,6 +8,7 @@ export interface IUser extends Document {
   picture?: string;
   bio?: string;
   favorites: string[]; // Array de slugs de episodios favoritos
+  listeningTime: number; // Total seconds listened
   createdAt: Date;
   updatedAt: Date;
   lastLogin: Date;
@@ -45,6 +46,10 @@ const userSchema = new mongoose.Schema<IUser>({
   lastLogin: {
     type: Date,
     default: Date.now
+  },
+  listeningTime: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true,

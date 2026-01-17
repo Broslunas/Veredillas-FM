@@ -236,8 +236,38 @@ import './player/SharedPlayerStyles.css';
                  updateSeekUI();
              }
              
+             let lastTrackedTime = audioElement.currentTime;
+             let sessionAccumulator = 0;
+             const SESSION_SYNC_THRESHOLD = 10; 
+
+             const syncListeningTime = async (seconds: number) => {
+                 if (seconds <= 0.1) return; // Ignore neg or tiny
+                 try {
+                     // Fire and forget, don't await blocking UI
+                     fetch('/api/user/stats', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ increment: seconds })
+                     });
+                 } catch(e) {
+                     console.error("Stats sync error", e);
+                 }
+             };
+
              const updateSeek = () => {
                   const current = audioElement.currentTime;
+                  
+                  // Tracking Logic
+                  const delta = current - lastTrackedTime;
+                  // Only count if playing normal speed (approx) and not seeking (large jumps)
+                  if (delta > 0 && delta < 5 && !audioElement.paused) {
+                      sessionAccumulator += delta;
+                      if(sessionAccumulator >= SESSION_SYNC_THRESHOLD) {
+                          syncListeningTime(sessionAccumulator);
+                          sessionAccumulator = 0;
+                      }
+                  }
+                  lastTrackedTime = current;
                   
                   if(document.activeElement !== seekBar) {
                       seekBar.value = current.toString();
@@ -292,8 +322,18 @@ import './player/SharedPlayerStyles.css';
                  initVisualizer(); 
              };
              
-             audioElement.onplay = updateIcons;
-             audioElement.onpause = updateIcons;
+             audioElement.onplay = () => {
+                 lastTrackedTime = audioElement.currentTime; // Reset tracking base
+                 updateIcons();
+             };
+             audioElement.onpause = () => {
+                 updateIcons();
+                 // Flush pending time
+                 if(sessionAccumulator > 0.5) {
+                     syncListeningTime(sessionAccumulator);
+                     sessionAccumulator = 0;
+                 }
+             };
              
              // Error Handling 
              audioElement.onerror = (e) => {

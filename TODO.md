@@ -16,7 +16,6 @@ Temas personalizables - Múltiples esquemas de color
 Progreso guardado - Continuar donde lo dejaste automáticamente
 Recomendaciones personalizadas basadas en IA
 Smart notifications - Avisos de nuevos episodios según preferencias
-Nivel/badges de oyente - Gamificación por tiempo escuchado
 Configuración de accesibilidad - Tamaño de texto, contraste, etc.
 
 💬 Comunidad & Social (8)
@@ -35,7 +34,6 @@ Episodios relacionados - Sugerencias al final de cada episodio
 Mapa de contenido - Visualización gráfica de temas/conexiones
 
 📊 Analytics & Estadísticas (5)
-Dashboard personal de estadísticas - Tiempo escuchado, episodios favoritos
 Wrapped anual - Estilo Spotify Wrapped
 Estadísticas públicas del podcast - Transparencia de audiencia
 Mapa de oyentes - Visualización geográfica
@@ -46,4 +44,3 @@ Modo cine/teatro - Vista expandida con visuales
 Efectos visuales reactivos al audio - Partículas, gradientes dinámicos
 Modo lectura sincronizada - Transcripción que sigue el audio en pantalla completa
 Ambient mode - Fondos generativos según el episodio
-VR/3D audio experience - Para navegadores compatibles
