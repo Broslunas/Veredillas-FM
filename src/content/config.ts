@@ -8,6 +8,7 @@ const episodios = defineCollection({
 		author: z.string().default('Veredillas FM'),
 		image: z.string().optional(),
 		spotifyUrl: z.string().optional(), // Expected format: https://open.spotify.com/episode/...
+		audioUrl: z.string().optional(), // Direct audio file URL
 		duration: z.string().optional(),
 		season: z.number().optional(),
 		episode: z.number().optional(),

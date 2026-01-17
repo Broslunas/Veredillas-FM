@@ -150,6 +150,243 @@
             }
         };
 
+        const setupCustomPlayer = (container: HTMLElement, url: string, title: string, cover: string, author: string) => {
+             // 1. Inject HTML
+             container.innerHTML = `
+<div class="custom-audio-player">
+  <div class="player-card" id="customPlayerCard">
+    <div class="visualizer-container">
+      <canvas id="audioVisualizer" width="300" height="100"></canvas>
+    </div>
+    <div class="cover-image">
+      ${cover ? `<img src="${cover}" alt="${title}" />` : `
+        <div class="cover-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163z" />
+          </svg>
+        </div>
+      `}
+    </div>
+
+    <div class="player-content">
+      <div class="track-info">
+        <h2>${title}</h2>
+        <p>${author}</p>
+      </div>
+
+      <div class="progress-section">
+        <input type="range" id="seekBar" value="0" step="0.1" />
+      </div>
+    </div>
+    
+    <div class="controls-row">
+        <div class="main-controls">
+           <button id="backwardBtn" class="secondary-control" aria-label="Retroceder 15s">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-6 6m0 0l-6-6m6 6V9a6 6 0 0112 0v3" />
+            </svg>
+          </button>
+
+          <button id="playPauseBtn" class="play-pause-btn" aria-label="Reproducir/Pausar">
+            <svg id="iconPlay" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M11.596 8.697l-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
+            </svg>
+            <svg id="iconPause" class="hidden icon-pause" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.A 1.5 0 0 1 10.5 3.5" />
+            </svg>
+            <svg id="iconLoading" class="hidden spinner" viewBox="0 0 50 50">
+              <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+          </button>
+          
+           <button id="forwardBtn" class="secondary-control" aria-label="Avanzar 15s">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 15l6 6m0 0l6-6m-6 6V9a6 6 0 00-12 0v3" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="volume-controls">
+           <button id="speedBtn" class="speed-btn">1x</button>
+           <div class="volume-slider-container">
+             <input type="range" id="volumeBar" min="0" max="1" step="0.05" value="1" />
+           </div>
+        </div>
+    </div>
+  </div>
+   <audio id="audioElement" src="${url}" preload="metadata" crossorigin="anonymous"></audio>
+</div>
+             `;
+
+             // 2. Attach Logic (Simplified from audioPlayer.ts)
+             const audio = container.querySelector('#audioElement') as HTMLAudioElement;
+             const playBtn = container.querySelector('#playPauseBtn') as HTMLElement;
+             const backBtn = container.querySelector('#backwardBtn') as HTMLElement;
+             const fwdBtn = container.querySelector('#forwardBtn') as HTMLElement;
+             const seekBar = container.querySelector('#seekBar') as HTMLInputElement;
+             const volumeBar = container.querySelector('#volumeBar') as HTMLInputElement;
+             const speedBtn = container.querySelector('#speedBtn') as HTMLElement;
+             
+             const iconPlay = container.querySelector('#iconPlay');
+             const iconPause = container.querySelector('#iconPause');
+             const iconLoading = container.querySelector('#iconLoading');
+             
+             const speeds = [1, 1.25, 1.5, 2, 0.75];
+             let speedIdx = 0;
+
+             // State updates
+             const updateIcons = () => {
+                 if(iconLoading && !iconLoading.classList.contains('hidden')) return;
+                 if(audio.paused) {
+                     iconPlay?.classList.remove('hidden');
+                     iconPause?.classList.add('hidden');
+                 } else {
+                     iconPlay?.classList.add('hidden');
+                     iconPause?.classList.remove('hidden');
+                 }
+             };
+
+             // Listeners
+             playBtn.onclick = () => {
+                 if(audio.paused) audio.play();
+                 else audio.pause();
+             };
+             
+             backBtn.onclick = () => audio.currentTime = Math.max(0, audio.currentTime - 15);
+             fwdBtn.onclick = () => audio.currentTime = Math.min(audio.duration, audio.currentTime + 15);
+             
+             seekBar.oninput = () => {
+                 audio.currentTime = parseFloat(seekBar.value);
+             }
+             
+             const updateSeek = () => {
+                  if(document.activeElement !== seekBar) {
+                      seekBar.value = audio.currentTime.toString();
+                  }
+                  // Visualizer Draw call loop is separate
+             };
+
+             volumeBar.oninput = () => {
+                 audio.volume = parseFloat(volumeBar.value);
+             }
+             
+             speedBtn.onclick = () => {
+                 speedIdx = (speedIdx + 1) % speeds.length;
+                 const s = speeds[speedIdx];
+                 audio.playbackRate = s;
+                 speedBtn.innerText = `${s}x`;
+             }
+
+             // Audio events
+             audio.ontimeupdate = updateSeek;
+             
+             audio.onloadedmetadata = () => {
+                 seekBar.max = audio.duration.toString();
+                 iconLoading?.classList.add('hidden');
+                 updateIcons();
+             };
+             
+             audio.onwaiting = () => {
+                 iconPlay?.classList.add('hidden');
+                 iconPause?.classList.add('hidden');
+                 iconLoading?.classList.remove('hidden');
+             };
+             
+             audio.onplaying = () => {
+                 iconLoading?.classList.add('hidden');
+                 updateIcons();
+                 initVisualizer(); 
+             };
+             
+             audio.onplay = updateIcons;
+             audio.onpause = updateIcons;
+             
+             // Error Handling & CORS Fallback
+             audio.onerror = (e) => {
+                 const error = audio.error;
+                 console.warn("Audio Error:", error);
+                 if (error && (error.code === MediaError.MEDIA_ERR_NETWORK || error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED)) {
+                     if (audio.hasAttribute("crossorigin")) {
+                         console.info("CORS or Network error detected. Falling back to standard playback without Visualizer.");
+                         // Remove crossorigin to allow opaque response (no visualizer, but plays)
+                         audio.removeAttribute("crossorigin");
+                         audio.load();
+                         // The visualizer will fail gracefully in initVisualizer
+                         if(playBtn) playBtn.click(); // Auto-resume if it was trying to play
+                     }
+                 }
+             };
+             
+             // Visualizer (Simple version)
+             let audioCtx: AudioContext;
+             let analyser: AnalyserNode;
+             let source: MediaElementAudioSourceNode;
+             let canvas = container.querySelector('#audioVisualizer') as HTMLCanvasElement;
+             
+             const initVisualizer = () => {
+                 // Check if we are allowed to visualize (CORS)
+                 if (!audio.crossOrigin) return;
+
+                 if(!audioCtx) {
+                      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                      audioCtx = new AudioContext();
+                      try {
+                          source = audioCtx.createMediaElementSource(audio);
+                          analyser = audioCtx.createAnalyser();
+                          analyser.fftSize = 64;
+                          source.connect(analyser);
+                          analyser.connect(audioCtx.destination);
+                          draw();
+                      } catch(e) {
+                          console.log("Audio Context Error (likely CORS):", e);
+                      }
+                 } else if (audioCtx.state === 'suspended') {
+                     audioCtx.resume();
+                 }
+             };
+             
+             const draw = () => {
+                 if(!canvas || !analyser) return;
+                 const ctx = canvas.getContext('2d');
+                 if(!ctx) return;
+                 const bufferLength = analyser.frequencyBinCount;
+                 const dataArray = new Uint8Array(bufferLength);
+                 
+                 const renderFrame = () => {
+                     if(audio.paused) return; // Stop drawing to save resources
+                     requestAnimationFrame(renderFrame);
+                     ctx.clearRect(0,0, canvas.width, canvas.height);
+                     
+                     if (!analyser) return; // Safeguard if CORS/AudioCtx failed
+                     try {
+                        analyser.getByteFrequencyData(dataArray);
+                     } catch(e) { return ; }
+
+                     const barWidth = (canvas.width / bufferLength) * 2;
+                     let x = 0;
+                     ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                     
+                     for(let i=0; i<bufferLength; i++) {
+                         const barHeight = dataArray[i] / 2;
+                         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                         x += barWidth + 1;
+                     }
+                 };
+                 renderFrame();
+             };
+             
+             // Apply dynamic background
+             if(cover) {
+                 fac.getColorAsync(cover).then(color => {
+                     const card = container.querySelector('#customPlayerCard') as HTMLElement;
+                     if(card) {
+                         // Use a nice gradient mixing the extracted color
+                         card.style.background = `linear-gradient(145deg, ${color.rgba} 0%, rgba(15, 23, 42, 0.95) 100%)`;
+                     }
+                 }).catch(e => console.log(e));
+             }
+        };
+
         // Function to update position and metadata
         const updatePlayerState = () => {
             const player = document.getElementById('mini-player');
@@ -166,7 +403,9 @@
 
             if (placeholder) {
                 // INLINE MODE CANDIDATE
-                const url = placeholder.getAttribute('data-spotify-url');
+                const spotifyUrl = placeholder.getAttribute('data-spotify-url');
+                const audioUrl = placeholder.getAttribute('data-audio-url');
+                const url = spotifyUrl || audioUrl;
                 const title = placeholder.getAttribute('data-title');
                 const image = placeholder.getAttribute('data-image');
                 const author = placeholder.getAttribute('data-author');
@@ -235,30 +474,34 @@
                     // Update Ambient
                     if (image) updateAmbientTheme(image);
                     
-                    // Inject Iframe
-                    let finalUrl = url;
-                    try {
-                         const urlObj = new URL(url);
-                         if (!urlObj.pathname.includes('/embed/')) {
-                              const segments = urlObj.pathname.split('/').filter(Boolean);
-                              if (segments[0] !== 'embed') finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
-                         }
-                    } catch(e) {}
-                    
-                    container.innerHTML = `
-                        <iframe 
-                        id="spotify-iframe"
-                        style="border-radius:12px" 
-                        src="${finalUrl}?autoplay=0" 
-                        width="100%" 
-                        height="100%" 
-                        frameBorder="0"
-                        scrolling="no"
-                        allowfullscreen="" 
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                        loading="lazy">
-                    </iframe>
-                    `;
+                    if (spotifyUrl) {
+                        // Inject Iframe
+                        let finalUrl = url;
+                        try {
+                             const urlObj = new URL(url);
+                             if (!urlObj.pathname.includes('/embed/')) {
+                                  const segments = urlObj.pathname.split('/').filter(Boolean);
+                                  if (segments[0] !== 'embed') finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
+                             }
+                        } catch(e) {}
+                        
+                        container.innerHTML = `
+                            <iframe 
+                            id="spotify-iframe"
+                            style="border-radius:12px" 
+                            src="${finalUrl}?autoplay=0" 
+                            width="100%" 
+                            height="100%" 
+                            frameBorder="0"
+                            scrolling="no"
+                            allowfullscreen="" 
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                            loading="lazy">
+                        </iframe>
+                        `;
+                    } else if (audioUrl) {
+                        setupCustomPlayer(container, audioUrl, title || 'Episodio', image || '/logo.png', author || 'Veredillas FM');
+                    }
                 }
 
                 // Inline CSS
@@ -336,29 +579,33 @@
                  // If we are on a listing page, there is no placeholder.
                  
                  // Direct Inject
-                  let finalUrl = url;
-                    try {
+                 if (url.includes('spotify.com')) {
+                     let finalUrl = url;
+                     try {
                          const urlObj = new URL(url);
                          if (!urlObj.pathname.includes('/embed/')) {
                               const segments = urlObj.pathname.split('/').filter(Boolean);
                               if (segments[0] !== 'embed') finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
                          }
-                    } catch(e) {}
-                 
-                 container.innerHTML = `
+                     } catch(e) {}
+
+                     container.innerHTML = `
                          <iframe 
-                         id="spotify-iframe"
-                         style="border-radius:12px" 
-                         src="${finalUrl}?autoplay=1" 
-                         width="100%" 
-                         height="100%" 
-                         frameBorder="0" 
-                         scrolling="no"
-                         allowfullscreen="" 
-                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                         loading="lazy">
-                     </iframe>
-                  `;
+                             id="spotify-iframe"
+                             style="border-radius:12px" 
+                             src="${finalUrl}?autoplay=1" 
+                             width="100%" 
+                             height="100%" 
+                             frameBorder="0" 
+                             scrolling="no"
+                             allowfullscreen="" 
+                             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                             loading="lazy">
+                         </iframe>
+                     `;
+                 } else {
+                     setupCustomPlayer(container, url, title || 'Episodio', image || '/logo.png', author || 'Veredillas FM');
+                 }
                   
                   if(image) updateAmbientTheme(image);
                   updatePlayerState();
@@ -655,6 +902,400 @@
       transform: scale(1.05);
   }
 
+</style>
+
+<style is:global>
+  /* --- Custom Audio Player Styles (Ported from AudioPlayer.astro) --- */
+  .custom-audio-player {
+    font-family: "Inter", sans-serif;
+    width: 100%;
+    height: 100%; /* Adapting to MiniPlayer container */
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .player-card {
+    display: flex;
+    gap: 20px; /* Reduced gap */
+    padding: 16px; /* Reduced padding */
+    border-radius: 12px; /* Matches MiniPlayer */
+    background: linear-gradient(145deg, rgba(30, 58, 138, 0.9), rgba(15, 23, 42, 0.95));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    align-items: center;
+  }
+  
+  /* Make sure it fits in the floating player */
+  .mini-player.floating .player-card {
+      padding: 12px 20px;
+  }
+
+  /* --- Carátula --- */
+  .cover-image {
+    width: 80px; /* Smaller for MiniPlayer */
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .cover-placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    width: 32px;
+    height: 32px;
+  }
+
+  /* --- Contenido del Reproductor (Derecha) --- */
+  .player-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px; /* Reduced gap */
+    position: relative;
+    z-index: 1;
+    min-width: 0; /* Fix flex overflow */
+  }
+
+  /* --- Info Pista --- */
+  .track-info h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track-info p {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin: 0;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* --- Visualizer --- */
+  .visualizer-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.2; /* Subtle */
+  }
+
+  #audioVisualizer {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  /* --- Barra de Progreso --- */
+  .progress-section {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .time-labels {
+      display: none; 
+  }
+  
+  .time-display {
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      font-variant-numeric: tabular-nums;
+      min-width: 35px;
+  }
+
+  /* Slider común */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    width: 100%;
+    display: block;
+  }
+
+  /* Track Progreso */
+  #seekBar {
+    height: 4px;
+    flex-grow: 1;
+  }
+
+  #seekBar::-webkit-slider-runnable-track {
+    background-color: rgba(255, 255, 255, 0.2);
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  #seekBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -4px; 
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+
+  /* --- Controles Inferiores --- */
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    /* margin-top: 4px; */
+  }
+
+  .main-controls {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .play-pause-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    color: #1e3a8a;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .play-pause-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .play-pause-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .play-pause-btn svg.icon-pause {
+      margin-left: 0;
+  }
+  
+  .play-pause-btn svg:not(.icon-pause):not(.spinner) {
+      margin-left: 2px; /* Ajuste visual para el icono de play */
+  }
+
+  .secondary-control {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .secondary-control:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  .secondary-control svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* --- Volumen --- */
+  .volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto; 
+  }
+
+  .volume-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .volume-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .speed-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums; 
+  }
+
+  .speed-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .volume-slider-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 60px; /* Specific width */
+  }
+
+  #volumeBar {
+    width: 100%;
+    height: 4px;
+  }
+
+  #volumeBar::-webkit-slider-runnable-track {
+    background-color: rgba(255, 255, 255, 0.2);
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  #volumeBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -4px;
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border-radius: 50%;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+  
+  /* Spinner */
+  .spinner {
+    animation: rotate 2s linear infinite;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .spinner .path {
+    stroke: #1e3a8a;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes dash {
+    0% {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -35;
+    }
+    100% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -124;
+    }
+  }
+
+  /* Responsive Adjustments for MiniPlayer context */
+  @media (max-width: 768px) {
+      .player-card {
+          padding: 12px;
+          gap: 12px;
+      }
+      
+      .cover-image {
+          width: 60px;
+          height: 60px;
+      }
+      
+      .volume-slider-container {
+          display: none;
+      }
+      
+      .controls-row {
+          gap: 8px;
+      }
+      
+      .main-controls {
+          gap: 8px;
+      }
+      
+      .play-pause-btn {
+          width: 36px;
+          height: 36px;
+      }
+      
+      .secondary-control {
+          background: transparent; /* Cleaner on mobile */
+      }
+  }
 </style>
 
 

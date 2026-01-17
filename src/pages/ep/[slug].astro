@@ -66,7 +66,7 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
 
         <!-- Player -->
         <div class="player-container container">
-            {entry.data.spotifyUrl && (
+            {entry.data.spotifyUrl ? (
                 <div 
                     id="episode-player-placeholder" 
                     data-spotify-url={entry.data.spotifyUrl}
@@ -74,7 +74,15 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                     data-image={entry.data.image}
                     data-author={entry.data.author}
                 ></div>
-            )}
+            ) : entry.data.audioUrl ? (
+                <div 
+                    id="episode-player-placeholder" 
+                    data-audio-url={entry.data.audioUrl}
+                    data-title={entry.data.title}
+                    data-image={entry.data.image}
+                    data-author={entry.data.author}
+                ></div>
+            ) : null}
         </div>
 
         <!-- Content -->
@@ -135,7 +143,10 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
             // We just need to ensure we don't attach THIS setup loop multiple times to the SAME 'astro:page-load' event chain.
             btn.addEventListener('click', (e) => {
                 const target = e.currentTarget as HTMLElement;
-                const url = target.getAttribute('data-spotify-url');
+                const spotifyUrl = target.getAttribute('data-spotify-url');
+                const audioUrl = target.getAttribute('data-audio-url');
+                const url = spotifyUrl || audioUrl;
+                
                 if(url) {
                     document.dispatchEvent(new CustomEvent('play-episode', { detail: { url } }));
                 }
