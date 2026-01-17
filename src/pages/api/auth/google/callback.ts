@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import { exchangeGoogleCode, getGoogleUserInfo, generateToken } from '../../../../lib/auth';
 import User from '../../../../models/User';
+import { createHash } from 'crypto';
 
 export const prerender = false;
 
@@ -35,6 +36,27 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
     // Obtener información del usuario de Google
     const googleUser = await getGoogleUserInfo(accessToken);
 
+    // Helper to determine the best profile picture
+    const getProfilePicture = async (email: string, googlePicture?: string) => {
+      try {
+        const hash = createHash('md5').update(email.trim().toLowerCase()).digest('hex');
+        const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=404`;
+        
+        // Check if user has a custom gravatar
+        const response = await fetch(gravatarUrl, { method: 'HEAD' });
+        
+        if (response.ok) {
+          return `https://www.gravatar.com/avatar/${hash}`; 
+        }
+      } catch (e) {
+        console.warn('Failed to check Gravatar:', e);
+      }
+      return googlePicture;
+    };
+    
+    // Determine picture to use
+    const userPicture = await getProfilePicture(googleUser.email, googleUser.picture);
+
     // Buscar o crear usuario en la base de datos
     let user = await User.findOne({ googleId: googleUser.id });
 
@@ -44,14 +66,14 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         googleId: googleUser.id,
         email: googleUser.email,
         name: googleUser.name,
-        picture: googleUser.picture,
+        picture: userPicture,
         lastLogin: new Date()
       });
     } else {
       // Actualizar fecha de último login y foto
       user.lastLogin = new Date();
-      if (googleUser.picture) {
-        user.picture = googleUser.picture;
+      if (userPicture) {
+        user.picture = userPicture;
       }
       await user.save();
     }
