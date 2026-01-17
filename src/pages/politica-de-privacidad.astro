@@ -9,23 +9,53 @@ import Layout from '../layouts/Layout.astro';
       <p class="updated-date">Última actualización: {new Date().toLocaleDateString('es-ES')}</p>
       
       <section>
-        <h2>1. Información que recopilamos</h2>
-        <p>En Veredillas FM, respetamos su privacidad y nos comprometemos a proteger sus datos personales. Esta política explica cómo recopilamos, usamos y protegemos su información cuando visita nuestro sitio web.</p>
+        <h2>1. Introducción y Responsable del Tratamiento</h2>
+        <p>En Veredillas FM, nos tomamos muy en serio tu privacidad. Esta política detalla cómo recopilamos, usamos y protegemos tus datos personales al interactuar con nuestra plataforma, incluyendo el reproductor de podcast, el sistema de comentarios, el chatbot de IA y las funciones de usuario registrado.</p>
+        <p>De conformidad con el Reglamento General de Protección de Datos (RGPD), te informamos que los datos que nos facilites serán tratados con la máxima confidencialidad.</p>
       </section>
 
       <section>
-        <h2>2. Uso de la información</h2>
-        <p>La información recopilada se utiliza para mejorar el contenido de nuestro sitio, personalizar el contenido y el diseño de nuestra página para cada visitante individual y notificar a los consumidores sobre las actualizaciones de nuestro sitio web.</p>
+        <h2>2. Información que Recopilamos</h2>
+        <p>Podemos recopilar y procesar los siguientes datos:</p>
+        <ul class="policy-list">
+          <li><strong>Datos de Identificación:</strong> Si te registras o comentas, recopilamos tu nombre, dirección de correo electrónico y avatar.</li>
+          <li><strong>Datos de Uso y Preferencias:</strong> Información sobre los episodios que escuchas, tu historial de reproducción (para funciones como "Top Listeners" o "Continuar escuchando") y tus preferencias de volumen o tema (Modo Zen).</li>
+          <li><strong>Interacciones con la IA:</strong> Las consultas que realizas a nuestro Chatbot de IA pueden ser procesadas para generarte una respuesta, aunque no utilizamos estos datos para entrenar modelos externos sin tu consentimiento explícito.</li>
+          <li><strong>Datos Técnicos:</strong> Dirección IP, tipo de navegador y datos de cookies necesarias para el funcionamiento del sitio.</li>
+        </ul>
       </section>
 
       <section>
-        <h2>3. Cookies</h2>
-        <p>Utilizamos cookies para almacenar las preferencias de los visitantes, registrar información específica del usuario sobre las páginas a las que el usuario accede o visita, y personalizar el contenido de la página web según el tipo de navegador del visitante u otra información que el visitante envía.</p>
+        <h2>3. Finalidad del Tratamiento</h2>
+        <p>Utilizamos tus datos para las siguientes finalidades:</p>
+        <ul class="policy-list">
+          <li><strong>Proveer el Servicio:</strong> Permitirte escuchar podcasts, recordar tu punto de reproducción y gestionar tu cuenta.</li>
+          <li><strong>Funciones Sociales:</strong> Gestionar tus comentarios y mostrar tu estado de "Usuario Verificado" si corresponde.</li>
+          <li><strong>Personalización:</strong> Generar estadísticas como el widget de "Top Listeners" y recomendarte contenido basado en tus gustos.</li>
+          <li><strong>Mejoras del Sitio:</strong> Analizar cómo se usa la web para introducir nuevas mejoras y features.</li>
+        </ul>
       </section>
 
       <section>
-        <h2>4. Contacto</h2>
-        <p>Si tiene alguna pregunta sobre nuestra política de privacidad, no dude en contactarnos a través de los canales proporcionados en nuestro sitio web.</p>
+        <h2>4. Tus Derechos (RGPD)</h2>
+        <p>Como usuario, tienes derecho a:</p>
+        <ul class="policy-list">
+          <li><strong>Acceso y Portabilidad:</strong> Solicitar una copia de los datos que tenemos sobre ti.</li>
+          <li><strong>Rectificación:</strong> Corregir información inexacta en tu perfil.</li>
+          <li><strong>Olvido (Supresión):</strong> Solicitar la eliminación de tu cuenta y de todos tus comentarios y datos asociados.</li>
+          <li><strong>Limitación y Oposición:</strong> Oponerte al procesamiento de ciertos datos cuando sea posible.</li>
+        </ul>
+        <p>Para ejercer estos derechos, puedes contactarnos directamente o utilizar las herramientas de privacidad disponibles en tu perfil de usuario.</p>
+      </section>
+
+      <section>
+        <h2>5. Cookies y Almacenamiento Local</h2>
+        <p>Utilizamos almacenamiento local (LocalStorage) y cookies para mantener tu sesión iniciada, recordar el progreso de tus episodios y conservar tus preferencias de configuración (como el volumen del reproductor). Puedes consultar nuestra <a href="/cookies">Política de Cookies</a> para más detalles.</p>
+      </section>
+
+      <section>
+        <h2>6. Cambios en esta Política</h2>
+        <p>Nos reservamos el derecho de modificar esta política para adaptarla a nuevas funcionalidades (como nuevas herramientas de IA o integraciones). Te notificaremos cualquier cambio significativo a través de la plataforma.</p>
       </section>
     </div>
   </main>
@@ -67,5 +97,32 @@ import Layout from '../layouts/Layout.astro';
     color: var(--color-text-body);
     line-height: 1.7;
     margin-bottom: 1rem;
+  }
+
+  .policy-list {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-body);
+  }
+
+  .policy-list li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  strong {
+    color: var(--color-text-heading);
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  a:hover {
+    color: var(--color-primary-dark);
+    text-decoration: underline;
   }
 </style>

@@ -5,26 +5,45 @@ import Layout from '../layouts/Layout.astro';
 <Layout title="Política de Cookies | Veredillas FM">
   <main class="page-container">
     <div class="content-wrapper">
-      <h1>Política de Cookies</h1>
+      <h1>Política de Cookies y Almacenamiento Local</h1>
       <p class="updated-date">Última actualización: {new Date().toLocaleDateString('es-ES')}</p>
       
       <section>
-        <h2>¿Qué son las cookies?</h2>
-        <p>Las cookies son archivos de texto que contienen pequeñas cantidades de información que se descargan en su dispositivo cuando visita un sitio web. Las cookies permiten que un sitio web reconozca el dispositivo de un usuario.</p>
+        <h2>¿Qué son las cookies y el almacenamiento local?</h2>
+        <p>Además de las cookies tradicionales (pequeños archivos de texto), en Veredillas FM utilizamos tecnologías modernas como el <strong>Local Storage</strong> del navegador. Estas tecnologías nos permiten recordar quién eres y cuáles son tus preferencias sin necesidad de enviarlas constantemente al servidor.</p>
       </section>
 
       <section>
-        <h2>¿Cómo utilizamos las cookies?</h2>
-        <p>Utilizamos cookies para:</p>
-        <ul>
-          <li>Entender y guardar las preferencias del usuario para futuras visitas.</li>
-          <li>Recopilar datos agregados sobre el tráfico del sitio y las interacciones del sitio para ofrecer mejores experiencias y herramientas en el futuro.</li>
+        <h2>¿Qué tecnologías utilizamos?</h2>
+        <p>Clasificamos nuestro almacenamiento de datos en las siguientes categorías:</p>
+        
+        <h3>1. Esenciales</h3>
+        <p>Necesarias para que el sitio funcione. Sin ellas, no podrías iniciar sesión ni navegar correctamente.</p>
+        <ul class="cookie-list">
+          <li><strong>Sesión de Usuario:</strong> Tokens de autenticación para mantenerte logueado de forma segura.</li>
+          <li><strong>Seguridad:</strong> Cookies técnicas que previenen ataques de falsificación de solicitudes (CSRF).</li>
         </ul>
+
+        <h3>2. Funcionalidad y Preferencias</h3>
+        <p>Nos permiten recordar las elecciones que haces para mejorar tu experiencia cada vez que vuelves.</p>
+        <ul class="cookie-list">
+          <li><strong>Estado del Reproductor:</strong> Guardamos el volumen, el último episodio escuchado y el minuto exacto donde lo dejaste.</li>
+          <li><strong>Preferencias de UI:</strong> Tu elección de Tema (Claro/Oscuro) o configuraciones como el "Modo Zen".</li>
+          <li><strong>Chatbot IA:</strong> Historial reciente de conversación para mantener el contexto durante tu visita.</li>
+        </ul>
+
+        <h3>3. Rendimiento y Análisis</h3>
+        <p>Podemos utilizar herramientas anónimas para medir cuántas personas escuchan un episodio (para el Top Listeners) o visitan el sitio, lo que nos ayuda a decidir qué contenido crear.</p>
       </section>
 
       <section>
-        <h2>Gestión de cookies</h2>
-        <p>Puede elegir que su ordenador le avise cada vez que se envíe una cookie, o puede elegir desactivar todas las cookies. Esto se hace a través de la configuración de su navegador.</p>
+        <h2>Gestión de tus preferencias</h2>
+        <p>Puedes eliminar las cookies y los datos de almacenamiento local (Local Storage) en cualquier momento desde la configuración de tu navegador. Ten en cuenta que si borras estos datos:</p>
+        <ul class="cookie-list">
+          <li>Se cerrará tu sesión activa.</li>
+          <li>El reproductor "olvidará" dónde te quedaste en tu último episodio.</li>
+          <li>Tus preferencias de volumen y tema se restablecerán a los valores predeterminados.</li>
+        </ul>
       </section>
     </div>
   </main>
@@ -68,14 +87,27 @@ import Layout from '../layouts/Layout.astro';
     margin-bottom: 1rem;
   }
   
-  ul {
+  h3 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-heading);
+    font-weight: 600;
+  }
+
+  .cookie-list {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
     color: var(--color-text-body);
-    line-height: 1.7;
-    margin-left: 1.5rem;
-    margin-bottom: 1rem;
   }
   
-  li {
-    margin-bottom: 0.5rem;
+  .cookie-list li {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+  }
+
+  strong {
+    color: var(--color-text-heading);
   }
 </style>

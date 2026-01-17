@@ -45,7 +45,7 @@ export const LEVELS: Level[] = [
         description: 'Conoces cada episodio y cada detalle.'
     },
     {
-        name: 'Leyenda del Podcast',
+        name: 'Adicto a VFM',
         minSeconds: 18000,
         maxSeconds: Infinity, // 5h+
         icon: '👑',

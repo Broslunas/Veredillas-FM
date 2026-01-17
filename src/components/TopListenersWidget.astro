@@ -1,0 +1,327 @@
+---
+// src/components/TopListenersWidget.astro
+---
+
+<div class="top-listeners glass-panel gs-fade-up top-listeners-widget">
+    <div class="widget-header">
+        <div class="title-group">
+            <span class="pulse-dot"></span>
+            <h3>Top Oyentes</h3>
+        </div>
+        <span class="badge">
+            All Days
+        </span>
+    </div>
+
+    <div id="leaderboard-list" class="leaderboard-list">
+        <!-- Loading Skeleton -->
+        {[1, 2, 3, 4, 5].map((i) => (
+            <div class="listener-row skeleton">
+                <div class="rank-skeleton"></div>
+                <div class="avatar-skeleton"></div>
+                <div class="info-skeleton"></div>
+            </div>
+        ))}
+    </div>
+</div>
+
+<script>
+    import { getLevel } from '../lib/gamification';
+
+    interface Listener {
+        name: string;
+        picture?: string;
+        listeningTime: number;
+    }
+
+    function formatTime(seconds: number): string {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
+    }
+
+    async function loadLeaderboard() {
+        const listContainer = document.getElementById('leaderboard-list');
+        if (!listContainer) return;
+
+        try {
+            const response = await fetch('/api/stats/leaderboard');
+            if (!response.ok) throw new Error('Failed to fetch');
+            
+            const listeners: Listener[] = await response.json();
+            
+            if (listeners.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <p>Sé el primero en aparecer aquí.</p>
+                        <a href="/ep" class="btn-link">Empieza a escuchar</a>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = listeners.map((listener, index) => {
+                const rank = index + 1;
+                const isTop3 = rank <= 3;
+                
+                // Deterministic color for placeholder based on name
+                const getGradient = (name: string) => {
+                    const colors = [
+                        'linear-gradient(135deg, #FF6B6B, #EE5D5D)',
+                        'linear-gradient(135deg, #4FACFE, #00F2FE)',
+                        'linear-gradient(135deg, #43E97B, #38F9D7)',
+                        'linear-gradient(135deg, #FA709A, #FEE140)',
+                        'linear-gradient(135deg, #667EEA, #764BA2)'
+                    ];
+                    const charCode = name.charCodeAt(0) || 0;
+                    return colors[charCode % colors.length];
+                };
+
+                const level = getLevel(listener.listeningTime);
+
+                return `
+                    <div class="listener-row ${isTop3 ? 'top-rank' : ''} rank-${rank}">
+                        <div class="rank-badge">${rank}</div>
+                        
+                        <div class="avatar-wrapper">
+                            ${listener.picture 
+                                ? `<img src="${listener.picture}" alt="${listener.name}" loading="lazy" />`
+                                : `<div class="avatar-placeholder" style="background: ${getGradient(listener.name)}">${listener.name.charAt(0)}</div>`
+                            }
+                            ${rank === 1 ? '<div class="crown">👑</div>' : ''}
+                        </div>
+
+                        <div class="listener-details">
+                            <span class="name">${listener.name}</span>
+                            <span class="category-label" style="color: ${level.color}">
+                                ${level.name} ${level.icon}
+                            </span>
+                        </div>
+                        
+                        <div class="listener-stat">
+                            <span class="time-value">${formatTime(listener.listeningTime)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error(error);
+            listContainer.innerHTML = `
+                <div class="error-state">
+                    <p>No se pudieron actualizar los datos.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Load on idle
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => loadLeaderboard());
+    } else {
+        setTimeout(loadLeaderboard, 100);
+    }
+</script>
+
+<style is:global>
+    /* 
+     * Using is:global because Astro's scoped styles do not apply to
+     * HTML injected via innerHTML at runtime. We scope them manually
+     * with the parent class .top-listeners-widget to prevent leaks.
+     */
+    
+    .top-listeners-widget.top-listeners {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), rgba(0, 0, 0, 0.4));
+    }
+
+    .top-listeners-widget .widget-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .top-listeners-widget .title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .top-listeners-widget .widget-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .top-listeners-widget .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .top-listeners-widget .badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+        background: rgba(255,255,255,0.1);
+        border-radius: 12px;
+        color: var(--color-text-muted);
+    }
+
+    .top-listeners-widget .leaderboard-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .top-listeners-widget .listener-row {
+        display: grid;
+        grid-template-columns: 24px 44px 1fr auto; /* Fixed columns for stable layout */
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.02);
+        transition: background 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .top-listeners-widget .listener-row:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255,255,255,0.05);
+    }
+    
+    /* Rank Styling */
+    .top-listeners-widget .rank-badge {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--color-text-dim);
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    /* Top 3 Highlighting */
+    .top-listeners-widget .rank-1 .rank-badge { color: #FFD700; font-size: 1.2rem; }
+    .top-listeners-widget .rank-2 .rank-badge { color: #C0C0C0; font-size: 1.2rem; }
+    .top-listeners-widget .rank-3 .rank-badge { color: #CD7F32; font-size: 1.2rem; }
+    
+    .top-listeners-widget .rank-1 { background: linear-gradient(90deg, rgba(255, 215, 0, 0.05), transparent); }
+    .top-listeners-widget .rank-2 { background: linear-gradient(90deg, rgba(192, 192, 192, 0.05), transparent); }
+    .top-listeners-widget .rank-3 { background: linear-gradient(90deg, rgba(205, 127, 50, 0.05), transparent); }
+
+    /* Avatar */
+    .top-listeners-widget .avatar-wrapper {
+        position: relative;
+        width: 44px;
+        height: 44px;
+    }
+
+    .top-listeners-widget .avatar-wrapper img, 
+    .top-listeners-widget .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .top-listeners-widget .avatar-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .top-listeners-widget .crown {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%) rotate(-10deg);
+        font-size: 16px;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+        animation: float-crown 2s infinite ease-in-out;
+    }
+    
+    @keyframes float-crown {
+        0%, 100% { transform: translateX(-50%) rotate(-10deg) translateY(0); }
+        50% { transform: translateX(-50%) rotate(-10deg) translateY(-3px); }
+    }
+
+    /* Details */
+    .top-listeners-widget .listener-details {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .top-listeners-widget .name {
+        font-weight: 600;
+        color: var(--color-text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.95rem;
+        line-height: 1.2;
+    }
+    
+    .top-listeners-widget .category-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        opacity: 0.9;
+    }
+
+    /* Stat */
+    .top-listeners-widget .listener-stat {
+        text-align: right;
+    }
+
+    .top-listeners-widget .time-value {
+        display: inline-block;
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--color-primary);
+        background: rgba(139, 92, 246, 0.1);
+        padding: 0.2rem 0.6rem;
+        border-radius: 6px;
+    }
+
+    .top-listeners-widget .empty-state, 
+    .top-listeners-widget .error-state {
+        padding: 2rem;
+        text-align: center;
+        color: var(--color-text-muted);
+    }
+
+    .top-listeners-widget .btn-link {
+        color: var(--color-primary);
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    /* Skeleton */
+    .top-listeners-widget .skeleton {
+        grid-template-columns: 24px 44px 1fr 60px;
+    }
+    
+    .top-listeners-widget .rank-skeleton { width: 100%; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; }
+    .top-listeners-widget .avatar-skeleton { width: 100%; height: 100%; background: rgba(255,255,255,0.05); border-radius: 50%; }
+    .top-listeners-widget .info-skeleton { width: 70%; height: 16px; background: rgba(255,255,255,0.05); border-radius: 4px; }
+</style>
