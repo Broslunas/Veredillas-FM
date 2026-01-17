@@ -92,6 +92,9 @@ const createdDate = new Date(user.createdAt).toLocaleDateString('es-ES', {
           <button type="submit" class="btn btn-primary" id="save-btn">
             Guardar Cambios
           </button>
+          <a href="/favoritos" class="btn btn-accent">
+            ❤️ Mis Favoritos
+          </a>
           <a href="/api/auth/logout" class="btn btn-secondary">
             Cerrar Sesión
           </a>
@@ -263,6 +266,18 @@ const createdDate = new Date(user.createdAt).toLocaleDateString('es-ES', {
   .btn-secondary:hover {
     background: rgba(139, 92, 246, 0.2);
     transform: translateY(-2px);
+  }
+
+  .btn-accent {
+    background: linear-gradient(135deg, #ec4899, #ef4444);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
+  }
+
+  .btn-accent:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
   }
 
   .status-message {

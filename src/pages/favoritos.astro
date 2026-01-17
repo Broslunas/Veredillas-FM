@@ -1,0 +1,277 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getUserFromCookie } from '../lib/auth';
+import { getCollection } from 'astro:content';
+import mongoose from 'mongoose';
+import User from '../models/User';
+
+export const prerender = false;
+
+// Obtener usuario autenticado
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+// Si no hay usuario, redirigir a login
+if (!userPayload) {
+  return Astro.redirect('/api/auth/google/login');
+}
+
+// Obtener favoritos del usuario
+let favorites: string[] = [];
+try {
+  if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = import.meta.env.MONGODB_URI;
+    if (MONGODB_URI) {
+      await mongoose.connect(MONGODB_URI);
+    }
+  }
+  const user = await User.findById(userPayload.userId).select('favorites');
+  favorites = user?.favorites || [];
+} catch (error) {
+  console.error('Error loading favorites:', error);
+}
+
+// Obtener episodios favoritos
+const allEpisodes = await getCollection('episodios');
+const favoriteEpisodes = allEpisodes
+  .filter(episode => favorites.includes(episode.slug))
+  .sort((a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime());
+---
+
+<Layout title="Mis Favoritos" description="Tus episodios favoritos de Veredillas FM">
+  <div class="favorites-container">
+    <div class="favorites-header">
+      <h1>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        Mis Favoritos
+      </h1>
+      {favoriteEpisodes.length > 0 && (
+        <p class="favorites-count">{favoriteEpisodes.length} {favoriteEpisodes.length === 1 ? 'episodio' : 'episodios'}</p>
+      )}
+    </div>
+
+    {favoriteEpisodes.length === 0 ? (
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <h2>Aún no tienes favoritos</h2>
+        <p>Explora nuestros episodios y guarda tus preferidos haciendo clic en el corazón ❤️</p>
+        <a href="/ep" class="btn-explore">Explorar Episodios</a>
+      </div>
+    ) : (
+      <div class="episodes-grid">
+        {favoriteEpisodes.map((episode) => (
+          <article class="episode-card">
+            <a href={`/ep/${episode.slug}`} class="episode-link">
+              {episode.data.image && (
+                <div class="episode-image">
+                  <img src={episode.data.image} alt={episode.data.title} loading="lazy" />
+                </div>
+              )}
+              <div class="episode-content">
+                <h2 class="episode-title">{episode.data.title}</h2>
+                <p class="episode-description">{episode.data.description}</p>
+                <div class="episode-meta">
+                  <time datetime={episode.data.pubDate.toISOString()}>
+                    {new Date(episode.data.pubDate).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </time>
+                  {episode.data.duration && (
+                    <>
+                      <span class="separator">•</span>
+                      <span>{episode.data.duration}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </a>
+          </article>
+        ))}
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+  .favorites-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .favorites-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .favorites-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem 0;
+    color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .favorites-header h1 svg {
+    color: #ef4444;
+  }
+
+  .favorites-count {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .empty-state svg {
+    color: var(--color-primary);
+    opacity: 0.3;
+    margin-bottom: 1.5rem;
+  }
+
+  .empty-state h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    color: var(--color-text);
+  }
+
+  .empty-state p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    margin: 0 0 2rem 0;
+    line-height: 1.6;
+  }
+
+  .btn-explore {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent, #ec4899));
+    color: white;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-explore:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+  }
+
+  .episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+
+  .episode-card {
+    background: var(--color-surface);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .episode-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+  }
+
+  .episode-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .episode-image {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent, #ec4899));
+  }
+
+  .episode-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .episode-card:hover .episode-image img {
+    transform: scale(1.05);
+  }
+
+  .episode-content {
+    padding: 1.5rem;
+  }
+
+  .episode-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .episode-description {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .episode-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .separator {
+    opacity: 0.5;
+  }
+
+  @media (max-width: 768px) {
+    .favorites-container {
+      padding: 1rem;
+    }
+
+    .favorites-header h1 {
+      font-size: 2rem;
+    }
+
+    .episodes-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+</style>

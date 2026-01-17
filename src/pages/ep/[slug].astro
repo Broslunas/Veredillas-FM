@@ -8,6 +8,7 @@ import EpisodeParticipants from '../../components/EpisodeParticipants.astro';
 import TranscriptionWidget from '../../components/TranscriptionWidget.astro';
 import EpisodeSections from '../../components/EpisodeSections.astro';
 import SidebarWidget from '../../components/SidebarWidget.astro';
+import FavoriteButton from '../../components/FavoriteButton.astro';
 
 export const prerender = false;
 
@@ -53,6 +54,9 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
             <h1>{entry.data.title}</h1>
             <p class="lead">{entry.data.description}</p>
             
+            <div class="header-actions">
+                <FavoriteButton episodeSlug={entry.slug} />
+            </div>
 
         </header>
 
@@ -196,6 +200,14 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
         font-size: 1.25rem;
         color: var(--color-text-muted);
         line-height: 1.6;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .header-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: var(--spacing-lg);
     }
 
 
