@@ -1,0 +1,48 @@
+---
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Autenticación Exitosa</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .message {
+            text-align: center;
+            animation: fade 1s infinite alternate;
+        }
+        @keyframes fade { from { opacity: 0.6; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="message">
+        <h3>¡Bienvenido!</h3>
+        <p>Cerrando ventana...</p>
+    </div>
+    <script>
+        // Check if opened in popup
+        if (window.opener) {
+            // Notify opener to reload/redirect
+            try {
+                window.opener.location.href = '/dashboard';
+            } catch (e) {
+                console.error(e);
+            }
+            window.close();
+        } else {
+            // Fallback if opened directly
+            window.location.href = '/dashboard';
+        }
+    </script>
+</body>
+</html>

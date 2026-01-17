@@ -68,8 +68,8 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       path: '/'
     });
 
-    // Redirigir al perfil del usuario
-    return redirect('/perfil?auth=success');
+    // Redirigir a la página de éxito para cerrar el popup
+    return redirect('/auth/success');
 
   } catch (error) {
     console.error('Error in Google OAuth callback:', error);
