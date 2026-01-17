@@ -1,402 +1,539 @@
-/* --- Custom Audio Player Styles (Shared/Injected) --- */
-  .custom-audio-player {
-    font-family: "Inter", sans-serif;
+/* --- Custom Audio Player Styles (Professional Revamp) --- */
+.custom-audio-player {
+    font-family: var(--font-body, "Outfit", sans-serif);
     width: 100%;
-    height: 100%; /* Adapting to MiniPlayer container */
-    max-width: 800px;
+    height: auto;
+    max-width: 900px;
     margin: 0 auto;
-  }
+    position: relative;
+    z-index: 10;
+}
 
-  .player-card {
+/* Glass Card Container */
+.player-card {
     display: flex;
+    align-items: center;
     gap: 20px;
     padding: 16px;
-    border-radius: 12px;
-    background: linear-gradient(145deg, rgba(30, 58, 138, 0.9), rgba(15, 23, 42, 0.95));
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    background: rgba(18, 18, 20, 0.75); /* Dark base */
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Stronger border for glass feel */
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     color: white;
     position: relative;
     overflow: hidden;
-    height: 100%;
-    align-items: center;
-  }
-  
-  /* Make sure it fits in the floating player */
-  .mini-player.floating .player-card {
-      padding: 12px 20px;
-  }
-  
-  /* Responsive Adjustments for MiniPlayer context */
-  @media (max-width: 768px) {
-      .player-card {
-          padding: 12px;
-          gap: 12px;
-      }
-  }
+    height: auto; /* Responsive height */
+    transition: all 0.3s ease;
+}
 
-  /* --- Carátula --- */
-  .cover-image {
-    width: 80px; /* Smaller for MiniPlayer */
-    height: 80px;
-    flex-shrink: 0;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    background-color: rgba(255, 255, 255, 0.1);
+/* Dynamic Glow Background */
+.player-bg-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, var(--color-primary-glow, rgba(139, 92, 246, 0.15)), transparent 70%);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(60px);
+    transition: background 1s ease;
+}
+
+/* Inline Player Grid (Default) */
+.player-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* Art | Body | Extras */
+    grid-template-rows: auto 1fr; /* Title | Main content */
+    grid-template-areas: 
+        "title title title"
+        "art body extras";
+    width: 100%;
+    column-gap: 20px;
+    row-gap: 12px;
+    position: relative;
+    z-index: 2;
+    align-items: center;
+}
+
+/* Floating Player Grid (Flex row simulation via Grid or Flex) */
+.mini-player.floating .player-grid {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 16px;
+}
+
+/* --- Artwork --- */
+.player-artwork {
+    grid-area: art;
+    flex-shrink: 0;
+}
+/* Re-order for floating flex */
+.mini-player.floating .player-artwork {
+    order: 1;
+}
+
+.artwork-wrapper {
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    overflow: hidden;
     position: relative;
-    z-index: 1;
-  }
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-  @media (max-width: 768px) {
-      .cover-image {
-          width: 60px;
-          height: 60px;
-      }
-  }
+/* Floating Artwork Smaller */
+.mini-player.floating .artwork-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    box-shadow: none;
+}
 
-  .cover-image img {
+.player-cover-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-  
-  .cover-placeholder {
-    color: rgba(255, 255, 255, 0.3);
-    width: 32px;
-    height: 32px;
-  }
+    transition: transform 0.5s ease;
+}
 
-  /* --- Contenido del Reproductor (Derecha) --- */
-  .player-content {
+.player-card:hover .player-cover-img {
+    transform: scale(1.05); /* Subtle zoom on hover */
+}
+
+.artwork-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* --- Player Body (Middle) --- */
+.player-body {
+    grid-area: body;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 8px; /* Reduced gap */
-    position: relative;
-    z-index: 1;
-    min-width: 0; /* Fix flex overflow */
-  }
-
-  /* --- Info Pista --- */
-  .track-info h2 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin: 0 0 4px 0;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .track-info p {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    margin: 0;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* --- Visualizer --- */
-  .visualizer-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0.2; /* Subtle */
-  }
-
-  #audioVisualizer {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-  }
-
-  /* --- Barra de Progreso --- */
-  .progress-section {
-    width: 100%;
-    display: flex;
-    gap: 10px;
+    gap: 8px; /* Spacing between bars, controls */
+    min-width: 0;
+}
+/* Re-order for floating flex */
+.mini-player.floating .player-body {
+    order: 3; /* Art(1) -> Title(2) -> Body(3) -> Extras(4) */
+    /* Wait, in floating we want Title NEXT to Artwork potentially, or inside body logic? */
+    /* If Title is separate div (child 2 in flex), it sits between Art and Body. */
+    flex-direction: row;
     align-items: center;
-  }
+    justify-content: space-between;
+    gap: 20px;
+}
 
-  .time-labels {
-      display: none; 
-  }
-  
-  .time-display {
-      font-size: 0.75rem;
-      color: #cbd5e1;
-      font-variant-numeric: tabular-nums;
-      min-width: 35px;
-  }
+/* Metadata */
+.track-details {
+    grid-area: title;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 5px; /* Spacing from main row */
+    border-bottom: 1px solid rgba(255,255,255,0.05); /* Optional separator line */
+    margin-bottom: 5px;
+}
+.mini-player.floating .track-details {
+    order: 2;
+    padding-bottom: 0;
+    border-bottom: none;
+    margin-bottom: 0;
+    flex: 1;
+    max-width: 250px;
+}
 
-  /* Slider común */
-  input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent;
-    cursor: pointer;
+.track-title {
+    font-size: 1.25rem; /* Larger title for top row */
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.35; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+    color: white;
+    padding-top: 2px;
+}
+
+.track-artist {
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #a1a1aa);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Floating Layout Adjustments */
+.mini-player.floating .track-title {
+    font-size: 0.95rem; /* Smaller for floating */
+}
+
+.mini-player.floating .track-artist {
+    font-size: 0.75rem;
+}
+
+.mini-player.floating .mini-visualizer {
+    display: none; 
+} 
+
+.mini-player.floating .player-progress {
+    display: none; 
+}
+/* Re-order extras */
+.player-extras {
+    grid-area: extras;
+}
+.mini-player.floating .player-extras {
+    order: 4;
+}
+
+/* --- Visualizer --- */
+.mini-visualizer {
+    height: 24px;
     width: 100%;
+    opacity: 0.3;
+    overflow: hidden;
+    margin-bottom: 2px;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    pointer-events: none;
+}
+
+.mini-visualizer canvas {
     display: block;
-  }
+    width: 100%;
+    height: 100%;
+}
 
-  /* Track Progreso */
-  #seekBar {
-    height: 4px;
+/* --- Controls & Progress --- */
+.player-controls-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.player-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.time-text {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-dim, #71717a);
+    min-width: 35px;
+    text-align: center;
+}
+
+.seek-slider-wrapper {
     flex-grow: 1;
-  }
+    height: 16px; /* Touch target */
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
 
-  #seekBar::-webkit-slider-runnable-track {
-    background-color: rgba(255, 255, 255, 0.2);
-    height: 4px;
+.seek-track-bg {
+    position: absolute;
+    width: 100%;
+    height: 4px; /* Thin line */
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
-  }
+    overflow: hidden;
+    transition: height 0.2s;
+}
 
-  #seekBar::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    margin-top: -4px; 
-    width: 12px;
-    height: 12px;
-    background-color: white;
+.seek-track-fill {
+    height: 100%;
+    background: var(--color-primary, #8b5cf6);
+    width: 0%; /* JS updates this */
+    border-radius: 2px;
+    position: relative;
+}
+
+/* Interaction: thicken on hover */
+.seek-slider-wrapper:hover .seek-track-bg {
+    height: 6px;
+}
+
+/* Glow on the fill tip */
+.seek-track-fill::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    background: white;
+    box-shadow: 0 0 10px 1px rgba(255,255,255,0.6);
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.seek-slider-wrapper:hover .seek-track-fill::after {
+    opacity: 1;
+}
+
+input[type="range"].u-hidden-range {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+    margin: 0;
+}
+
+/* Controls (Play/Pause/Prev/Next) */
+.item-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center them relative to body area if possible */
+    gap: 24px;
+}
+/* If we want left aligned in inline player: */
+.player-body .item-controls {
+    justify-content: flex-start;
+}
+
+
+.btn-ctrl {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted, #a1a1aa);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
     border-radius: 50%;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-  }
+    transition: all 0.2s ease;
+}
 
-  /* --- Controles Inferiores (The injected floating player controls) --- */
-  .controls-row {
+.btn-ctrl:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+    transform: scale(1.1);
+}
+
+.btn-ctrl.primary-play {
+    width: 48px;
+    height: 48px;
+    background: white;
+    color: black;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.25);
+    transform: scale(1);
+    padding: 0;
+    position: relative; /* Anchor for absolute center icons */
+}
+
+.btn-ctrl.primary-play:hover {
+    transform: scale(1.08);
+    background: white;
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+}
+
+.btn-ctrl svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-ctrl.primary-play svg {
+    position: absolute; /* Absolute center to prevent flow shift */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center it perfectly */
+    width: 20px; 
+    height: 20px;
+    fill: currentColor;
+    stroke: none;
+    display: block; /* Ensure block model */
+}
+
+/* Play icon visual correction for center mass */
+.btn-ctrl.primary-play svg.icon-play {
+    margin-left: 2px;
+}
+
+.btn-ctrl.primary-play svg.hidden {
+    display: none;
+}
+
+/* Ensure no accidental overrides */
+.hidden {
+    display: none !important;
+}
+
+/* Floating Controls override */
+.mini-player.floating .item-controls {
+    gap: 16px;
+}
+.mini-player.floating .btn-ctrl.primary-play {
+    width: 42px;
+    height: 42px;
+}
+.mini-player.floating .btn-ctrl.secondary-hide {
+    display: none; /* Hide fwd/back 15s in floating to save space */
+}
+
+/* --- Extras (Right Side) --- */
+.player-extras {
     display: flex;
     align-items: center;
     gap: 16px;
-  }
-  
-  @media (max-width: 768px) {
-      .controls-row {
-          gap: 8px;
-      }
-  }
+    padding-left: 16px;
+    border-left: 1px solid rgba(255,255,255,0.05);
+}
 
-  .main-controls {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  @media (max-width: 768px) {
-       .main-controls {
-          gap: 8px;
-       }
-  }
+.mini-player.floating .player-extras {
+    gap: 8px;
+    padding-left: 0;
+    border-left: none;
+}
 
-  .play-pause-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: white;
-    color: #1e3a8a;
+.speed-toggle {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    background: rgba(255,255,255,0.05);
+    padding: 6px 10px;
+    border-radius: 8px;
     border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-  
-  @media (max-width: 768px) {
-      .play-pause-btn {
-          width: 36px;
-          height: 36px;
-      }
-  }
+    min-width: 40px;
+    transition: all 0.2s;
+}
 
-  .play-pause-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-  }
-
-  .play-pause-btn svg {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .play-pause-btn svg.icon-pause {
-      margin-left: 0;
-  }
-  
-  .play-pause-btn svg:not(.icon-pause):not(.spinner) {
-      margin-left: 2px;
-  }
-
-  .secondary-control {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.1);
+.speed-toggle:hover {
     color: white;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-  }
-  
-  @media (max-width: 768px) {
-      .secondary-control {
-          background: transparent;
-      }
-  }
+    background: rgba(255,255,255,0.1);
+}
 
-  .secondary-control:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    transform: scale(1.05);
-  }
-
-  .secondary-control svg {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-
-  /* --- Volumen --- */
-  .volume-controls {
+.volume-area {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: auto; 
-  }
+    width: 100px;
+    transition: width 0.3s;
+}
 
-  .volume-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
+.mini-player.floating .volume-area {
+    display: none;
+}
 
-  .volume-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
+@media (max-width: 640px) {
+    .volume-area { display: none; }
+    .player-extras .btn-ctrl { display: none; } /* Hide Maximize in mobile inline if cramped */
+    .btn-ctrl.secondary-hide { display: none; }
+    .player-extras { border-left: none; padding-left: 0; }
+}
 
-  .speed-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums; 
-  }
-
-  .speed-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  .volume-slider-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 60px; /* Specific width */
-  }
-  
-  @media (max-width: 768px) {
-      .volume-slider-container {
-          display: none;
-      }
-  }
-
-  #volumeBar {
-    width: 100%;
-    height: 4px;
-  }
-
-  #volumeBar::-webkit-slider-runnable-track {
-    background-color: rgba(255, 255, 255, 0.2);
-    height: 4px;
-    border-radius: 2px;
-  }
-
-  #volumeBar::-webkit-slider-thumb {
+.volume-slider {
     -webkit-appearance: none;
     appearance: none;
-    margin-top: -4px;
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
     width: 12px;
     height: 12px;
-    background-color: white;
+    background: white;
     border-radius: 50%;
-  }
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
 
-  .hidden {
-    display: none !important;
-  }
-  
-  /* Spinner */
-  .spinner {
+/* Loading Spinner */
+.spinner {
     animation: rotate 2s linear infinite;
-    width: 20px;
-    height: 20px;
-  }
-  
-  .spinner .path {
-    stroke: #1e3a8a;
-    stroke-linecap: round;
+    width: 24px;
+    height: 24px;
+    color: #1e3a8a;
+}
+.spinner .path {
+    stroke: currentColor;
+    stroke-width: 4;
+    fill: none;
+    stroke-dasharray: 20, 100;
     animation: dash 1.5s ease-in-out infinite;
-  }
-  
-  @keyframes rotate {
-    100% {
-      transform: rotate(360deg);
+}
+
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+@keyframes dash {
+  0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .player-card {
+        padding: 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
     }
-  }
-  
-  @keyframes dash {
-    0% {
-      stroke-dasharray: 1, 150;
-      stroke-dashoffset: 0;
+    
+    .player-grid {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
     }
-    50% {
-      stroke-dasharray: 90, 150;
-      stroke-dashoffset: -35;
+    
+    .mini-player.floating .player-grid {
+        flex-direction: row;
+        text-align: left;
     }
-    100% {
-      stroke-dasharray: 90, 150;
-      stroke-dashoffset: -124;
+
+    .mini-player.floating .player-card {
+        padding: 8px 12px;
     }
-  }
+    
+    .player-body {
+        width: 100%;
+        align-items: center;
+    }
+    
+    .mini-player.floating .player-body {
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    
+    .player-controls-container {
+        align-items: center;
+    }
+    
+    .player-body .item-controls {
+        justify-content: center;
+    }
+}
