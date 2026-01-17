@@ -158,16 +158,18 @@ transcription:
     text: "Hasta luego. Chao."
 ---
 
-¡Hola a todos y bienvenidos de nuevo al blog de **Veredillas FM**!
+**¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
 
-Estamos de enhorabuena. Esta semana hemos tenido el inmenso placer de sentarnos a charlar con una de las mentes más brillantes de nuestro centro: **Oscar**, un increíble profesor de Tecnología del Instituto.
+¿Alguna vez has pensado en dejarlo todo y cambiar radicalmente de vida? El **Profesor Óscar** lo hizo, y hoy viene a contarnos por qué fue la mejor decisión que pudo tomar.
 
-Ha sido una conversación fascinante donde hablamos de su vida estudiantil, experiencias vividas, entre otros muchos temas. ¿Te lo vas a perder?
+En este episodio tan revelador, Óscar nos abre las puertas de su pasado: desde sus años como ingeniero naval trabajando en el muelle, con turnos inhumanos de 12 horas y apenas durmiendo, hasta el momento crítico en el que un **accidente de moto** por puro agotamiento le hizo despertar. "¿Vale la pena ganar mucho dinero si no tienes vida para disfrutarlo?". Óscar nos responde con un rotundo NO, explicándonos por qué cambió un sueldo envidiable por la docencia y cómo ahora "goza" cada día en el aula, aunque su nómina sea más modesta.
 
-¡Dale al play y disfruta de la entrevista!
+Charlamos sobre la importancia de la **salud mental**, de saber parar a tiempo y de no dejarse llevar por la corriente del "éxito" tradicional. Óscar también nos habla de oportunidades perdidas (¡como cuando sus amigos le dijeron de invertir en **Bitcoin** hace 15 años y él pasó!), y de cómo el mundo actual cambia tan rápido que la habilidad más importante que podemos aprender no es una fórmula, sino la capacidad de **adaptarnos al cambio**.
 
-No podemos estar más agradecidos con el profesor por dedicarnos su tiempo y compartir su pasión con nosotros. ¡Ha sido un verdadero lujo!
+Además, conocemos el origen del **Aula Creativa** donde grabamos este podcast: cómo un montón de cajas olvidadas se convirtieron en este espacio de innovación gracias a la iniciativa de alumnos y profesores. Y por supuesto, no faltan las risas con anécdotas surrealistas, como la historia legendaria del alumno que, herramienta en mano, ¡se dedicaba a robar sanitarios del instituto!
 
-Déjanos un comentario con tu parte favorita de la entrevista.
+Si estás dudando sobre tu futuro, si sientes que la presión por "ser alguien" te puede, o si simplemente quieres escuchar una historia de vida inspiradora y real, este episodio es para ti.
 
-¡Nos oímos en la próxima emisión de Veredillas FM!
+**Una lección de vida que va mucho más allá de la Tecnología. ¡Dale al play y déjate inspirar!**
+
+Esperemos que esta charla te motive tanto como a nosotros.

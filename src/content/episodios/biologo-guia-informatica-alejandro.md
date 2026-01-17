@@ -312,13 +312,16 @@ transcription:
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
 
+¿Alguna vez te has preguntado quién es realmente esa persona que te enseña a programar o a entender cómo funciona un ordenador? Prepárate, porque en este episodio descubrimos que el **Profesor Alejandro** es mucho más que un docente de Informática: es una caja de sorpresas llena de vivencias increíbles y lecciones de vida que no vienen en ningún libro de texto.
 
-Estamos encantados de teneros de vuelta en una nueva entrega de nuestras entrevistas más cercanas. En el I.E.S. Las Veredillas, sabemos que detrás de cada pizarra y cada examen hay personas con historias fascinantes, y hoy vamos a descubrir una de ellas.
+En esta entrevista fascinante, Alejandro nos lleva de viaje por su singular trayectoria. ¿Sabías que su sueño original no tenía nada que ver con los ordenadores? Descubre cómo una gata negra rescatada le inspiró a querer ser veterinario, y cómo los avatares del destino (y las notas de corte) le llevaron a estudiar Biología en Extremadura, viviendo en un piso congelado y **hackeando éticamente la red Wi-Fi de un vecino** a cambio de seguridad informática para poder estudiar.
 
-Hoy, no vamos a hablar solo de procesadores o código binario, sino de la persona que está detrás del teclado: el Profesor Alejandro, nuestro querido profesor de Informática. ¿Qué le inspira? ¿Qué hace cuando sale del aula? ¿Cómo ve el mundo y a sus alumnos?
+Pero la historia no acaba ahí. Alejandro nos habla sin censura sobre sus trabajos antes de la docencia: desde investigar toxinas alimentarias hasta ser inspector de sanidad en mataderos, dejándonos un consejo que nunca olvidarás sobre comer carne de cerdo de cierta procedencia. También nos cuenta sus inicios "accidentados" como profesor, enfrentándose a clases difíciles donde incluso fue amenazado, y cómo convirtió esas experiencias en una vocación inquebrantable.
 
-En esta charla, dejaremos a un lado las especificaciones técnicas para enfocarnos en sus aficiones, sus motivaciones como educador y su día a día fuera de las clases. Prepárate para conocer el lado más humano y personal de uno de nuestros profesores más apreciados.
+Hablamos de su filosofía educativa de "ir a contracorriente", de ser la **'oveja negra'** que busca despertar el pensamiento crítico en sus alumnos en lugar de crear robots que memorizan datos. Nos explica por qué utiliza la **genética de Pokémon** o Harry Potter para enseñar conceptos complejos, y cómo la biología y la tecnología, aunque parezcan mundos opuestos, se entrelazan de formas maravillosas.
 
-Sube el volumen, relájate y pulsa 'Play'. ¡Comenzamos la entrevista con el Profesor Alejandro!
+Y para rematar, nos regala una reflexión sobre la vida, el destino (o la "causalidad") y la importancia de apreciar los pequeños detalles, recomendándonos visitar el mágico **Mariposario de Icod**.
 
-Esperemos que hayas disfrutado de la entrevista.
+**Esta no es una entrevista cualquiera; es una historia de superación, curiosidad insaciable y pasión por enseñar. ¡No te la puedes perder! Dale al play.**
+
+Esperemos que disfrutes de esta entrevista llena de sorpresas.

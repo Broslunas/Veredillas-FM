@@ -1,0 +1,402 @@
+/* --- Custom Audio Player Styles (Shared/Injected) --- */
+  .custom-audio-player {
+    font-family: "Inter", sans-serif;
+    width: 100%;
+    height: 100%; /* Adapting to MiniPlayer container */
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .player-card {
+    display: flex;
+    gap: 20px;
+    padding: 16px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(30, 58, 138, 0.9), rgba(15, 23, 42, 0.95));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    align-items: center;
+  }
+  
+  /* Make sure it fits in the floating player */
+  .mini-player.floating .player-card {
+      padding: 12px 20px;
+  }
+  
+  /* Responsive Adjustments for MiniPlayer context */
+  @media (max-width: 768px) {
+      .player-card {
+          padding: 12px;
+          gap: 12px;
+      }
+  }
+
+  /* --- Carátula --- */
+  .cover-image {
+    width: 80px; /* Smaller for MiniPlayer */
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 768px) {
+      .cover-image {
+          width: 60px;
+          height: 60px;
+      }
+  }
+
+  .cover-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .cover-placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    width: 32px;
+    height: 32px;
+  }
+
+  /* --- Contenido del Reproductor (Derecha) --- */
+  .player-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px; /* Reduced gap */
+    position: relative;
+    z-index: 1;
+    min-width: 0; /* Fix flex overflow */
+  }
+
+  /* --- Info Pista --- */
+  .track-info h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track-info p {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin: 0;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* --- Visualizer --- */
+  .visualizer-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.2; /* Subtle */
+  }
+
+  #audioVisualizer {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  /* --- Barra de Progreso --- */
+  .progress-section {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .time-labels {
+      display: none; 
+  }
+  
+  .time-display {
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      font-variant-numeric: tabular-nums;
+      min-width: 35px;
+  }
+
+  /* Slider común */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    width: 100%;
+    display: block;
+  }
+
+  /* Track Progreso */
+  #seekBar {
+    height: 4px;
+    flex-grow: 1;
+  }
+
+  #seekBar::-webkit-slider-runnable-track {
+    background-color: rgba(255, 255, 255, 0.2);
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  #seekBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -4px; 
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+
+  /* --- Controles Inferiores (The injected floating player controls) --- */
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  @media (max-width: 768px) {
+      .controls-row {
+          gap: 8px;
+      }
+  }
+
+  .main-controls {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  @media (max-width: 768px) {
+       .main-controls {
+          gap: 8px;
+       }
+  }
+
+  .play-pause-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    color: #1e3a8a;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  @media (max-width: 768px) {
+      .play-pause-btn {
+          width: 36px;
+          height: 36px;
+      }
+  }
+
+  .play-pause-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .play-pause-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .play-pause-btn svg.icon-pause {
+      margin-left: 0;
+  }
+  
+  .play-pause-btn svg:not(.icon-pause):not(.spinner) {
+      margin-left: 2px;
+  }
+
+  .secondary-control {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+  
+  @media (max-width: 768px) {
+      .secondary-control {
+          background: transparent;
+      }
+  }
+
+  .secondary-control:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  .secondary-control svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* --- Volumen --- */
+  .volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto; 
+  }
+
+  .volume-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .volume-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .speed-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums; 
+  }
+
+  .speed-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .volume-slider-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 60px; /* Specific width */
+  }
+  
+  @media (max-width: 768px) {
+      .volume-slider-container {
+          display: none;
+      }
+  }
+
+  #volumeBar {
+    width: 100%;
+    height: 4px;
+  }
+
+  #volumeBar::-webkit-slider-runnable-track {
+    background-color: rgba(255, 255, 255, 0.2);
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  #volumeBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -4px;
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border-radius: 50%;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+  
+  /* Spinner */
+  .spinner {
+    animation: rotate 2s linear infinite;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .spinner .path {
+    stroke: #1e3a8a;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes dash {
+    0% {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -35;
+    }
+    100% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -124;
+    }
+  }

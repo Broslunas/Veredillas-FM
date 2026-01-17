@@ -108,16 +108,16 @@ transcription:
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
 
-¡Bienvenidos de nuevo a este espacio donde, por un momento, aparcamos los libros para iluminar las historias y los proyectos que hacen de nuestra clase un lugar único!
+¡Bienvenidos a un especial solidario de Veredillas FM! Hoy nos ponemos manos a la obra con una de las iniciativas más bonitas y necesarias de nuestro instituto: el **Mercadillo Escolar** organizado por el alumnado de 4º de la ESO.
 
-En el I.E.S. Las Veredillas, la diversidad y el compromiso de nuestro alumnado son nuestra mayor riqueza. Hoy, el foco se dirige hacia una iniciativa muy especial que está a la vuelta de la esquina: ¡el Mercadillo Escolar del 19 de diciembre!
+Para contarnos todos los detalles, tenemos en el estudio a un trío de lujo: **Carlos**, **Anaysa** y **Gisselle**, quienes nos explican con pasión en qué consiste este proyecto que transforma lo viejo en nuevo. ¿Tienes cosas en casa acumulando polvo? ¿Ropa que no usas, libros leídos o cachivaches olvidados? ¡Este es tu momento!
 
-Estamos encantados de recibir a un trío dinámico que está a cargo de hacer de este evento un éxito rotundo: **Carlos**, **Gisselle** y **Anaysa**, alumnos clave que nos desvelarán todos los secretos.
+Nuestros invitados nos desglosan el innovador sistema de **"economía de puntos"** que han creado: traes un objeto, te dan puntos y con ellos "compras" nuevos tesoros. Es una lección práctica de economía circular, donde aprendemos que la basura de uno puede ser, literalmente, el tesoro de otro. Y si no tienes nada para intercambiar, ¡no pasa nada! También nos explican cómo puedes participar aportando una pequeña donación económica para llevarte esa ganga que te ha guiñado el ojo (¡hay rumores de hasta aspiradoras en venta!).
 
-Hoy, vamos a dejar los apuntes y las fechas de exámenes a un lado para hablar de organización, creatividad y espíritu comunitario. Exploraremos cómo se articula un proyecto de esta magnitud, cuáles son los objetivos detrás de la venta de productos y cómo podemos participar para que el mercadillo sea un vibrante punto de encuentro solidario.
+Hablamos de la logística detrás del evento, del esfuerzo titánico de organización que han llevado a cabo sus compañeros de 4º C, y del apoyo fundamental del profesorado. Es más que un simple mercadillo: es un evento para fomentar la **solidaridad**, crear comunidad en el instituto y darnos cuenta de la importancia de dar una segunda vida a las cosas en un mundo tan consumista.
 
-Prepárate para conocer el lado más activo, coordinado y humano de nuestros compañeros. Sube el volumen, relájate y pulsa 'Play'.
+¿Cuándo es? ¿Dónde se hace? ¿Qué tipo de cosas raras podemos encontrar? Todas las respuestas están en este episodio.
 
-**¡Comenzamos la entrevista con Carlos, Gisselle y Anaysa para descubrir el funcionamiento del Mercadillo Escolar!**
+**No te quedes fuera de este movimiento. Escucha la entrevista, prepara tus donaciones y ¡ven a buscar tu próximo tesoro! Dale al play.**
 
-Esperemos que hayas disfrutado de la entrevista.
+Esperemos que disfrutes eches una mano en el mercadillo.

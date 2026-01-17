@@ -702,14 +702,18 @@ transcription:
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
 
-¡Bienvenidos de nuevo a este espacio de entrevistas donde el foco se aleja de los libros para iluminar a las personas que hacen de nuestra clase un lugar único!
+¡Bienvenidos a un episodio muy especial y cargado de energía de Veredillas FM! Hoy aparcamos los libros de texto y las fórmulas matemáticas para sumergirnos en la cruda y divertida realidad de **2º de Bachillerato**, contada en primera persona por quienes la están viviendo: nuestros compañeros **Domingo** y **Diego**.
 
-En el I.E.S. Las Veredillas, no solo compartimos apuntes y trabajos; también compartimos pasillos, risas y, lo más importante, **historias**. Hoy, estamos encantados de tener con nosotros a dos compañeros que representan muy bien la diversidad y el talento que tenemos: **Diego** y **Domingo**, ambos alumnos de 2º de Bachillerato B.
+¿Es este curso realmente el "infierno" académico que todos nos prometen desde la ESO? En esta entrevista a corazón abierto, nos adentramos en los miedos y presiones que acechan a todo estudiante pre-universitario. Hablamos alto y claro sobre el monstruo final: la **PAU (Selectividad)**. ¿Es un trámite necesario o un sistema injusto de "pay to win"? Domingo y Diego comparten sus estrategias (o la falta de ellas) para sobrevivir al temido tercer trimestre, mentalizarse para los exámenes y la eterna rivalidad entre el Bachillerato de Ciencias Tecnológicas y el de Humanidades.
 
-Hoy, vamos a dejar los exámenes y las materias a un lado para hablar de la vida, de lo que les apasiona y de lo que les preocupa mientras afrontan un curso tan decisivo. Exploraremos sus aficiones más secretas, sus motivaciones y cómo ven el futuro.
+Pero no todo son quejas y agobios. También hay espacio para soñar a lo grande. Descubrimos las facetas más inesperadas de nuestros invitados: desde la pasión de Diego por la **música** y el conservatorio, hasta las dudas existenciales de Domingo sobre su futuro, debatiéndose entre la ingeniería y una carrera en la **Policía Nacional**.
 
-Prepárate para conocer el lado más auténtico, personal y humano de dos de nuestros compañeros. Sube el volumen, relájate y pulsa 'Play'.
+Además, nos vamos de viaje (mentalmente) a rincones exóticos del planeta. ¿Te imaginas visitar Japón, la India o Corea del Norte? Nuestros invitados debaten sobre el choque cultural, la comida y las aventuras que les gustaría vivir mochilero en hombro (o con un Interrail por Europa).
 
-**¡Comenzamos la entrevista con Diego y Domingo!**
+Y para los más nostálgicos, prepárense para unas risas aseguradas. Repasamos las anécdotas más surrealistas que han marcado nuestra historia como clase: desde la plaga de cucarachas y el "martillo de epoxy", hasta el recuerdo de compañeros legendarios como Edu, Mauro o Charro, y profesores que dejan huella. Es un homenaje a la amistad y a la "familia" que formamos en el aula, con sus momentos dulces y sus caos absolutos.
 
-Esperemos que hayas disfrutado de la entrevista.
+Si te sientes abrumado por el estudio, si no sabes qué hacer con tu futuro o simplemente necesitas confirmar que no eres el único que está perdiendo la cabeza en este curso, ¡este episodio es tu refugio!
+
+**Relájate, olvida los apuntes por unos minutos y disfruta de esta charla entre amigos. ¡Dale al play y únete a la conversación!**
+
+Esperemos que disfrutes de esta charla tanto como nosotros.

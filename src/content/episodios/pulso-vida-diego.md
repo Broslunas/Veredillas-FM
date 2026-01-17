@@ -358,16 +358,18 @@ transcription:
     text: "Es algo que te hace pensar mucho, bro. Al igual que cómo el dinero digital, eso de pagar con tarjeta, móvil, lo que estamos hablando, también cómo le hace perder ese valor que tiene el dinero, ese valor de no pago físico, sino pa y ya. Le pierdes el valor. Y es lo que estamos hablando. Empiezas a caer en el consumismo. Una compra, dos compras, un bocata, un pantalón, un tal, y cuando te vienes a ver, sabes, los números pesan. Y... Bueno, esta charla la verdad que ha sido muy interesante y espero que les haya gustado el nuevo formato de pódcast en lugar de tantas preguntas. Y sin más que decir, esperamos que tengan una buena semana y nos despedimos desde Veredias FM, donde te mantenemos al pendiente de los temas más candentes. Hasta luego."
 ---
 
-**¡Hola! ¡Bienvenido a Veredillas FM!**
+**¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
 
-¡Bienvenidos de nuevo a este espacio de entrevistas donde el foco se aleja de los libros para iluminar los sentimientos que nos hacen humanos!
+¿El romanticismo ha muerto a manos de un *like*? ¿Hemos olvidado cómo conectar de verdad entre tanto *scroll* infinito? Hoy en Veredillas FM, nos ponemos intensos, filosóficos y muy, muy reales con el regreso de **Diego Medrano** a nuestros micrófonos.
 
-En el I.E.S. Las Veredillas no solo compartimos apuntes y pasillos; también compartimos emociones, dudas y vivencias que nos marcan. Hoy, estamos encantados de tener con nosotros a una voz muy especial de 2º de Bachillerato B: **Diego Medrano**.
+En este episodio titulado "El Pulso de la Vida", abordamos sin tapujos los temas que definen a nuestra generación. Debatimos acaloradamente sobre cómo las **redes sociales** y la "dopamina barata" de TikTok nos han robado la capacidad de aburrirnos (¡y lo necesario que es el aburrimiento para ser creativo!). Analizamos la paradoja de estar más conectados que nunca pero sentirnos cada vez más solos en "pequeñas islas" individuales.
 
-En este episodio, vamos a dejar los exámenes y las materias a un lado para adentrarnos en un terreno mucho más complejo y universal: **el amor**. Hablaremos sin filtros sobre sus diferentes experiencias personales, las alegrías, las complicaciones y cómo se viven las relaciones en esta etapa tan intensa de la vida.
+Hablamos del **amor moderno**: ¿por qué ahora las relaciones parecen tener fecha de caducidad de dos semanas? ¿Es verdad que quien menos interés muestra es quien "gana"? Discutimos sobre la plaga de los mensajes monosílabos, la falta de compromiso y el eterno dilema de si llevar flores en la primera cita es un gesto romántico o algo "cringe" y anticuado.
 
-Prepárate para conocer el lado más auténtico, romántico y reflexivo de nuestro compañero. Sube el volumen, relájate y búscanos en **Spotify**, porque este episodio ya está disponible. ¡Dale al play!
+También hay espacio para la autocrítica sobre nuestro **consumismo**: cómo pagar con el móvil o el reloj hace que el dinero parezca "fickey" y nos gastemos lo que no tenemos en cosas que no necesitamos. Diego se sincera sobre su propia lucha contra el gasto impulsivo y cómo intenta recuperar el control en un mundo diseñado para que compremos sin pensar.
 
-**¡Comenzamos la entrevista con Diego!**
+Si alguna vez has sentido que el mundo va demasiado rápido, que las pantallas te consumen o que las relaciones de hoy en día son un laberinto indescifrable, este episodio te va a resonar muy dentro.
 
-Esperemos que hayas disfrutado de la entrevista.
+**Reflexiona, debate y desconecta un rato del mundo digital para conectar con nosotros. ¡Dale al play!**
+
+Esperemos que esta reflexión te llegue al corazón.

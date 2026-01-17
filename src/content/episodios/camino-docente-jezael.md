@@ -234,14 +234,16 @@ transcription:
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
 
-Estamos encantados de teneros de vuelta en una nueva entrega de nuestras entrevistas más cercanas. En el I.E.S. Las Veredillas, sabemos que detrás de cada función y cada teorema hay personas con historias fascinantes, y hoy vamos a descubrir una de ellas.
+¿Crees que los profesores de Matemáticas son seres cuadriculados que solo piensan números? El **Profesor Jezael** viene a Veredillas FM para romper todos los estereotipos en una de las entrevistas más honestas y cercanas que hemos tenido.
 
-Hoy, no vamos a hablar solo de matemáticas, sino de la persona que está detrás de la pizarra: el Profesor **Jezael**, nuestro querido profesor de **Matemáticas** y **tutor de 2º de Bachillerato B**.
+Jezael, nuestro tutor de 2º de Bachillerato B, se quita la "armadura" de docente para charlar de tú a tú. Nos cuenta sus orígenes como un "niño humilde" de Santa Cruz que tuvo claro desde los 8 años que quería enseñar, aunque su corazón se debatió entre la Física y las Mates. Nos revela sus secretos para mantener la calma bajo presión (¡la técnica de las 8 respiraciones!) y cómo su actitud estoica le ayuda a sobrevivir al estrés diario del aula.
 
-¿Qué le inspira a desvelar los misterios de los números? ¿Qué hace cuando sale del aula y deja a un lado las ecuaciones? ¿Cómo ve el mundo y a sus alumnos, especialmente a los que guía en un curso tan crucial?
+Pero lo más jugoso viene cuando entramos en terrenos polémicos. Hablamos claro sobre la **Selectividad (PAU)**: Jezael no se muerde la lengua al calificarla como un sistema injusto para medir el conocimiento real, aunque reconoce que es un "baño de realidad" necesario para la vida adulta. También nos comparte sus experiencias en la educación privada versus la pública, con anécdotas impactantes sobre padres que creen que pagar la cuota garantiza el aprobado.
 
-En esta charla, dejaremos a un lado las demostraciones y los ejercicios técnicos para enfocarnos en sus aficiones, sus motivaciones como educador y su día a día fuera de las clases. Prepárate para conocer el lado más humano y personal de uno de nuestros profesores y tutores más apreciados. Sube el volumen, relájate y pulsa 'Play'.
+Y atención, *gamers*: descubrimos que nuestro profe es un fanático de la saga **Dark Souls**. Nos explica cómo la dificultad extrema de estos videojuegos le ha enseñado valiosas lecciones sobre la perseverancia y la resolución de problemas que aplica en su vida diaria.
 
-**¡Comenzamos la entrevista con el Profesor Jezael!**
+Para cerrar con broche de oro, Jezael se convierte en nuestro consejero sentimental. Hablamos de amor, de relaciones tóxicas en la adolescencia y nos da un consejo de oro basado en su propia experiencia: **"No salgas con alguien de tu misma clase"**. ¿Tendrá razón?
 
-Esperemos que hayas disfrutado de la entrevista.
+**Sube el volumen, olvida las integrales por un rato y prepárate para conocer al humano detrás del profesor. ¡Una masterclass de vida que no entra en el examen!**
+
+Esperemos que disfrutes de esta charla tan auténtica.

@@ -1,0 +1,114 @@
+---
+---
+<!-- Mini Player (Floating) -->
+<div id="mini-player" class="mini-player hidden">
+    <div class="player-wrapper glass-panel">
+        <div id="player-placeholder"></div>
+        
+        <!-- Controls for Mini Player -->
+        <div class="mini-controls">
+  
+            <button id="expand-player" class="control-btn" aria-label="Pantalla completa">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            </button>
+            <button id="close-player" class="control-btn close" aria-label="Cerrar reproductor">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+  .mini-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    padding: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .mini-player.hidden {
+      display: none;
+      transform: translateY(120%);
+  }
+  
+  .mini-player.visible {
+      display: block;
+      transform: translateY(0);
+  }
+
+  .player-wrapper {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .mini-player.floating .player-wrapper {
+       max-width: 600px;
+       margin: 0 auto 10px; /* margin bottom for floating */
+       height: 152px !important;
+       border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .mini-controls {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: none; /* Hidden by default (inline) */
+      gap: 5px;
+      z-index: 20;
+  }
+
+  .control-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+  }
+
+  .control-btn:hover {
+      background: white;
+      color: black;
+  }
+
+  /* Inline Specifics */
+  .mini-player.inline {
+      padding: 0;
+      z-index: 10; 
+      box-shadow: none;
+  }
+  .mini-player.inline .player-wrapper {
+      background: transparent;
+      box-shadow: none;
+      border: none;
+      max-width: none;
+      border-radius: 12px;
+      height: 100%;
+  }
+
+  #player-placeholder {
+      width: 100%;
+      height: 100%;
+  }
+  
+  :global(#spotify-iframe) {
+      width: 100% !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      border: none !important;
+  } 
+</style>
