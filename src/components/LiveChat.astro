@@ -39,6 +39,14 @@ try {
                 </svg>
             </button>
         </div>
+        <div class="reactions-bar">
+            <button class="reaction-btn" data-type="heart">❤️</button>
+            <button class="reaction-btn" data-type="fire">🔥</button>
+            <button class="reaction-btn" data-type="clap">👏</button>
+            <button class="reaction-btn" data-type="100">💯</button>
+        </div>
+        
+        <div id="reactions-container"></div>
     </div>
 </div>
 
@@ -160,6 +168,46 @@ try {
     #send-btn:hover {
         transform: scale(1.1);
     }
+    
+    .reactions-bar {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 5px 0;
+        margin-top: 10px;
+    }
+    
+    .reaction-btn {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    
+    .reaction-btn:hover {
+        background: rgba(255,255,255,0.2);
+        transform: scale(1.1);
+    }
+    
+    .reaction-btn:active {
+        transform: scale(0.9);
+    }
+
+    #reactions-container {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 9999; /* Top level */
+    }
 
     /* Message Styles (injected via JS) */
     :global(.chat-msg) {
@@ -213,6 +261,20 @@ try {
         to { opacity: 1; transform: translateY(0); }
     }
 </style>
+<!-- Define global keyframes just in case -->
+<style is:global>
+    @keyframes floatUp {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+    }
+    .floating-emoji {
+        position: absolute;
+        font-size: 24px;
+        animation: floatUp 2s ease-out forwards;
+        bottom: 0;
+        pointer-events: none;
+    }
+</style>
 
 <script>
     interface ChatUser {
@@ -238,7 +300,9 @@ try {
         guestInput: HTMLInputElement | null;
         sendBtn: HTMLElement;
         lastMsgId: string | null;
+        lastPollTime: number;
         polling: number | undefined;
+        reactionsContainer: HTMLElement | null;
 
         constructor(el: HTMLElement) {
             this.el = el;
@@ -249,28 +313,109 @@ try {
             this.input = el.querySelector('#chat-input') as HTMLInputElement;
             this.guestInput = el.querySelector('#guest-name-input') as HTMLInputElement | null;
             this.sendBtn = el.querySelector('#send-btn') as HTMLElement;
+            this.reactionsContainer = el.querySelector('#reactions-container');
             
             this.lastMsgId = null;
+            this.lastPollTime = 0;
             
             this.init();
         }
 
         init() {
-            this.fetchMessages();
+            this.fetchMessages(); // Initial load
             this.polling = window.setInterval(() => this.fetchMessages(), 3000); // 3s polling
             
             this.sendBtn.addEventListener('click', () => this.sendMessage());
             this.input.addEventListener('keypress', (e) => {
                 if(e.key === 'Enter') this.sendMessage();
             });
+            
+            // Reaction Buttons
+            const reactionBtns = this.el.querySelectorAll('.reaction-btn');
+            reactionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                   const type = (btn as HTMLElement).dataset.type;
+                   if(type) this.sendReaction(type); 
+                });
+            });
+        }
+        
+        async sendReaction(type: string) {
+            // 1. Local animation immediately
+            this.spawnFloatingEmoji(type);
+            
+            // 2. Send API
+            try {
+                fetch(`/api/live-chat/${this.slug}/reaction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type })
+                });
+            } catch(e) {
+                console.error("Reaction error", e);
+            }
+        }
+        
+        spawnFloatingEmoji(type: string) {
+            if(!this.reactionsContainer) return;
+            
+            const emojiMap: Record<string, string> = {
+                'heart': '❤️',
+                'fire': '🔥',
+                'clap': '👏',
+                '100': '💯' 
+            };
+            
+            const el = document.createElement('div');
+            el.className = 'floating-emoji';
+            el.textContent = emojiMap[type] || '❤️';
+            
+            // Randomize position across entire screen width
+            const randomX = Math.random() * 100; 
+            el.style.left = `${randomX}vw`;
+            el.style.bottom = '-50px';
+            
+            // Randomize animation duration/scale slightly
+            el.style.animationDuration = `${2 + Math.random() * 2}s`; // Slower float for full screen
+            
+            this.reactionsContainer.appendChild(el);
+            
+            // Cleanup
+            setTimeout(() => el.remove(), 4000);
         }
 
         async fetchMessages() {
             try {
-                const res = await fetch(`/api/live-chat/${this.slug}`);
+                let url = `/api/live-chat/${this.slug}`;
+                if (this.lastPollTime > 0) {
+                    url += `?since=${this.lastPollTime}`;
+                }
+                
+                const res = await fetch(url);
                 const data = await res.json();
+                
                 if(data.success) {
-                    this.renderMessages(data.messages);
+                    if (data.timestamp) this.lastPollTime = data.timestamp;
+                    
+                    // Render Messages
+                    if (data.messages && Array.isArray(data.messages)) {
+                         this.renderMessages(data.messages);
+                    }
+                    
+                    // Trigger Reactions
+                    if (data.reactions) {
+                         const types = Object.keys(data.reactions);
+                         types.forEach(type => {
+                             const count = data.reactions[type];
+                             // Don't spawn overly massive amounts if pollling lag
+                             const safeCount = Math.min(count, 10); 
+                             
+                             for(let i=0; i<safeCount; i++) {
+                                 // Add small random delay so they don't clump perfectly
+                                 setTimeout(() => this.spawnFloatingEmoji(type), Math.random() * 2000);
+                             }
+                         });
+                    }
                 }
             } catch(e) {
                 console.error("Chat poll error", e);

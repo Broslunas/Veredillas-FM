@@ -131,41 +131,50 @@ try {
             </div>
         )}
 
-        <!-- Player -->
-        <div class="player-container container">
-            {isUpcoming && (
-                <div id="premiere-countdown-wrapper">
-                    <PremiereCountdown targetDate={entry.data.pubDate} title={entry.data.title} />
+        <!-- Premiere / Player Section -->
+        <div class={isPremiere && !hasPremiereEnded ? "premiere-layout container" : "player-container container"}>
+            
+            <div class="player-area">
+                {isUpcoming && (
+                    <div id="premiere-countdown-wrapper">
+                        <PremiereCountdown targetDate={entry.data.pubDate} title={entry.data.title} />
+                    </div>
+                )}
+                
+                <div id="premiere-player-wrapper" class:list={{"hidden": isUpcoming}} style={isUpcoming ? "display:none; opacity: 0; transition: opacity 1s ease-in;" : ""}>
+                    {entry.data.spotifyUrl ? (
+                        <div 
+                            id="episode-player-placeholder" 
+                            data-spotify-url={entry.data.spotifyUrl}
+                            data-title={entry.data.title}
+                            data-image={entry.data.image}
+                            data-author={entry.data.author}
+                            data-slug={entry.slug}
+                            data-is-premiere={isPremiere}
+                            data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
+                        ></div>
+                    ) : entry.data.audioUrl ? (
+                        <div 
+                            id="episode-player-placeholder" 
+                            data-audio-url={entry.data.audioUrl}
+                            data-title={entry.data.title}
+                            data-image={entry.data.image}
+                            data-author={entry.data.author}
+                            data-slug={entry.slug}
+                            data-is-premiere={isPremiere}
+                            data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
+                            data-start-time={savedProgress > 10 ? savedProgress : 0} 
+                            data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
+                        ></div>
+                    ) : null}
+                </div>
+            </div>
+
+            {isPremiere && !hasPremiereEnded && (
+                <div class="chat-sidebar">
+                    <LiveChat slug={entry.slug} />
                 </div>
             )}
-            
-            <div id="premiere-player-wrapper" class:list={{"hidden": isUpcoming}} style={isUpcoming ? "display:none; opacity: 0; transition: opacity 1s ease-in;" : ""}>
-                {entry.data.spotifyUrl ? (
-                    <div 
-                        id="episode-player-placeholder" 
-                        data-spotify-url={entry.data.spotifyUrl}
-                        data-title={entry.data.title}
-                        data-image={entry.data.image}
-                        data-author={entry.data.author}
-                        data-slug={entry.slug}
-                        data-is-premiere={isPremiere}
-                        data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
-                    ></div>
-                ) : entry.data.audioUrl ? (
-                    <div 
-                        id="episode-player-placeholder" 
-                        data-audio-url={entry.data.audioUrl}
-                        data-title={entry.data.title}
-                        data-image={entry.data.image}
-                        data-author={entry.data.author}
-                        data-slug={entry.slug}
-                        data-is-premiere={isPremiere}
-                        data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
-                        data-start-time={savedProgress > 10 ? savedProgress : 0} 
-                        data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
-                    ></div>
-                ) : null}
-            </div>
         </div>
 
         <!-- Content -->
@@ -209,14 +218,12 @@ try {
         <!-- Social Share -->
         <SocialShare title={entry.data.title} />
 
-        <!-- Interaction Section (Chat or Comments) -->
-        <div class="container" style="max-width: 1000px; margin-bottom: 6rem;">
-            {isPremiere && !hasPremiereEnded ? (
-                <LiveChat slug={entry.slug} />
-            ) : (
+        <!-- Comments Section (Chat handled above if active) -->
+        {(!isPremiere || hasPremiereEnded) && (
+            <div class="container" style="max-width: 1000px; margin-bottom: 6rem;">
                 <Comments slug={entry.slug} />
-            )}
-        </div>
+            </div>
+        )}
 
         <RelatedEpisodes currentSlug={entry.slug} tags={entry.data.tags} />
     </article>
@@ -424,5 +431,21 @@ try {
             order: -1; 
             margin-bottom: var(--spacing-lg);
         }
+        
+        /* Stack Premiere Layout on mobile */
+        .premiere-layout {
+            grid-template-columns: 1fr !important;
+        }
+    }
+    
+    .premiere-layout {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: var(--spacing-xl);
+        margin-bottom: var(--spacing-2xl);
+    }
+    
+    .chat-sidebar {
+        /* Stick to top if scrolling? Maybe later */
     }
 </style>

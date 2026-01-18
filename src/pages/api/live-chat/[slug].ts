@@ -1,27 +1,61 @@
 import type { APIRoute } from 'astro';
 import dbConnect from '../../../lib/mongodb';
 import ChatMessage from '../../../models/ChatMessage';
+import ChatReaction from '../../../models/ChatReaction';
 import { getUserFromCookie } from '../../../lib/auth';
 import crypto from 'node:crypto';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ params, request }) => {
   const { slug } = params;
   if (!slug) return new Response('Slug required', { status: 400 });
 
+  const url = new URL(request.url);
+  const since = url.searchParams.get('since');
+  
   try {
     await dbConnect();
-    // Fetch last 50 messages
-    const messages = await ChatMessage.find({ room: slug })
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
+    
+    // Messages Logic
+    let query: any = { room: slug };
+    if (since) {
+        query.createdAt = { $gt: new Date(parseInt(since)) };
+    }
 
-    // Reverse to chronological order for client
-    const chronogological = messages.reverse();
+    // Optimization: if 'since' is present, we likely don't need the last 50, just the new ones.
+    // But if it's the first load (no since), we want last 50.
+    let messages;
+    if(since) {
+        messages = await ChatMessage.find(query).sort({ createdAt: 1 }).lean();
+    } else {
+        const last50 = await ChatMessage.find({ room: slug }).sort({ createdAt: -1 }).limit(50).lean();
+        messages = last50.reverse();
+    }
 
-    return new Response(JSON.stringify({ success: true, messages: chronogological }), {
+    // Reactions Logic
+    let reactionCounts = {};
+    if (since) {
+        const sinceDate = new Date(parseInt(since));
+        const stats = await ChatReaction.aggregate([
+            { $match: { room: slug, createdAt: { $gt: sinceDate } } },
+            { $group: { _id: "$type", count: { $sum: 1 } } }
+        ]);
+        
+        reactionCounts = stats.reduce((acc, curr) => {
+            acc[curr._id] = curr.count;
+            return acc;
+        }, {} as Record<string, number>);
+    }
+
+    const serverTime = Date.now();
+
+    return new Response(JSON.stringify({ 
+        success: true, 
+        messages, 
+        reactions: reactionCounts,
+        timestamp: serverTime 
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
