@@ -304,8 +304,12 @@ const isDropdownActive = (items: any[]) => {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     opacity: 0;
     visibility: hidden;
-    pointer-events: none;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* remove pointer-events: none; let visibility handle it */
+    transition: 
+      opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0s linear 0.2s; /* Hide visibility AFTER opacity fades */
+    transition-delay: 0.3s; /* Wait before starting ANY transition */
     z-index: 1000;
   }
 
@@ -313,10 +317,10 @@ const isDropdownActive = (items: any[]) => {
   .dropdown-menu::before {
     content: '';
     position: absolute;
-    top: -0.5rem;
-    left: 0;
-    right: 0;
-    height: 0.5rem;
+    top: -1.5rem;
+    left: -20px;
+    right: -20px;
+    height: 1.5rem;
     background: transparent;
   }
 
@@ -329,8 +333,12 @@ const isDropdownActive = (items: any[]) => {
   .nav-dropdown:hover .dropdown-menu {
     opacity: 1;
     visibility: visible;
-    pointer-events: auto;
     transform: translateX(-50%) translateY(0);
+    transition-delay: 0s;
+    transition: 
+      opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0s linear 0s; /* Instant visibility on show */
   }
 
   .dropdown-item {

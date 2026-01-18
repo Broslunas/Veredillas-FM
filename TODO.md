@@ -1,14 +1,5 @@
 🎵 Reproductor & Audio (10)
 Cola de reproducción personalizada - Permite crear y gestionar listas de episodios
-Historial de reproducción - Ver últimos episodios escuchados
-
-👤 Usuario & Personalización (10)
-Suscripciones a tags específicos - Notificaciones personalizadas
-Temas personalizables - Múltiples esquemas de color
-Progreso guardado - Continuar donde lo dejaste automáticamente
-Recomendaciones personalizadas basadas en IA
-Smart notifications - Avisos de nuevos episodios según preferencias
-Configuración de accesibilidad - Tamaño de texto, contraste, etc.
 
 💬 Comunidad & Social (8)
 Ratings/valoraciones de episodios - Sistema de estrellas
