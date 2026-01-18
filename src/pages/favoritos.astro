@@ -16,6 +16,12 @@ if (!userPayload) {
   return Astro.redirect('/login');
 }
 
+// Inicializar objeto usuario con datos básicos del payload
+let user: { name: string; picture?: string } = {
+  name: userPayload.name,
+  picture: ''
+};
+
 // Obtener favoritos del usuario
 let favorites: string[] = [];
 try {
@@ -28,21 +34,14 @@ try {
   const userDoc = await User.findById(userPayload.userId);
   if (userDoc) {
     favorites = userDoc.favorites || [];
+    // Actualizar datos de usuario desde la DB
+    user = {
+      name: userDoc.name,
+      picture: userDoc.picture
+    };
   }
-  // Assign userDoc to user for template access, ensuring it's not null/undefined if possible
-  // Using 'any' cast or interface to avoid type issues in template if accessing property directly
-  var user = userDoc; 
 } catch (error) {
   console.error('Error loading favorites:', error);
-}
-
-// Fallback user object if DB fails but we have payload
-if (!user && userPayload) {
-  user = {
-    name: userPayload.name,
-    picture: '', // We don't have picture in payload usually
-    favorites: []
-  } as any;
 }
 
 // Obtener episodios favoritos
@@ -777,11 +776,11 @@ const favoriteEpisodes = allEpisodes
 
   // Share functionality
   const shareBtn = document.getElementById('share-favorites-btn');
-  const modal = document.getElementById('share-modal');
-  const closeBtn = document.getElementById('close-modal');
-  const copyBtn = document.getElementById('copy-url-btn');
+  const modal = document.getElementById('share-modal') as HTMLElement;
+  const closeBtn = document.getElementById('close-modal') as HTMLButtonElement;
+  const copyBtn = document.getElementById('copy-url-btn') as HTMLButtonElement;
   const shareUrlInput = document.getElementById('share-url') as HTMLInputElement;
-  const downloadBtn = document.getElementById('download-image-btn');
+  const downloadBtn = document.getElementById('download-image-btn') as HTMLButtonElement;
   const tabs = document.querySelectorAll('.share-tab');
   const tabContents = document.querySelectorAll('.tab-content');
 
@@ -806,91 +805,101 @@ const favoriteEpisodes = allEpisodes
   });
 
   // Download Image
-  downloadBtn?.addEventListener('click', async () => {
-    const card = document.getElementById('share-image-card');
-    if (!card) return;
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', async () => {
+      const card = document.getElementById('share-image-card');
+      if (!card) return;
 
-    const originalText = downloadBtn.innerHTML;
-    downloadBtn.innerHTML = 'Generando...';
-    downloadBtn.style.pointerEvents = 'none';
+      const originalText = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = 'Generando...';
+      downloadBtn.style.pointerEvents = 'none';
 
-    try {
-      const dataUrl = await toPng(card, {
-        quality: 0.95,
-        backgroundColor: '#1a1a1a',
-        style: {
-          transform: 'scale(1)', // Ensure no scaling issues
+      try {
+        const dataUrl = await toPng(card, {
+          quality: 0.95,
+          backgroundColor: '#1a1a1a',
+          style: {
+            transform: 'scale(1)', // Ensure no scaling issues
+          }
+        });
+
+        const link = document.createElement('a');
+        link.download = 'mis-favoritos-veredillas.png';
+        link.href = dataUrl;
+        link.click();
+      } catch (error) {
+        console.error('Error generating image:', error);
+        alert('Hubo un error al generar la imagen. Por favor intenta de nuevo.');
+      } finally {
+        downloadBtn.innerHTML = originalText;
+        downloadBtn.style.pointerEvents = 'auto';
+      }
+    });
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      modal.classList.add('show');
+      
+      // Generate share link
+      try {
+        const response = await fetch('/api/favorites/share', {
+          method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.shareUrl) {
+          shareUrlInput.value = data.shareUrl;
+        } else {
+          shareUrlInput.value = 'Error al generar enlace';
         }
-      });
-
-      const link = document.createElement('a');
-      link.download = 'mis-favoritos-veredillas.png';
-      link.href = dataUrl;
-      link.click();
-    } catch (error) {
-      console.error('Error generating image:', error);
-      alert('Hubo un error al generar la imagen. Por favor intenta de nuevo.');
-    } finally {
-      downloadBtn.innerHTML = originalText;
-      downloadBtn.style.pointerEvents = 'auto';
-    }
-  });
-
-  shareBtn?.addEventListener('click', async () => {
-    modal?.classList.add('show');
-    
-    // Generate share link
-    try {
-      const response = await fetch('/api/favorites/share', {
-        method: 'POST'
-      });
-      
-      const data = await response.json();
-      
-      if (data.shareUrl) {
-        shareUrlInput.value = data.shareUrl;
-      } else {
+      } catch (error) {
+        console.error('Error generating share link:', error);
         shareUrlInput.value = 'Error al generar enlace';
       }
-    } catch (error) {
-      console.error('Error generating share link:', error);
-      shareUrlInput.value = 'Error al generar enlace';
-    }
-  });
+    });
+  }
 
-  closeBtn?.addEventListener('click', () => {
-    modal?.classList.remove('show');
-  });
-
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) {
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
       modal.classList.remove('show');
-    }
-  });
+    });
+  }
 
-  copyBtn?.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrlInput.value);
-      copyBtn.classList.add('copied');
-      copyBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        Copiado
-      `;
-      
-      setTimeout(() => {
-        copyBtn.classList.remove('copied');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('show');
+      }
+    });
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(shareUrlInput.value);
+        copyBtn.classList.add('copied');
         copyBtn.innerHTML = `
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            <polyline points="20 6 9 17 4 12"/>
           </svg>
-          Copiar
+          Copiado
         `;
-      }, 2000);
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      alert('Error al copiar el enlace');
-    }
-  });
+        
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copiar
+          `;
+        }, 2000);
+      } catch (error) {
+        console.error('Error copying to clipboard:', error);
+        alert('Error al copiar el enlace');
+      }
+    });
+  }
 </script>

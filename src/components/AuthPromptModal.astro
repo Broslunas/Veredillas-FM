@@ -1,10 +1,4 @@
 ---
-// Server check to conditionally render HTML
-const isLoggedIn = Astro.request.headers.get('cookie')?.includes('auth-token');
-
-if (isLoggedIn) {
-  return;
-}
 ---
 
 <div id="auth-prompt-modal" class="auth-prompt-backdrop" style="display: none;" aria-hidden="true">
