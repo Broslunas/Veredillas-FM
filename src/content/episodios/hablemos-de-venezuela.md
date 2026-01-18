@@ -1,5 +1,5 @@
 ---
-title: "Hablemos sobre Venezuela: Realidad, Retos y Esperanza ft. Christopher y Jezael Goya"
+title: "Hablemos sobre Venezuela ft. Christopher y Jezael Goya"
 description: "Un análisis profundo sobre la situación actual en Venezuela, analizando los últimos acontecimientos con Nicolás Maduro, las consecuencias sociales y económicas, y explorando las posibles vías de mejora para el país."
 pubDate: 2026-01-20T17:00:00Z
 duration: "¿? min"
