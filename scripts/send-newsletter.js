@@ -75,21 +75,35 @@ async function sendNewsletter(item) {
   if (!mailjet) return false;
 
   try {
-    const { title, description, image, slug, type, url } = item;
-    const typeLabel = type === 'episode' ? 'Nuevo Episodio' : 'Nuevo Artículo';
-    const subject = `${typeLabel}: ${title}`;
+    const { title, description, image, slug, type, url, pubDate } = item;
+    
+    const isFuture = pubDate && new Date(pubDate) > new Date();
+    let typeLabel = type === 'episode' ? 'Nuevo Episodio' : 'Nuevo Artículo';
+    if (isFuture) typeLabel = '🚀 Próximo Estreno';
 
-    console.log(`🚀 Sending newsletter for: "${title}" (${slug})`);
+    const subject = `${typeLabel}: ${title}`;
+    
+    const formattedDate = pubDate ? new Date(pubDate).toLocaleDateString('es-ES', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : '';
+
+    console.log(`🚀 Sending newsletter for: "${title}" (${slug}) [Future: ${isFuture}]`);
+
+
 
     // 1. Create Campaign Draft
-    const draftResponse = await mailjet.post("campaigndraft", { 'version': 'v3' }).request({
+    const payload = {
       "Locale": "es_ES",
       "Sender": SENDER_NAME,
       "SenderEmail": CONTACT_EMAIL,
       "Subject": subject,
       "ContactsListID": parseInt(CONTACT_LIST_ID),
       "Title": `Newsletter: ${title}` // Internal Mailjet name
-    });
+    };
+    
+    console.log('Debug Payload:', JSON.stringify(payload, null, 2));
+
+    const draftResponse = await mailjet.post("campaigndraft", { 'version': 'v3' }).request(payload);
     
     const draftID = draftResponse.body.Data[0].ID;
     
@@ -100,7 +114,7 @@ async function sendNewsletter(item) {
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>${type === 'episode' ? 'Nuevo Episodio' : 'Nuevo Artículo'} - Veredillas FM</title>
+  <title>${typeLabel} - Veredillas FM</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     .preheader { display:none!important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; overflow:hidden; }
@@ -131,7 +145,7 @@ async function sendNewsletter(item) {
                 ${title}
               </h1>
               <p style="margin:12px 0 0; font-size:15px; color:#94a3b8; line-height:1.5;">
-                 ${type === 'episode' ? '🎙️ ¡Nuevo episodio disponible!' : '📝 Nuevo artículo publicado'}
+                 ${isFuture ? '📅 ¡Reserva la fecha para el estreno!' : (type === 'episode' ? '🎙️ ¡Nuevo episodio disponible!' : '📝 Nuevo artículo publicado')}
               </p>
             </td>
           </tr>
@@ -145,6 +159,14 @@ async function sendNewsletter(item) {
                   <td style="padding:0;">
                     ${image ? `<img src="${image}" alt="${title}" style="width:100%; height:auto; display:block; border-bottom:1px solid #334155;">` : ''}
                     <div style="padding:20px;">
+                      
+                      ${isFuture ? `
+                      <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed #10b981; border-radius: 8px; padding: 16px; margin-bottom: 20px; text-align: center;">
+                         <p style="color: #34d399; font-size: 12px; text-transform: uppercase; font-weight: bold; margin: 0 0 8px;">Estreno Oficial</p>
+                         <p style="color: #ffffff; font-size: 18px; margin: 0;">${formattedDate}</p>
+                      </div>
+                      ` : ''}
+
                       <p style="margin:0; font-size:15px; line-height:1.6; color:#cbd5e1;">
                         ${description}
                       </p>
@@ -158,7 +180,7 @@ async function sendNewsletter(item) {
                   <td align="center">
                     <a href="${url}" class="btn" 
                        style="background:#10b981; color:#ffffff; padding:16px 32px; border-radius:12px; font-weight:600; font-size:16px; display:inline-block; text-align:center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
-                      ${type === 'episode' ? 'Escuchar Ahora' : 'Leer Artículo'}
+                      ${isFuture ? '🔔 Ver Cuenta Atrás en Vivo' : (type === 'episode' ? 'Escuchar Ahora' : 'Leer Artículo')}
                     </a>
                   </td>
                 </tr>
@@ -200,19 +222,22 @@ async function sendNewsletter(item) {
     // 3. Set Content
     await mailjet.post("campaigndraft", { 'version': 'v3' }).id(draftID).action("detailcontent").request({
       "Html-part": htmlContent,
-      "Text-part": `${title}\n\n${description}\n\nVer aquí: ${url}`
+      "Text-part": `${title}\n\n${description}\n\n${isFuture ? `Estreno: ${formattedDate}` : ''}\n\nVer aquí: ${url}`
     });
     
     // 4. Send
     await mailjet.post("campaigndraft", { 'version': 'v3' }).id(draftID).action("send").request();
     
-    console.log(`✅ Newsletter sent successfully for: ${title}`);
+    console.log(`✅ Newsletter sent successfully for: ${title} (${isFuture ? 'Premiere' : 'Instant'})`);
     return true;
 
   } catch (error) {
     console.error(`❌ Error sending newsletter for ${item.slug}:`, error.statusCode || error.message);
-    // If it's a critical error (like auth), maybe we shouldn't mark it as sent?
-    // For now, we return false so it's not added to history
+    console.error('Mailjet Error Message:', error.ErrorMessage);
+    console.error('Mailjet Message:', error.message);
+    if (error.response) {
+       console.error('Response keys:', Object.keys(error.response));
+    }
     return false;
   }
 }
@@ -242,7 +267,8 @@ async function scanDirectory(directory, type, baseUrlPrefix) {
       type,
       url,
       excerpt: getExcerpt(content),
-      filePath: file
+      filePath: file,
+      pubDate: frontmatter.pubDate // Pass pubDate
     });
   }
   
