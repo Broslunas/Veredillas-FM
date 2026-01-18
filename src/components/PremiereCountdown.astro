@@ -138,8 +138,42 @@ const isoDate = targetDate.toISOString();
     }
 
     @media (max-width: 600px) {
-        .value { font-size: 1.8rem; }
-        .separator { font-size: 1.5rem; }
+        .premiere-countdown {
+            padding: var(--spacing-md);
+            min-height: 300px;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
+        }
+
+        .timer {
+            gap: var(--spacing-xs, 0.5rem);
+            width: 100%;
+            justify-content: space-between; /* Distribute space evenly if needed or keep center */
+        }
+
+        .time-unit {
+            min-width: unset;
+        }
+
+        .value { 
+            font-size: clamp(1.5rem, 8vw, 2rem); 
+        }
+
+        .label {
+            font-size: 0.6rem;
+        }
+
+        .separator { 
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .value { font-size: 1.2rem; }
+        .separator { font-size: 1rem; }
+        .badge { font-size: 0.7rem; padding: 2px 8px; }
     }
 </style>
 
