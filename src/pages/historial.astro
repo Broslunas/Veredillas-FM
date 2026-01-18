@@ -1,0 +1,366 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { getUserFromCookie } from '../lib/auth';
+import User from '../models/User';
+import mongoose from 'mongoose';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/login');
+}
+
+if (mongoose.connection.readyState !== 1) {
+  const MONGODB_URI = import.meta.env.MONGODB_URI;
+  if (MONGODB_URI) {
+    await mongoose.connect(MONGODB_URI);
+  }
+}
+
+const user = await User.findById(userPayload.userId);
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+const history = user.playbackHistory || [];
+
+// Helper to parse duration string like "37 min" or "1:30"
+const parseDurationString = (str: string) => {
+    if (!str) return 0;
+    str = str.toLowerCase().trim();
+    
+    // Format "37 min"
+    if (str.includes('min')) {
+        const parts = str.split('min');
+        return parseInt(parts[0]) * 60;
+    }
+    
+    // Format "1h 20m" (simple) or just numbers
+    if (str.includes('h')) {
+        // Simple parse logic, improving if needed later
+        const hParts = str.split('h');
+        const h = parseInt(hParts[0]) || 0;
+        let m = 0;
+        if (hParts[1]) {
+           m = parseInt(hParts[1].replace('m', '').replace('in', '')) || 0;
+        }
+        return h * 3600 + m * 60;
+    }
+
+    // Format "MM:SS" or "HH:MM:SS"
+    if (str.includes(':')) {
+        const parts = str.split(':').map(Number);
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    
+    return parseInt(str) || 0; // fallback if just seconds
+}
+
+// Fetch episode details for history items
+const episodes = await getCollection('episodios');
+const historyWithDetails = history.map(h => {
+  // Convert Mongoose document to plain object if needed
+  const item = h.toObject ? h.toObject() : h;
+  const episode = episodes.find(e => e.slug === item.episodeSlug);
+  
+  // Backfill duration if missing in history
+  let effectiveDuration = item.duration;
+  if ((!effectiveDuration || effectiveDuration === 0) && episode?.data?.duration) {
+      effectiveDuration = parseDurationString(episode.data.duration.toString());
+  }
+
+  return {
+    ...item,
+    progress: item.progress || 0, // Ensure progress exists
+    duration: effectiveDuration,
+    episode
+  };
+}).filter(h => h.episode);
+
+const formatTime = (seconds: number) => {
+    if (seconds === undefined || seconds === null) return '0s';
+    if (seconds < 60) return `${Math.floor(seconds)}s`;
+    
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (mins >= 60) {
+        const hours = Math.floor(mins / 60);
+        const remainingMins = mins % 60;
+        return `${hours}h ${remainingMins}m`;
+    }
+    
+    return `${mins}m ${secs}s`;
+};
+---
+
+<Layout title="Historial de Reproducción" description="Tus últimos episodios escuchados en Veredillas FM">
+  <div class="container py-12">
+    <header class="mb-12 text-center">
+      <h1 class="text-4xl font-bold mb-4">Historial de Reproducción</h1>
+      <p class="text-xl text-muted">Retoma tus episodios donde los dejaste</p>
+    </header>
+
+    {historyWithDetails.length === 0 ? (
+      <div class="text-center py-12">
+        <div class="text-6xl mb-4">🎧</div>
+        <p class="text-xl">Aún no has escuchado ningún episodio.</p>
+        <a href="/" class="btn btn-primary mt-6 inline-block">Explorar Episodios</a>
+      </div>
+    ) : (
+      <div class="history-list">
+        {historyWithDetails.map((item) => {
+            const progressPercent = item.duration > 0 ? Math.min(100, Math.floor((item.progress / item.duration) * 100)) : 0;
+            const episode = item.episode!;
+            
+            return (
+             <div class="history-item glass-panel">
+                <a href={`/ep/${episode.slug}`} class="thumb-link">
+                    <img src={episode.data.image || "/logo.png"} alt={episode.data.title} class="episode-thumb" />
+                    <div class="play-overlay">
+                        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                </a>
+                
+                <div class="episode-info">
+                    <div class="meta-top">
+                        <span class="season-ep">Temporada {episode.data.season} • Ep {episode.data.episode}</span>
+                        <span class="date">{episode.data.pubDate.toLocaleDateString()}</span>
+                    </div>
+                    
+                    <a href={`/ep/${episode.slug}`} class="episode-title"><h3>{episode.data.title}</h3></a>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style={`width: ${progressPercent}%`}></div>
+                        </div>
+                        <div class="progress-stats">
+                            <span class="percent-text">{progressPercent}% completado</span>
+                            <span class="time-text">
+                                {formatTime(item.progress)} de {formatTime(item.duration)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-area">
+                    <a href={`/ep/${episode.slug}`} class="btn-resume">
+                        {progressPercent >= 95 ? 'Volver a escuchar' : 'Continuar'}
+                    </a>
+                </div>
+             </div>
+            );
+        })}
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+    .container {
+        max-width: 900px; /* Narrower for list view */
+        margin: 0 auto;
+        padding: 0 var(--spacing-md);
+    }
+    
+    .text-center { text-align: center; }
+    .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+    .text-6xl { font-size: 3.75rem; line-height: 1; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .font-bold { font-weight: 700; }
+    .text-muted { color: var(--color-text-muted); }
+    .mb-4 { margin-bottom: 1rem; }
+    .mt-6 { margin-top: 1.5rem; }
+    .inline-block { display: inline-block; }
+    
+    .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+    .mb-12 { margin-bottom: 3rem; }
+    
+    .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .history-item {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.25rem;
+        border-radius: var(--radius-lg); /* 1.5rem / 24px */
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+    
+    .history-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    :global([data-theme="light"]) .history-item:hover {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.1);
+    }
+    
+    .thumb-link {
+        flex-shrink: 0;
+        width: 100px;
+        height: 100px;
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .episode-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .play-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .history-item:hover .play-overlay {
+        opacity: 1;
+    }
+    
+    .play-icon {
+        width: 32px;
+        height: 32px;
+        color: white;
+        background: var(--color-primary);
+        border-radius: 50%;
+        padding: 6px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    
+    .episode-info {
+        flex-grow: 1;
+        min-width: 0; /* Text truncation fix */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .meta-top {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .episode-title h3 {
+        font-size: 1.25rem;
+        margin: 0 0 0.75rem 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+    
+    .episode-title:hover h3 {
+        color: var(--color-primary);
+    }
+    
+    .progress-container {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .progress-bar-bg {
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    :global([data-theme="light"]) .progress-bar-bg {
+        background: rgba(0,0,0,0.1);
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        background: var(--color-primary);
+        border-radius: 3px;
+    }
+    
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--color-text-dim);
+    }
+    
+    .action-area {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .btn-resume {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        color: var(--color-text-main);
+        padding: 0.5rem 1.25rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    
+    .history-item:hover .btn-resume {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+    }
+    
+    .btn-resume:hover {
+        background: var(--color-primary) !important;
+        color: white !important;
+        border-color: var(--color-primary) !important;
+    }
+    
+    @media (max-width: 640px) {
+        .history-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .thumb-link {
+            width: 100%;
+            height: 160px;
+        }
+        
+        .episode-info {
+            width: 100%;
+        }
+        
+        .action-area {
+            width: 100%;
+        }
+        
+        .btn-resume {
+            width: 100%;
+        }
+    }
+</style>

@@ -1,13 +1,5 @@
 🎵 Reproductor & Audio (10)
 Cola de reproducción personalizada - Permite crear y gestionar listas de episodios
-Velocidad de reproducción variable - 0.5x, 0.75x, 1x, 1.25x, 1.5x, 2x
-Ecualizador visual - Visualizador de onda/espectro de audio
-Modo sleep timer - Pausar automáticamente después de X minutos
-Retroceso/adelanto de 10/30 segundos - Botones rápidos
-Descarga de episodios para escuchar offline
-Crossfade entre episodios - Transiciones suaves
-Normalización de volumen - Volumen consistente entre episodios
-Modo karaoke/sincronización de letras - Para episodios musicales
 Historial de reproducción - Ver últimos episodios escuchados
 
 👤 Usuario & Personalización (10)

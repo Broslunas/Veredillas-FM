@@ -105,6 +105,7 @@ import './player/SharedPlayerStyles.css';
             hasGlobalPlayerListener: boolean;
             playerCurrentUrl: string | null;
             playerMeta: { title: string, image: string, author: string } | null;
+            playerSlug: string | null;
             visualizerInterval: number;
         }
     }
@@ -112,6 +113,7 @@ import './player/SharedPlayerStyles.css';
     if (!window.playerCurrentUrl) {
          window.playerCurrentUrl = null;
          window.playerMeta = null;
+         window.playerSlug = null;
     }
         
     const fac = new FastAverageColor();
@@ -254,31 +256,54 @@ import './player/SharedPlayerStyles.css';
                  }
              };
 
-             const updateSeek = () => {
-                  const current = audioElement.currentTime;
-                  
-                  // Tracking Logic
-                  const delta = current - lastTrackedTime;
-                  // Only count if playing normal speed (approx) and not seeking (large jumps)
-                  if (delta > 0 && delta < 5 && !audioElement.paused) {
-                      sessionAccumulator += delta;
-                      if(sessionAccumulator >= SESSION_SYNC_THRESHOLD) {
-                          syncListeningTime(sessionAccumulator);
-                          sessionAccumulator = 0;
-                      }
-                  }
-                  lastTrackedTime = current;
-                  
-                  if(document.activeElement !== seekBar) {
-                      seekBar.value = current.toString();
-                      updateSeekUI();
-                  }
-                  
-                  // Dispatch Global Event for Widgets
-                  document.dispatchEvent(new CustomEvent('veredillas:audio-timeupdate', {
-                      detail: { currentTime: current, duration: audioElement.duration }
-                  }));
-             };
+              // SYNC PLAYBACK HISTORY
+              const syncPlaybackHistory = async (slug: string, currentTime: number, duration: number, completed: boolean = false) => {
+                   if(!slug) return;
+                   
+                   try {
+                       fetch('/api/history/update', {
+                           method: 'POST',
+                           credentials: 'include', // Ensure cookies are sent (localhost/cors safety)
+                           headers: { 'Content-Type': 'application/json' },
+                           body: JSON.stringify({ 
+                               episodeSlug: slug,
+                               progress: currentTime,
+                               duration: isFinite(duration) ? duration : 0,
+                               completed
+                           })
+                       });
+                   } catch(e) {
+                       console.error("History sync error", e);
+                   }
+              };
+
+              const updateSeek = () => {
+                   const current = audioElement.currentTime;
+                   
+                   // Tracking Logic
+                   const delta = current - lastTrackedTime;
+                   // Only count if playing normal speed (approx) and not seeking (large jumps)
+                   if (delta > 0 && delta < 5 && !audioElement.paused) {
+                       sessionAccumulator += delta;
+                       if(sessionAccumulator >= SESSION_SYNC_THRESHOLD) {
+                           syncListeningTime(sessionAccumulator);
+                           // Sync history every 10s as well
+                           if(window.playerSlug) syncPlaybackHistory(window.playerSlug, current, audioElement.duration);
+                           sessionAccumulator = 0;
+                       }
+                   }
+                   lastTrackedTime = current;
+                   
+                   if(document.activeElement !== seekBar) {
+                       seekBar.value = current.toString();
+                       updateSeekUI();
+                   }
+                   
+                   // Dispatch Global Event for Widgets
+                   document.dispatchEvent(new CustomEvent('veredillas:audio-timeupdate', {
+                       detail: { currentTime: current, duration: audioElement.duration }
+                   }));
+              };
 
              volumeBar.oninput = () => {
                  audioElement.volume = parseFloat(volumeBar.value);
@@ -333,6 +358,8 @@ import './player/SharedPlayerStyles.css';
                      syncListeningTime(sessionAccumulator);
                      sessionAccumulator = 0;
                  }
+                 // Flush history on pause
+                 if(window.playerSlug) syncPlaybackHistory(window.playerSlug, audioElement.currentTime, audioElement.duration);
              };
              
              // Error Handling 
@@ -345,6 +372,10 @@ import './player/SharedPlayerStyles.css';
                          // NO AUTOPLAY ON ERROR RECOVERY
                      }
                  }
+             };
+
+             audioElement.onended = () => {
+                 if(window.playerSlug) syncPlaybackHistory(window.playerSlug, audioElement.duration, audioElement.duration, true);
              };
              
              // Visualizer
@@ -532,8 +563,12 @@ import './player/SharedPlayerStyles.css';
                 const title = placeholder.getAttribute('data-title');
                 const image = placeholder.getAttribute('data-image');
                 const author = placeholder.getAttribute('data-author');
+                const slug = placeholder.getAttribute('data-slug');
 
-                if (title) window.playerMeta = { title, image: image || '/logo.png', author: author || 'Veredillas FM' };
+                if (title) {
+                    window.playerMeta = { title, image: image || '/logo.png', author: author || 'Veredillas FM' };
+                    if(slug) window.playerSlug = slug;
+                }
 
                 // Conflict Check
                 if (window.playerCurrentUrl && url && window.playerCurrentUrl !== url) {
@@ -587,6 +622,10 @@ import './player/SharedPlayerStyles.css';
                         const transcriptionStr = placeholder.getAttribute('data-transcription');
                         const trans = transcriptionStr ? JSON.parse(transcriptionStr) : null;
                         setupCustomPlayer(container, audioUrl, title, image || '', author || '', trans);
+                        // Also restore progress check? 
+                        // For now, we trust the user to start or resume. 
+                        // To auto-resume, we would need to fetch history first.
+                        // Future improvement: Check history and set currentTime.
                     }
                 }
 
@@ -649,12 +688,19 @@ import './player/SharedPlayerStyles.css';
     // Play Episode Event
     document.addEventListener('play-episode', ((e: Event) => {
          const customEvent = e as CustomEvent;
-         const { url, title, image, author } = customEvent.detail;
-         const container = document.getElementById('player-placeholder');
-         if(container) {
-             window.playerCurrentUrl = url;
-             window.playerMeta = { title, image, author };
-             setupCustomPlayer(container, url, title, image, author);
+          const { url, title, image, author } = customEvent.detail;
+          const slug = customEvent.detail.slug; // Passed dynamically?
+          // If we played from a card that didn't pass slug, we might miss it.
+          // But EpisodeCard usually navigates. 
+          // If we play from Play Button on card, we need slug.
+          
+          const container = document.getElementById('player-placeholder');
+          if(container) {
+              window.playerCurrentUrl = url;
+              window.playerMeta = { title, image, author };
+              if(slug) window.playerSlug = slug;
+              
+              setupCustomPlayer(container, url, title, image, author);
              updatePlayerState();
              
              // FORCE PLAY

@@ -80,6 +80,7 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                     data-title={entry.data.title}
                     data-image={entry.data.image}
                     data-author={entry.data.author}
+                    data-slug={entry.slug}
                 ></div>
             ) : entry.data.audioUrl ? (
                 <div 
@@ -88,6 +89,7 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                     data-title={entry.data.title}
                     data-image={entry.data.image}
                     data-author={entry.data.author}
+                    data-slug={entry.slug}
                     data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
                 ></div>
             ) : null}

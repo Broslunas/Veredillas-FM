@@ -8,6 +8,13 @@ export interface IUser extends Document {
   picture?: string;
   bio?: string;
   favorites: string[]; // Array de slugs de episodios favoritos
+  playbackHistory: {
+    episodeSlug: string;
+    progress: number; // in seconds
+    duration: number; // total duration in seconds
+    listenedAt: Date;
+    completed: boolean;
+  }[];
   listeningTime: number; // Total seconds listened
   createdAt: Date;
   updatedAt: Date;
@@ -43,6 +50,13 @@ const userSchema = new mongoose.Schema<IUser>({
     type: [String],
     default: []
   },
+  playbackHistory: [{
+    episodeSlug: { type: String, required: true },
+    progress: { type: Number, default: 0 },
+    duration: { type: Number, default: 0 },
+    listenedAt: { type: Date, default: Date.now },
+    completed: { type: Boolean, default: false }
+  }],
   lastLogin: {
     type: Date,
     default: Date.now
