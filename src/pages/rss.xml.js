@@ -13,7 +13,8 @@ export async function GET(context) {
       pubDate: ep.data.pubDate,
       link: `/ep/${ep.slug}/`,
       author: ep.data.author,
-      type: 'episode'
+      type: 'episode',
+      image: ep.data.image
     })),
     ...blog.map(post => ({
       title: post.data.title,
@@ -21,7 +22,8 @@ export async function GET(context) {
       pubDate: post.data.pubDate,
       link: `/blog/${post.slug}/`,
       author: post.data.author,
-      type: 'post'
+      type: 'post',
+      image: post.data.image
     }))
   ].sort((a, b) => b.pubDate.valueOf() - a.pubDate.valueOf());
 
@@ -29,6 +31,9 @@ export async function GET(context) {
     title: 'Veredillas FM',
     description: 'El podcast oficial de Veredillas. Donde te mantenemos al pendiente de los temas más candentes.',
     site: context.site,
+    xmlns: {
+      media: 'http://search.yahoo.com/mrss/',
+    },
     items: allContent.map(item => ({
       title: item.title,
       description: item.description,
@@ -36,6 +41,9 @@ export async function GET(context) {
       link: item.link,
       author: item.author,
       categories: item.type === 'episode' ? ['Podcast', 'Episodio'] : ['Blog'],
+      customData: item.image 
+        ? `<media:content type="image/${item.image.split('.').pop()}" medium="image" url="${item.image}" />`
+        : undefined
     })),
     customData: `<language>es-ES</language>`,
   });
