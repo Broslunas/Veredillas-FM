@@ -8,9 +8,10 @@ interface Section {
 
 interface Props {
   sections?: Section[];
+  isPremiere?: boolean;
 }
 
-const { sections } = Astro.props;
+const { sections, isPremiere = false } = Astro.props;
 
 if (!sections || sections.length === 0) {
   return;
@@ -26,9 +27,9 @@ const parseTime = (t: string) => {
 ---
 
 <SidebarWidget title="Capítulos del Episodio" isOpen={true}>
-    <ul class="sections-list">
-        {sections.map(sec => (
-            <li>
+    <ul class="sections-list" data-is-premiere={isPremiere}>
+        {sections.map((sec, index) => (
+            <li class={isPremiere ? "premiere-hidden" : ""} style={isPremiere && index > 0 ? "display:none;" : ""}>
                 <button class="section-btn" data-time={parseTime(sec.time)}>
                     <span class="sec-time">{sec.time}</span>
                     <span class="sec-title">{sec.title}</span>
@@ -41,6 +42,9 @@ const parseTime = (t: string) => {
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const list = document.querySelector('.sections-list') as HTMLElement;
+        const isPremiere = list?.getAttribute('data-is-premiere') === 'true';
+        
         const btns = document.querySelectorAll('.section-btn');
         btns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -53,13 +57,29 @@ const parseTime = (t: string) => {
             });
         });
         
-        // Active state highlighting
+        // Active state highlighting & Premiere Reveal
         document.addEventListener('veredillas:audio-timeupdate', (e: Event) => {
             const customEvent = e as CustomEvent;
             const currentTime = customEvent.detail.currentTime;
             
             const btnsArray = Array.from(document.querySelectorAll('.section-btn'));
             let activeBtnIndex = -1;
+
+            if (isPremiere) {
+                // Check for items to reveal
+                const hiddenItems = document.querySelectorAll('.premiere-hidden');
+                hiddenItems.forEach(item => {
+                   const btn = item.querySelector('.section-btn');
+                   if (btn) {
+                       const time = Number(btn.getAttribute('data-time'));
+                       if (currentTime >= time) {
+                           (item as HTMLElement).style.display = '';
+                           item.classList.remove('premiere-hidden');
+                           item.classList.add('fade-in');
+                       }
+                   }
+                });
+            }
 
             for (let i = 0; i < btnsArray.length; i++) {
                 const btn = btnsArray[i] as HTMLElement;
@@ -185,5 +205,14 @@ const parseTime = (t: string) => {
         opacity: 1;
         transform: translateX(0);
         color: var(--color-primary);
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>

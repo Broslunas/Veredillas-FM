@@ -1,9 +1,10 @@
 ---
 interface Props {
   transcription?: { time: string; text: string }[];
+  isPremiere?: boolean;
 }
 
-const { transcription } = Astro.props;
+const { transcription, isPremiere = false } = Astro.props;
 
 import SidebarWidget from './SidebarWidget.astro';
 
@@ -13,7 +14,7 @@ if (!transcription || transcription.length === 0) {
 ---
 
 <SidebarWidget title="Transcripción" id="transcription-widget" class="transcription-widget" isOpen={true}>
-    <div slot="header-actions">
+    <div slot="header-actions" data-is-premiere={isPremiere}>
        <button id="btn-expand-transcription" class="icon-btn" aria-label="Ampliar transcripción">
            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
        </button>
@@ -21,7 +22,12 @@ if (!transcription || transcription.length === 0) {
 
     <div class="transcription-scroll" id="transcription-scroll">
       {transcription.map((item, index) => (
-        <div class="transcription-line" data-time={item.time} data-index={index}>
+        <div 
+            class={`transcription-line ${isPremiere && index > 0 ? "premiere-hidden" : ""}`} 
+            style={isPremiere && index > 0 ? "display:none" : ""}
+            data-time={item.time} 
+            data-index={index}
+        >
           <span class="time">{item.time}</span>
           <p class="text">{item.text}</p>
         </div>
@@ -39,7 +45,12 @@ if (!transcription || transcription.length === 0) {
         </div>
         <div class="transcription-scroll modal-scroll" id="transcription-scroll-modal">
              {transcription.map((item, index) => (
-              <div class="transcription-line" data-time={item.time} data-index={index}>
+              <div 
+                  class={`transcription-line ${isPremiere && index > 0 ? "premiere-hidden" : ""}`} 
+                  style={isPremiere && index > 0 ? "display:none" : ""}
+                  data-time={item.time} 
+                  data-index={index}
+              >
                 <span class="time">{item.time}</span>
                 <p class="text">{item.text}</p>
               </div>
@@ -56,6 +67,10 @@ if (!transcription || transcription.length === 0) {
         const btnExpand = document.getElementById('btn-expand-transcription');
         const btnClose = document.getElementById('btn-close-modal');
         
+        // Check for Premiere Mode
+        const actionSlot = document.querySelector('[data-is-premiere]');
+        const isPremiere = actionSlot?.getAttribute('data-is-premiere') === 'true';
+
         // Modal Logic
         if(btnExpand && modal) {
             btnExpand.addEventListener('click', () => {
@@ -131,6 +146,26 @@ if (!transcription || transcription.length === 0) {
                 hasStartedPlaying = true;
             }
             lastTime = currentTime;
+            
+            // -- Premiere Reveal Logic --
+            if (isPremiere) {
+                const checkReveal = (lines: {el: HTMLElement, time: number}[]) => {
+                    lines.forEach(line => {
+                         if (
+                             line.el.classList.contains('premiere-hidden') && 
+                             currentTime >= line.time
+                         ) {
+                             line.el.style.display = '';
+                             line.el.classList.remove('premiere-hidden');
+                             line.el.classList.add('fade-in');
+                             // Optional: Scroll to it?
+                         }
+                    });
+                };
+                checkReveal(widgetLines);
+                checkReveal(modalLines);
+            }
+            // ---------------------------
             
             const updateActive = (lines: {el: HTMLElement, time: number}[], container: HTMLElement | null) => {
                  if(!container) return;
@@ -351,5 +386,14 @@ if (!transcription || transcription.length === 0) {
   .modal-scroll .transcription-line.active .text {
       color: white;
       font-weight: 500;
+  }
+
+  .fade-in {
+      animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
   }
 </style>

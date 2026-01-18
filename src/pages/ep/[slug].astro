@@ -211,8 +211,11 @@ try {
                 </SidebarWidget>
                 
                 <EpisodeParticipants participants={entry.data.participants} />
-                <EpisodeSections sections={entry.data.sections} />
-                <TranscriptionWidget transcription={entry.data.transcription} />
+                
+                <div id="live-content-widgets" style={isUpcoming ? "display:none; opacity: 0; transition: opacity 1s ease-in;" : ""}>
+                    <EpisodeSections sections={entry.data.sections} isPremiere={isPremiere && !hasPremiereEnded} />
+                    <TranscriptionWidget transcription={entry.data.transcription} isPremiere={isPremiere && !hasPremiereEnded} />
+                </div>
             </div>
         </div>
 
@@ -232,6 +235,18 @@ try {
 </Layout>
 
 <script>
+    // Listen for the Premiere Start event (dispatched by PremiereCountdown)
+    document.addEventListener('premiere-started', () => {
+        const widgets = document.getElementById('live-content-widgets');
+        if (widgets) {
+            widgets.style.display = 'block';
+            // Allow display:block to apply before changing opacity
+            requestAnimationFrame(() => {
+                widgets.style.opacity = '1';
+            });
+        }
+    });
+
     const setupEpisodePage = () => {
         const btns = document.querySelectorAll('.play-trigger-btn');
         btns.forEach(btn => {
