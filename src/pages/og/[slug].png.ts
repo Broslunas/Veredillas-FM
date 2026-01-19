@@ -1,48 +1,76 @@
 import type { APIRoute } from 'astro';
-import { getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
-export const prerender = false;
+export const prerender = true;
 
-// Fetch font securely
+export async function getStaticPaths() {
+    const episodes = await getCollection('episodios');
+    return episodes.map((entry) => ({
+        params: { slug: entry.slug },
+        props: { entry },
+    }));
+}
+
+// Fetch font securely or use a local one
 const fetchFont = async () => {
-    const response = await fetch('https://fonts.gstatic.com/s/outfit/v11/QGYyz_MVcBeNP4NjuGObqx1XmO1I4tc1.woff2');
-    return await response.arrayBuffer();
-};
-
-const fetchImage = async (url: string) => {
+    // Fallback to Inter for stability during build
     try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch image');
+        const response = await fetch('https://cdn.jsdelivr.net/fontsource/fonts/outfit@latest/latin-400-normal.woff');
+        if (!response.ok) throw new Error('Failed to fetch font');
         return await response.arrayBuffer();
     } catch (e) {
-        console.error(`Failed to fetch image from ${url}`, e);
+        // Fallback to a guaranteed working font if the above fails (e.g. from satori-recommended CDN)
+        const response = await fetch('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff');
+        return await response.arrayBuffer();
+    }
+};
+
+const loadImage = async (imagePath: string): Promise<ArrayBuffer | null> => {
+    try {
+        if (!imagePath) return null;
+
+        if (imagePath.startsWith('http')) {
+            const response = await fetch(imagePath);
+            if (!response.ok) throw new Error(`Failed to fetch remote image: ${response.statusText}`);
+            return await response.arrayBuffer();
+        } else {
+            // Local file resolution for build time (SSG)
+            // Assuming images are in the public/ directory
+            // Remove leading slash if present to avoid absolute path confusion
+            const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
+            const fullPath = join(process.cwd(), 'public', cleanPath);
+            const buffer = await readFile(fullPath);
+            return new Uint8Array(buffer).buffer;
+        }
+    } catch (e) {
+        console.error(`Failed to load image for OG generation: ${imagePath}`, e);
         return null;
     }
 };
 
-export const GET: APIRoute = async ({ params, request }) => {
-    const { slug } = params;
-
-    if (!slug) return new Response('Slug missing', { status: 404 });
-
-    const entry = await getEntry('episodios', slug);
-    if (!entry) return new Response('Episode not found', { status: 404 });
-
+export const GET: APIRoute = async ({ props }) => {
+    const { entry } = props;
     const { title, episode, season, image } = entry.data;
-    const fontData = await fetchFont();
+    
+    const [fontData, rawImageBuffer] = await Promise.all([
+        fetchFont(),
+        loadImage(image)
+    ]);
 
-    // Resolve Image URL
-    let imageBuffer: ArrayBuffer | null = null;
-    if (image) {
-        // Construct absolute URL for the image
-        const origin = new URL(request.url).origin;
-        // If image is already absolute (http), use it; otherwise prepend origin
-        // Note: For local development, localhost works. For PROD, origin should be the site URL.
-        const imageUrl = image.startsWith('http') ? image : new URL(image, origin).href;
-        
-        imageBuffer = await fetchImage(imageUrl);
+    // Validate image buffer to ensure it's not WebP (unsupported by satori)
+    let imageBuffer = rawImageBuffer;
+    if (imageBuffer && imageBuffer.byteLength > 12) {
+        const view = new Uint8Array(imageBuffer);
+        // Check for RIFF ... WEBP
+        if (view[0] === 0x52 && view[1] === 0x49 && view[2] === 0x46 && view[3] === 0x46 &&
+            view[8] === 0x57 && view[9] === 0x45 && view[10] === 0x42 && view[11] === 0x50) {
+            console.warn(`Skipping WebP image for OG (unsupported): ${image}`);
+            imageBuffer = null;
+        }
     }
 
     const svg = await satori(
@@ -73,7 +101,7 @@ export const GET: APIRoute = async ({ params, request }) => {
                                 width: '100%',
                                 height: '100%',
                                 objectFit: 'cover',
-                                opacity: 0.8, // Slightly dim the image itself
+                                opacity: 0.8, // Slightly dim the image
                             },
                         }
                     } : null,
@@ -104,7 +132,6 @@ export const GET: APIRoute = async ({ params, request }) => {
                                 width: '100%',
                                 padding: '60px 80px',
                                 position: 'relative',
-                                zIndex: 10,
                             },
                             children: [
                                 // Top Label: Season & Episode
@@ -155,7 +182,6 @@ export const GET: APIRoute = async ({ params, request }) => {
                                             display: '-webkit-box',
                                             textOverflow: 'ellipsis',
                                             overflow: 'hidden',
-                                            // Ensure long titles don't overflow vertically if possible
                                             maxHeight: '320px', 
                                         },
                                         children: title
