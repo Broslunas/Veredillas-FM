@@ -4,6 +4,7 @@ import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import sharp from 'sharp';
 
 export const prerender = true;
 
@@ -33,19 +34,29 @@ const loadImage = async (imagePath: string): Promise<ArrayBuffer | null> => {
     try {
         if (!imagePath) return null;
 
+        let buffer;
         if (imagePath.startsWith('http')) {
             const response = await fetch(imagePath);
             if (!response.ok) throw new Error(`Failed to fetch remote image: ${response.statusText}`);
-            return await response.arrayBuffer();
+            buffer = await response.arrayBuffer();
         } else {
             // Local file resolution for build time (SSG)
-            // Assuming images are in the public/ directory
-            // Remove leading slash if present to avoid absolute path confusion
             const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
             const fullPath = join(process.cwd(), 'public', cleanPath);
-            const buffer = await readFile(fullPath);
-            return new Uint8Array(buffer).buffer;
+            buffer = await readFile(fullPath);
         }
+
+        // Convert key format to Buffer if needed (node:fs return Buffer, fetch returns ArrayBuffer)
+        const inputBuffer = Buffer.from(buffer);
+
+        // Convert to PNG using sharp to ensure compatibility (handles WebP, etc.)
+        const pngBuffer = await sharp(inputBuffer)
+            .resize(1200, 630, { fit: 'cover' })
+            .toFormat('png')
+            .toBuffer();
+
+        return new Uint8Array(pngBuffer).buffer;
+
     } catch (e) {
         console.error(`Failed to load image for OG generation: ${imagePath}`, e);
         return null;
@@ -56,22 +67,10 @@ export const GET: APIRoute = async ({ props }) => {
     const { entry } = props;
     const { title, episode, season, image } = entry.data;
     
-    const [fontData, rawImageBuffer] = await Promise.all([
+    const [fontData, imageBuffer] = await Promise.all([
         fetchFont(),
         loadImage(image)
     ]);
-
-    // Validate image buffer to ensure it's not WebP (unsupported by satori)
-    let imageBuffer = rawImageBuffer;
-    if (imageBuffer && imageBuffer.byteLength > 12) {
-        const view = new Uint8Array(imageBuffer);
-        // Check for RIFF ... WEBP
-        if (view[0] === 0x52 && view[1] === 0x49 && view[2] === 0x46 && view[3] === 0x46 &&
-            view[8] === 0x57 && view[9] === 0x45 && view[10] === 0x42 && view[11] === 0x50) {
-            console.warn(`Skipping WebP image for OG (unsupported): ${image}`);
-            imageBuffer = null;
-        }
-    }
 
     const svg = await satori(
         {

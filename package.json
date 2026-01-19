@@ -32,6 +32,7 @@
     "node-mailjet": "^6.0.11",
     "qrcode": "^1.5.4",
     "satori": "^0.19.1",
+    "sharp": "^0.34.5",
     "swiper": "^12.0.3",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
