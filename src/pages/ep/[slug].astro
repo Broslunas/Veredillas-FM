@@ -95,7 +95,7 @@ try {
 <Layout 
   title={entry.data.title} 
   description={entry.data.description}
-  image={entry.data.image || "/logo.png"}
+  image={`/og/${slug}.png`}
   imageAlt={entry.data.title}
   type="article"
   publishedTime={entry.data.pubDate.toISOString()}
