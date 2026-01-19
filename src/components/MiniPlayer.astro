@@ -118,6 +118,9 @@ import './player/SharedPlayerStyles.css';
         
     const fac = new FastAverageColor();
 
+    // Shared AudioContext to prevent "Max AudioContexts" error
+    let globalAudioCtx: AudioContext | null = null;
+
     // ---- Ambient Mode Logic ----
     const updateAmbientTheme = async (imageUrl: string) => {
         try {
@@ -429,7 +432,6 @@ import './player/SharedPlayerStyles.css';
              };
              
              // Visualizer
-             let audioCtx: AudioContext;
              let analyser: AnalyserNode;
              let source: MediaElementAudioSourceNode;
              let canvas = container.querySelector('#audioVisualizer') as HTMLCanvasElement;
@@ -437,21 +439,30 @@ import './player/SharedPlayerStyles.css';
              const initVisualizer = () => {
                  if (!audioElement.crossOrigin) return; 
 
-                 if(!audioCtx) {
+                 // Use global context or create one
+                 if(!globalAudioCtx) {
                       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-                      audioCtx = new AudioContext();
+                      globalAudioCtx = new AudioContext();
+                 }
+
+                 if (globalAudioCtx.state === 'suspended') {
+                     globalAudioCtx.resume();
+                 }
+
+                 if (!analyser) {
                       try {
-                          source = audioCtx.createMediaElementSource(audioElement);
-                          analyser = audioCtx.createAnalyser();
-                          analyser.fftSize = 256; // Higher res
+                          source = globalAudioCtx.createMediaElementSource(audioElement);
+                          analyser = globalAudioCtx.createAnalyser();
+                          analyser.fftSize = 512; // Higher resolution for better bass definition
+                          analyser.smoothingTimeConstant = 0.85; // Smoother fallback
+                          
                           source.connect(analyser);
-                          analyser.connect(audioCtx.destination);
+                          analyser.connect(globalAudioCtx.destination);
+                          
                           draw();
                       } catch(e) {
                           console.log("Audio Context Error (CORS?):", e);
                       }
-                 } else if (audioCtx.state === 'suspended') {
-                     audioCtx.resume();
                  }
              };
              
@@ -459,51 +470,106 @@ import './player/SharedPlayerStyles.css';
                  if(!canvas || !analyser) return;
                  const ctx = canvas.getContext('2d');
                  if(!ctx) return;
+                 
                  const bufferLength = analyser.frequencyBinCount;
                  const dataArray = new Uint8Array(bufferLength);
                  
                  const renderFrame = () => {
                      if(audioElement.paused) return; 
                      requestAnimationFrame(renderFrame);
+                     
                      ctx.clearRect(0,0, canvas.width, canvas.height);
                      
                      analyser.getByteFrequencyData(dataArray);
 
-                     // Smooth visuals
-                     const bars = 40;
-                     const step = Math.ceil(bufferLength / bars);
-                     const w = canvas.width / bars;
+                     // Dynamic Color based on Ambient Theme
+                     const glowColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary-glow').trim() || 'rgba(139, 92, 246, 0.8)';
+                     // If the glow is too transparent, make it more solid for the bars
+                     ctx.fillStyle = glowColor.replace('0.2', '0.8').replace('0.5', '0.9');
+
+                     // Settings for bars
+                     const barCount = 40; 
+                     // Focus on the sub-50% frequencies (most musical content)
+                     const usefulBinCount = Math.floor(bufferLength * 0.6); 
+                     const step = usefulBinCount / barCount;
                      
-                     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                     const barWidth = canvas.width / barCount;
+                     const gap = 2;
                      
-                     for(let i=0; i<bars; i++) {
+                     for(let i=0; i<barCount; i++) {
+                         // Logarithmic-ish or simple averaging
+                         const start = Math.floor(i * step);
+                         const end = Math.floor((i + 1) * step);
                          let sum = 0;
-                         for(let j=0; j<step; j++) {
-                             if(dataArray[i*step + j]) sum += dataArray[i*step + j];
+                         let count = 0;
+                         for(let j=start; j<end; j++) {
+                             sum += dataArray[j];
+                             count++;
                          }
-                         let val = sum / step;
-                         const h = (val / 255) * canvas.height;
+                         const val = count > 0 ? sum / count : 0;
                          
-                         // Rounded bars?
-                         const x = i * w;
+                         // Non-linear height for punchier look
+                         // (val / 255)^1.2 allows peaks to stand out more vs noise
+                         const percent = Math.pow(val / 255, 1.2); 
+                         
+                         let h = percent * canvas.height;
+                         if (h < 2 && val > 0) h = 2; // Min height if sound exists
+                         
+                         const x = i * barWidth;
                          const y = canvas.height - h;
                          
-                         // Gradient
-                         // ctx.fillRect(x, y, w - 2, h);
-                         
-                         // Let's do rounded top
+                         // Rounded Top Bars
                          if(h > 0) {
                              ctx.beginPath();
-                             ctx.roundRect(x, y, w - 3, h, [4, 4, 0, 0]);
+                             if(ctx.roundRect) {
+                                 ctx.roundRect(x + gap/2, y, barWidth - gap, h, [4, 4, 0, 0]);
+                             } else {
+                                 ctx.rect(x + gap/2, y, barWidth - gap, h);
+                             }
                              ctx.fill();
                          }
                      }
-                     
+                      
                      // Also handle Immersive Visualizer (Global)
-                     // [Logic copied/simplified from previous version...]
+                     // Re-use logic for immersive if open
                      const immCanvas = document.getElementById('audio-visualizer') as HTMLCanvasElement;
-                     if(immCanvas && document.getElementById('immersive-player')?.classList.contains('active')) {
-                         // ... (keep immersive visualizer logic if needed or reimplement)
+                     const immersiveEl = document.getElementById('immersive-player');
+                     // Check if visible (not hidden)
+                     if(immCanvas && immersiveEl && !immersiveEl.classList.contains('hidden')) {
+                         // Basic mirror of the logic for the big player
+                         // ideally this should be a separate drawer but let's do a simple pass
+                         const immCtx = immCanvas.getContext('2d');
+                         if(immCtx) {
+                             immCtx.clearRect(0,0, immCanvas.width, immCanvas.height);
+                             immCtx.fillStyle = ctx.fillStyle; // Same color
+                             
+                             // Adjust dimensions if needed (canvas might differ in size from CSS)
+                             // Usually we should relying on width/height attributes or resize observer, 
+                             // but assuming it's substantial (e.g. 300px default or sized by CSS w/ resize)
+                             // For now assuming the canvas element generic sizing.
+                             // Ideally we should set immCanvas.width = immCanvas.offsetWidth... but let's skip expensive resize in loop.
+                             
+                             const immBarWidth = immCanvas.width / barCount;
+                             
+                             for(let i=0; i<barCount; i++) {
+                                 const start = Math.floor(i * step);
+                                 const end = Math.floor((i + 1) * step);
+                                 let sum = 0, count=0;
+                                 for(let j=start; j<end; j++) { sum+=dataArray[j]; count++; }
+                                 const val = count>0 ? sum/count : 0;
+                                 const percent = Math.pow(val/255, 1.2);
+                                 const h = percent * immCanvas.height * 0.6; // Scale down a bit?
+                                 
+                                 const x = i * immBarWidth;
+                                 // Let's do Center for immersive
+                                 const cy = immCanvas.height / 2;
+                                 
+                                 immCtx.beginPath();
+                                 if(immCtx.roundRect) immCtx.roundRect(x+gap, cy - h/2, immBarWidth-gap*2, h, [4]);
+                                 else immCtx.rect(x+gap, cy - h/2, immBarWidth-gap*2, h);
+                                 immCtx.fill();
+                             }
+                         }
                      }
                  };
                  renderFrame();
