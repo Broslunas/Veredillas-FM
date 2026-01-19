@@ -244,6 +244,45 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
     gsap.registerPlugin(ScrollTrigger);
 
     function initPage() {
+        // Parallax Background Effect
+        if (document.querySelector(".blob")) {
+            // Blob 1 - Moves slower
+            gsap.to(".blob-1", {
+                yPercent: 50,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1
+                }
+            });
+
+            // Blob 2 - Moves differently
+            gsap.to(".blob-2", {
+                yPercent: -50,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1.5
+                }
+            });
+
+             // Grid Overlay - Subtle movement
+             gsap.to(".grid-overlay", {
+                yPercent: 10,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1
+                }
+            });
+        }
+
         // Hero Animations
         if (document.querySelector(".gs-reveal")) {
             const tl = gsap.timeline();
@@ -259,6 +298,7 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
                 x: 50,
                 opacity: 0,
                 duration: 1,
+                stagger: 0.2,
                 ease: "back.out(1.7)"
             }, "-=0.5");
         }
@@ -367,7 +407,12 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
         }
     }
 
-    document.addEventListener('DOMContentLoaded', initPage);
+    document.addEventListener('DOMContentLoaded', () => {
+        initPage();
+    });
+    
+    // Cleanup for Astro view transitions if used later
+    document.addEventListener('astro:after-swap', initPage);
 </script>
 
 <style>

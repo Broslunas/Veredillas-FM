@@ -1,8 +1,5 @@
-
-
-Fondo de Ruido Granular (Noise Texture): Añadir una textura de "ruido" muy sutil (opacity 0.03) sobre toda la web para que los colores sólidos no se vean planos, dándole un toque vintage de radio/papel.
 Modo "Zen" o "Cinema": Un botón en el reproductor que oscurezca toda la interfaz y solo deje el audio spectrum y los subtítulos flotando.
-Tilt 3D en Carátulas: Usar CSS 3D para que las carátulas de los episodios se inclinen según la posición del mouse (efecto holográfico).
+
 Scroll Parallax Suave: Que las imágenes de fondo se muevan a diferente velocidad que el texto al hacer scroll (efecto profundidad).
 
 🎧 2. Reproductor y Audio (Core)
