@@ -5,8 +5,6 @@ Scroll Parallax Suave: Que las imágenes de fondo se muevan a diferente velocida
 🎧 2. Reproductor y Audio (Core)
 El corazón de la web.
 
-~~Visualizador de Audio en Tiempo Real: Usar la Web Audio API para dibujar ondas (barras o líneas) que reaccionen de verdad a la música/voz que suena en el MiniPlayer.~~ (Completado)
-
 "Smart Resume": Si cierro la pestaña y vuelvo mañana, recordad exactamente el minuto y segundo donde me quedé en ese episodio.
 
 Sleep Timer: Un botón de "luna" en el reproductor para detener el audio automáticamente en 15, 30 o 60 minutos (ideal para dormir escuchando).
