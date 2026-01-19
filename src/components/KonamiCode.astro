@@ -1,0 +1,128 @@
+---
+---
+
+<script>
+    import confetti from 'canvas-confetti';
+
+    const konamiCode = [
+        'ArrowUp', 'ArrowUp', 
+        'ArrowDown', 'ArrowDown', 
+        'ArrowLeft', 'ArrowRight', 
+        'ArrowLeft', 'ArrowRight', 
+        'b', 'a'
+    ];
+
+    let cursor = 0;
+
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+        // Reset if key doesn't match expected key in sequence
+        if (e.key !== konamiCode[cursor]) {
+            cursor = 0;
+            // Also check if the new key is the start of the sequence
+            if (e.key === konamiCode[0]) {
+                cursor = 1;
+            }
+            return;
+        }
+
+        cursor++;
+
+        if (cursor === konamiCode.length) {
+            activatePartyMode();
+            cursor = 0;
+        }
+    });
+
+    let partyAudio: HTMLAudioElement | null = null;
+
+    function activatePartyMode() {
+        // 1. Confetti Explosion
+        const duration = 5 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
+
+        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+        const interval = setInterval(function() {
+            const timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            const particleCount = 50 * (timeLeft / duration);
+            
+            confetti({
+                ...defaults, 
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+            });
+            confetti({
+                ...defaults, 
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+            });
+        }, 250);
+
+        // 2. Toggle Party Mode Class
+        const isPartyOn = document.documentElement.classList.toggle('party-mode');
+        
+        // 3. Play Cringe/Creepy Music (Titanic Flute Fail)
+        if (isPartyOn) {
+            if (!partyAudio) {
+                partyAudio = new Audio('https://www.myinstants.com/media/sounds/los-tralaleritos-dicem-tralala.mp3');
+                partyAudio.loop = true;
+                partyAudio.volume = 0.6;
+            }
+            partyAudio.play().catch(e => console.error("Audio playback failed", e));
+            console.log("👻 CREEPY/CRINGE MODE ACTIVATED! 👻");
+        } else {
+            if (partyAudio) {
+                partyAudio.pause();
+                partyAudio.currentTime = 0; // Reset track
+            }
+            console.log("Party mode deactivated");
+        }
+        
+        // Show a small toast/alert via custom event
+        const toastEvent = new CustomEvent('toast', { 
+            detail: { 
+                message: isPartyOn 
+                    ? '💀 MODO CRINGE ACTIVADO 💀' 
+                    : 'Modo cringe desactivado... uff',
+                type: isPartyOn ? 'error' : 'success'
+            }
+        });
+        window.dispatchEvent(toastEvent);
+    }
+</script>
+
+<style is:global>
+    :root.party-mode {
+        animation: rainbow-bg 5s linear infinite;
+    }
+    
+    :root.party-mode body {
+        /* Filter inversion for a trippy dark mode invert, or just hue rotate */
+        animation: hue-rotate 3s linear infinite;
+    }
+
+    /* Make images pop more in party mode */
+    :root.party-mode img {
+        filter: contrast(1.2) saturate(1.5);
+    }
+
+    @keyframes rainbow-bg {
+        0% { --color-primary: #ff0000; --color-accent: #00ff00; }
+        20% { --color-primary: #ffff00; --color-accent: #00ffff; }
+        40% { --color-primary: #00ff00; --color-accent: #0000ff; }
+        60% { --color-primary: #00ffff; --color-accent: #ff00ff; }
+        80% { --color-primary: #0000ff; --color-accent: #ff0000; }
+        100% { --color-primary: #ff00ff; --color-accent: #ffff00; }
+    }
+
+    @keyframes hue-rotate {
+        from { filter: hue-rotate(0deg); }
+        to { filter: hue-rotate(360deg); }
+    }
+</style>
