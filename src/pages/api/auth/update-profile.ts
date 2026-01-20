@@ -65,6 +65,28 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Si se actualizó el newsletter, notificar al webhook
+    if (newsletter !== undefined) {
+      const action = Boolean(newsletter) ? 'subscribe' : 'unsubscribe';
+      
+      try {
+        await fetch('https://n8n.broslunas.com/webhook/veredillasfm-unsub-resub', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: user.name,
+            email: user.email,
+            action: action
+          }),
+        });
+      } catch (webhookError) {
+        console.error('Error sending newsletter webhook:', webhookError);
+        // No fallamos la request si el webhook falla, solo logueamos
+      }
+    }
+
     return new Response(JSON.stringify({ 
       success: true,
       user: {
