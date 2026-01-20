@@ -1,25 +1,25 @@
+
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import { getUserFromCookie } from '../../../lib/auth';
 import User from '../../../models/User';
-import crypto from 'crypto';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    // Obtener usuario del token
+    // 1. Authenticate User
     const cookieHeader = request.headers.get('cookie');
     const userPayload = getUserFromCookie(cookieHeader);
 
     if (!userPayload) {
-      return new Response(JSON.stringify({ user: null }), {
-        status: 200,
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Conectar a MongoDB
+    // 2. Connect to DB
     if (mongoose.connection.readyState !== 1) {
       const MONGODB_URI = import.meta.env.MONGODB_URI;
       if (!MONGODB_URI) {
@@ -28,45 +28,31 @@ export const GET: APIRoute = async ({ request }) => {
       await mongoose.connect(MONGODB_URI);
     }
 
-    // Buscar usuario completo en la base de datos
-    const user = await User.findById(userPayload.userId).select('-__v');
-
-    if (!user) {
-      return new Response(JSON.stringify({ user: null }), {
-        status: 200,
+    // 3. Verify Admin Role
+    const currentUser = await User.findById(userPayload.userId);
+    
+    if (!currentUser || currentUser.role !== 'admin') {
+      return new Response(JSON.stringify({ error: 'Forbidden: Admin access required' }), {
+        status: 403,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Determine picture URL: DB > Gravatar > Placeholder (handled by UI)
-    let pictureUrl = user.picture;
-    
-    if (!pictureUrl && user.email) {
-      const hash = crypto
-        .createHash('md5')
-        .update(user.email.trim().toLowerCase())
-        .digest('hex');
-      pictureUrl = `https://www.gravatar.com/avatar/${hash}?d=mp&s=200`;
-    }
+    // 4. Fetch All Users
+    const users = await User.find({})
+      .select('-__v')
+      .sort({ createdAt: -1 });
 
     return new Response(JSON.stringify({ 
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        picture: pictureUrl, // Send Gravatar URL if no picture
-        bio: user.bio,
-        role: user.role,
-        createdAt: user.createdAt,
-        lastLogin: user.lastLogin
-      }
+      success: true,
+      users: users
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('Error getting current user:', error);
+    console.error('Error fetching users:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

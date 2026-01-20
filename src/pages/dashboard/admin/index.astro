@@ -1,0 +1,266 @@
+
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import mongoose from 'mongoose';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/login');
+}
+
+// Connect to DB
+if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = import.meta.env.MONGODB_URI;
+    if (!MONGODB_URI) throw new Error('MONGODB_URI not configured');
+    await mongoose.connect(MONGODB_URI);
+}
+
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || currentUser.role !== 'admin') {
+  return Astro.redirect('/'); 
+}
+
+const users = await User.find({}).sort({ createdAt: -1 });
+
+function formatTime(seconds: number) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${h}h ${m}m`;
+}
+---
+
+<Layout title="Panel de Administración">
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>Panel de Administración</h1>
+      <p>Gestión de usuarios y métricas</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Usuarios</h3>
+        <p class="stat-value">{users.length}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Tiempo Total Escuchado</h3>
+        <p class="stat-value">{formatTime(users.reduce((acc, user) => acc + (user.listeningTime || 0), 0))}</p>
+      </div>
+       <div class="stat-card">
+        <h3>Usuarios Nuevos (Mes)</h3>
+        <p class="stat-value">{users.filter(u => {
+            const date = new Date(u.createdAt);
+            const now = new Date();
+            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        }).length}</p>
+      </div>
+    </div>
+
+    <div class="users-section">
+      <h2>Usuarios Registrados</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Registro</th>
+              <th>Último Acceso</th>
+              <th>Tiempo Escuchado</th>
+              <th>Newsletter</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <img src={user.picture || `https://ui-avatars.com/api/?name=${user.name}`} alt={user.name} class="user-avatar" />
+                    <span class="user-name">{user.name}</span>
+                  </div>
+                </td>
+                <td>{user.email}</td>
+                <td>
+                  <span class={`badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}`}>
+                    {user.role}
+                  </span>
+                </td>
+                <td title={new Date(user.createdAt).toLocaleString()}>
+                    {new Date(user.createdAt).toLocaleDateString()}
+                </td>
+                <td title={user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'N/A'}>
+                    {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : '-'}
+                </td>
+                <td>{formatTime(user.listeningTime || 0)}</td>
+                <td>
+                  <span class={`badge ${user.newsletter ? 'badge-subscribed' : 'badge-unsubscribed'}`}>
+                    {user.newsletter ? 'Suscrito' : 'No suscrito'}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    color: var(--color-text);
+  }
+
+  .admin-header {
+    margin-bottom: 3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+  }
+
+  .admin-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    text-align: center;
+  }
+
+  .stat-card h3 {
+    font-size: 0.9rem;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .users-section {
+    background: rgba(17, 24, 39, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .users-section h2 {
+    padding: 1.5rem;
+    margin: 0;
+    font-size: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  th, td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  th {
+    background: rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .user-name {
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .badge {
+    display: inline-flex;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .badge-admin {
+    background: rgba(139, 92, 246, 0.2);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+  }
+
+  .badge-user {
+    background: rgba(55, 65, 81, 0.5);
+    color: #d1d5db;
+    border: 1px solid rgba(75, 85, 99, 0.5);
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .status-dot.active {
+    background-color: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  }
+
+  .status-dot.inactive {
+    background-color: #ef4444;
+  }
+</style>

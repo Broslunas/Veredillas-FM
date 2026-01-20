@@ -20,6 +20,7 @@ export interface IUser extends mongoose.Document {
   updatedAt: Date;
   lastLogin: Date;
   role: 'user' | 'admin';
+  newsletter: boolean;
 }
 
 const userSchema = new mongoose.Schema<IUser>({
