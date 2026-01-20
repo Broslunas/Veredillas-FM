@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema<IUser>({
     type: Date,
     default: Date.now
   },
+  newsletter: {
+    type: Boolean,
+    default: true
+  },
   listeningTime: {
     type: Number,
     default: 0

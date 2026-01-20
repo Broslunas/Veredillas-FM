@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Obtener datos del body
     const body = await request.json();
-    const { name, bio } = body;
+    const { name, bio, newsletter } = body;
 
     // Validar datos
     if (name && name.trim().length < 2) {
@@ -50,6 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
     const updateData: any = {};
     if (name) updateData.name = name.trim();
     if (bio !== undefined) updateData.bio = bio.trim();
+    if (newsletter !== undefined) updateData.newsletter = Boolean(newsletter);
 
     const user = await User.findByIdAndUpdate(
       userPayload.userId,

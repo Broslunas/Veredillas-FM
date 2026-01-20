@@ -69,6 +69,22 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         picture: userPicture,
         lastLogin: new Date()
       });
+
+      // Notificar registro a n8n
+      try {
+        await fetch('https://n8n.broslunas.com/webhook/veredillasfm-new-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: user.name,
+            email: user.email,
+          }),
+        });
+      } catch (webhookError) {
+        console.error('Error sending webhook notification:', webhookError);
+      }
     } else {
       // Actualizar fecha de último login y foto
       user.lastLogin = new Date();

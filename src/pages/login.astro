@@ -1,6 +1,14 @@
 ---
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
+import { getUserFromCookie } from '../lib/auth';
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (userPayload) {
+    return Astro.redirect('/dashboard');
+}
 ---
 
 <Layout 
@@ -76,7 +84,7 @@ import Layout from '../layouts/Layout.astro';
                         Continuar con Google
                     </a>
                     <p class="terms-note">
-                        Al iniciar sesión, aceptas nuestros <a href="/terminos-y-condiciones">Términos</a> y <a href="/politica-de-privacidad">Política de Privacidad</a>.
+                        Al iniciar sesión, aceptas unirte a nuestra newsletter, nuestros <a href="/terminos-y-condiciones">Términos</a> y <a href="/politica-de-privacidad">Política de Privacidad</a>.
                     </p>
                 </div>
             </div>
