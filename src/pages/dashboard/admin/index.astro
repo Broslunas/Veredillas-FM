@@ -11,7 +11,7 @@ const cookieHeader = Astro.request.headers.get('cookie');
 const userPayload = getUserFromCookie(cookieHeader);
 
 if (!userPayload) {
-  return Astro.redirect('/login');
+  return Astro.redirect('/404');
 }
 
 // Connect to DB
@@ -23,7 +23,7 @@ if (mongoose.connection.readyState !== 1) {
 
 const currentUser = await User.findById(userPayload.userId);
 if (!currentUser || currentUser.role !== 'admin') {
-  return Astro.redirect('/'); 
+  return Astro.redirect('/404'); 
 }
 
 const users = await User.find({}).sort({ createdAt: -1 });

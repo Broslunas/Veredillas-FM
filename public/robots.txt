@@ -9,7 +9,7 @@ Sitemap: https://veredillasfm.es/sitemap-index.xml
 Crawl-delay: 10
 
 # Disallow admin or sensitive areas (if any)
-# Disallow: /admin/
+Disallow: /dashboard/admin/
 
 # Disallow search result pages
 Disallow: /search
