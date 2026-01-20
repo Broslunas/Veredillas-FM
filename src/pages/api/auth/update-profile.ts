@@ -40,11 +40,26 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Obtener usuario actual para comprobar cambios
+    const currentUser = await User.findById(userPayload.userId);
+    if (!currentUser) {
+        return new Response(JSON.stringify({ error: 'Usuario no encontrado' }), { status: 404 });
+    }
+
     // Actualizar usuario
     const updateData: any = {};
     if (name) updateData.name = name.trim();
     if (bio !== undefined) updateData.bio = bio.trim();
-    if (newsletter !== undefined) updateData.newsletter = Boolean(newsletter);
+    
+    // Check if newsletter status actually changed
+    let newsletterChanged = false;
+    if (newsletter !== undefined) {
+        const newStatus = Boolean(newsletter);
+        if (currentUser.newsletter !== newStatus) {
+            updateData.newsletter = newStatus;
+            newsletterChanged = true;
+        }
+    }
 
     const user = await User.findByIdAndUpdate(
       userPayload.userId,
@@ -59,8 +74,8 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Si se actualizó el newsletter, notificar al webhook
-    if (newsletter !== undefined) {
+    // Si cambió el estado del newsletter, notificar al webhook
+    if (newsletterChanged) {
       const action = Boolean(newsletter) ? 'subscribe' : 'unsubscribe';
       
       try {
@@ -70,8 +85,8 @@ export const POST: APIRoute = async ({ request }) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: user.name,
-            email: user.email,
+            name: user?.name,
+            email: user?.email,
             action: action
           }),
         });
