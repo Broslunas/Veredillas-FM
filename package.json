@@ -25,6 +25,7 @@
     "fuse.js": "^7.1.0",
     "glob": "^13.0.0",
     "gsap": "^3.14.2",
+    "hls.js": "^1.6.15",
     "html-to-image": "^1.11.13",
     "jsonwebtoken": "^9.0.3",
     "lucide-astro": "^0.556.0",

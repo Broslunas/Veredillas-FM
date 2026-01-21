@@ -1,0 +1,1062 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout 
+	title="En Vivo"
+	description="Sigue nuestra transmisión en directo. Veredillas FM en vivo."
+    image="/logo.png"
+>
+    <!-- Background Decor -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <section class="live-section">
+        <div class="container relative z-10">
+            
+            <div class="live-header gs-reveal">
+                <div class="live-status-badge offline" id="status-badge">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Desconectado</span>
+                </div>
+                <h1 class="page-title">Transmisión en Directo</h1>
+                <p class="page-subtitle">Conectando con el estudio...</p>
+            </div>
+
+            <div class="live-grid-container gs-reveal">
+                <!-- Main Player Area -->
+                <div class="player-container">
+                    <div class="video-container" id="video-container">
+                        <video id="live-video" playsinline></video>
+                        
+                        <!-- Click to Start / Enter Overlay -->
+                        <div class="start-overlay" id="start-overlay">
+                            <div class="start-content">
+                                <button class="start-btn" id="initial-start-btn">
+                                    <div class="play-icon-wrapper">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                    </div>
+                                    <span>Ver Transmisión en Vivo</span>
+                                </button>
+                                <p class="start-hint">Haga clic para iniciar con sonido</p>
+                            </div>
+                        </div>
+
+                        <!-- Viewer Count Widget (Top Left) -->
+                        <div class="viewer-widget" id="viewer-widget">
+                            <span class="live-dot-small"></span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <span class="viewer-count" id="viewer-count">--</span>
+                        </div>
+
+                        <!-- Custom Controls (Hidden initially) -->
+                        <div class="custom-controls" id="custom-controls">
+                            <div class="controls-bottom">
+                                <div class="left-controls">
+                                    <button class="control-btn" id="play-pause-btn" aria-label="Pausar">
+                                        <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                        <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
+                                    </button>
+                                    
+                                    <div class="volume-container">
+                                        <button class="control-btn" id="mute-btn" aria-label="Silenciar">
+                                            <svg class="icon-vol-high" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                                            <svg class="icon-vol-muted" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                                        </button>
+                                        <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.05" value="1">
+                                    </div>
+                                    
+                                    <div class="live-indicator">
+                                        <span class="live-dot"></span>
+                                        EN DIRECTO
+                                    </div>
+                                </div>
+
+                                <div class="right-controls">
+                                    <button class="control-btn" id="fullscreen-btn" aria-label="Pantalla completa">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Offline Placeholder -->
+                        <div class="offline-overlay" id="offline-overlay">
+                            <div class="offline-content">
+                                <div class="offline-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                </div>
+                                <h3>Transmisión Inactiva</h3>
+                                <p>No estamos emitiendo en este momento.</p>
+                            </div>
+                        </div>
+
+                        <!-- Loading Spinner -->
+                        <div class="loading-overlay" id="loading-overlay">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Chat Sidebar -->
+                <div class="chat-sidebar glass-panel">
+                    <div class="chat-header">
+                        <h3>Chat en Vivo</h3>
+                        <span class="online-badge">Online</span>
+                    </div>
+                    <div id="live-chat-messages" class="live-chat-messages">
+                        <div class="chat-message server">
+                            <span class="message-text">Bienvenido al chat de Veredillas FM. ¡Sé amable!</span>
+                        </div>
+                    </div>
+                    <form id="live-chat-form" class="live-chat-input">
+                        <input type="text" id="live-chat-input" placeholder="Di hola..." maxlength="100" autocomplete="off">
+                        <button type="submit" aria-label="Enviar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="live-info gs-reveal">
+                <div class="info-card glass-panel">
+                    <h3>Estado de la conexión</h3>
+                    <p id="debug-info" class="text-sm font-mono mt-2 text-white/50">Inicializando...</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</Layout>
+
+<script>
+    import Hls from 'hls.js';
+    import { gsap } from "gsap";
+
+    const STREAM_URL = 'https://live.veredillasfm.es/stream-pro.m3u8';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const video = document.getElementById('live-video') as HTMLVideoElement;
+        const videoContainer = document.getElementById('video-container');
+        const statusBadge = document.getElementById('status-badge');
+        const statusText = statusBadge?.querySelector('.status-text');
+        const offlineOverlay = document.getElementById('offline-overlay');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const startOverlay = document.getElementById('start-overlay');
+        const customControls = document.getElementById('custom-controls');
+        const initialStartBtn = document.getElementById('initial-start-btn');
+        const subtitle = document.querySelector('.page-subtitle');
+        const debugInfo = document.getElementById('debug-info');
+        const viewerCountDisplay = document.getElementById('viewer-count');
+
+        // Chat Elements
+        const chatForm = document.getElementById('live-chat-form');
+        const chatInput = document.getElementById('live-chat-input') as HTMLInputElement;
+        const chatMessages = document.getElementById('live-chat-messages');
+
+        // Controls
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const muteBtn = document.getElementById('mute-btn');
+        const volumeSlider = document.getElementById('volume-slider') as HTMLInputElement;
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const iconPause = document.querySelector('.icon-pause') as HTMLElement;
+        const iconPlay = document.querySelector('.icon-play') as HTMLElement;
+        const iconVolHigh = document.querySelector('.icon-vol-high') as HTMLElement;
+        const iconVolMuted = document.querySelector('.icon-vol-muted') as HTMLElement;
+
+        let retryCount = 0;
+        const maxRetries = 5;
+        let hls: Hls | null = null;
+        let isUserActive = false;
+        let controlsTimeout: any;
+        let viewerInterval: any;
+
+        function updateDebug(msg: string) {
+            console.log(`[Stream] ${msg}`);
+            if (debugInfo) debugInfo.textContent = msg;
+        }
+
+        // Viewer Count Simulation (Random walk)
+        function startViewerSimulation() {
+            let count = Math.floor(Math.random() * (120 - 40 + 1) + 40); // Initial 40-120
+            if (viewerCountDisplay) viewerCountDisplay.innerText = count.toString();
+            
+            viewerInterval = setInterval(() => {
+                const change = Math.floor(Math.random() * 7) - 3; // -3 to +3
+                count = Math.max(12, count + change);
+                if (viewerCountDisplay) {
+                    // Animate change
+                    gsap.to(viewerCountDisplay, {
+                        innerText: count,
+                        duration: 1,
+                        snap: { innerText: 1 },
+                        ease: "power1.out"
+                    });
+                }
+            }, 5000);
+        }
+
+        function stopViewerSimulation() {
+            clearInterval(viewerInterval);
+            if (viewerCountDisplay) viewerCountDisplay.innerText = "--";
+        }
+
+        // Chat Logic (Local for now, could be WebSocket)
+        function addChatMessage(msg: string, isMe = false, username = 'Tú') {
+            if (!chatMessages) return;
+            
+            const div = document.createElement('div');
+            div.className = `chat-message ${isMe ? 'me' : 'other'}`;
+            
+            // Random color for other users
+            const hue = Math.floor(Math.random() * 360);
+            const userColor = isMe ? 'var(--color-primary)' : `hsl(${hue}, 70%, 60%)`;
+            
+            div.innerHTML = `
+                <span class="user-name" style="color: ${userColor}">${username}</span>
+                <span class="message-text">${msg.replace(/</g, "&lt;")}</span>
+            `;
+            
+            chatMessages.appendChild(div);
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatForm?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const msg = chatInput.value.trim();
+            if (msg) {
+                addChatMessage(msg, true);
+                chatInput.value = '';
+                
+                // Simulate reply occasionally
+                if (Math.random() > 0.8) {
+                    setTimeout(() => {
+                        const replies = ["¡Totalmente!", "Jajaja buena esa", "Saludos desde Madrid!", "Wow", "Crack!"];
+                        const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                        addChatMessage(randomReply, false, "Usuario" + Math.floor(Math.random() * 99));
+                    }, 2000);
+                }
+            }
+        });
+
+        // --- Player Logic ---
+
+        function showControls() {
+            if (customControls) {
+                customControls.classList.add('visible');
+                videoContainer?.style.setProperty('cursor', 'default');
+            }
+        }
+
+        function hideControls() {
+            if (customControls && !video.paused) {
+                customControls.classList.remove('visible');
+                videoContainer?.style.setProperty('cursor', 'none');
+            }
+        }
+
+        function resetControlsTimer() {
+            showControls();
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                if (!video.paused) hideControls();
+            }, 3000);
+        }
+
+        function handleInitialStart() {
+            if (startOverlay) {
+                gsap.to(startOverlay, { opacity: 0, pointerEvents: 'none', duration: 0.5 });
+            }
+            video.muted = false; 
+            updateVolumeUI();
+            video.play().then(() => {
+                updateDebug("Reproduciendo con sonido.");
+                if (loadingOverlay) loadingOverlay.style.opacity = '0';
+                showControls();
+            }).catch(e => {
+                console.error("Start failed:", e);
+            });
+        }
+
+        function togglePlay() {
+            if (video.paused) {
+                video.play();
+                iconPlay.style.display = 'none';
+                iconPause.style.display = 'block';
+            } else {
+                video.pause();
+                iconPlay.style.display = 'block';
+                iconPause.style.display = 'none';
+            }
+        }
+
+        function toggleMute() {
+            video.muted = !video.muted;
+            updateVolumeUI();
+        }
+
+        function updateVolumeUI() {
+            if (video.muted || video.volume === 0) {
+                iconVolHigh.style.display = 'none';
+                iconVolMuted.style.display = 'block';
+                volumeSlider.value = "0";
+            } else {
+                iconVolHigh.style.display = 'block';
+                iconVolMuted.style.display = 'none';
+                volumeSlider.value = video.volume.toString();
+            }
+        }
+
+        function handleVolumeChange(e: Event) {
+            const val = parseFloat((e.target as HTMLInputElement).value);
+            video.volume = val;
+            video.muted = val === 0;
+            updateVolumeUI();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                videoContainer?.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function setLiveState(isLive: boolean) {
+            if (isLive) {
+                statusBadge?.classList.remove('offline');
+                statusBadge?.classList.add('live');
+                if (statusText) statusText.textContent = "EN VIVO";
+                if (subtitle) subtitle.textContent = "Emitiendo desde el IES Veredillas";
+                if (offlineOverlay) {
+                    offlineOverlay.style.opacity = '0';
+                    offlineOverlay.style.pointerEvents = 'none';
+                }
+                
+                if (startOverlay) {
+                     gsap.to(startOverlay, { opacity: 1, pointerEvents: 'auto', duration: 0.5 });
+                }
+                if (loadingOverlay) loadingOverlay.style.opacity = '0';
+                
+                startViewerSimulation();
+
+            } else {
+                statusBadge?.classList.remove('live');
+                statusBadge?.classList.add('offline');
+                if (statusText) statusText.textContent = "OFFLINE";
+                if (subtitle) subtitle.textContent = "Transmisión finalizada o no disponible";
+                if (offlineOverlay) {
+                    offlineOverlay.style.opacity = '1';
+                    offlineOverlay.style.pointerEvents = 'auto';
+                }
+                if (loadingOverlay) loadingOverlay.style.opacity = '0';
+                if (startOverlay) startOverlay.style.opacity = '0';
+                
+                stopViewerSimulation();
+            }
+        }
+
+        function initPlayer() {
+            if (hls) {
+                hls.destroy();
+            }
+
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    debug: false,
+                    manifestLoadingTimeOut: 10000,
+                    levelLoadingTimeOut: 10000,
+                    fragLoadingTimeOut: 10000,
+                });
+
+                updateDebug("Cargando manifest HLS...");
+                hls.loadSource(STREAM_URL);
+                hls.attachMedia(video);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    updateDebug("Manifest cargado. Esperando usuario...");
+                    setLiveState(true);
+                });
+
+                hls.on(Hls.Events.ERROR, function (event, data) {
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                updateDebug(`Error de red: ${data.details}`);
+                                if(retryCount < maxRetries) {
+                                    retryCount++;
+                                    updateDebug(`Reintentando conexión (${retryCount}/${maxRetries})...`);
+                                    hls?.startLoad();
+                                } else {
+                                    hls?.destroy();
+                                    setLiveState(false);
+                                }
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                updateDebug("Error de medio, recuperando...");
+                                hls?.recoverMediaError();
+                                break;
+                            default:
+                                updateDebug("Error fatal. Stream detenido.");
+                                hls?.destroy();
+                                setLiveState(false);
+                                break;
+                        }
+                    }
+                });
+
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Native HLS support (Safari)
+                video.src = STREAM_URL;
+                video.addEventListener('loadedmetadata', function() {
+                    setLiveState(true);
+                });
+                video.addEventListener('error', function() {
+                    setLiveState(false);
+                });
+            } else {
+                updateDebug("HLS no soportado en este navegador.");
+                setLiveState(false);
+            }
+        }
+
+        function checkStreamHealth() {
+             fetch(STREAM_URL, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        updateDebug("Stream detectado online. Inicializando...");
+                        initPlayer();
+                    } else {
+                        updateDebug(`Stream offline (HTTP ${response.status})`);
+                        setLiveState(false);
+                    }
+                })
+                .catch(err => {
+                    updateDebug("Error verificando stream: " + err.message);
+                    setLiveState(false);
+                });
+        }
+
+        // Event Listeners
+        initialStartBtn?.addEventListener('click', handleInitialStart);
+        playPauseBtn?.addEventListener('click', togglePlay);
+        muteBtn?.addEventListener('click', toggleMute);
+        fullscreenBtn?.addEventListener('click', toggleFullscreen);
+        volumeSlider?.addEventListener('input', handleVolumeChange);
+
+        videoContainer?.addEventListener('mousemove', resetControlsTimer);
+        videoContainer?.addEventListener('click', resetControlsTimer);
+
+        // Initialize
+        checkStreamHealth();
+        
+        // Initial animation
+        gsap.from(".gs-reveal", {
+            y: 30,
+            opacity: 0,
+            duration: 1,
+            stagger: 0.2,
+            ease: "power3.out",
+            delay: 0.2
+        });
+    });
+</script>
+
+<style>
+    .live-section {
+        padding: 4rem 0;
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .live-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 800;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, #fff, rgba(255,255,255,0.7));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: var(--color-text-muted);
+    }
+
+    /* Status Badge */
+    .live-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 100px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+    }
+
+    .live-status-badge.live {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+    }
+
+    .live-status-badge.offline {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-text-muted);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .live-status-badge.live .status-dot {
+        animation: pulse-red 1.5s infinite;
+        box-shadow: 0 0 10px currentColor;
+    }
+
+    @keyframes pulse-red {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Player Container */
+    .player-container {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto 3rem;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+        background: #000;
+        position: relative;
+    }
+
+    .video-container {
+        position: relative;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        background: #000;
+        overflow: hidden;
+    }
+
+    #live-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Start Overlay (Premium "Click to Watch") */
+    .start-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        transition: opacity 0.5s ease;
+    }
+
+    .start-content {
+        text-align: center;
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    .start-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        group: true;
+    }
+
+    .play-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: var(--color-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb, 236, 72, 153), 0.7);
+        animation: pulse-ring 2s infinite;
+        transition: transform 0.3s ease;
+    }
+
+    .start-btn:hover .play-icon-wrapper {
+        transform: scale(1.1);
+        background: white;
+        color: var(--color-primary);
+    }
+    
+    .start-btn svg {
+        width: 40px;
+        height: 40px;
+        margin-left: 4px; /* Optical adjustment */
+    }
+
+    .start-btn span {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    .start-hint {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.7);
+    }
+
+    @keyframes pulse-ring {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb, 236, 72, 153), 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(var(--color-primary-rgb, 236, 72, 153), 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb, 236, 72, 153), 0); }
+    }
+
+    @keyframes scaleIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Custom Controls Bar */
+    .custom-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        padding: 40px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        z-index: 40;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none; /* Hidden by default */
+    }
+
+    .custom-controls.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .controls-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .left-controls, .right-controls {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .control-btn {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s, transform 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .control-btn:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    /* Volume Slider */
+    .volume-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .volume-slider {
+        -webkit-appearance: none;
+        width: 80px;
+        height: 4px;
+        background: rgba(255,255,255,0.3);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+
+    .volume-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.3);
+    }
+
+    /* Live Indicator in Bar */
+    .live-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #ef4444;
+        font-weight: 700;
+        font-size: 0.8rem;
+        margin-left: 1rem;
+        letter-spacing: 0.1em;
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #ef4444;
+    }
+
+    /* Overlays */
+    .offline-overlay, .loading-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        transition: opacity 0.5s ease;
+    }
+
+    .offline-overlay {
+        backdrop-filter: blur(10px);
+        background: rgba(5, 5, 5, 0.8);
+    }
+
+    .loading-overlay {
+        background: rgba(0,0,0,0.5);
+        z-index: 5;
+        pointer-events: none;
+    }
+
+    /* Spinner */
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255,255,255,0.1);
+        border-left-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Live Info */
+    .live-info {
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .info-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    /* Layout Grid */
+    .live-grid-container {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto 3rem;
+        align-items: stretch;
+    }
+
+    /* Updated Player Container for Grid */
+    .player-container {
+        width: 100%;
+        max-width: 100%; /* Override */
+        margin: 0; /* Override */
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+        background: #000;
+        position: relative;
+    }
+
+    .video-container {
+        position: relative;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        background: #000;
+        overflow: hidden;
+    }
+
+    /* Viewer Widget */
+    .viewer-widget {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 30;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        padding: 6px 12px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .live-dot-small {
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #ef4444;
+        animation: pulse-red 1.5s infinite;
+    }
+
+    /* Chat Sidebar */
+    .chat-sidebar {
+        display: flex;
+        flex-direction: column;
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        overflow: hidden;
+        max-height: 100%;
+        min-height: 400px;
+    }
+
+    .chat-header {
+        padding: 1rem;
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-header h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .online-badge {
+        font-size: 0.75rem;
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .live-chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        scroll-behavior: smooth;
+    }
+
+    .chat-message {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .chat-message.server {
+        text-align: center;
+        opacity: 0.6;
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .user-name {
+        font-weight: 700;
+        margin-right: 0.5rem;
+    }
+
+    .message-text {
+        color: rgba(255,255,255,0.9);
+    }
+
+    .live-chat-input {
+        padding: 1rem;
+        background: rgba(255,255,255,0.02);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .live-chat-input input {
+        flex: 1;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 0.6rem 1rem;
+        border-radius: 50px;
+        color: white;
+        font-size: 0.9rem;
+    }
+
+    .live-chat-input input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+    }
+
+    .live-chat-input button {
+        background: var(--color-primary);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+    }
+
+    .live-chat-input button:hover {
+        transform: scale(1.1);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .live-grid-container {
+            grid-template-columns: 1fr;
+            max-width: 900px;
+        }
+        
+        .chat-sidebar {
+            height: 400px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 2rem;
+        }
+        .live-section {
+            padding: 2rem 1rem;
+        }
+    }
+
+    /* Offline Content Details */
+    .offline-content {
+        text-align: center;
+        max-width: 400px;
+        padding: 2rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .offline-icon {
+        font-size: 3rem;
+        color: var(--color-text-muted);
+        margin-bottom: 1.5rem;
+        display: inline-block;
+        padding: 1.5rem;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .offline-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+
+    .offline-content p {
+        color: var(--color-text-muted);
+        margin-bottom: 2rem;
+    }
+
+    /* Background Blobs */
+    .blob {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.4;
+    }
+    
+    .blob-1 {
+        top: -100px;
+        left: -100px;
+        background: radial-gradient(circle, var(--color-primary), transparent);
+        animation: blob-float 10s infinite alternate;
+    }
+    
+    .blob-2 {
+        bottom: -100px;
+        right: -100px;
+        background: radial-gradient(circle, var(--color-secondary), transparent);
+        animation: blob-float 12s infinite alternate-reverse;
+    }
+
+    .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+    }
+
+    @keyframes blob-float {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+    }
+</style>
