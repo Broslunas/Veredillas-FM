@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import LiveChat from '../components/LiveChat.astro';
 import ListenerCount from '../components/ListenerCount.astro';
+
+export const prerender = false;
 ---
 
 <Layout 
@@ -306,7 +308,10 @@ import ListenerCount from '../components/ListenerCount.astro';
                                     hls?.startLoad();
                                 } else {
                                     hls?.destroy();
+                                    hls = null; // Clear instance
                                     setLiveState(false);
+                                    // Start polling to detect when it comes back
+                                    startPolling();
                                 }
                                 break;
                             case Hls.ErrorTypes.MEDIA_ERROR:
@@ -316,7 +321,9 @@ import ListenerCount from '../components/ListenerCount.astro';
                             default:
                                 updateDebug("Error fatal. Stream detenido.");
                                 hls?.destroy();
+                                hls = null;
                                 setLiveState(false);
+                                startPolling();
                                 break;
                         }
                     }
@@ -337,20 +344,46 @@ import ListenerCount from '../components/ListenerCount.astro';
             }
         }
 
+        let isPolling = false;
+        let pollInterval: any;
+
+        function startPolling() {
+            if (isPolling) return;
+            isPolling = true;
+            updateDebug("Iniciando búsqueda de señal...");
+            
+            // Poll every 10 seconds
+            pollInterval = setInterval(checkStreamHealth, 10000);
+        }
+
+        function stopPolling() {
+            if (!isPolling) return;
+            isPolling = false;
+            clearInterval(pollInterval);
+            updateDebug("Señal encontrada. Deteniendo búsqueda.");
+        }
+
         function checkStreamHealth() {
              fetch(STREAM_URL, { method: 'HEAD' })
                 .then(response => {
                     if (response.ok) {
                         updateDebug("Stream detectado online. Inicializando...");
-                        initPlayer();
+                        stopPolling();
+                        if (!hls && video.paused) {
+                            initPlayer();
+                        }
                     } else {
                         updateDebug(`Stream offline (HTTP ${response.status})`);
                         setLiveState(false);
+                        // Ensure polling is running if we are offline
+                        if (!isPolling) startPolling();
                     }
                 })
                 .catch(err => {
                     updateDebug("Error verificando stream: " + err.message);
                     setLiveState(false);
+                    // Ensure polling is running if we have network errors
+                    if (!isPolling) startPolling();
                 });
         }
 
@@ -363,7 +396,7 @@ import ListenerCount from '../components/ListenerCount.astro';
 
         videoContainer?.addEventListener('mousemove', resetControlsTimer);
         videoContainer?.addEventListener('click', resetControlsTimer);
-
+        
         // Initialize
         checkStreamHealth();
         

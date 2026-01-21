@@ -774,9 +774,10 @@ try {
                 const data = await res.json();
                 console.log("Response:", data);
 
-                if(data.success) {
-                    // Message will appear on next poll, or we can append it now (optional)
-                    this.fetchMessages(); 
+                if(data.success && data.message) {
+                    // Optimistic-like update: Render immediately using the server response
+                    // This avoids waiting for the next poll or a second fetch
+                    this.renderMessages([data.message]);
                 } else {
                     this.input.value = originalValue; // Restore on error
                     this.showToast(data.error || "Error enviando mensaje", "error");
