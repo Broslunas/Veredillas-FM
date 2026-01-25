@@ -25,9 +25,24 @@ function getCustomPages() {
       const url = `${SITE_URL}/ep/${slug}`; // Ensure no trailing slash for consistency check
       pages.push(url);
       
-      // Store modification time
-      const stats = fs.statSync(file);
-      episodeDates[url] = stats.mtime.toISOString();
+      // Read file content to get pubDate from frontmatter
+      // This is more reliable than fs.stats which resets on new clones/deploys
+      try {
+        const content = fs.readFileSync(file, 'utf-8');
+        const match = content.match(/pubDate:\s*(["']?)(.*)\1/);
+        if (match && match[2]) {
+            const dateStr = match[2].trim();
+            // Ensure valid date
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                episodeDates[url] = date.toISOString();
+            }
+        }
+      } catch (err) {
+        // Fallback to file stats if regex fails or file read error
+        const stats = fs.statSync(file);
+        episodeDates[url] = stats.mtime.toISOString();
+      }
     });
   } catch (e) {
     console.error('Error loading episodes for sitemap:', e);
