@@ -22,10 +22,10 @@ export const GET: APIRoute = async ({ request }) => {
     // 2. Connect to DB
     await dbConnect();
 
-    // 3. Verify Admin Role
+    // 3. Verify Admin/Owner Role
     const currentUser = await User.findById(userPayload.userId);
     
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
       return new Response(JSON.stringify({ error: 'Forbidden: Admin access required' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' }
@@ -66,7 +66,7 @@ export const PUT: APIRoute = async ({ request }) => {
 
     await dbConnect();
     const currentUser = await User.findById(userPayload.userId);
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
     }
 
@@ -78,6 +78,20 @@ export const PUT: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Missing userId' }), { status: 400 });
     }
 
+    // Check target user rights
+    const userBefore = await User.findById(userId);
+    if (!userBefore) {
+        return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+    }
+
+    // Admin cannot modify other admins or owners
+    if (currentUser.role === 'admin' && (userBefore.role === 'admin' || userBefore.role === 'owner')) {
+         // Exception: Admin can edit themselves? usually yes, but let's stick to "cannot modify other admins"
+         if (currentUser._id.toString() !== userBefore._id.toString()) {
+             return new Response(JSON.stringify({ error: 'Admins cannot modify other admins or owners' }), { status: 403 });
+         }
+    }
+
     // 3. Update User
     const updateData: any = {};
     if (name) updateData.name = name;
@@ -85,12 +99,10 @@ export const PUT: APIRoute = async ({ request }) => {
     if (bio !== undefined) updateData.bio = bio;
     if (newsletter !== undefined) updateData.newsletter = newsletter;
 
-    // Check previous state for webhook trigger
-    const userBefore = await User.findById(userId);
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-__v');
 
     if (!updatedUser) {
-      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+        return new Response(JSON.stringify({ error: 'User update failed' }), { status: 404 });
     }
 
     // 4. Trigger Webhook if newsletter changed
@@ -135,11 +147,11 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     await dbConnect();
     const currentUser = await User.findById(userPayload.userId);
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
     }
 
-    // 2. Parse Body (or URL search params if you prefer, but body is fine for simple internal usage)
+    // 2. Parse Body
     const body = await request.json();
     const { userId } = body;
 
@@ -147,17 +159,23 @@ export const DELETE: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Missing userId' }), { status: 400 });
     }
 
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+        return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+    }
+
     // Prevent deleting yourself
     if (userId === userPayload.userId) {
-        return new Response(JSON.stringify({ error: 'Cannot delete your own admin account' }), { status: 400 });
+        return new Response(JSON.stringify({ error: 'Cannot delete your own account' }), { status: 400 });
+    }
+
+    // Admin cannot delete admins or owners
+    if (currentUser.role === 'admin' && (targetUser.role === 'admin' || targetUser.role === 'owner')) {
+        return new Response(JSON.stringify({ error: 'Admins cannot delete other admins or owners' }), { status: 403 });
     }
 
     // 3. Delete User
-    const deletedUser = await User.findByIdAndDelete(userId);
-
-    if (!deletedUser) {
-      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
-    }
+    await User.findByIdAndDelete(userId);
 
     return new Response(JSON.stringify({ success: true, message: 'User deleted' }), {
       status: 200,

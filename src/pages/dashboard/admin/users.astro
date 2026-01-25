@@ -18,7 +18,7 @@ if (!userPayload) {
 await dbConnect();
 
 const currentUser = await User.findById(userPayload.userId);
-if (!currentUser || currentUser.role !== 'admin') {
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
   return Astro.redirect('/404'); 
 }
 
@@ -148,6 +148,7 @@ function formatTime(seconds: number) {
                     <select id="editRole" name="role" class="modern-input">
                         <option value="user">Usuario</option>
                         <option value="admin">Administrador</option>
+                        <option value="owner">Dueño</option>
                     </select>
                 </div>
 
@@ -546,6 +547,7 @@ function formatTime(seconds: number) {
   /* Badges */
   .role-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
   .role-badge.admin { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); box-shadow: 0 0 10px rgba(139, 92, 246, 0.2); }
+  .role-badge.owner { background: rgba(244, 114, 182, 0.15); color: #fbcfe8; border: 1px solid rgba(244, 114, 182, 0.4); box-shadow: 0 0 15px rgba(244, 114, 182, 0.3); }
   .role-badge.user { background: rgba(255,255,255,0.03); color: #9ca3af; border: 1px solid rgba(255,255,255,0.1); }
   
   .status-badge { display: inline-flex; padding: 0.3rem 0.8rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600; }

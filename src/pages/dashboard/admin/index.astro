@@ -22,7 +22,7 @@ if (!userPayload) {
 await dbConnect();
 
 const currentUser = await User.findById(userPayload.userId);
-if (!currentUser || currentUser.role !== 'admin') {
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
   return Astro.redirect('/404'); 
 }
 

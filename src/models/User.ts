@@ -19,7 +19,7 @@ export interface IUser extends mongoose.Document {
   createdAt: Date;
   updatedAt: Date;
   lastLogin: Date;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'owner';
   newsletter: boolean;
 }
 
