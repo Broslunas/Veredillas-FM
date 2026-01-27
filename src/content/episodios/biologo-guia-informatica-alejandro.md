@@ -2,7 +2,7 @@
 title: "El Biólogo que nos guía en la Informática ft. Alejandro"
 description: "Hoy, no vamos a hablar solo de procesadores o código binario, sino de la persona que está detrás del teclado: el Profesor Alejandro, nuestro querido profesor de Informática."
 pubDate: 2025-11-25
-image: "https://cdn.veredillasfm.es/img/002-v2.webp"
+image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjnLK1u1y6yDhK6yumKrztTdimUtq91FmdvK2mHJ9zZyRKmYO8JBZmrAuDorqXAKUVkayN4uV5EcG7sOPOTVZCTqeOISM7jrzSxEac-RItneKwC4Q3NS0S8eL0ioG2v5V8ys6YPOAD9RBjrlkbtWSDp1SmoBxOX46qPTppBbr-sqsBQuLvcCWw-TmEW8DI/w640-h640/Imagen%20de%20WhatsApp%202025-12-10%20a%20las%2012.07.00_ac94ad9a.jpg"
 audioUrl: "https://anchor.fm/s/10ca1a038/podcast/play/112421764/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2025-11-10%2F7b84ea23-3111-4257-5de9-75f6df3f7128.mp3"
 season: 1
 episode: 2
