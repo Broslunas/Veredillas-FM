@@ -24,6 +24,7 @@ const episodios = defineCollection({
             title: z.string(),
             time: z.string(), // "MM:SS"
         })).optional(),
+        warningMessage: z.string().optional(),
 	}),
 });
 
