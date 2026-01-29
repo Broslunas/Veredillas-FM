@@ -163,6 +163,7 @@ try {
                             data-slug={entry.slug}
                             data-is-premiere={isPremiere}
                             data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
+                            data-video-url={entry.data.videoUrl}
                         ></div>
                     ) : entry.data.audioUrl ? (
                         <div 
@@ -176,6 +177,7 @@ try {
                             data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
                             data-start-time={savedProgress > 10 ? savedProgress : 0} 
                             data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
+                            data-video-url={entry.data.videoUrl}
                         ></div>
                     ) : null}
                 </div>
@@ -352,6 +354,7 @@ try {
         min-height: 160px;
         border-radius: 12px;
         background: rgba(255,255,255,0.05); /* Visual placeholder */
+        transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .content-container {

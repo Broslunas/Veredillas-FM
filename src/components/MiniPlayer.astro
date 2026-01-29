@@ -732,32 +732,142 @@ import './player/SharedPlayerStyles.css';
                 if (url && window.playerCurrentUrl !== url) {
                     window.playerCurrentUrl = url;
                     
-                    if (spotifyUrl) {
-                        // Spotify Logic
-                        let finalUrl = url;
-                        try {
-                             const urlObj = new URL(url);
-                             if (!urlObj.pathname.includes('/embed/')) {
-                                  const segments = urlObj.pathname.split('/').filter(Boolean);
-                                  if (segments[0] !== 'embed') finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
-                             }
-                        } catch(e) {}
-                        
-                        container.innerHTML = `<iframe style="border-radius:12px" src="${finalUrl}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
-                        
-                    } else if (audioUrl && title) {
-                        const transcriptionStr = placeholder.getAttribute('data-transcription');
-                        const startStr = placeholder.getAttribute('data-start-time');
-                        const startTime = startStr ? parseFloat(startStr) : 0;
-                        
-                        // PREMIERE LOGIC READ
-                        const isPremiere = placeholder.getAttribute('data-is-premiere') === 'true';
-                        const premiereDateStr = placeholder.getAttribute('data-premiere-date');
-                        const premiereDate = premiereDateStr ? new Date(premiereDateStr).getTime() : 0;
+                    const videoUrl = placeholder.getAttribute('data-video-url');
+                    
+                    // Clear container
+                    container.innerHTML = '';
+                    // Container needs relative positioning for overlays
+                    container.style.position = 'relative'; 
 
-                        const trans = transcriptionStr ? JSON.parse(transcriptionStr) : null;
-                        setupCustomPlayer(container, audioUrl, title, image || '', author || '', trans, startTime, isPremiere, premiereDate);
+                    const renderVideoMode = () => {
+                        container.innerHTML = '';
+                        
+                        // Video Iframe
+                        const iframe = document.createElement('iframe');
+                        iframe.style.borderRadius = '12px';
+                        iframe.src = videoUrl || '';
+                        iframe.width = "100%";
+                        iframe.height = "352";
+                        iframe.frameBorder = "0";
+                        iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+                        iframe.loading = "lazy";
+                        iframe.style.display = 'block'; // Prevent inline-block spacing
+                        
+                        container.appendChild(iframe);
+                        
+                        // Overlay "Headphones" Button to switch back
+                        const switchBtn = document.createElement('button');
+                        switchBtn.className = 'media-toggle-overlay';
+                        switchBtn.title = "Escuchar Audio";
+                        switchBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>`;
+                        
+                        switchBtn.onclick = () => renderAudioMode();
+                        container.appendChild(switchBtn);
+                        
+                        // Explicitly Force Height for Video Iframe (352px)
+                        // allowing transition to catch up
+                        placeholder.style.height = '352px';
+                        
+                        syncHeight();
+                    };
+
+                    const renderAudioMode = () => {
+                         container.innerHTML = '';
+                         
+                         let contentContainer = container;
+                         
+                         // If we are strictly in audio mode, we might want to wrap custom player?
+                         // setupCustomPlayer appends into the passed container.
+                         
+                         if (spotifyUrl) {
+                            // Spotify Logic
+                            let finalUrl = url;
+                            try {
+                                 const urlObj = new URL(url);
+                                 if (!urlObj.pathname.includes('/embed/')) {
+                                      const segments = urlObj.pathname.split('/').filter(Boolean);
+                                      if (segments[0] !== 'embed') finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
+                                 }
+                            } catch(e) {}
+                            
+                            container.innerHTML = `<iframe style="border-radius:12px" src="${finalUrl}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+                            
+                            // If Dual Mode, add overlay button on top of Spotify Iframe
+                            if (videoUrl) {
+                                const switchBtn = document.createElement('button');
+                                switchBtn.className = 'media-toggle-overlay';
+                                switchBtn.title = "Ver Video";
+                                switchBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`;
+                                switchBtn.onclick = () => renderVideoMode();
+                                container.appendChild(switchBtn);
+                            }
+
+                        } else if (audioUrl && title) {
+                            const transcriptionStr = placeholder.getAttribute('data-transcription');
+                            const startStr = placeholder.getAttribute('data-start-time');
+                            const startTime = startStr ? parseFloat(startStr) : 0;
+                            
+                            // PREMIERE LOGIC READ
+                            const isPremiere = placeholder.getAttribute('data-is-premiere') === 'true';
+                            const premiereDateStr = placeholder.getAttribute('data-premiere-date');
+                            const premiereDate = premiereDateStr ? new Date(premiereDateStr).getTime() : 0;
+    
+                            const trans = transcriptionStr ? JSON.parse(transcriptionStr) : null;
+                            setupCustomPlayer(container, audioUrl, title, image || '', author || '', trans, startTime, isPremiere, premiereDate);
+                            
+                            // Inject Button into Custom Player Extras
+                            if (videoUrl) {
+                                const extras = container.querySelector('.player-extras');
+                                if (extras) {
+                                    const vidBtn = document.createElement('button');
+                                    vidBtn.className = 'btn-ctrl video-toggle';
+                                    vidBtn.title = "Ver Video";
+                                    vidBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`;
+                                    vidBtn.onclick = () => renderVideoMode();
+                                    
+                                    // Insert before the last element (Maximize) or first?
+                                    // Extras has: Speed, Volume|None, Maximize
+                                    const maximizeBtn = extras.querySelector('#maximizeBtn');
+                                    if(maximizeBtn) {
+                                        extras.insertBefore(vidBtn, maximizeBtn);
+                                    } else {
+                                        extras.appendChild(vidBtn);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // IMMEDIATE HEIGHT RESET (Collapse gap)
+                        // This starts the transition to a smaller height instantly, 
+                        // instead of waiting for syncHeight to calculate offsetHeight after render.
+                        if (spotifyUrl) {
+                            placeholder.style.height = '152px'; 
+                        } else {
+                            placeholder.style.height = '180px'; // Approx min-height for custom player
+                        }
+                        
+                        syncHeight();
+                    }; // Close renderAudioMode
+
+                    const syncHeight = () => {
+                        // Immediate check
+                        updateHeight();
+                        // Follow-up checks for layout settle
+                        requestAnimationFrame(updateHeight);
+                        setTimeout(updateHeight, 50);
+                        setTimeout(updateHeight, 300); // After transition
+                    };
+                    
+                    function updateHeight() {
+                        const player = document.getElementById('mini-player');
+                        if (player && placeholder) {
+                             const h = player.offsetHeight;
+                             if(h > 0) placeholder.style.height = `${h}px`;
+                        }
                     }
+                    
+                    // Initial Render
+                    renderAudioMode();
                 }
 
                 // Move Player to Placeholder
