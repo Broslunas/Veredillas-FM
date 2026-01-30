@@ -109,6 +109,7 @@ import './player/SharedPlayerStyles.css';
             visualizerInterval: number;
             YT: any;
             onYouTubeIframeAPIReady: () => void;
+            playerResizeObserver: ResizeObserver | null;
         }
     }
 
@@ -1022,8 +1023,8 @@ import './player/SharedPlayerStyles.css';
                         // Explicitly Force Height for Video Iframe (352px)
                         // allowing transition to catch up
                         placeholder.style.height = '352px';
-                        
-                        syncHeight();
+                        placeholder.style.minHeight = '352px';
+
                     };
 
                     const renderAudioMode = () => {
@@ -1093,68 +1094,55 @@ import './player/SharedPlayerStyles.css';
                         }
                         
                         // IMMEDIATE HEIGHT RESET (Collapse gap)
-                        // This starts the transition to a smaller height instantly, 
-                        // instead of waiting for syncHeight to calculate offsetHeight after render.
                         if (spotifyUrl) {
+                            placeholder.style.minHeight = '0px'; 
                             placeholder.style.height = '152px'; 
                         } else {
-                            placeholder.style.height = '180px'; // Approx min-height for custom player
+                            placeholder.style.minHeight = '0px';
+                            placeholder.style.height = 'auto'; 
                         }
                         
-                        syncHeight();
-                    }; // Close renderAudioMode
 
-                    const syncHeight = () => {
-                        // Immediate check
-                        updateHeight();
-                        // Follow-up checks for layout settle
-                        requestAnimationFrame(updateHeight);
-                        setTimeout(updateHeight, 50);
-                        setTimeout(updateHeight, 300); // After transition
-                    };
-                    
-                    function updateHeight() {
-                        const player = document.getElementById('mini-player');
-                        if (player && placeholder) {
-                             const h = player.offsetHeight;
-                             if(h > 0) placeholder.style.height = `${h}px`;
-                        }
-                    }
-                    
-                    // Initial Render
+                    }; // Close renderAudioMode
                     renderAudioMode();
                 }
 
-                // Move Player to Placeholder
-                const rect = placeholder.getBoundingClientRect();
-                const scrollY = window.scrollY || window.pageYOffset;
-                const scrollX = window.scrollX || window.pageXOffset;
+
+                // DOM TRANSPLANTATION STRATEGY
+                // Instead of absolute positioning hacks, we literally move the player into the placeholder.
+                // This ensures perfect flow and height calculation by the browser.
+                
+                if (player.parentNode !== placeholder) {
+                    placeholder.appendChild(player);
+                }
 
                 player.classList.remove('floating', 'hidden');
                 player.classList.add('inline', 'visible');
                 
-                player.style.position = 'absolute';
-                player.style.top = `${rect.top + scrollY}px`;
-                player.style.left = `${rect.left + scrollX}px`;
-                player.style.width = `${rect.width}px`;
-                player.style.height = 'auto'; // Content-driven height
+                // Reset Styles for Inline Flow
+                player.style.position = 'relative';
+                player.style.top = 'auto';
+                player.style.left = 'auto';
+                player.style.bottom = 'auto';
+                player.style.width = '100%';
+                player.style.height = 'auto';
                 
-                // Force wrapper to auto
+                // Ensure wrapper flow
                 const wrapper = player.querySelector('.player-wrapper') as HTMLElement;
                 if(wrapper) {
                     wrapper.style.height = 'auto';
                     wrapper.style.minHeight = '100%';
                 }
                 
-                // Sync Placeholder Height to match Player Content
-                // We use requestAnimationFrame to ensure render
-                requestAnimationFrame(() => {
-                    if (player.offsetHeight > 0) {
-                        placeholder.style.height = `${player.offsetHeight}px`;
-                    }
-                });
+                // Remove specific height overrides on placeholder creates by previous logic
+                placeholder.style.height = 'auto';
+                placeholder.style.minHeight = '0px';
 
                 document.body.style.paddingBottom = '0';
+                
+                // Initial Render (moved here to ensure it renders into the now-transplanted container if needed, though container is internal)
+                // renderAudioMode(); // Removed out-of-scope call
+
 
             } else {
                 // FLOATING MODE
@@ -1241,4 +1229,4 @@ import './player/SharedPlayerStyles.css';
     });
 </script>
 
-</script>
+
