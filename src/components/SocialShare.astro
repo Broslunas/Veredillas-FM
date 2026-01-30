@@ -35,24 +35,531 @@ const shareTitle = encodeURIComponent(title);
     <button class="share-btn copy-link" id="copy-link-btn" aria-label="Copiar enlace">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
     </button>
+
+    <!-- Embed Widget -->
+    <button class="share-btn embed-btn" id="open-embed-btn" aria-label="Insertar Widget">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+    </button>
   </div>
 </aside>
 
+<!-- Embed Modal -->
+<div id="embed-modal" class="embed-backdrop">
+    <div class="embed-dialog">
+        <div class="embed-header">
+            <h3>Insertar Episodio</h3>
+            <button class="close-btn" id="close-embed-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <div class="embed-tabs">
+            <button class="tab-btn active" data-type="latest">Último (Dinámico)</button>
+            <button class="tab-btn" data-type="current">Este Episodio</button>
+        </div>
+        
+        <div class="embed-preview-info">
+            <p id="embed-desc">Muestra siempre el episodio más reciente. Ideal para la portada de tu web.</p>
+        </div>
+        
+        <!-- Live Preview -->
+        <div class="live-preview-container">
+            <iframe id="preview-frame" title="Previsualización del Widget" width="100%" height="160" frameborder="0"></iframe>
+        </div>
+        
+        <!-- Customization Options -->
+        <div class="embed-customization">
+            <label class="custom-label">Color de Acento</label>
+            <div class="color-options">
+                <button class="color-btn active" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
+                <button class="color-btn" data-color="#ec4899" style="background: #ec4899;"></button>
+                <button class="color-btn" data-color="#10b981" style="background: #10b981;"></button>
+                <button class="color-btn" data-color="#f59e0b" style="background: #f59e0b;"></button>
+                <button class="color-btn" data-color="#ef4444" style="background: #ef4444;"></button>
+            </div>
+            
+            <label class="custom-label">Tema</label>
+            <div class="theme-options">
+                <button class="theme-btn active" data-theme="dark">Oscuro</button>
+                <button class="theme-btn" data-theme="light">Claro</button>
+            </div>
+            
+            <div class="row-options">
+                <div>
+                     <label class="custom-label">Borde</label>
+                     <select id="radius-select" class="custom-select">
+                         <option value="12">12px (Suave)</option>
+                         <option value="0">0px (Recto)</option>
+                         <option value="24">24px (Redondo)</option>
+                     </select>
+                </div>
+                <div>
+                     <label class="custom-label">Fondo (Personalizado)</label>
+                     <div class="bg-input-wrapper">
+                         <input type="color" id="bg-color-picker" value="#121212">
+                         <input type="text" id="bg-color-text" value="#121212" placeholder="#121212">
+                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <textarea id="embed-code" readonly></textarea>
+            <button id="copy-code-btn">Copiar Código</button>
+        </div>
+    </div>
+</div>
+
 <script>
-  const copyBtn = document.getElementById('copy-link-btn');
-  copyBtn?.addEventListener('click', () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-        // Simple feedback
-        const original = copyBtn.innerHTML;
-        copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-        setTimeout(() => {
-            copyBtn.innerHTML = original;
-        }, 2000);
-    });
-  });
+  const setup = () => {
+      // Copy Link Logic
+      const copyBtn = document.getElementById('copy-link-btn');
+      if (copyBtn) {
+          copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const original = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                setTimeout(() => {
+                    copyBtn.innerHTML = original;
+                }, 2000);
+            });
+          });
+      }
+
+      // Embed Modal Logic
+      const modal = document.getElementById('embed-modal');
+      const openBtn = document.getElementById('open-embed-btn');
+      const closeBtn = document.getElementById('close-embed-btn');
+      const codeArea = document.getElementById('embed-code') as HTMLTextAreaElement;
+      const copyCodeBtn = document.getElementById('copy-code-btn');
+      const tabs = document.querySelectorAll('.tab-btn');
+      const desc = document.getElementById('embed-desc');
+      const previewFrame = document.getElementById('preview-frame') as HTMLIFrameElement;
+
+      // Customization Elements
+      const colorBtns = document.querySelectorAll('.color-btn');
+      const themeBtns = document.querySelectorAll('.theme-btn');
+      const radiusSelect = document.getElementById('radius-select') as HTMLSelectElement;
+      const bgColorPicker = document.getElementById('bg-color-picker') as HTMLInputElement;
+      const bgColorText = document.getElementById('bg-color-text') as HTMLInputElement;
+
+      let currentType = 'latest';
+      let settings = {
+          color: '#8b5cf6',
+          theme: 'dark',
+          radius: '12',
+          bg: '#121212'
+      };
+
+      function getEmbedSrc() {
+          const origin = window.location.origin;
+          let src = '';
+          if (currentType === 'latest') {
+              src = `${origin}/embed/latest`;
+          } else {
+              const path = window.location.pathname;
+              const cleanPath = path.replace(/\/$/, '');
+              const embedPath = cleanPath.replace('/ep/', '/embed/');
+              src = `${origin}${embedPath}`;
+          }
+          
+          // Append params
+          const params = new URLSearchParams();
+          if (settings.color !== '#8b5cf6') params.append('color', settings.color.replace('#', ''));
+          if (settings.theme !== 'dark') params.append('theme', settings.theme);
+          if (settings.bg !== '#121212') params.append('bg', settings.bg.replace('#', ''));
+          
+          const paramStr = params.toString();
+          if (paramStr) src += `?${paramStr}`;
+          
+          return src;
+      }
+
+      function generateCode() {
+          const src = getEmbedSrc();
+          const iframeHtml = `<iframe 
+  src="${src}" 
+  width="100%" 
+  height="160" 
+  frameborder="0" 
+  scrolling="no" 
+  style="border-radius: ${settings.radius}px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+</iframe>`;
+          return iframeHtml;
+      }
+
+      function updateState() {
+          const newSrc = getEmbedSrc();
+          
+          if (codeArea) codeArea.value = generateCode();
+          
+          if (previewFrame) {
+             if (previewFrame.src !== newSrc) {
+                 previewFrame.src = newSrc;
+             }
+             previewFrame.style.borderRadius = `${settings.radius}px`;
+             // Ensure box-shadow matches generated code
+             previewFrame.style.boxShadow = "0 4px 6px -1px rgba(0, 0, 0, 0.1)";
+          }
+
+          if (desc) {
+              if (currentType === 'latest') {
+                  desc.textContent = "Muestra siempre el episodio más reciente. Ideal para la portada de tu web.";
+              } else {
+                  desc.textContent = "Muestra permanentemente este episodio específico.";
+              }
+          }
+      }
+
+      // Event Listeners for Customization
+      colorBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+              colorBtns.forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              settings.color = btn.getAttribute('data-color') || '#8b5cf6';
+              updateState();
+          });
+      });
+
+      themeBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+              themeBtns.forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              settings.theme = btn.getAttribute('data-theme') || 'dark'; // dark or light
+              
+              if (settings.theme === 'light') {
+                 // Update bg inputs to white default for light
+                 if (settings.bg === '#121212' || settings.bg === '') {
+                     settings.bg = '#ffffff';
+                     if(bgColorPicker) bgColorPicker.value = '#ffffff';
+                     if(bgColorText) bgColorText.value = '#ffffff';
+                 }
+              } else {
+                  // Update bg inputs to dark default
+                  if (settings.bg === '#ffffff') {
+                     settings.bg = '#121212';
+                     if(bgColorPicker) bgColorPicker.value = '#121212';
+                     if(bgColorText) bgColorText.value = '#121212';
+                  }
+              }
+              
+              updateState();
+          });
+      });
+
+      radiusSelect?.addEventListener('change', (e) => {
+          settings.radius = (e.target as HTMLSelectElement).value;
+          updateState();
+      });
+
+      const updateBg = (val: string) => {
+          settings.bg = val;
+          if(bgColorPicker) bgColorPicker.value = val;
+          if(bgColorText) bgColorText.value = val;
+          updateState();
+      };
+
+      bgColorPicker?.addEventListener('input', (e) => updateBg((e.target as HTMLInputElement).value));
+      bgColorText?.addEventListener('change', (e) => updateBg((e.target as HTMLInputElement).value));
+
+
+      openBtn?.addEventListener('click', () => {
+          modal?.classList.add('visible');
+          updateState();
+      });
+
+      closeBtn?.addEventListener('click', () => {
+          modal?.classList.remove('visible');
+      });
+
+      modal?.addEventListener('click', (e) => {
+          if (e.target === modal) modal.classList.remove('visible');
+      });
+
+      tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+              tabs.forEach(t => t.classList.remove('active'));
+              tab.classList.add('active');
+              currentType = tab.getAttribute('data-type') || 'latest';
+              updateState();
+          });
+      });
+
+      copyCodeBtn?.addEventListener('click', () => {
+          codeArea?.select();
+          navigator.clipboard.writeText(codeArea.value).then(() => {
+              if (copyCodeBtn) {
+                  const original = copyCodeBtn.innerText;
+                  copyCodeBtn.innerText = "¡Copiado!";
+                  setTimeout(() => copyCodeBtn.innerText = original, 2000);
+              }
+          });
+      });
+  };
+
+  // Run on initial load
+  setup();
+
+  // Run on view transitions navigation
+  document.addEventListener('astro:page-load', setup);
 </script>
 
 <style>
+  /* Embed Modal Styles */
+  .embed-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+  }
+  
+  .embed-backdrop.visible {
+      opacity: 1;
+      pointer-events: auto;
+  }
+
+  .embed-dialog {
+      background: #18181b;
+      border: 1px solid #27272a;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 16px;
+      padding: 1.5rem;
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .embed-backdrop.visible .embed-dialog {
+      transform: scale(1);
+  }
+
+  .embed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+  }
+  
+  .embed-header h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: white;
+  }
+
+  .close-btn {
+      background: transparent;
+      border: none;
+      color: #a1a1aa;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+  }
+  
+  .close-btn:hover {
+      color: white;
+      background: rgba(255,255,255,0.1);
+  }
+
+  .embed-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #27272a;
+      padding-bottom: 0.5rem;
+  }
+  
+  .tab-btn {
+      background: transparent;
+      border: none;
+      color: #71717a;
+      padding: 0.5rem 0;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      position: relative;
+  }
+  
+  .tab-btn.active {
+      color: var(--color-primary, #8b5cf6);
+  }
+  
+  .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -0.6rem;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--color-primary, #8b5cf6);
+  }
+
+  .embed-preview-info {
+      margin-bottom: 1rem;
+  }
+  
+  .embed-preview-info p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #a1a1aa;
+  }
+  
+  .live-preview-container {
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000; /* Placeholder bg while loading */
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .code-block {
+      background: #09090b;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #27272a;
+  }
+
+  textarea {
+      width: 100%;
+      height: 100px;
+      background: transparent;
+      border: none;
+      color: #e4e4e7;
+      font-family: monospace;
+      font-size: 0.85rem;
+      resize: none;
+      margin-bottom: 1rem;
+  }
+  
+  textarea:focus {
+      outline: none;
+  }
+
+  #copy-code-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--color-primary, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+  }
+  
+  #copy-code-btn:hover {
+      background: #7c3aed; /* darker violet */
+  }
+
+  /* Customization Styles */
+  .embed-customization {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+  }
+  
+  .custom-label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #71717a;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+  }
+  
+  .color-options {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+  }
+  
+  .color-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s;
+  }
+  
+  .color-btn.active {
+      transform: scale(1.2);
+      border-color: white;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+  }
+  
+  .theme-options {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+  }
+  
+  .theme-btn {
+      flex: 1;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      color: #a1a1aa;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+  }
+  
+  .theme-btn.active {
+      background: #3f3f46;
+      color: white;
+      border-color: #52525b;
+  }
+  
+  .row-options {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 1rem;
+  }
+  
+  .custom-select {
+      width: 100%;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      color: white;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+  }
+  
+  .bg-input-wrapper {
+      display: flex;
+      gap: 6px;
+  }
+  
+  #bg-color-picker {
+      width: 30px;
+      height: 30px;
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+  }
+  
+  #bg-color-text {
+      flex: 1;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      color: white;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+  }
+
   /* Mobile Layout (Default - Before Comments) */
   .social-share-floating {
       margin: 2rem 0;
@@ -94,6 +601,7 @@ const shareTitle = encodeURIComponent(title);
   .telegram:hover { background: #0088cc; border-color: #0088cc; }
   .facebook:hover { background: #1877F2; border-color: #1877F2; }
   .twitter:hover { background: #000; border-color: #333; }
+  .embed-btn:hover { background: #8b5cf6; border-color: #8b5cf6; }
   .copy-link:hover { background: var(--color-primary); border-color: var(--color-primary); }
 
   /* Desktop Sticky Layout */
@@ -144,6 +652,7 @@ const shareTitle = encodeURIComponent(title);
       .telegram:hover { background: #0088cc; border-color: #0088cc; }
       .facebook:hover { background: #1877F2; border-color: #1877F2; }
       .twitter:hover { background: #000; border-color: #333; }
+      .embed-btn:hover { background: #8b5cf6; border-color: #8b5cf6; }
       .copy-link:hover { background: var(--color-primary); border-color: var(--color-primary); }
   }
 </style>

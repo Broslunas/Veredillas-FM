@@ -1,0 +1,406 @@
+---
+import { getCollection } from 'astro:content';
+import '../../styles/global.css';
+
+const allEpisodes = await getCollection('episodios');
+const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const latestEpisode = sortedEpisodes[0];
+
+if (!latestEpisode) {
+  return new Response("No episodes found", { status: 404 });
+}
+
+const { title, image, pubDate, duration, audioUrl } = latestEpisode.data;
+const slug = latestEpisode.slug;
+
+// Ideally use absolute URL if site is configured
+const episodeUrl = `/ep/${slug}`;
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veredillas FM Embed</title>
+    <style>
+        :root {
+            /* Defaults - will be updated by JS */
+            --color-surface-card: #1e1e24;
+            
+            --dynamic-color-primary: #8b5cf6;
+            --dynamic-text-main: #ffffff;
+            --dynamic-text-muted: #a1a1aa;
+            --dynamic-surface: #1e1e24;
+            --dynamic-border: #3f3f46;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            
+            /* Dynamic Variables */
+            --color-primary: var(--dynamic-color-primary);
+            --color-text-main: var(--dynamic-text-main);
+            --color-text-muted: var(--dynamic-text-muted);
+            --color-surface: var(--dynamic-surface);
+            --color-border: var(--dynamic-border);
+            
+            /* Mapped vars */
+            --color-surface-card: var(--color-surface);
+        }
+
+        .widget-card {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            background: var(--color-surface); 
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+            position: relative;
+            text-decoration: none;
+            color: var(--color-text-main);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .widget-card.playing {
+             border-color: var(--color-primary);
+        }
+
+        .cover-art-wrapper {
+            position: relative;
+            width: 45%; /* Increased from 35% */
+            min-width: 140px; /* Increased from 120px */
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .cover-art {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .widget-card:hover .cover-art {
+            transform: scale(1.05);
+        }
+
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .play-btn {
+            width: 56px; /* Larger */
+            height: 56px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transform: scale(1);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            background: white;
+            color: var(--color-primary);
+        }
+        
+        .play-btn svg {
+            fill: white;
+            stroke: white;
+            transition: all 0.2s;
+        }
+        
+        .play-btn:hover svg {
+            fill: var(--color-primary);
+            stroke: var(--color-primary);
+        }
+
+        .info-content {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+            position: relative;
+        }
+        
+        .info-content::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, rgba(0,0,0,0.2), transparent);
+            pointer-events: none;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            gap: 6px;
+        }
+        
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        .title {
+            font-size: 1.25rem; /* Larger */
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0 0 0.75rem 0;
+            color: var(--color-text-main);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .title a:hover {
+            text-decoration: underline;
+        }
+
+        .player-controls {
+            margin-top: auto;
+            width: 100%;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-bottom: 0.5rem;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--color-primary);
+            width: 0%;
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+        
+        .time-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+        }
+
+        .logo-mark {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        
+        .widget-card:hover .logo-mark {
+            opacity: 1;
+        }
+        
+        .logo-text {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: white;
+            text-transform: uppercase;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 400px) {
+            .cover-art-wrapper { width: 100px; min-width: 100px; }
+            .title { font-size: 1rem; }
+            .play-btn { width: 42px; height: 42px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-card" id="widget-card">
+        <div class="cover-art-wrapper">
+            <img src={image} alt={title} class="cover-art" />
+            <div class="play-overlay" id="play-trigger">
+                <button class="play-btn" id="play-btn" aria-label="Reproducir">
+                    <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="info-content">
+            <div class="logo-mark">
+                <a href="/" target="_blank" class="logo-text" style="text-decoration:none;">Veredillas FM</a>
+            </div>
+            
+            <div class="badge">Último Episodio</div>
+            <h3 class="title">
+                <a href={episodeUrl} target="_blank">{title}</a>
+            </h3>
+            
+            <div class="player-controls">
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="time-row">
+                    <span id="current-time">0:00</span>
+                    <span id="duration">{duration || '00:00'}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player" src={audioUrl} preload="metadata"></audio>
+
+    <script>
+        // Client-side Customization Logic
+        const params = new URLSearchParams(window.location.search);
+        const color = params.get('color') || '8b5cf6';
+        const theme = params.get('theme') || 'dark';
+        const bg = params.get('bg');
+
+        const primaryColor = `#${color}`;
+        const isLight = theme === 'light';
+
+        const textColorMain = isLight ? '#18181b' : '#ffffff';
+        const textColorMuted = isLight ? '#71717a' : '#a1a1aa';
+        const surfaceColor = isLight ? '#ffffff' : '#1e1e24';
+        const borderColor = isLight ? '#e4e4e7' : 'rgba(255,255,255,0.1)';
+        const bgOverride = bg ? `#${bg}` : surfaceColor;
+
+        document.body.style.setProperty('--dynamic-color-primary', primaryColor);
+        document.body.style.setProperty('--dynamic-text-main', textColorMain);
+        document.body.style.setProperty('--dynamic-text-muted', textColorMuted);
+        document.body.style.setProperty('--dynamic-surface', bgOverride);
+        document.body.style.setProperty('--dynamic-border', borderColor);
+
+        const audio = document.getElementById('audio-player') as HTMLAudioElement;
+        const playBtn = document.getElementById('play-btn') as HTMLButtonElement;
+        const playTrigger = document.getElementById('play-trigger') as HTMLDivElement;
+        const iconPlay = document.getElementById('icon-play') as HTMLElement;
+        const iconPause = document.getElementById('icon-pause') as HTMLElement;
+        const progressBar = document.getElementById('progress-bar') as HTMLDivElement;
+        const progressContainer = document.getElementById('progress-container') as HTMLDivElement;
+        const currentTimeEl = document.getElementById('current-time') as HTMLSpanElement;
+        const durationEl = document.getElementById('duration') as HTMLSpanElement;
+        const card = document.getElementById('widget-card') as HTMLDivElement;
+
+        let isPlaying = false;
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                isPlaying = true;
+                iconPlay.style.display = 'none';
+                iconPause.style.display = 'block';
+                card.classList.add('playing');
+            } else {
+                audio.pause();
+                isPlaying = false;
+                iconPlay.style.display = 'block';
+                iconPause.style.display = 'none';
+                card.classList.remove('playing');
+            }
+        }
+
+        playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePlay();
+        });
+
+        playTrigger.addEventListener('click', togglePlay);
+
+        // Update progress
+        audio.addEventListener('timeupdate', () => {
+             const percent = (audio.currentTime / audio.duration) * 100;
+             progressBar.style.width = `${percent}%`;
+             currentTimeEl.textContent = formatTime(audio.currentTime);
+        });
+
+        // Load duration if not preset
+        audio.addEventListener('loadedmetadata', () => {
+             if (durationEl.textContent === '00:00') {
+                 durationEl.textContent = formatTime(audio.duration);
+             }
+        });
+        
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            iconPlay.style.display = 'block';
+            iconPause.style.display = 'none';
+            card.classList.remove('playing');
+            progressBar.style.width = '0%';
+        });
+
+        // Click to seek
+        progressContainer.addEventListener('click', (e) => {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        });
+
+        function formatTime(seconds: number) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+    </script>
+</body>
+</html>
