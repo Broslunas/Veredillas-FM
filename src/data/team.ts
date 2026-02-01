@@ -25,9 +25,6 @@ export const teamMembers = [
     role: 'Guionista y Co-Dirección', 
     department: 'Dirección',
     image: 'https://iili.io/fzO4DGV.jpg',
-    links: [
-        { label: 'Instagram', url: 'https://www.instagram.com/abelfrp/' }
-    ],
     bio: 'La mente creativa detrás de nuestros guiones. Abel estructura las historias que contamos y co-dirige la producción de contenidos.'
   },
   { 
