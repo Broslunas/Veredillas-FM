@@ -1,12 +1,21 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getUserFromCookie } from '../lib/auth';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const user = getUserFromCookie(cookieHeader);
+
+const initialName = user ? user.name : '';
+const initialEmail = user ? user.email : '';
 ---
 
 <Layout 
   title="Solicitar Entrevista" 
   description="Solicita una entrevista en Veredillas FM. Cuéntanos tu historia y participa en nuestro podcast."
   image="/logo.png"
-  imageAlt="Solicitar entrevista en Veredillas FM" 
+  imageAlt="Solicitar entrevista en Veredillas FM"
 >
     <div class="interview-page container">
         <header class="page-header gs-fade-up">
@@ -16,7 +25,9 @@ import Layout from '../layouts/Layout.astro';
         <div class="form-wrapper glass-panel gs-fade-up">
             <div class="header" style="margin-bottom: 2rem; text-align: center;">
                 <h2>Formulario de Solicitud</h2>
-                <p class="subtitle">Completa los datos y nos pondremos en contacto contigo.</p>
+                <p class="subtitle">
+                    {user ? `Hola ${user.name.split(' ')[0]}, completa los datos para tu solicitud.` : "Completa los datos y nos pondremos en contacto contigo."}
+                </p>
             </div>
 
             <form class="interview-form" id="interviewForm" method="POST">
@@ -26,7 +37,16 @@ import Layout from '../layouts/Layout.astro';
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             Nombre *
                         </label>
-                        <input type="text" id="name" name="name" placeholder="Tu nombre" required />
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            placeholder="Tu nombre" 
+                            required 
+                            value={initialName}
+                            readonly={!!user}
+                            class={user ? "input-filled" : ""}
+                        />
                     </div>
                     
                     <div class="form-group">
@@ -34,7 +54,16 @@ import Layout from '../layouts/Layout.astro';
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                             Email *
                         </label>
-                        <input type="email" id="email" name="email" placeholder="tu@email.com" required />
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="tu@email.com" 
+                            required 
+                            value={initialEmail}
+                            readonly={!!user}
+                            class={user ? "input-filled" : ""}
+                        />
                     </div>
                 </div>
 
@@ -331,6 +360,18 @@ import Layout from '../layouts/Layout.astro';
         border-color: var(--color-primary);
         box-shadow: 0 0 0 2px var(--color-primary-glow);
         background: rgba(0, 0, 0, 0.3);
+    }
+
+    input.input-filled {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: var(--color-text-muted);
+        cursor: not-allowed;
+    }
+
+    input.input-filled:focus {
+        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
     }
 
     .submit-btn {
