@@ -1,0 +1,286 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import dbConnect from '../../../lib/mongodb';
+import { getCollection } from 'astro:content';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/404');
+}
+
+await dbConnect();
+
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404'); 
+}
+
+// Fetch all users for stats aggregation
+const users = await User.find({});
+
+// Fetch Episodes
+const allEpisodes = await getCollection('episodios');
+const episodesMap = new Map(allEpisodes.map(e => [e.slug, e.data.title]));
+
+// --- Stats Calculation ---
+const episodeStats = new Map<string, { plays: number, completions: number, favorites: number }>();
+
+// Initialize with 0 for all existing episodes
+allEpisodes.forEach(ep => {
+    episodeStats.set(ep.slug, { plays: 0, completions: 0, favorites: 0 });
+});
+
+users.forEach(u => {
+    if (u.playbackHistory) {
+         u.playbackHistory.forEach(h => {
+             // Episode Stats
+            const current = episodeStats.get(h.episodeSlug) || { plays: 0, completions: 0, favorites: 0 };
+            current.plays += 1;
+            if (h.completed) current.completions += 1;
+            episodeStats.set(h.episodeSlug, current);
+        });
+    }
+
+    if (u.favorites) {
+        u.favorites.forEach(slug => {
+            const current = episodeStats.get(slug) || { plays: 0, completions: 0, favorites: 0 };
+            current.favorites += 1;
+            episodeStats.set(slug, current);
+        });
+    }
+});
+
+const sortedEpisodeStats = Array.from(episodeStats.entries())
+    .map(([slug, stats]) => ({
+        slug,
+        title: episodesMap.get(slug) || slug,
+        ...stats
+    }))
+    .sort((a, b) => b.plays - a.plays);
+
+---
+
+<Layout title="Contenido - Admin">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="admin-container fade-in-up">
+        <div class="admin-header">
+            <div class="header-content">
+                <h1>Contenido</h1>
+                <p>Métricas de rendimiento de episodios</p>
+            </div>
+            <div class="header-actions">
+                <a href="/dashboard/admin/cms/" class="action-btn primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <span>Abrir Editor</span>
+                </a>
+            </div>
+        </div>
+
+        <AdminNav />
+
+        <div class="section-container glass-panel">
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Episodio</th>
+                            <th class="text-center">Alcance</th>
+                            <th class="text-center">Completados</th>
+                            <th class="text-center">Favoritos</th>
+                            <th style="width: 200px;">Retención</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {sortedEpisodeStats.map((stat) => {
+                            const rate = stat.plays > 0 ? (stat.completions / stat.plays) * 100 : 0;
+                            return (
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <span class="user-name">{stat.title}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center font-mono">{stat.plays}</td>
+                                <td class="text-center font-mono">{stat.completions}</td>
+                                 <td class="text-center font-mono text-accent">{stat.favorites}</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-info">
+                                            <span>{Math.round(rate)}%</span>
+                                        </div>
+                                        <div class="progress-track">
+                                            <div class="progress-fill" style={`width: ${rate}%; background-color: ${rate > 70 ? '#10b981' : rate > 40 ? '#f59e0b' : '#ef4444'};`}></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        )})}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--color-text-main);
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .admin-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .admin-header h1 {
+    font-size: 3rem;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(to right, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  .admin-header p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+  }
+
+  /* Table Styles */
+  .section-container {
+    padding: 2rem;
+    border-radius: 1.5rem;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .table-container { overflow-x: auto; }
+
+  .modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+    margin-top: -0.5rem;
+  }
+
+  .modern-table th {
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-dim);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .modern-table td {
+    padding: 1rem;
+    background: rgba(255,255,255,0.015);
+    border-top: 1px solid rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.2s;
+  }
+  
+  .modern-table tr td:first-child {
+    border-top-left-radius: 0.75rem;
+    border-bottom-left-radius: 0.75rem;
+    border-left: 1px solid rgba(255,255,255,0.03);
+  }
+  
+  .modern-table tr td:last-child {
+    border-top-right-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    border-right: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .modern-table tr:hover td { background: rgba(255,255,255,0.05); }
+
+  /* Utils */
+  .text-center { text-align: center; }
+  .font-mono { font-family: monospace; letter-spacing: -0.5px; }
+  .text-accent { color: var(--color-accent); }
+  .user-cell { display: flex; align-items: center; gap: 1rem; }
+  .user-name { font-weight: 600; color: #fff; font-size: 0.95rem; }
+
+  /* Progress Bars */
+  .progress-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .progress-info {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+  
+  .progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease-in-out;
+  }
+
+  /* Action Button */
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .action-btn.primary {
+    background: #a78bfa;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+    border: none;
+  }
+
+  .action-btn.primary:hover {
+    background: #8b5cf6;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(167, 139, 250, 0.4);
+  }
+
+  /* Background Blobs */
+  .blob { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: -1; }
+  .blob-1 { top: -200px; left: -200px; background: var(--color-primary); }
+  .blob-2 { bottom: -200px; right: -200px; background: var(--color-secondary); }
+  .grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 40%, transparent 100%); opacity: 0.5; }
+</style>

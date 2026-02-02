@@ -1,0 +1,279 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import ActiveListener from '../../../models/ActiveListener';
+import dbConnect from '../../../lib/mongodb';
+import { getCollection } from 'astro:content';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/404');
+}
+
+await dbConnect();
+
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404'); 
+}
+
+// Fetch Active Listeners
+const threshold = new Date(Date.now() - 5 * 60 * 1000); // 5 minutes
+const activeListeners = await ActiveListener.find({ 
+    lastSeen: { $gt: threshold } 
+}).sort({ lastSeen: -1 });
+
+// Helper for Path Labels
+const allEpisodes = await getCollection('episodios');
+const episodesMap = new Map(allEpisodes.map(e => [e.slug, e.data.title]));
+
+function getPathLabel(path: string) {
+    if (!path) return '-';
+    if (path === '/') return '🏠 Inicio';
+    if (path.startsWith('/ep/')) {
+        const slug = path.replace('/ep/', '').replace(/\/$/, '');
+        if (episodesMap.has(slug)) {
+            return `${episodesMap.get(slug)}`;
+        }
+        return `Episodio (${slug})`;
+    }
+    if (path === '/perfil') return '👤 Perfil';
+    if (path === '/favoritos') return '❤️ Favoritos';
+    return path;
+}
+---
+
+<Layout title="En Vivo - Admin">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="admin-container fade-in-up">
+        <div class="admin-header">
+            <div class="header-content">
+                <h1>Tiempo Real</h1>
+                <p>Usuarios activos en los últimos 5 minutos</p>
+            </div>
+            <div class="header-actions">
+                <span class="live-indicator">
+                    <span class="pulse-dot"></span>
+                    {activeListeners.length} Online
+                </span>
+            </div>
+        </div>
+
+        <AdminNav />
+
+         <!-- Active Listeners Section -->
+        <div class="section-container glass-panel">
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario / ID</th>
+                            <th>Ruta Actual</th>
+                            <th>Visto por última vez</th>
+                             <th>Dispositivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {activeListeners.length === 0 ? (
+                            <tr>
+                                <td colspan="4" class="empty-cell">
+                                    <div class="empty-state">
+                                        <span class="empty-icon">😴</span>
+                                        <p>No hay oyentes activos en este momento.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : (
+                            activeListeners.map((listener) => (
+                                <tr>
+                                    <td>
+                                        <div class="user-cell">
+                                            {listener.userId ? (
+                                                <>
+                                                    <div class="avatar-wrapper">
+                                                        <img 
+                                                            src={listener.picture || `https://ui-avatars.com/api/?name=${listener.name}`} 
+                                                            alt={listener.name} 
+                                                            class="user-avatar" 
+                                                        />
+                                                        <div class="online-indicator"></div>
+                                                    </div>
+                                                    <div class="user-info">
+                                                        <span class="user-name">{listener.name}</span>
+                                                        <span class="user-id-sub">{listener.userId}</span>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div class="user-info">
+                                                    <span class="user-name anonymous">Anónimo</span>
+                                                     <span class="user-id-sub" title={listener.sessionId}>
+                                                        {listener.sessionId.substring(0, 8)}...
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="path-badge">
+                                            {getPathLabel(listener.path)}
+                                        </span>
+                                    </td>
+                                    <td class="time-cell">
+                                        {Math.floor((Date.now() - new Date(listener.lastSeen).getTime()) / 1000)}s hace
+                                    </td>
+                                    <td class="device-cell" title={listener.userAgent}>
+                                       {listener.userAgent ? (listener.userAgent.includes('Mobile') ? '📱 Móvil' : '💻 Escritorio') : '❓ Desconocido'}
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--color-text-main);
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .admin-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .admin-header h1 {
+    font-size: 3rem;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(to right, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  .admin-header p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+  }
+
+  /* Live Indicator */
+  .live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 999px;
+    color: #34d399;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: #34d399;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+
+  /* Table Styles */
+  .section-container {
+    padding: 2rem;
+    border-radius: 1.5rem;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .table-container { overflow-x: auto; }
+
+  .modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+    margin-top: -0.5rem;
+  }
+
+  .modern-table th {
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-dim);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .modern-table td {
+    padding: 1rem;
+    background: rgba(255,255,255,0.015);
+    border-top: 1px solid rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.2s;
+  }
+  
+  .modern-table tr td:first-child {
+    border-top-left-radius: 0.75rem;
+    border-bottom-left-radius: 0.75rem;
+    border-left: 1px solid rgba(255,255,255,0.03);
+  }
+  
+  .modern-table tr td:last-child {
+    border-top-right-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    border-right: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .modern-table tr:hover td { background: rgba(255,255,255,0.05); }
+
+  /* User Info */
+  .user-cell { display: flex; align-items: center; gap: 1rem; }
+  .avatar-wrapper { position: relative; }
+  .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); }
+  .online-indicator { width: 10px; height: 10px; background: #10b981; border: 2px solid #0f172a; border-radius: 50%; position: absolute; bottom: 0; right: 0; }
+  .user-info { display: flex; flex-direction: column; }
+  .user-name { font-weight: 600; color: #fff; font-size: 0.95rem; }
+  .user-name.anonymous { color: var(--color-text-muted); font-style: italic; }
+  .user-id-sub { font-size: 0.7rem; color: var(--color-text-dim); font-family: monospace; }
+  
+  .path-badge { background: rgba(255,255,255,0.05); padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.8rem; color: var(--color-text-muted); border: 1px solid rgba(255,255,255,0.05); }
+
+  .empty-cell { text-align: center; padding: 4rem !important; }
+  .empty-state { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--color-text-dim); }
+  .empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+  /* Background Blobs */
+  .blob { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: -1; }
+  .blob-1 { top: -200px; left: -200px; background: var(--color-primary); }
+  .blob-2 { bottom: -200px; right: -200px; background: var(--color-secondary); }
+  .grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 40%, transparent 100%); opacity: 0.5; }
+</style>

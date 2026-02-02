@@ -1,0 +1,871 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import InterviewRequest, { type IInterviewRequest } from '../../../models/InterviewRequest';
+import dbConnect from '../../../lib/mongodb';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/404');
+}
+
+// Connect to DB
+await dbConnect();
+
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404'); 
+}
+
+// Fetch requests
+// Cast to unknown first to avoid mongoose document vs interface conflicts regarding methods
+const allRequests = await InterviewRequest.find({}).sort({ preferredDate: 1, createdAt: -1 }) as unknown as IInterviewRequest[];
+
+// Fetch Registered Users for dropdown
+const registeredUsers = await User.find({}, 'name email').sort({ name: 1 });
+
+type ColumnKey = 'pending' | 'invited' | 'approved' | 'completed' | 'rejected';
+
+// Group by Status
+const columns: Record<ColumnKey, { title: string; items: IInterviewRequest[] }> = {
+    pending: { title: '⏳ Pendientes', items: [] },
+    invited: { title: '📩 Invitados', items: [] },
+    approved: { title: '✅ Aprobadas', items: [] },
+    completed: { title: '🏁 Completadas', items: [] },
+    rejected: { title: '❌ Rechazadas', items: [] }
+};
+
+allRequests.forEach(req => {
+    // Ensure status is treated as a valid key
+    const status = req.status as ColumnKey;
+    if (columns[status]) {
+        columns[status].items.push(req);
+    }
+});
+
+function formatDateShort(date: string | Date | undefined) {
+    if (!date) return 'Sin fecha';
+    return new Date(date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+}
+---
+
+<Layout title="Gestión de Entrevistas">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="admin-container fade-in-up">
+        <div class="admin-header">
+            <div class="header-content">
+                <h1>Tablero de Entrevistas</h1>
+                <p>Gestiona el flujo de invitados y grabaciones.</p>
+            </div>
+            <div class="header-actions">
+                 <button onclick="openCreateModal()" class="action-btn primary">
+                    <span>+ Nueva Invitación</span>
+                </button>
+                <a href="https://n8n.broslunas.com/workflow/kozHuKfSLnb6rPmE_kEy9" target="_blank" class="action-btn">
+                    <span>⚡ Ver en n8n</span>
+                </a>
+            </div>
+        </div>
+
+        <AdminNav />
+
+        <!-- Kanban Board -->
+        <div class="kanban-board">
+            {Object.entries(columns).map(([status, col]) => (
+                <div class="kanban-column" data-status={status}>
+                    <div class="column-header">
+                        <h3>{col.title} <span class="count-badge">{col.items.length}</span></h3>
+                    </div>
+                    <div class="column-content" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        {col.items.map((item) => (
+                            <div class="kanban-card" 
+                                id={item._id as string} 
+                                draggable="true" 
+                                ondragstart="drag(event)"
+                                onclick={`openDetails('${item._id}')`}
+                            >
+                                <div class="card-badges">
+                                    <span class="date-badge">📅 {formatDateShort(item.preferredDate)}</span>
+                                    {item.status === 'invited' && <span class="status-badge invited">Token Activo</span>}
+                                </div>
+                                <h4 class="card-title">{item.topic}</h4>
+                                <div class="card-user">
+                                    <div class="user-avatar-placeholder">{item.name.charAt(0).toUpperCase()}</div>
+                                    <span class="user-name">{item.name}</span>
+                                </div>
+                                <div class="card-footer">
+                                     <button class="btn-mini delete" onclick={`deleteRequest('${item._id}', event)`}>🗑️</button>
+                                     {item.status === 'invited' && item.token && (
+                                         <button class="btn-mini copy-link" onclick={`copyInviteLink('${item.token}', '${item.email}', event)`} title="Copiar Link">🔗</button>
+                                     )}
+                                </div>
+                                <textarea style="display:none;" id={`data-${item._id}`}>{JSON.stringify(item)}</textarea>
+                            </div>
+                        ))}
+                         {col.items.length === 0 && (
+                            <div class="empty-placeholder">Arrastra aquí</div>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+
+    <!-- Create Modal -->
+    <div id="createModal" class="modal-backdrop">
+        <div class="modal-content glass-panel">
+            <h3>Nueva Invitación</h3>
+            <form id="createForm" class="create-form">
+                
+                <div class="form-group">
+                    <label>Cargar Usuario Registrado (Opcional)</label>
+                    <div class="select-wrapper">
+                        <select id="userSelect" class="user-select-input">
+                            <option value="">-- Escribir manualmente --</option>
+                            {registeredUsers.map(u => (
+                                <option value={u.email} data-name={u.name}>{u.name} ({u.email})</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre del Invitado</label>
+                    <input type="text" name="name" required placeholder="Ej: Juan Pérez" />
+                </div>
+                 <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required placeholder="juan@ejemplo.com" />
+                </div>
+                <div class="form-group">
+                    <label>Teléfono (Opcional)</label>
+                    <input type="tel" name="phone" placeholder="+34 600..." />
+                </div>
+                 <div class="form-group">
+                    <label>Tema de la Entrevista</label>
+                    <input type="text" name="topic" required placeholder="Ej: Inteligencia Artificial" />
+                </div>
+                 <div class="form-group">
+                    <label>Fecha Propuesta (Opcional)</label>
+                    <input type="datetime-local" name="preferredDate" />
+                </div>
+                <div class="form-group">
+                    <label>Notas / Descripción</label>
+                    <textarea name="description" rows="3" placeholder="Detalles adicionales..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal cancel" onclick="closeCreateModal()">Cancelar</button>
+                    <button type="submit" class="btn-modal confirm">Crear Invitación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailsModal" class="modal-backdrop">
+        <div class="modal-content glass-panel" style="max-width: 500px;">
+            <h3 id="detailTitle">Detalles</h3>
+            <div class="details-body">
+                <p><strong>👤 Invitado:</strong> <span id="detailName"></span></p>
+                <p><strong>📧 Email:</strong> <span id="detailEmail"></span></p>
+                <p><strong>📞 Teléfono:</strong> <span id="detailPhone"></span></p>
+                <p><strong>📅 Fecha:</strong> <span id="detailDate"></span></p>
+                <!-- Show Token Link if status is invited -->
+                <div id="inviteLinkSection" style="display:none;" class="invite-link-box">
+                    <p><strong>🔗 Enlace de Invitación:</strong></p>
+                    <div class="link-display">
+                        <input type="text" id="inviteLinkInput" readonly />
+                        <button onclick="copyLinkFromModal()" class="btn-mini">Copiar</button>
+                    </div>
+                </div>
+                <p><strong>📝 Descripción:</strong></p>
+                <p id="detailDesc" class="desc-box"></p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal cancel" onclick="closeDetailsModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script is:inline>
+    // --- Kanban Logic ---
+    function allowDrop(ev) {
+        ev.preventDefault();
+        ev.target.closest('.column-content').classList.add('drag-over');
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+        ev.target.classList.add('dragging');
+    }
+
+    async function drop(ev) {
+        ev.preventDefault();
+        const columnContent = ev.target.closest('.column-content');
+        columnContent.classList.remove('drag-over');
+
+        const cardId = ev.dataTransfer.getData("text");
+        const card = document.getElementById(cardId);
+        
+        // Remove dragging class
+        card.classList.remove('dragging');
+
+        // Check if moved to a different column
+        var newColumn = columnContent.closest('.kanban-column');
+        var newStatus = newColumn.getAttribute('data-status');
+        
+        // If dropped on placeholder/empty space, append
+        columnContent.appendChild(card);
+        
+        // Hide placeholder if exists
+        const placeholder = columnContent.querySelector('.empty-placeholder');
+        if(placeholder) placeholder.style.display = 'none';
+
+        // Update Backend
+        await updateStatus(cardId, newStatus);
+    }
+
+    // Cleanup drag styles if dropped outside or cancelled
+    document.addEventListener('dragend', (e) => {
+         if(e.target.classList.contains('kanban-card')) {
+             e.target.classList.remove('dragging');
+             document.querySelectorAll('.column-content').forEach(c => c.classList.remove('drag-over'));
+         }
+    });
+
+
+    // --- API Interactions ---
+    async function updateStatus(id, status) {
+        try {
+            const response = await fetch('/api/interviews/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status })
+            });
+            
+            if (response.ok) {
+                 window.showToast('Estado actualizado', 'success');
+            } else {
+                 const data = await response.json();
+                 window.showToast(data.message || 'Error', 'error');
+                 setTimeout(() => location.reload(), 1000); // Revert on error
+            }
+        } catch (e) {
+            console.error(e);
+            window.showToast('Error de conexión', 'error');
+        }
+    }
+
+    async function deleteRequest(id, event) {
+        event.stopPropagation(); // Prevent card click
+        if(!confirm('¿Eliminar esta solicitud para siempre?')) return;
+
+        try {
+            const response = await fetch('/api/interviews/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+
+            if (response.ok) {
+                document.getElementById(id).remove();
+                window.showToast('Eliminado', 'success');
+            } else {
+                window.showToast('Error al eliminar', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    
+    // --- Helpers ---
+    function copyInviteLink(token, email, event) {
+        if(event) event.stopPropagation();
+        const url = `${window.location.origin}/entrevistas?token=${token}&email=${encodeURIComponent(email)}`;
+        navigator.clipboard.writeText(url).then(() => {
+            window.showToast('Enlace copiado al portapapeles', 'success');
+        });
+    }
+    window.copyLinkFromModal = function() {
+        const input = document.getElementById('inviteLinkInput');
+        input.select();
+        document.execCommand('copy'); // Fallback or use navigator
+        navigator.clipboard.writeText(input.value);
+        window.showToast('Enlace copiado', 'success');
+    }
+
+    // --- Modal Logic ---
+    const createModal = document.getElementById('createModal');
+    const detailsModal = document.getElementById('detailsModal');
+    const createForm = document.getElementById('createForm');
+    const userSelect = document.getElementById('userSelect');
+    const nameInput = createForm.querySelector('[name="name"]');
+    const emailInput = createForm.querySelector('[name="email"]');
+
+    function openCreateModal() {
+        createModal.classList.add('active');
+    }
+
+    function closeCreateModal() {
+        createModal.classList.remove('active');
+        createForm.reset();
+        userSelect.value = ""; // Reset select
+    }
+    
+    // Auto-fill form based on User Selection
+    userSelect.addEventListener('change', () => {
+        const selectedOption = userSelect.options[userSelect.selectedIndex];
+        if (selectedOption.value) {
+            nameInput.value = selectedOption.getAttribute('data-name');
+            emailInput.value = selectedOption.value;
+        } else {
+            nameInput.value = '';
+            emailInput.value = '';
+        }
+    });
+
+    function openDetails(id) {
+        const data = JSON.parse(document.getElementById(`data-${id}`).value);
+        document.getElementById('detailTitle').textContent = data.topic;
+        document.getElementById('detailName').textContent = data.name;
+        document.getElementById('detailEmail').textContent = data.email;
+        document.getElementById('detailPhone').textContent = data.phone || 'No especificado';
+        document.getElementById('detailDate').textContent = data.preferredDate ? new Date(data.preferredDate).toLocaleString() : 'Sin fecha';
+        document.getElementById('detailDesc').textContent = data.description || 'Sin descripción adicional.';
+        
+        // Show Link if invited
+        const linkSection = document.getElementById('inviteLinkSection');
+        if (data.status === 'invited' && data.token) {
+            linkSection.style.display = 'block';
+            const url = `${window.location.origin}/entrevistas?token=${data.token}&email=${encodeURIComponent(data.email)}`;
+            document.getElementById('inviteLinkInput').value = url;
+        } else {
+            linkSection.style.display = 'none';
+        }
+        
+        detailsModal.classList.add('active');
+    }
+
+    function closeDetailsModal() {
+        detailsModal.classList.remove('active');
+    }
+
+    createForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(createForm);
+        const data = Object.fromEntries(formData);
+        data.source = 'admin'; // Mark as admin invite
+        
+        if (!data.preferredDate) delete data.preferredDate;
+
+        const btn = createForm.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.textContent = 'Creando...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/interviews/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                window.showToast('Invitación creada', 'success');
+                setTimeout(() => location.reload(), 500);
+            } else {
+                 const res = await response.json();
+                 window.showToast(res.message || 'Error', 'error');
+                 btn.textContent = originalText;
+                 btn.disabled = false;
+            }
+        } catch (e) {
+            console.error(e);
+            window.showToast('Error de conexión', 'error');
+            btn.textContent = originalText;
+             btn.disabled = false;
+        }
+    });
+
+    // Close on backdrop click
+    [createModal, detailsModal].forEach(m => {
+        m.addEventListener('click', e => {
+            if (e.target === m) m.classList.remove('active');
+        })
+    });
+</script>
+
+<style>
+  .admin-container {
+    max-width: 100%; /* Wider for Kanban */
+    padding: 2rem;
+    color: var(--color-text-main);
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .admin-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .admin-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(to right, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .admin-header p {
+    color: var(--color-text-muted);
+  }
+
+  /* Kanban Board Structure */
+  .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr); /* 5 columns now */
+      gap: 1.5rem;
+      align-items: start;
+      overflow-x: auto;
+      padding-bottom: 2rem;
+  }
+
+  .kanban-column {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 1rem;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 250px);
+      min-height: 500px;
+      min-width: 250px;
+  }
+
+  .column-header {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .column-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0;
+  }
+
+  .count-badge {
+      background: rgba(255,255,255,0.1);
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+  }
+
+  .column-content {
+      padding: 1rem;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: background 0.2s;
+  }
+
+  .column-content.drag-over {
+      background: rgba(139, 92, 246, 0.05);
+  }
+
+  /* Kanban Card */
+  .kanban-card {
+      background: rgba(30, 30, 40, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      cursor: grab;
+      transition: all 0.2s;
+      position: relative;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  .kanban-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+      border-color: rgba(139, 92, 246, 0.4);
+  }
+
+  .kanban-card.dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+      border-color: #a78bfa;
+      transform: scale(0.95);
+  }
+
+  .card-badges {
+      margin-bottom: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+  }
+
+  .date-badge {
+      font-size: 0.7rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      padding: 2px 6px;
+      color: var(--color-text-dim);
+  }
+
+  .status-badge.invited {
+      font-size: 0.7rem;
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+  }
+
+  .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
+  }
+
+  .card-user {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+  }
+
+  .user-avatar-placeholder {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #f472b6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: white;
+  }
+
+  .user-name {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+  }
+
+  .card-footer {
+      display: flex;
+      justify-content: space-between; /* Adjusted to fit copy icon */
+      margin-top: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+  }
+  
+  .kanban-card:hover .card-footer {
+      opacity: 1;
+  }
+
+  .btn-mini {
+      background: none;
+      border: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      opacity: 0.6;
+      padding: 0.2rem;
+  }
+  .btn-mini:hover { opacity: 1; transform: scale(1.1); }
+  
+  .copy-link {
+      color: #60a5fa;
+  }
+
+  .empty-placeholder {
+      text-align: center;
+      color: rgba(255,255,255,0.1);
+      font-size: 0.9rem;
+      margin-top: 2rem;
+      border: 2px dashed rgba(255,255,255,0.05);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      pointer-events: none;
+  }
+
+  /* Status Colors (Optional subtle borders) */
+  [data-status="pending"] { border-top: 3px solid #facc15; }
+  [data-status="invited"] { border-top: 3px solid #60a5fa; }
+  [data-status="approved"] { border-top: 3px solid #34d399; }
+  [data-status="completed"] { border-top: 3px solid #a78bfa; }
+  [data-status="rejected"] { border-top: 3px solid #f87171; }
+
+  /* Buttons */
+  .header-actions {
+      display: flex;
+      gap: 1rem;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .action-btn.primary {
+      background: var(--color-primary);
+      color: white;
+      border: 1px solid var(--color-primary);
+  }
+  .action-btn.primary:hover {
+      background: var(--color-secondary);
+  }
+
+  .action-btn:not(.primary) {
+    background: rgba(139, 92, 246, 0.1);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+  .action-btn:not(.primary):hover {
+      background: rgba(139, 92, 246, 0.2);
+  }
+
+  /* Create Form */
+  .create-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+  }
+
+  .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      text-align: left;
+  }
+
+  .form-group label {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+  }
+
+  .form-group input, .form-group textarea, .user-select-input {
+      padding: 0.75rem;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.5rem;
+      color: white;
+      font-family: inherit;
+  }
+  
+  .user-select-input {
+      appearance: none; /* simple arrow override if desired */
+      cursor: pointer;
+      width: 100%;
+  }
+
+  .form-group input:focus, .form-group textarea:focus, .user-select-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+  }
+
+  .desc-box {
+      background: rgba(255,255,255,0.05);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+      white-space: pre-wrap;
+  }
+  
+  .invite-link-box {
+      background: rgba(96, 165, 250, 0.1);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(96, 165, 250, 0.2);
+      margin-bottom: 1rem;
+      text-align: left;
+  }
+  
+  .link-display {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+  }
+  
+  .link-display input {
+      flex: 1;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 0.5rem;
+      border-radius: 0.4rem;
+      color: #fff;
+      font-size: 0.85rem;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 1400px) {
+      .kanban-board {
+          grid-template-columns: repeat(3, 1fr);
+          height: auto;
+      }
+      .kanban-column {
+          height: 600px;
+      }
+  }
+
+  @media (max-width: 900px) {
+      .kanban-board {
+          grid-template-columns: repeat(2, 1fr);
+      }
+  }
+  
+  @media (max-width: 600px) {
+      .kanban-board {
+          grid-template-columns: 1fr;
+          overflow-x: visible;
+      }
+      
+      .admin-container {
+          padding: 1rem;
+      }
+  }
+
+  /* Blob Background */
+  .blob {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.08;
+    z-index: -1;
+  }
+  
+  .blob-1 { top: -200px; left: -200px; background: var(--color-primary); }
+  .blob-2 { bottom: -200px; right: -200px; background: var(--color-secondary); }
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  /* Modal Base Styles (Reused) */
+  .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85); /* Darker backdrop */
+      backdrop-filter: blur(5px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 1rem; /* Padding avoids edge touching */
+  }
+
+  .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+  }
+
+  .modal-content {
+      background: #1e1e24; /* Solid background for legibility */
+      border: 1px solid var(--color-border);
+      padding: 2rem;
+      border-radius: 1.5rem;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh; /* Responsive Max Height */
+      overflow-y: auto; /* Enable Scrolling */
+      text-align: center;
+      transform: scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+  }
+
+  .modal-backdrop.active .modal-content {
+      transform: scale(1);
+  }
+  
+  .modal-content h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--color-text-main);
+  }
+
+  .modal-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+  }
+
+  .btn-modal {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+
+  .btn-modal.cancel {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+   .btn-modal.cancel:hover { background: rgba(255,255,255,0.1); }
+
+  .btn-modal.confirm {
+      background: var(--color-primary);
+      color: white;
+      border: 1px solid var(--color-primary);
+  }
+  .btn-modal.confirm:hover { background: var(--color-secondary); }
+  
+  @media (max-width: 600px) {
+      .modal-content {
+          padding: 1.5rem;
+      }
+      .modal-actions {
+          flex-direction: column;
+          gap: 0.5rem;
+      }
+      .btn-modal {
+          width: 100%;
+      }
+  }
+</style>
