@@ -564,20 +564,30 @@ const isDropdownActive = (items: any[]) => {
       justify-content: center;
       border-radius: 50%;
       color: var(--color-text-muted);
-      background: #cbd5e1; /* Light grey background */
-      border: 2px solid #475569; /* Dark grey border */
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
   }
   
+  :global([data-theme="light"]) .action-btn {
+      background: #cbd5e1; /* Light grey background */
+      border: 2px solid #475569; /* Dark grey border */
+      color: #475569;
+  }
+  
   .action-btn:hover {
       color: var(--color-text-main);
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.1);
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
   
   :global([data-theme="light"]) .action-btn:hover {
-      background: rgba(0, 0, 0, 0.05);
+      background: #f1f5f9;
+      border-color: #334155;
+      color: #1e293b;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
   
   /* Spotify Button Enhanced */
@@ -588,8 +598,9 @@ const isDropdownActive = (items: any[]) => {
   
   .spotify-btn:hover {
       color: #1ed760;
-      background: rgba(29, 185, 84, 0.15);
-      box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
+      background: #ffffff;
+      border-color: #1DB954;
+      box-shadow: 0 4px 15px rgba(29, 185, 84, 0.25);
       transform: translateY(-2px) scale(1.05);
   }
   
@@ -665,8 +676,9 @@ const isDropdownActive = (items: any[]) => {
   
   .amazon-btn:hover {
       color: #6aeff6;
-      background: rgba(60, 208, 217, 0.15);
-      box-shadow: 0 0 20px rgba(60, 208, 217, 0.3);
+      background: #ffffff;
+      border-color: #3cd0d9;
+      box-shadow: 0 4px 15px rgba(60, 208, 217, 0.25);
       transform: translateY(-2px) scale(1.05);
   }
   
@@ -728,8 +740,9 @@ const isDropdownActive = (items: any[]) => {
   
   .apple-btn:hover {
       color: #B55AF2;
-      background: rgba(163, 53, 238, 0.15);
-      box-shadow: 0 0 20px rgba(163, 53, 238, 0.3);
+      background: #ffffff;
+      border-color: #A335EE;
+      box-shadow: 0 4px 15px rgba(163, 53, 238, 0.25);
       transform: translateY(-2px) scale(1.05);
   }
   

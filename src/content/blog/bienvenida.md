@@ -2,7 +2,7 @@
 title: "¡Bienvenidos a Veredillas FM!"
 description: "La voz del IES Las Veredillas ya está en el aire... ¡y en la red! Estamos muy emocionados de daros la bienvenida al blog oficial de Veredillas FM."
 pubDate: 2025-11-25
-image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhPippomkbrJOnabrIhoZS9QDwmv6cxnR_WxBgdmUmnILCUighOXaHCjIl8OAoa8BRmO-6Nbn-tQWBR0i_JdnmoG_B4ZcSiEGQpyWJNz6pfaEZlNR8deMC6HKpmB4sMAIfgkQU2mzTDJW1VPP8nR14ZuYOKOIx3BU0yjpLz8W_ixdnGXYNM_i9wVzihRIo/s1024/Gemini_Generated_Image_ncm406ncm406ncm4.png"
+image: "https://cdn.veredillasfm.es/banner.webp"
 tags: ["Bienvenida", "Radio", "IES Las Veredillas"]
 ---
 

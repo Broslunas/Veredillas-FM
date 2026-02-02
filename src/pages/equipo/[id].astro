@@ -112,6 +112,12 @@ const { member } = Astro.props;
         opacity: 0.15;
         filter: blur(80px);
         transform: scale(1.1);
+        transition: opacity 0.3s;
+    }
+
+    /* Light mode specific: lower opacity for cleaner look */
+    :global([data-theme="light"]) .bg-image {
+        opacity: 0.08;
     }
 
     .bg-gradient {
@@ -165,16 +171,21 @@ const { member } = Astro.props;
 
     .profile-layout {
         width: 100%;
-        max-width: 850px; /* Slightly tighter width */
-        background: #18181b;
+        max-width: 850px;
+        background: var(--color-surface);
         border-radius: 24px;
         overflow: hidden;
         display: grid;
-        grid-template-columns: 280px 1fr; /* Smaller image col */
+        grid-template-columns: 280px 1fr;
         box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255,255,255,0.08);
+        border: 1px solid var(--color-border);
         height: auto;
-        max-height: 80vh; /* Allow a bit more height if needed */
+        max-height: 80vh;
+    }
+
+    :global([data-theme="light"]) .profile-layout {
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 0.85); /* Slightly clearer than standard surface */
     }
 
     .profile-visual {
@@ -200,7 +211,7 @@ const { member } = Astro.props;
 
     .content-header {
         margin-bottom: 1.5rem;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        border-bottom: 1px solid var(--color-border);
         padding-bottom: 1.5rem;
     }
 
@@ -218,11 +229,11 @@ const { member } = Astro.props;
     }
 
     h1 {
-        font-size: 2.5rem; /* Smaller H1 */
+        font-size: 2.5rem;
         font-weight: 800;
         line-height: 1.1;
         margin-bottom: 0.25rem;
-        color: #fff;
+        color: var(--color-text-main);
     }
 
     .role {
@@ -233,9 +244,9 @@ const { member } = Astro.props;
     }
 
     .content-body .bio {
-        font-size: 0.95rem; /* Smaller body text */
+        font-size: 0.95rem;
         line-height: 1.6;
-        color: rgba(255,255,255,0.85);
+        color: var(--color-text-muted);
         margin-bottom: 2rem;
         max-width: 100%;
         display: -webkit-box;

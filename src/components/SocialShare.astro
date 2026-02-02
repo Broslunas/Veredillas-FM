@@ -639,6 +639,13 @@ const shareTitle = encodeURIComponent(title);
           backdrop-filter: blur(5px);
           box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
+
+      :global([data-theme="light"]) .share-btn {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          color: #475569;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      }
       
       .share-btn:hover {
           transform: translateX(5px); /* Slide out slightly */
@@ -647,12 +654,12 @@ const shareTitle = encodeURIComponent(title);
           border-color: rgba(255,255,255,0.3);
       }
 
-      /* Specific colors on hover */
-      .whatsapp:hover { background: #25D366; border-color: #25D366; }
-      .telegram:hover { background: #0088cc; border-color: #0088cc; }
-      .facebook:hover { background: #1877F2; border-color: #1877F2; }
-      .twitter:hover { background: #000; border-color: #333; }
-      .embed-btn:hover { background: #8b5cf6; border-color: #8b5cf6; }
-      .copy-link:hover { background: var(--color-primary); border-color: var(--color-primary); }
+      /* Keep hover specific colors but ensure text is white */
+      .whatsapp:hover { background: #25D366 !important; border-color: #25D366 !important; color: white !important; }
+      .telegram:hover { background: #0088cc !important; border-color: #0088cc !important; color: white !important; }
+      .facebook:hover { background: #1877F2 !important; border-color: #1877F2 !important; color: white !important; }
+      .twitter:hover { background: #000 !important; border-color: #333 !important; color: white !important; }
+      .embed-btn:hover { background: #8b5cf6 !important; border-color: #8b5cf6 !important; color: white !important; }
+      .copy-link:hover { background: var(--color-primary) !important; border-color: var(--color-primary) !important; color: white !important; }
   }
 </style>
