@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 export interface IInterviewRequest extends mongoose.Document {
   name: string;
   email: string;
+  phone?: string;
   topic: string;
   description?: string;
   preferredDate?: Date;
@@ -23,6 +24,10 @@ const interviewRequestSchema = new mongoose.Schema<IInterviewRequest>({
     required: true,
     trim: true,
     lowercase: true
+  },
+  phone: {
+    type: String,
+    trim: true
   },
   topic: {
     type: String,

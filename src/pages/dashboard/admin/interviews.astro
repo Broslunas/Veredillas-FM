@@ -3,7 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import AdminNav from '../../../components/admin/AdminNav.astro';
 import { getUserFromCookie } from '../../../lib/auth';
 import User from '../../../models/User';
-import InterviewRequest from '../../../models/InterviewRequest';
+import InterviewRequest, { type IInterviewRequest } from '../../../models/InterviewRequest';
 import dbConnect from '../../../lib/mongodb';
 
 export const prerender = false;
@@ -24,14 +24,16 @@ if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner
 }
 
 // Fetch requests
-const allRequests = await InterviewRequest.find({}).sort({ preferredDate: 1, createdAt: -1 });
+// Cast to unknown first to avoid mongoose document vs interface conflicts regarding methods
+const allRequests = await InterviewRequest.find({}).sort({ preferredDate: 1, createdAt: -1 }) as unknown as IInterviewRequest[];
 
 // Fetch Registered Users for dropdown
 const registeredUsers = await User.find({}, 'name email').sort({ name: 1 });
 
+type ColumnKey = 'pending' | 'invited' | 'approved' | 'completed' | 'rejected';
 
 // Group by Status
-const columns = {
+const columns: Record<ColumnKey, { title: string; items: IInterviewRequest[] }> = {
     pending: { title: '⏳ Pendientes', items: [] },
     invited: { title: '📩 Invitados', items: [] },
     approved: { title: '✅ Aprobadas', items: [] },
@@ -40,8 +42,10 @@ const columns = {
 };
 
 allRequests.forEach(req => {
-    if (columns[req.status]) {
-        columns[req.status].items.push(req);
+    // Ensure status is treated as a valid key
+    const status = req.status as ColumnKey;
+    if (columns[status]) {
+        columns[status].items.push(req);
     }
 });
 
@@ -86,7 +90,7 @@ function formatDateShort(date: string | Date | undefined) {
                     <div class="column-content" ondrop="drop(event)" ondragover="allowDrop(event)">
                         {col.items.map((item) => (
                             <div class="kanban-card" 
-                                id={item._id} 
+                                id={item._id as string} 
                                 draggable="true" 
                                 ondragstart="drag(event)"
                                 onclick={`openDetails('${item._id}')`}
@@ -144,6 +148,10 @@ function formatDateShort(date: string | Date | undefined) {
                     <label>Email</label>
                     <input type="email" name="email" required placeholder="juan@ejemplo.com" />
                 </div>
+                <div class="form-group">
+                    <label>Teléfono (Opcional)</label>
+                    <input type="tel" name="phone" placeholder="+34 600..." />
+                </div>
                  <div class="form-group">
                     <label>Tema de la Entrevista</label>
                     <input type="text" name="topic" required placeholder="Ej: Inteligencia Artificial" />
@@ -170,7 +178,9 @@ function formatDateShort(date: string | Date | undefined) {
         <div class="modal-content glass-panel" style="max-width: 500px;">
             <h3 id="detailTitle">Detalles</h3>
             <div class="details-body">
-                <p><strong>👤 Invitado:</strong> <span id="detailName"></span> (<span id="detailEmail"></span>)</p>
+                <p><strong>👤 Invitado:</strong> <span id="detailName"></span></p>
+                <p><strong>📧 Email:</strong> <span id="detailEmail"></span></p>
+                <p><strong>📞 Teléfono:</strong> <span id="detailPhone"></span></p>
                 <p><strong>📅 Fecha:</strong> <span id="detailDate"></span></p>
                 <!-- Show Token Link if status is invited -->
                 <div id="inviteLinkSection" style="display:none;" class="invite-link-box">
@@ -321,15 +331,9 @@ function formatDateShort(date: string | Date | undefined) {
         if (selectedOption.value) {
             nameInput.value = selectedOption.getAttribute('data-name');
             emailInput.value = selectedOption.value;
-            // Optionally, we could set readonly
-            // nameInput.setAttribute('readonly', 'true');
-            // emailInput.setAttribute('readonly', 'true');
         } else {
-            // Restore manual edit
             nameInput.value = '';
             emailInput.value = '';
-            // nameInput.removeAttribute('readonly');
-            // emailInput.removeAttribute('readonly');
         }
     });
 
@@ -338,6 +342,7 @@ function formatDateShort(date: string | Date | undefined) {
         document.getElementById('detailTitle').textContent = data.topic;
         document.getElementById('detailName').textContent = data.name;
         document.getElementById('detailEmail').textContent = data.email;
+        document.getElementById('detailPhone').textContent = data.phone || 'No especificado';
         document.getElementById('detailDate').textContent = data.preferredDate ? new Date(data.preferredDate).toLocaleString() : 'Sin fecha';
         document.getElementById('detailDesc').textContent = data.description || 'Sin descripción adicional.';
         
@@ -680,6 +685,7 @@ function formatDateShort(date: string | Date | undefined) {
   .user-select-input {
       appearance: none; /* simple arrow override if desired */
       cursor: pointer;
+      width: 100%;
   }
 
   .form-group input:focus, .form-group textarea:focus, .user-select-input:focus {
@@ -744,6 +750,10 @@ function formatDateShort(date: string | Date | undefined) {
           grid-template-columns: 1fr;
           overflow-x: visible;
       }
+      
+      .admin-container {
+          padding: 1rem;
+      }
   }
 
   /* Blob Background */
@@ -772,7 +782,7 @@ function formatDateShort(date: string | Date | undefined) {
   .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.85); /* Darker backdrop */
       backdrop-filter: blur(5px);
       z-index: 9999;
       display: flex;
@@ -781,6 +791,7 @@ function formatDateShort(date: string | Date | undefined) {
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
+      padding: 1rem; /* Padding avoids edge touching */
   }
 
   .modal-backdrop.active {
@@ -793,12 +804,16 @@ function formatDateShort(date: string | Date | undefined) {
       border: 1px solid var(--color-border);
       padding: 2rem;
       border-radius: 1.5rem;
-      width: 90%;
+      width: 100%;
       max-width: 500px;
+      max-height: 90vh; /* Responsive Max Height */
+      overflow-y: auto; /* Enable Scrolling */
       text-align: center;
       transform: scale(0.95);
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
   }
 
   .modal-backdrop.active .modal-content {
@@ -840,4 +855,17 @@ function formatDateShort(date: string | Date | undefined) {
       border: 1px solid var(--color-primary);
   }
   .btn-modal.confirm:hover { background: var(--color-secondary); }
+  
+  @media (max-width: 600px) {
+      .modal-content {
+          padding: 1.5rem;
+      }
+      .modal-actions {
+          flex-direction: column;
+          gap: 0.5rem;
+      }
+      .btn-modal {
+          width: 100%;
+      }
+  }
 </style>

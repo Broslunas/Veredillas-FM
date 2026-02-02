@@ -8,7 +8,7 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   try {
     const data = await request.json();
-    const { name, email, topic, description, preferredDate, source } = data;
+    const { name, email, phone, topic, description, preferredDate, source } = data;
 
     // Validation
     const missingFields = [];
@@ -36,6 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
     const newRequest = await InterviewRequest.create({
       name,
       email,
+      phone: phone || "undefined",
       topic,
       description,
       preferredDate: preferredDate ? new Date(preferredDate) : undefined,
@@ -48,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
     
     // Switch webhook if admin invite
     if (source === 'admin') {
-        webhookUrl = "https://n8n.broslunas.com/webhook/veredillasfm-interview-invite";
+        webhookUrl = "https://n8n.broslunas.com/webhook-test/veredillasfm-interview-invite";
     }
 
     const secret = import.meta.env.CONTACT_WEBHOOK_SECRET;
