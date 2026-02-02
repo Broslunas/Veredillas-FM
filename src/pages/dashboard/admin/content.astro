@@ -80,6 +80,12 @@ const sortedEpisodeStats = Array.from(episodeStats.entries())
                 <h1>Contenido</h1>
                 <p>Métricas de rendimiento de episodios</p>
             </div>
+            <div class="header-actions">
+                <a href="/keystatic" target="_blank" class="action-btn primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <span>Gestionar CMS</span>
+                </a>
+            </div>
         </div>
 
         <AdminNav />
@@ -243,6 +249,33 @@ const sortedEpisodeStats = Array.from(episodeStats.entries())
     height: 100%;
     border-radius: 4px;
     transition: width 1s ease-in-out;
+  }
+
+  /* Action Button */
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .action-btn.primary {
+    background: #a78bfa;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+    border: none;
+  }
+
+  .action-btn.primary:hover {
+    background: #8b5cf6;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(167, 139, 250, 0.4);
   }
 
   /* Background Blobs */

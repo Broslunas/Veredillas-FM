@@ -1,4 +1,6 @@
 import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import keystatic from '@keystatic/astro';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import { globSync } from 'glob';
@@ -57,6 +59,8 @@ export default defineConfig({
   adapter: vercel(),
 
   integrations: [
+    react(),
+    keystatic(),
     sitemap({
       customPages: getCustomPages(),
       filter: (page) => 
