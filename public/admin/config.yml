@@ -3,7 +3,7 @@ backend:
   repo: Broslunas/veredillas-fm
   branch: master
   base_url: https://www.veredillasfm.es
-  auth_endpoint: api/oauth/auth
+  auth_endpoint: /api/oauth/auth
 
 local_backend: true
 
