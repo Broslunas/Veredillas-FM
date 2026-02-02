@@ -1,0 +1,192 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import AdminNav from '../../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../../lib/auth';
+import User from '../../../../models/User';
+import dbConnect from '../../../../lib/mongodb';
+
+export const prerender = false;
+
+// 1. Auth Check (App Admin)
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) return Astro.redirect('/404');
+await dbConnect();
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404');
+}
+
+// 2. CMS Auth Check (GitHub Token)
+// In PROD, we need the token. In DEV, we can skip if we just use FS, 
+// but for consistency let's check existence if we want to simulate prod flow.
+// Actually, in DEV we can just bypass token check for FS operations.
+const isProd = import.meta.env.PROD;
+let hasGithubToken = false;
+
+if (cookieHeader) {
+    const cookies = Object.fromEntries(cookieHeader.split('; ').map(c => c.split('=')));
+    if (cookies['cms_gh_token']) {
+        hasGithubToken = true;
+    }
+}
+
+// If in PROD and no token, show "Connect GitHub" button instead of dashboard
+if (isProd && !hasGithubToken) {
+   // We will handle this in the template
+}
+
+const collections = [
+    { id: 'blog', label: '📰 Blogs', icon: '📝' },
+    { id: 'episodios', label: '🎙️ Episodios', icon: '🎧' },
+    { id: 'guests', label: '👥 Invitados', icon: '👤' }
+];
+---
+
+<Layout title="CMS - Veredillas FM">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+         <div class="grid-overlay"></div>
+    </div>
+
+    <div class="admin-container fade-in-up">
+        <div class="admin-header">
+            <div class="header-content">
+                <h1>Gestor de Contenido</h1>
+                <p>Edita el contenido de la web directamente.</p>
+            </div>
+             <div class="header-actions">
+                 {isProd && !hasGithubToken ? (
+                     <a href="/api/auth/github/login" class="action-btn primary">
+                        Github Conectar
+                     </a>
+                 ) : (
+                     <span class="status-badge success">Conectado {isProd ? '(GitHub)' : '(Local)'}</span>
+                 )}
+            </div>
+        </div>
+
+        <AdminNav />
+
+        {isProd && !hasGithubToken ? (
+            <div class="glass-panel p-8 text-center">
+                <h2>🔐 Requiere Autenticación</h2>
+                <p class="mb-6 opacity-80">Para editar contenido en producción, necesitas conectar tu cuenta de GitHub.</p>
+                <a href="/api/auth/github/login" class="action-btn primary inline-flex">
+                    Conectar con GitHub
+                </a>
+            </div>
+        ) : (
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {collections.map(col => (
+                    <a href={`/dashboard/admin/cms/${col.id}`} class="collection-card glass-panel interactive">
+                        <div class="icon">{col.icon}</div>
+                        <h3>{col.label}</h3>
+                        <p>Gestionar colección</p>
+                    </a>
+                ))}
+            </div>
+        )}
+
+    </div>
+</Layout>
+
+<style>
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--color-text-main);
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  /* Header */
+  .admin-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .admin-header h1 {
+    font-size: 3rem;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(to right, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  .admin-header p { color: var(--color-text-muted); font-size: 1.1rem; }
+
+  /* Cards */
+  .collection-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      text-decoration: none;
+      color: white;
+      gap: 1rem;
+      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 1.5rem;
+  }
+
+  .collection-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(167, 139, 250, 0.3);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+
+  .collection-card .icon { font-size: 3rem; margin-bottom: 0.5rem; }
+  .collection-card h3 { font-size: 1.5rem; font-weight: 700; }
+  .collection-card p { color: var(--color-text-muted); }
+
+  /* Utils */
+  .glass-panel {
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 1.5rem;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .action-btn.primary {
+    background: #a78bfa;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+  }
+  
+  .status-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+  }
+  .status-badge.success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+  /* Background Blobs */
+  .blob { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: -1; }
+  .blob-1 { top: -200px; left: -200px; background: var(--color-primary); }
+  .blob-2 { bottom: -200px; right: -200px; background: var(--color-secondary); }
+  .grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 40%, transparent 100%); opacity: 0.5; }
+</style>
