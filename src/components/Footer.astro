@@ -24,21 +24,34 @@ const currentYear = new Date().getFullYear();
       </div>
     </div>
 
-    <!-- Column 2: Navigation -->
-    <div class="footer-column links-col">
-      <h4>Navegación</h4>
+    <!-- Column 2: Explora -->
+    <div class="footer-column links-col explora-col">
+      <h4>Explora</h4>
       <ul class="footer-nav">
         <li><a href="/">Inicio</a></li>
         <li><a href="/ep">Episodios</a></li>
+        <li><a href="/live">En Vivo</a></li>
         <li><a href="/blog">Blog</a></li>
-        <li><a href="/about">Equipo</a></li>
+        <li><a href="/galeria">Galería</a></li>
         <li><a href="/calendario">Calendario</a></li>
-        <li><a href="/contacto">Contacto</a></li>
       </ul>
     </div>
 
-    <!-- Column 3: Connect -->
-    <div class="footer-column links-col">
+    <!-- Column 3: Comunidad -->
+    <div class="footer-column links-col community-col">
+      <h4>Comunidad</h4>
+      <ul class="footer-nav">
+        <li><a href="/about">Sobre Nosotros</a></li>
+        <li><a href="/equipo">Equipo</a></li>
+        <li><a href="/entrevistas">Entrevistas</a></li>
+        <li><a href="/invitados">Invitados</a></li>
+        <li><a href="/faq">Preguntas (FAQ)</a></li>
+        <li><a href="/solicitar-entrevista">Participar</a></li>
+      </ul>
+    </div>
+
+    <!-- Column 4: Conecta -->
+    <div class="footer-column links-col social-col">
       <h4>Conecta</h4>
       <ul class="footer-nav social-links">
         <li>
@@ -80,7 +93,7 @@ const currentYear = new Date().getFullYear();
       </ul>
     </div>
 
-    <!-- Column 4: Contact -->
+    <!-- Column 5: Contact -->
     <div class="footer-column contact-col">
       <h4>Contacto</h4>
       <p class="contact-text">¿Tienes una sugerencia para el programa o simplemente quieres saludar?</p>
@@ -136,8 +149,8 @@ const currentYear = new Date().getFullYear();
 
   .footer-content {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 2fr;
-    gap: 4rem;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr;
+    gap: 3rem;
     margin-bottom: 4rem;
     position: relative;
     z-index: 1;
@@ -320,18 +333,23 @@ const currentYear = new Date().getFullYear();
   /* Responsive */
   @media (max-width: 1024px) {
     .footer-content {
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2rem;
     }
     
-    .brand-col, .contact-col {
-        grid-column: span 2;
+    .brand-col {
+        grid-column: span 3;
+        order: 1;
     }
+
+    .explora-col { order: 2; }
+    .community-col { order: 3; }
+    .social-col { order: 4; }
     
-    /* Order adjustment if needed to match mobile flow better */
-    .brand-col { order: 1; }
-    .links-col { order: 2; } /* Both nav columns */
-    .contact-col { order: 3; }
+    .contact-col {
+        grid-column: span 3;
+        order: 5;
+    }
   }
 
   @media (max-width: 640px) {
@@ -342,7 +360,7 @@ const currentYear = new Date().getFullYear();
     .footer-content {
       grid-template-columns: 1fr;
       gap: 2.5rem;
-      text-align: left; /* Keep left alignment for clean look or center? Image implies left align mainly */
+      text-align: left;
     }
 
     .brand-col, .contact-col {
