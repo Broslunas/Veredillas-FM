@@ -1,5 +1,13 @@
 
-export const COLLECTION_SCHEMAS: any = {
+export interface SchemaField {
+    name: string;
+    label: string;
+    type: 'text' | 'textarea' | 'date' | 'number' | 'list';
+    required?: boolean;
+    default?: string;
+}
+
+export const COLLECTION_SCHEMAS: Record<string, SchemaField[]> = {
     'blog': [
         { name: 'title', label: 'Título', type: 'text', required: true },
         { name: 'description', label: 'Descripción', type: 'textarea', required: true },

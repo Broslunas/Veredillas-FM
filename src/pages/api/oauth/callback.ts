@@ -1,6 +1,6 @@
-export const prerender = false;
+import type { APIContext } from 'astro';
 
-export async function GET({ request }) {
+export async function GET({ request }: APIContext) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   

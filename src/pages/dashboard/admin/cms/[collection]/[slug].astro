@@ -1,7 +1,7 @@
 ---
 import Layout from '../../../../../layouts/Layout.astro';
-import { getFile, saveFile } from '../../../../../lib/cms';
-import { COLLECTION_SCHEMAS } from '../../../../../lib/cmsSchemas';
+import { getFile, saveFile, type CMSFile } from '../../../../../lib/cms';
+import { COLLECTION_SCHEMAS, type SchemaField } from '../../../../../lib/cmsSchemas';
 import { getUserFromCookie } from '../../../../../lib/auth';
 import User from '../../../../../models/User';
 import dbConnect from '../../../../../lib/mongodb';
@@ -31,7 +31,7 @@ if (import.meta.env.PROD) {
 }
 
 // Load File if editing
-let fileData: any = { data: {}, content: '' };
+let fileData: { data: Record<string, unknown>; content: string } = { data: {}, content: '' };
 let sha: string | undefined;
 
 if (!isNew) {
@@ -64,9 +64,9 @@ if (Astro.request.method === 'POST') {
         
         // Build Frontmatter
         const schema = COLLECTION_SCHEMAS[collection!] || [];
-        const frontmatter: any = {};
+        const frontmatter: Record<string, unknown> = {};
         
-        schema.forEach((field: any) => {
+        schema.forEach((field: SchemaField) => {
             const val = formData.get(field.name);
             if (val) {
                 if (field.type === 'list') {
@@ -153,7 +153,7 @@ const schema = COLLECTION_SCHEMAS[collection!] || [];
                         <span class="hint">Nombre del archivo sin espacios.</span>
                     </div>
 
-                    {schema.map((field: any) => (
+                    {schema.map((field: SchemaField) => (
                         <div class="form-group">
                             <label>{field.label} {field.required && '*'}</label>
                             

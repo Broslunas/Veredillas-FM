@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import mongoose from 'mongoose';
+
 import { getUserFromCookie } from '../../../lib/auth';
 import dbConnect from '../../../lib/mongodb';
 import User from '../../../models/User';

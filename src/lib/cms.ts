@@ -9,14 +9,31 @@ export type CMSFile = {
     slug: string;
     path: string;
     content: string; // Markdown body
-    data: any; // Frontmatter
+    data: Record<string, unknown>; // Frontmatter
     sha?: string; // For GitHub updatess
 }
 
 const REPO_OWNER = 'Broslunas';
 const REPO_NAME = 'veredillas-fm';
 
-export async function listFiles(collection: string, token?: string): Promise<{slug: string, title?: string}[]> {
+interface GitHubFile {
+    name: string;
+    path: string;
+    sha: string;
+    size: number;
+    url: string;
+    html_url: string;
+    git_url: string;
+    download_url: string;
+    type: string;
+    _links: {
+        self: string;
+        git: string;
+        html: string;
+    };
+}
+
+export async function listFiles(collection: string, token?: string): Promise<{slug: string, title?: string, name?: string}[]> {
     const isProd = import.meta.env.PROD;
     
     if (isProd) {
@@ -33,10 +50,10 @@ export async function listFiles(collection: string, token?: string): Promise<{sl
         
         if (!res.ok) return [];
         
-        const files = await res.json();
+        const files = (await res.json()) as GitHubFile[];
         return files
-            .filter((f: any) => f.name.endsWith('.md'))
-            .map((f: any) => ({
+            .filter((f) => f.name.endsWith('.md'))
+            .map((f) => ({
                 slug: f.name.replace('.md', ''),
                 name: f.name
             }));
@@ -93,7 +110,7 @@ export async function getFile(collection: string, slug: string, token?: string):
     }
 }
 
-export async function saveFile(collection: string, slug: string, frontmatter: any, content: string, token?: string, sha?: string) {
+export async function saveFile(collection: string, slug: string, frontmatter: Record<string, unknown>, content: string, token?: string, sha?: string) {
     const isProd = import.meta.env.PROD;
     const filePath = `src/content/${collection}/${slug}.md`;
     
@@ -104,7 +121,13 @@ export async function saveFile(collection: string, slug: string, frontmatter: an
         if (!token) throw new Error("Unauthorized");
         
         const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`;
-        const body: any = {
+        
+        const body: {
+            message: string;
+            content: string;
+            committer: { name: string; email: string };
+            sha?: string;
+        } = {
             message: `cms: update ${collection}/${slug}`,
             content: Buffer.from(fileContent).toString('base64'),
             committer: {

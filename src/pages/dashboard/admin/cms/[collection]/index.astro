@@ -39,7 +39,7 @@ if (import.meta.env.PROD) {
 }
 
 // Fetch Files
-let files = [];
+let files: {slug: string, title?: string, name?: string}[] = [];
 let error = null;
 
 try {
