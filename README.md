@@ -300,7 +300,7 @@ Por favor, lee nuestro [CONTRIBUTING.md](CONTRIBUTING.md) para conocer el proces
 
 ### Creadores de Veredillas FM
 
-- **Abel Fernández** - Guionista - [@abelfrp](https://www.instagram.com/abelfrp/)
+- **Abel Fernández** - Guionista
 - **Pablo Luna** - Web, Sonido y Programación - [broslunas.com](https://broslunas.com)
 - **Pablo Santamaría** - Diseño Web y Sonido - [@pabl0.sp](https://www.instagram.com/pabl0.sp/)
 - **Omar Reyes** - Diseñador Web - [@ereyes_magos](https://www.instagram.com/ereyes_magos/)
