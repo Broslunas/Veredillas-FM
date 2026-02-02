@@ -1,35 +1,31 @@
 # Configuración del CMS (Keystatic)
 
-Se ha implementado **Keystatic** como sistema CMS para gestionar Blogs, Episodios e Invitados.
+## 🚨 Solución al error "Authorization Failed"
 
-## ⚠️ IMPORTANTE: URL de Callback Correcta
+Si después de corregir la URL sigues viendo "Authorization failed" después de hacer login en GitHub, el problema es casi seguro el **Client Secret** en Vercel.
 
-El error que ves confirma que la aplicación está esperando recibir la respuesta en una ruta específica `/api/...`.
+### Pasos Definitivos:
 
-Para arreglar el error **"redirect_uri is not associated..."**, ve a GitHub y pon **EXACTAMENTE** esta URL:
+1. **Igualar Dominios**:
+   - He actualizado tu configuración de Astro para usar `https://www.veredillasfm.es` (con www).
+   - Asegúrate de que en Vercel > Settings > Domains, el dominio principal sea `www.veredillasfm.es`.
 
-👉 **Callback URL**: `https://www.veredillasfm.es/api/keystatic/github/oauth/callback`
+2. **Regenerar Secret**:
+   - Ve a tu GitHub App (Settings > Developer settings > GitHub Apps).
+   - En **Client secrets**, dale a **Generate a new client secret**.
+   - Copia el nuevo valor.
 
-*(Nota que incluye `/api/keystatic/github/oauth/callback`. Esta es la ruta correcta para la integración con Astro).*
+3. **Actualizar Vercel**:
+   - Ve a tu proyecto en Vercel > Settings > Environment Variables.
+   - Busca `KEYSTATIC_GITHUB_CLIENT_SECRET`.
+   - **Edítala** y pega el nuevo valor. Asegúrate de **no copiar espacios en blanco** al principio o al final.
+   - Dale a **Save**.
+   - **IMPORTANTE**: Ve a la pestaña **Deployments** en Vercel y haz **Redeploy** en el último commit para que coja la nueva variable.
 
----
+### Resumen de Configuración Correcta
 
-## Pasos para corregirlo ahora mismo
-
-1. Ve a **GitHub Settings > Developer Settings > GitHub Apps > Veredillas FM CMS**.
-2. Busca el campo **Callback URL**.
-3. Pega la URL completa:
-   `https://www.veredillasfm.es/api/keystatic/github/oauth/callback`
-4. Guarda los cambios (**Save changes**).
-
-Una vez guardado, vuelve a intentar iniciar sesión en tu web.
-
-## Referencia de Configuración
-
-Si necesitas crear la App de nuevo o revisar, estos son los datos correctos:
-
-- **Homepage URL**: `https://www.veredillasfm.es`
-- **Callback URL**: `https://www.veredillasfm.es/api/keystatic/github/oauth/callback`
-- **Permissions**: Content (Read & Write).
-
-Las variables de entorno (`KEYSTATIC_GITHUB_CLIENT_ID`, etc.) se mantienen igual.
+- **GitHub App Callback**: `https://www.veredillasfm.es/api/keystatic/github/oauth/callback`
+- **Vercel Env Vars**:
+  - `KEYSTATIC_GITHUB_CLIENT_ID`: (Tu ID de GitHub)
+  - `KEYSTATIC_GITHUB_CLIENT_SECRET`: (Tu Secret NUEVO)
+  - `KEYSTATIC_SECRET`: (Un texto largo al azar)

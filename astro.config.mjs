@@ -10,7 +10,7 @@ import fs from 'fs';
 
 import tailwindcss from '@tailwindcss/vite';
 
-const SITE_URL = 'https://veredillasfm.es';
+const SITE_URL = 'https://www.veredillasfm.es';
 
 // Store episode dates to use in serialize
 const episodeDates = {};
