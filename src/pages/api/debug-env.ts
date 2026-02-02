@@ -5,19 +5,20 @@ export async function GET() {
   const hasClientSecret = !!import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET;
   const hasSecret = !!import.meta.env.KEYSTATIC_SECRET;
   
-  const clientSecretStart = import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET 
-    ? import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET.substring(0, 5) + '...'
-    : 'MISSING';
+  const secret = import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET || '';
+  const clientSecretStart = secret.length > 5 ? secret.substring(0, 5) + '...' : (secret ? 'SHORT' : 'MISSING');
 
   return new Response(JSON.stringify({
     ok: true,
+    timestamp: new Date().toISOString(),
     env: {
        KEYSTATIC_GITHUB_CLIENT_ID: hasClientId ? 'PRESENT' : 'MISSING',
        KEYSTATIC_GITHUB_CLIENT_SECRET: hasClientSecret ? `PRESENT (${clientSecretStart})` : 'MISSING',
        KEYSTATIC_SECRET: hasSecret ? 'PRESENT' : 'MISSING'
     },
     site: import.meta.env.SITE,
-    prod: import.meta.env.PROD
+    prod: import.meta.env.PROD,
+    base: import.meta.env.BASE_URL
   }), {
     status: 200,
     headers: {
