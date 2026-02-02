@@ -34,30 +34,51 @@ export async function GET({ request }) {
 
     const token = data.access_token;
 
-    // Decap CMS expects a postMessage content window communication
-    const script = `
-      <script>
-        (function() {
-          function receiveMessage(e) {
-            console.log("receiveMessage %o", e);
+    // Generate SAFE script
+    const content = { token, provider: 'github' };
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Authenticating...</title>
+      </head>
+      <body>
+        <p>Autenticación completada. Cerrando ventana...</p>
+        <script>
+          (function() {
+            const data = ${JSON.stringify(content)};
+            const msg = "authorization:github:success:" + JSON.stringify(data);
             
-            // Match the window.opener check
-            window.opener.postMessage(
-              'authorization:github:success:${JSON.stringify({ token, provider: 'github' })}', 
-              e.origin
-            );
-          }
+            console.log("Sending message to opener:", msg);
 
-          window.addEventListener("message", receiveMessage, false);
-          
-          // Send immediately to opener in case we are the popup
-          // Decap CMS listens for 'authorization:provider:success:data'
-          window.opener.postMessage("authorization:github:success:${JSON.stringify({ token, provider: 'github' })}", "*");
-        })();
-      </script>
+            function sendMessage() {
+               if (window.opener) {
+                  window.opener.postMessage(msg, "*");
+               }
+            }
+            
+            // Send immediately
+            sendMessage();
+            
+            // Also listen for request from opener (handshake)
+            window.addEventListener("message", function(e) {
+                if (e.data === "authorizing:github") {
+                    sendMessage();
+                }
+            });
+
+            // Close after a short delay
+            setTimeout(function() {
+                 window.close();
+            }, 1000);
+          })();
+        </script>
+      </body>
+      </html>
     `;
 
-    return new Response(script, {
+    return new Response(html, {
       headers: { 'Content-Type': 'text/html' },
     });
 
