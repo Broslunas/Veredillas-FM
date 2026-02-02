@@ -6,7 +6,8 @@ export interface IInterviewRequest extends mongoose.Document {
   topic: string;
   description?: string;
   preferredDate?: Date;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  token?: string;
+  status: 'pending' | 'invited' | 'approved' | 'rejected' | 'completed';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,9 +37,14 @@ const interviewRequestSchema = new mongoose.Schema<IInterviewRequest>({
   preferredDate: {
     type: Date
   },
+  token: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'completed'],
+    enum: ['pending', 'invited', 'approved', 'rejected', 'completed'],
     default: 'pending'
   }
 }, {

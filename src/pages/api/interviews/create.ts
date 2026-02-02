@@ -1,12 +1,14 @@
 import type { APIRoute } from 'astro';
 import dbConnect from '../../../lib/mongodb';
 import InterviewRequest from '../../../models/InterviewRequest';
+import { randomUUID } from 'crypto';
+
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const data = await request.json();
-    const { name, email, topic, description, preferredDate } = data;
+    const { name, email, topic, description, preferredDate, source } = data;
 
     // Validation
     const missingFields = [];
@@ -24,6 +26,12 @@ export const POST: APIRoute = async ({ request }) => {
     // Connect to DB
     await dbConnect();
 
+    // Generate Token if Admin Invite
+    let inviteToken = undefined;
+    if (source === 'admin') {
+        inviteToken = randomUUID(); 
+    }
+
     // Create Request
     const newRequest = await InterviewRequest.create({
       name,
@@ -31,15 +39,18 @@ export const POST: APIRoute = async ({ request }) => {
       topic,
       description,
       preferredDate: preferredDate ? new Date(preferredDate) : undefined,
-      status: 'pending'
+      status: source === 'admin' ? 'invited' : 'pending',
+      token: inviteToken
     });
 
     // Send to n8n Webhook
-    // We use a specific webhook for interviews or a generic one if configured
-    const webhookUrl = "https://n8n.broslunas.com/webhook/veredillasfm-interview";
-    // We reuse the CONTACT_WEBHOOK_SECRET if available, or just send without auth if that's how n8n is set up. 
-    // Looking at contact.ts, it uses 'Authorization': `Bearer ${secret}`.
-    // I will use importance of environment variable.
+    let webhookUrl = "https://n8n.broslunas.com/webhook/veredillasfm-interview";
+    
+    // Switch webhook if admin invite
+    if (source === 'admin') {
+        webhookUrl = "https://n8n.broslunas.com/webhook-test/veredillasfm-interview-invite";
+    }
+
     const secret = import.meta.env.CONTACT_WEBHOOK_SECRET;
 
     if (webhookUrl && secret) {
@@ -52,6 +63,9 @@ export const POST: APIRoute = async ({ request }) => {
                 },
                 body: JSON.stringify({
                     requestId: newRequest._id,
+                    action: "invited",
+                    source: source || 'public',
+                    token: inviteToken, // Send token to n8n so it can build the URL
                     name,
                     email,
                     topic,
@@ -62,7 +76,6 @@ export const POST: APIRoute = async ({ request }) => {
             });
         } catch (webhookError) {
             console.error("Failed to send to n8n:", webhookError);
-            // We don't fail the request if webhook fails, since we saved to DB.
         }
     }
 

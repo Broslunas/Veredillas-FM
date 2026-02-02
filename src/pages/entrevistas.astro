@@ -1,0 +1,705 @@
+---
+import Layout from '../layouts/Layout.astro';
+import dbConnect from '../lib/mongodb';
+import InterviewRequest from '../models/InterviewRequest';
+
+export const prerender = false;
+
+const token = Astro.url.searchParams.get('token');
+const email = Astro.url.searchParams.get('email');
+
+let request = null;
+let error = null;
+
+if (!token || !email) {
+    error = "Enlace inválido. Faltan credenciales.";
+} else {
+    try {
+        await dbConnect();
+        const found = await InterviewRequest.findOne({ 
+            token: token, 
+            email: email.toLowerCase() 
+        });
+
+        if (!found) {
+            error = "No se encontró ninguna invitación asociada a este enlace.";
+        } else if (found.status === 'rejected') {
+             error = "Esta invitación fue rechazada anteriormente.";
+        } else if (found.status === 'completed') {
+             error = "Esta invitación ya no está activa.";
+        } else {
+            // Can be: 'pending', 'invited', 'approved'
+            request = found;
+        }
+    } catch (e) {
+        console.error(e);
+        error = "Ocurrió un error al verificar la invitación.";
+    }
+}
+---
+
+<Layout title="Responder Invitación | Veredillas FM">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="page-container fade-in-up">
+        
+        <div class="card-container glass-panel">
+            <h1 class="text-gradient mb-2">Invitación a Veredillas FM</h1>
+            
+            {error ? (
+                <div class="state-message error">
+                    <div class="icon-wrapper error">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                    </div>
+                    <h3>Enlace no disponible</h3>
+                    <p>{error}</p>
+                    <a href="/" class="btn-home">Volver al Inicio</a>
+                </div>
+            ) : request ? (
+                <div class="invitation-details"> 
+                    
+                    {/* Status Banners */}
+                    {request.status === 'approved' && (
+                        <div class="status-banner success mb-6">
+                            <span class="icon">✅</span> Asistencia Confirmada.
+                        </div>
+                    )}
+                    
+                    {request.status === 'pending' && (
+                        <div class="status-banner warning mb-6">
+                            <span class="icon">⏳</span> Solicitud bajo revisión. Espera a que un administrador valide los cambios.
+                        </div>
+                    )}
+
+                    <!-- Display Mode -->
+                    <div id="displayMode">
+                        <p class="intro-text">
+                            Hola <strong>{request.name}</strong>, te hemos invitado a participar en nuestro podcast para hablar sobre:
+                        </p>
+                        
+                        <div class="topic-box">
+                            <h2>{request.topic}</h2>
+                            {request.description && <p>{request.description}</p>}
+                        </div>
+
+                        {request.preferredDate && (
+                            <div class="date-info">
+                                <span class="label">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                    Fecha Propuesta:
+                                </span>
+                                <span class="value">{new Date(request.preferredDate).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}</span>
+                            </div>
+                        )}
+
+                        {/* Actions Control: Only shown if 'invited' or 'approved' */}
+                        {(request.status === 'invited' || request.status === 'approved') && (
+                        <div class="actions">
+                            <button class="btn-edit" id="btn-toggle-edit">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                {request.status === 'approved' ? 'Cambiar Detalles / Fecha' : 'Proponer cambios / Editar detalles'}
+                            </button>
+                            
+                            {request.status !== 'approved' && (
+                                <p class="confirm-prompt">¿Podrás asistir en esta fecha y con este tema?</p>
+                            )}
+                            
+                            <div class="buttons-row">
+                                <button id="btn-reject" class="btn btn-reject">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                    Rechazar
+                                </button>
+                                
+                                {request.status !== 'approved' ? (
+                                    <button id="btn-confirm" class="btn btn-confirm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                        Confirmar Asistencia
+                                    </button>
+                                ) : (
+                                    <div class="confirmed-badge">
+                                        Confirmado
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        )}
+                        
+                        {/* Pending State Message */}
+                        {request.status === 'pending' && (
+                             <div class="mt-8 text-muted text-sm">
+                                <p>No puedes realizar acciones mientras la solicitud está en revisión.</p>
+                             </div>
+                        )}
+                    </div>
+
+                    <!-- Edit Mode -->
+                    <div id="editMode" class="edit-mode-container" style="display: none;">
+                        <div class="edit-header">
+                            <h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                Editar Detalles
+                            </h3>
+                            <button type="button" class="btn-close-edit" id="btn-close-edit" aria-label="Cerrar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        
+                        <p class="edit-hint">Si cambias algo, la solicitud volverá a estado pendiente para revisión.</p>
+                        
+                        <form id="editForm" class="edit-form">
+                            <div class="form-group">
+                                <label>Tema</label>
+                                <div class="input-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                    <input type="text" name="topic" value={request.topic} />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Descripción / Notas</label>
+                                <div class="input-wrapper textarea-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                                    <textarea name="description" rows="3">{request.description}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha Preferida</label>
+                                <div class="input-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                    <input type="datetime-local" name="preferredDate" 
+                                        value={request.preferredDate ? new Date(request.preferredDate).toISOString().slice(0,16) : ''} />
+                                </div>
+                            </div>
+
+                            <div class="buttons-row mt-6">
+                                <button type="submit" class="btn btn-confirm full-width">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                    Guardar Cambios y Aceptar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            ) : (
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Cargando información...</p>
+                </div>
+            )}
+        </div>
+    </div>
+</Layout>
+
+<script is:inline define:vars={{ token, email }}>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnToggleEdit = document.getElementById('btn-toggle-edit');
+        const btnCloseEdit = document.getElementById('btn-close-edit');
+        const displayMode = document.getElementById('displayMode');
+        const editMode = document.getElementById('editMode');
+        
+        function toggleEdit() {
+             if (!displayMode || !editMode) return;
+             
+             if(displayMode.style.display === 'none') {
+                // Show Display
+                editMode.style.opacity = '0';
+                setTimeout(() => {
+                    editMode.style.display = 'none';
+                    displayMode.style.display = 'block';
+                    requestAnimationFrame(() => displayMode.style.opacity = '1');
+                }, 300);
+            } else {
+                // Show Edit
+                displayMode.style.opacity = '0';
+                setTimeout(() => {
+                    displayMode.style.display = 'none';
+                    editMode.style.display = 'block';
+                    requestAnimationFrame(() => editMode.style.opacity = '1');
+                }, 300);
+            }
+        }
+        
+        if (btnToggleEdit) btnToggleEdit.addEventListener('click', toggleEdit);
+        if (btnCloseEdit) btnCloseEdit.addEventListener('click', toggleEdit);
+
+        if(displayMode) displayMode.style.transition = 'opacity 0.3s ease';
+        if(editMode) editMode.style.transition = 'opacity 0.3s ease';
+        
+        // --- Actions ---
+        const btnConfirm = document.getElementById('btn-confirm');
+        const btnReject = document.getElementById('btn-reject');
+        const editForm = document.getElementById('editForm');
+        
+         async function sendResponse(action, data = {}) {
+            let confirmMsg = '¿Confirmas tu asistencia?';
+            if (action === 'reject') confirmMsg = '¿Seguro que quieres rechazar la invitación?';
+            if (action === 'modify') confirmMsg = '¿Enviar cambios y proponer nueva fecha/tema?';
+
+            if (!confirm(confirmMsg)) return;
+
+            // Visual loading state
+            const allBtns = document.querySelectorAll('button');
+            allBtns.forEach(b => {
+                b.disabled = true;
+                b.classList.add('disabled');
+            });
+            
+            const payload = { 
+                token, 
+                email, 
+                action,
+                ...data
+            };
+
+            try {
+                const res = await fetch('/api/interviews/respond', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const resData = await res.json();
+
+                if (res.ok) {
+                    window.showToast(resData.message, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    window.showToast(resData.message || 'Error al procesar', 'error');
+                    allBtns.forEach(b => {
+                        b.disabled = false;
+                        b.classList.remove('disabled');
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+                window.showToast('Error de conexión', 'error');
+                allBtns.forEach(b => {
+                        b.disabled = false;
+                        b.classList.remove('disabled');
+                });
+            }
+        }
+
+        if (btnConfirm) btnConfirm.addEventListener('click', () => sendResponse('confirm'));
+        if (btnReject) btnReject.addEventListener('click', () => sendResponse('reject'));
+
+        if (editForm) {
+            editForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(editForm);
+                const data = Object.fromEntries(formData);
+                if(!data.preferredDate) delete data.preferredDate;
+                sendResponse('modify', data);
+            });
+        }
+    });
+</script>
+
+<style>
+    .page-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .card-container {
+        width: 100%;
+        max-width: 520px;
+        padding: 3rem 2rem;
+        background: #121216;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .text-gradient {
+        background: linear-gradient(to right, #fff, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        font-size: 2rem;
+        margin-bottom: 2rem;
+        letter-spacing: -0.02em;
+    }
+
+    .intro-text {
+        font-size: 1.1rem;
+        color: var(--color-text-muted);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .intro-text strong {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .topic-box {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 2rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 2rem;
+        transition: transform 0.2s;
+    }
+    
+    .topic-box:hover {
+        background: rgba(255, 255, 255, 0.04);
+        transform: translateY(-2px);
+    }
+
+    .topic-box h2 {
+        color: var(--color-primary);
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+    
+    .topic-box p {
+        color: var(--color-text-dim);
+        font-size: 1rem;
+        font-style: italic;
+    }
+
+    .date-info {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: rgba(139, 92, 246, 0.08);
+        padding: 0.85rem 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        margin-bottom: 2.5rem;
+    }
+
+    .date-info .label {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .date-info .value {
+        color: #fff;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .actions {
+        margin-top: 1rem;
+    }
+    
+    .confirm-prompt {
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+    }
+
+    .buttons-row {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .buttons-row.mt-6 { margin-top: 1.5rem; }
+
+    .btn {
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn.full-width {
+        width: 100%;
+        grid-column: 1 / -1;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .btn-confirm {
+        background: var(--color-primary);
+        color: white;
+    }
+    .btn-confirm:hover:not(:disabled) {
+        background: var(--color-secondary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-reject {
+        background: rgba(255, 255, 255, 0.03);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .btn-reject:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-edit {
+        background: none;
+        border: none;
+        color: var(--color-text-dim);
+        cursor: pointer;
+        opacity: 0.8;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+    .btn-edit:hover { 
+        opacity: 1; 
+        background: rgba(255,255,255,0.05);
+        color: #fff;
+    }
+
+    /* Edit Mode Styles */
+    .edit-mode-container {
+        text-align: left;
+        background: rgba(255,255,255,0.02);
+        padding: 1.5rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .edit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .edit-header h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-close-edit {
+        background: none;
+        border: none;
+        color: var(--color-text-dim);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-close-edit:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+    }
+
+    .edit-hint {
+        font-size: 0.85rem;
+        color: #facc15;
+        background: rgba(250, 204, 21, 0.1);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(250, 204, 21, 0.2);
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-wrapper svg {
+        position: absolute;
+        left: 1rem;
+        color: var(--color-text-dim);
+        pointer-events: none;
+    }
+
+    .textarea-wrapper svg {
+        top: 1rem;
+    }
+
+    .form-group input, .form-group textarea {
+        width: 100%;
+        padding: 0.85rem 1rem 0.85rem 2.75rem; /* Space for icon */
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 0.75rem;
+        color: white;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        background: rgba(0,0,0,0.5);
+    }
+
+    /* Message States */
+    .state-message {
+        padding: 2rem 1rem;
+    }
+
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+    
+    .icon-wrapper.success {
+        background: rgba(52, 211, 153, 0.1);
+        color: #34d399;
+    }
+    
+    .icon-wrapper.error {
+        background: rgba(248, 113, 113, 0.1);
+        color: #f87171;
+    }
+
+    .state-message h3 {
+        font-size: 1.75rem;
+        color: #fff;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+    }
+
+    .state-message p {
+        color: var(--color-text-muted);
+        margin-bottom: 2.5rem;
+        font-size: 1.1rem;
+    }
+
+    .btn-home {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.85rem 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    .btn-home:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .loading-state {
+        padding: 3rem;
+    }
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255,255,255,0.1);
+        border-radius: 50%;
+        border-top-color: var(--color-primary);
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Status Banner */
+    .status-banner {
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        font-size: 0.9rem;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .status-banner.success {
+        background: rgba(52, 211, 153, 0.1);
+        border: 1px solid rgba(52, 211, 153, 0.2);
+        color: #34d399;
+    }
+
+    .status-banner.warning {
+        background: rgba(250, 204, 21, 0.1);
+        border: 1px solid rgba(250, 204, 21, 0.2);
+        color: #facc15;
+    }
+
+    .confirmed-badge {
+        color: #34d399;
+        font-weight: 500;
+        text-align: center;
+        background: rgba(52, 211, 153, 0.1);
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(52, 211, 153, 0.1);
+    }
+
+    /* Blob Background */
+    .blob {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        filter: blur(100px);
+        opacity: 0.08;
+        z-index: -1;
+    }
+    
+    .blob-1 { top: -200px; left: -200px; background: var(--color-primary); }
+    .blob-2 { bottom: -200px; right: -200px; background: var(--color-secondary); }
+    .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        opacity: 0.5;
+    }
+</style>
