@@ -82,7 +82,7 @@ export async function GET({ request }) {
       headers: { 'Content-Type': 'text/html' },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     return new Response(error.message, { status: 500 });
   }
 }
