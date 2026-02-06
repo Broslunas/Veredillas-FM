@@ -1,5 +1,5 @@
 ---
-title: 'Amor Sin Filtros: Un Diálogo Abierto con Saray y Antonieta'
+title: Amor Sin Filtros ft. Saray y Antonieta
 tags:
   - amor
   - relaciones
