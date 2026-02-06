@@ -21,19 +21,6 @@ videoUrl: 'https://example.com/veredillas-fm-episodio-5.mp4'
 participants:
   - Saray
   - Antonieta
-sections:
-  - title: ¿Qué significa 'Amor Sin Filtros'?
-    content: Una introducción a la idea de relaciones auténticas y transparentes.
-  - title: Los Retos de la Comunicación en la Pareja
-    content: >-
-      Saray y Antonieta discuten los desafíos comunes en la comunicación dentro
-      de una relación.
-  - title: Expectativas vs. Realidad en el Amor Moderno
-    content: >-
-      Un análisis de cómo las expectativas poco realistas afectan las
-      relaciones.
-  - title: Consejos Prácticos para un Amor Auténtico
-    content: Sugerencias para construir relaciones más fuertes y significativas.
 ---
 # Amor Sin Filtros: Un Diálogo Abierto con Saray y Antonieta
 
