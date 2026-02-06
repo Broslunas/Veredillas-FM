@@ -1,196 +1,612 @@
 ---
-title: "El Futuro de la Tecnología en el Aula ft. Oscar"
-description: "Esta semana hemos tenido el inmenso placer de sentarnos a charlar con una de las mentes más brillantes de nuestro centro: Oscar, un increíble profesor de Tecnología del Instituto."
-pubDate: 2025-11-02
-image: "https://cdn.veredillasfm.es/img/001.webp"
+title: El Futuro de la Tecnología en el Aula ft. Oscar
+tags:
+  - Profesorado
+  - Tecnología
+  - Innovación
+  - Profesorado
+transcription:
+  - time: '00:00'
+    text: (pausa de cinco segundos)
+  - time: '00:05'
+    text: 'Tres, dos, uno. Venga.'
+  - time: '00:08'
+    text: '¿Se escucha algo, la música, o? No.'
+  - time: '00:12'
+    text: Que calidad.
+  - time: '00:13'
+    text: >-
+      Buenos días, nos encontramos aquí en Radio Veredilla y el día de hoy vamos
+      a entrevistar a uno de nuestros profesores preferidos y favoritos del
+      instituto. Y aquí estamos con Óscar. Démosle una cálida bienvenida. Hola.
+  - time: '00:28'
+    text: Buenos días.
+  - time: '00:32'
+    text: '¿Cómo estás, Óscar?'
+  - time: '00:34'
+    text: 'Yo gozando, como siempre. ¿Y ustedes?'
+  - time: '00:39'
+    text: Nerviosos.
+  - time: '00:40'
+    text: >-
+      No, nervioso estoy yo, porque veo aquí siete personas, listas
+      interminables de preguntas (ríe) . Y yo a las dos me voy a mi casa, así
+      que... ¿Quién empieza? Venga, vamos. ¿Qué quieren saber?
+  - time: '00:53'
+    text: '¿Cuántos años tienes, Óscar?'
+  - time: '00:56'
+    text: 'En noviembre, el veinticinco, cumplo treinta y cuatro.'
+  - time: '00:59'
+    text: 'Primero que nada, Óscar, ¿cómo te sientes el día de hoy?'
+  - time: '01:03'
+    text: >-
+      Pueees... Bien, porque es viernes. Mal, porque es viernes, porque estoy
+      más quemado ya que... que no sé ni el qué, porque esta semana ha sido
+      complicada. Pero siempre gozando, siempre disfrutando.
+  - time: '01:16'
+    text: Viendo la vida con buen ojo.
+  - time: '01:18'
+    text: >-
+      Sí, tío, es que... Si no, ¿qué hacemos? Venir aquí a sufrir, no vamos a
+      venir a sufrir.
+  - time: '01:26'
+    text: La vida son dos días y uno está lloviendo.
+  - time: '01:29'
+    text: >-
+      Bueno, bueno. A, a sufrir depende del día. Si tienes historia de
+      filosofía, a lo mejor un poquito, un poquito sufres reclamando la notita
+      del examen, ahí riéndose. La cara de Speed de mmm...
+  - time: '01:43'
+    text: 'Pero, o sea, octubre y ya estamos reclamando.'
+  - time: '01:45'
+    text: >-
+      Sí, sí, pero es que eso fue una locura. Eso fue una locura. Eso fue...
+      Corrí un examen y se vio por encima. Ah, esa... Un seis.
+  - time: '01:54'
+    text: Que es filosofía.
+  - time: '01:55'
+    text: >-
+      Un seis. Pero tienes que leértelo. (risa) Tienes que leértelo. Bueno,
+      vamos ahí a... Ya a lo bueno, yo estoy aquí de... acoplao porque yo soy
+      público en verdad, pero bueno. Eh, ¿cuál era tu profesión soñada de
+      pequeño?
+  - time: '02:12'
+    text: >-
+      Uf. A ver, muchos años quise ser arquitecto. No se-- no me pregunten por
+      qué. Yo creo que era una cosa de que... Era una época en la que, eh, el
+      labu-- o sea, estábamos en burbuja de la... de la construcción aquí en
+      España. Se fabricaban casas y edificios en todas las esquinas y era la
+      profesión de moda, supongo. Yo no tengo ni idea de dibujar y tengo muy
+      poca imaginación. Entonces, (ríe) obviamente, la arquitectura tiene más
+      ámbitos, pero no era lo mío. Luego dije que quería ser profe, pero porque
+      mis padres eran profe, no por nada que-- no tenía nin-- no era por
+      vocación ni nada de eso, sino por herencia. Yyy... Y después me quise ser
+      ingeniero y me salió mal. Yo creo que eso sí se los conté una vez. De
+      hecho, lo dije aquí en la radio de... en Radio Veredilla, que empecé
+      Ingeniería, eh, Industrial Mecánica. Aprobé una con un cinco. Eh, al año
+      siguiente dije que me iba a poner en serio. Me puse a estudiar, a...
+      reventar para sacar una asignatura que se llamaba Álgebra.
+  - time: '03:16'
+    text: >-
+      Estuve tres meses estudiando, fui al examen y saqué un cero con tres.
+      (ríe) Ese examen era en enero, ¿no? La universidad de los exámenes son en
+      enero y en junio. Y entonces ahí, después de ver la nota, me di de baja y
+      me fui. Y dejé, dejé la universidad y me puse a trabajar ahí en una
+      discoteca. Y en esos meses ahí de... hasta que se abre la matrícula otra
+      vez, estuve dando vueltas pensando si hacer Empresariales, porque todo el
+      mundo decía: "Si no sabes qué hacer, haz Empresariales". No me llamaba
+      nada la atención, eh, y al final acabé en Náutica, pero de rebote, ¿vale?
+      O sea, fu-- acabé en Náutica, yo no sabía ni que se podía estudiar esa
+      carrera aquí en Tenerife, pero estaba en Santa Cruz con un colega y...
+      nos... o sea, teníamos hambre y me dijo: "Vamos a ir a Náutica y nos
+      echamos un bocadillo de calamares". Y cuando llego allí me veo una
+      facultad en primera línea de playa, la cafetería con bocadillos de
+      calamares y terracita, ensaladilla, cerveza fría.
+  - time: '04:12'
+    text: >-
+      Digo, esto es lo mío, o sea... Y me fui pa allí y me matriculé. Hice esa
+      carrera, ahí sí aprobaba todo porque me gustaba. Y cuando las cosas te
+      gustan, las estudias con otra... con otro... otro feeling. Pero cuando tú
+      terminas Náutica, tienes que navegar trescientos sesenta días, eh, sin
+      cobrar porque eres alumno, eres aprendiz. Y yo no tenía ganas de hacer eso
+      O sea, yo no iba a trabajar gratis. Aparte, ya había perdido dos años en
+      la otra ingeniería. Entonces, me empecé a especializar un poco cuando ya
+      iba acabando la carrera en el tema de las operaciones portuarias y en
+      trabajar de lo mío, pero en tierra. Y entonces estuve cinco años dedicado
+      a eso, al sector naval. Vino el COVID, el sector naval se convirtió en una
+      especie de prisión naval. (ríe) Trabajábamos el doble y cobrábamos lo
+      mismo, porque las empresas tenían la excusa de que había una crisis y no
+      se podía contratar personal, pero seguíamos ganando pasta. O sea, la
+      empresa seguía ganando pasta.
+  - time: '05:12'
+    text: >-
+      Entonces, ahí, mmm, tuve la oportunidad de venir aquí a dar clases,
+      empezar en, en este... en la docencia. Y dije: "Bueno, mmm, lo dejo todo y
+      me voy a la docencia. Si sale bien, sale bien. Si sale mal, vuelvo al
+      muelle". Dejé un trabajo, mmm, donde tenía un contrato fijo y me fui a un
+      trabajo con un contrato precario y a jornada parcial y temporal, donde iba
+      a cobrar la mitad que en el otro sitio. Pero, eh, me parecía una...
+      gozada. Por eso siempre que ustedes me ven por los pasillos y me preguntan
+      cómo estoy, les digo gozando, porque yo vengo de echar doce horas diarias
+      a cuarenta grados en el muelle, de lunes a domingo Entonces, cuando sales
+      de ahí, llegas aquí y encima estás aquí, eh, con ustedes hoy, o sea... Lo
+      voy a decir y está feo, pero yo estoy aquí sentado hablando con ustedes y
+      estoy cobrandoEstá feo, pero es así. Entonces, este es el trabajo de mi
+      sueño. Y lo que intento es que como lo disfruto mucho, pues intento que
+      ustedes disfruten cuando están en clase conmigo.
+  - time: '06:15'
+    text: >-
+      Y de momento, pues va saliendo medianamente bien. Más o menos. Y ese es el
+      resumen así rápido de cómo llegué hasta aquí. Que en realidad no tiene
+      mucho que ver con la pregunta, pero bueno. O sea, ustedes me preguntaron
+      cuál era mi trabajo soñado o mis estudios soñados, no existe eso. La
+      cabeza va cambiando y la vida te va llevando de un sitio para otro. Lo que
+      son los caminos de la vida. ¿Qué más quieren saber? O sea, ¿cuál es la
+      anécdota con un alumno o con un compañero que no te va a olvidar en tu
+      vida de siendo profesor? A ver, tengo un montón. No sabría elegir el
+      motér. Pablo está hablando, es que no se le escucha en el micro, pero
+      Pablo está diciendo anécdotas con Abel. Tengo anécdotas con todos ustedes.
+      A ver, ha habido experiencias muy guays, ha habido experiencias muy
+      negativas. Es decir, este es un trabajo donde hay experiencias que no
+      quieres recomendárselas a nadie, porque al final trabajas con menores y
+      ustedes son personas vulnerables.
+  - time: '07:24'
+    text: >-
+      Entonces, son personas que tienen unos entornos y hay entornos que son
+      complicados. Y eso es algo que a mí me afecta negativamente. Y también es
+      anecdótico. Pero anécdotas graciosas. Mi primer puesto de trabajo de profe
+      fue en un barrio complicado de Santa Cruz. No voy a decir cuál es. Y una
+      anécdota que no es graciosa o no debería serlo, pero a mí me pareció una
+      flipada, fue que un alumno llevaba herramientas en su mochila y robaba
+      piezas de baño. Es decir, el alumno en los recreos se escondía, sacaba sus
+      herramientas y se llevó lavabo, tazas del váter. Yo no quiero mirar a
+      nadie de aquí, pero yo sé de alguien que tiene herramientas en su mochila
+      y se ha robado un pomo de una puerta de un baño y tres procesadores. Y no
+      quiero decir quién es Omar. Sí, yo lo de las memorias RAM creo que noté
+      una bajada drástica de los niveles de almacenamiento de las memorias RAM
+      del año 90, que íbamos a tirar a la basura. Pero bueno, anécdotas esas sí,
+      me acuerdo.
+  - time: '08:42'
+    text: >-
+      Ese fue mi primer destino y fue una locura, una auténtica locura. Yo tenía
+      alumnos que hacían cosas que yo decía: Esto no tiene sentido Tú no puedes
+      hacer esto con 16 años. Yo entiendo que una persona con 16 años puedo
+      llegar a entender que robe un teléfono móvil, por ejemplo, pero que me
+      robes la taza del váter, una taza del váter de un instituto donde ha
+      orinado miles de personas durante 30 años y la robas para llevártela a tu
+      casa. Yo ese día dije: Esto lo tengo que escribir en algún lado. Pero
+      bueno, sí. Y luego anécdotas mucho de reírnos, de pasándonoslo bien, hay
+      miles. Acuérdense de nuestros amigos carreteros. Esa gente nos dejó
+      marcados, como Abel, en este mismo espacio aquí. O cuando Omar tocó un
+      soldador. Omar, que cogió un soldador por el lado que no era. Me lo tiró
+      en la mano. Fue un accidente. Aitor Correa nos dejó de momento. Seguro
+      estaría ahora aquí. Él sí se acordaría de un montón de cosas. Deberíamos
+      invitarlo. ¿Para la próxima? Sí.
+  - time: '09:57'
+    text: >-
+      Cuando le pedimos a Aitor que trajera motores eléctricos de su casa y nos
+      los trajo... Le dijimos: Un motor pequeño para un submarino pequeño, y él
+      trajo un motor de lavadora de 6 kilos. Dios. No sé. Yo dije: ¿Tú entiendes
+      que el submarino tiene que volver a la superficie Si tiene un motor de 6
+      kilos, no va a volver a la superficie. Bueno, después de aparecer en duro.
+      A lo mejor. Sí, motores pequeños quemados. Pues eso son ratitos que fueron
+      muy buenos. Óscar, cambiando un poco de tema, tú has dicho que te gustan
+      mucho las motos. Demasiado. Y recuerdo también que has dicho que cuando
+      estabas trabajando en el muelle, estabas tan cansado que un día ibas por
+      la autopista o por la carretera y tuviste un accidente. Casi tuve un
+      accidente. Ese fue el día que dije: Tengo que cambiar de trabajo. O sea,
+      yo siempre voy en moto, siempre lo he dicho, yo me crié en un ambiente de
+      motos, en mi casa siempre ha habido motos y yo no entiendo mi día a día
+      sin motos.
+  - time: '11:15'
+    text: >-
+      Es decir, yo no duermo tranquilo sin mi moto en el garaje. Yo cuando mi
+      moto está en el taller, yo estoy intranquilo, porque es como si a la casa
+      le faltara el techo. Entonces, claro, uso la moto siempre, aunque esté
+      lloviendo. Esta mañana estaba lloviendo, yo vine en moto. Y cuando
+      trabajaba en el muelle era igual. ¿Qué pasaba? Que yo en el muelle dormía
+      poco Si el barco llegaba a las cuatro de la mañana, yo a las cuatro de la
+      mañana estaba despierto. Pero es que a las ocho me llegaba otro, a las
+      tres me llegaba otro. Entonces, a veces encadenaba cuatro o cinco días
+      durmiendo tramos de una hora y media, dos horas. Y vas acumulando
+      cansancio. Y entonces me pasó que iba bajando por la autopista en la moto
+      y me dejé dormir. Y ahí cuando volví a abrir los ojos, me iba rozando el
+      pantalón con la mediana, con el muro de la autopista. Y no sé qué pasó que
+      no me caí.
+  - time: '12:03'
+    text: Pero si te caes en una autopista a 120 en una moto
+  - time: '12:07'
+    text: 'Sí, daño te hace.'
+  - time: '12:09'
+    text: >-
+      O sea, el peor accidente de moto es en la autopista siempre. Entonces ahí
+      dije: Que va, esto no puede seguir así. O sea, sí que es verdad que
+      ganábamos mucho dinero, eso no lo voy a negar, y y y se trabajaba en una
+      buena empresa, pero llegó un momento que era insostenible, o sea, era una
+      cuestión de salud. Por eso siempre digo a la gente: Sí, haz lo que te
+      gusta, pero tampoco te obsesiones. O sea, si puedes ganar mucho dinero en
+      poco tiempo, a lo mejor es bueno aprovecharlo y coger ese filón, pero
+      tienes que saber cuándo parar. Entonces, yo te digo, yo cuando empecé a
+      trabajar en docencia cobraba la mitad que en el muelle. Pero no me
+      arrepiento, o sea, al final el dinero es un número que viene y va. Si
+      tiene cinco, gasta cinco, si tiene tres, gasta tres. Pero la otra parte
+      compensa, que duermas en tu casa y no en un barco.
+  - time: '13:11'
+    text: Claro.
+  - time: '13:12'
+    text: Compensa. Así que ya saben.
+  - time: '13:17'
+    text: 'Si tuvieras que decirle algo a tu yo de 17 años, ¿qué sería?'
+  - time: '13:24'
+    text: >-
+      Le podría decir varias cosas. La primera es: no te matricules en
+      ingeniería mecánica por el simple hecho de que tus colegas lo hagan,
+      porque vas a perder dos años. Pero es que esos dos años también me lo pasé
+      muy bien. Estuve saliendo de fiesta de miércoles a domingo, dos años
+      seguidos, que no los cambio por nada. Es decir, de hecho ahora no salgo
+      por todo lo que salí en esa época. O sea, yo ahora a las 11 estoy tieso en
+      la cama, sea viernes o sea el día que sea. Entonces, sí que le diría una
+      cosa y es: piensa de bien lo que vas a estudiar, no lo hagas. O sea,
+      estudia algo. Si tienes la oportunidad de ir a la universidad, vete,
+      porque es una etapa que no se vuelve a repetir y con esa edad es una
+      maravilla. Pasa tú por la universidad y no dejes que la universidad pase
+      por ti, porque cuando la universidad pasa por ti, te aplasta y te ves mal.
+      Y también le diría que esto ya es un poco...
+  - time: '14:30'
+    text: >-
+      Cada uno tendrá sus experiencias, pero a esas edades tendemos siempre,
+      pues tenemos las hormonas como las tenemos y tendemos siempre a estar en
+      relaciones de pareja, en esto y lo otro. Y siempre, se los digo a ustedes
+      también, tengan relaciones sanas, o sea, no se compliquen la vida ni se la
+      compliquen ustedes a nadie. Porque entonces es tiempo que van a perder
+      estando en una situación que no les va a gustar y no lo van a recuperar. Y
+      es una etapa de la vida que tiene que ser top. Es decir, ustedes se tienen
+      que levantar todos los días y decir: ¿A qué fiesta voy a ir hoy? ¿Con qué
+      colega voy a quedar hoy? O ¿qué voy a hacer hoy con mi novia que va a ser
+      un planazo? Pero no se puede levantar y decir... Otra vez a la
+      universidad. Vaya asco de día, otra vez a la facultad. Que sí, que hay
+      días malos, pero no puede ser así durante cuatro años porque les va a
+      pasar la universidad por encima. Cambiando de nuevo de tema.
+  - time: '15:36'
+    text: >-
+      Nosotros estamos aquí en el aula creativa y queríamos saber cómo surgió
+      esta idea del aula creativa. Mira, es un proyecto de la consejería. La
+      consejería diseñó el proyecto este, están en unos cuantos centros y
+      entonces al principio del todo, siempre que hacen proyectos como este,
+      eligen una serie de institutos que los llaman pilotos, y es a quienes
+      mandan el material y les dicen: Monten esto, pruébenlo y nos dicen qué tal
+      va El material llegó aquí, quedó en las cajas esas que están ahí. Llegó
+      todo, estaba guardado y no existía el espacio. Entonces, yo me enteré y
+      dije: Vale, el próximo curso, si estoy aquí, yo me encargo de poner eso en
+      marcha. Llegué aquí, abrí las cajas, había todo esto, la radio, las
+      impresoras, los focos, todo el tema del chroma, la cámara. ¿Los iPad, los
+      drones, todos estos jaleos. Este espacio estaba todo lleno de tierra,
+      lleno de trastos. Limpié todo un poco, pero después me di cuenta de que yo
+      solo no tenía tiempo de montar todo esto ni de utilizarlo.
+  - time: '16:35'
+    text: >-
+      Entonces, justo ese año, yo le daba clase a algunos de ustedes en cuarto
+      B, que estaba Abel, Pablo, Sichen. No, Pablo no estaba. Tú trabajabas en
+      otra tecnología. Entonces, con ese grupito de cuarto, que eran 10 o 12,
+      como les gustaba tanto todo este tema, dije: Vale, pues vamos para abajo y
+      vamos a montar el aula. No sé si se acuerdan que montamos todo nosotros y
+      lo pusimos todo a prueba. Y ya después, lo que hemos ido haciendo, se
+      acuerdan que en ese grupo había gente que tenía un perfil más artístico,
+      que eran Giselle y Ruth, y a cierto Ellos se encargaron del mural. Pablo,
+      Chen y tal tenían más rollo informático, se encargaron de las impresoras y
+      tal. A ustedes les gustaba más el tema de la radio, el chroma, nos pusimos
+      aquí, acuérdense que estaba Gilberto. Aitor. Aitor. Entonces, hicimos el
+      telediario con el programa aquel que usaba Pablo y fuimos sacándole
+      rentabilidad a todo este material.
+  - time: '17:35'
+    text: >-
+      Y ahora ya ustedes se van cuando acabe este curso, pero ya vienen grupos
+      más pequeños que ustedes. De hecho, este año tengo otra vez a cuarto B que
+      estamos trabajando aquí, gracias a lo que ustedes se curraron y montaron.
+      Entonces, así nació. Y ahora lo que tenemos que intentar es que se
+      mantenga en el tiempo
+  - time: '17:54'
+    text: 'Después de dos años, ¿crees que es buena idea este proyecto?'
+  - time: '17:59'
+    text: >-
+      Sí. Sacarlos a ustedes de las aulas normales y traerlos aquí hace que
+      ustedes aprendan sin que se den cuenta. Es decir, ustedes en sus casas no
+      tienen un equipo de radio como este, porque no es lo normal tener esto en
+      casa. Sin embargo, vienen aquí y aprenden a utilizarlo.Y aprenden a
+      conectarlo y aprenden an-- sin querer están haciendo, eh, trabajo
+      colaborativo, porque el que no controla la mesa, controla de los micros,
+      el que no controla la cámara, el que no controla la parte de los guiones.
+      Eh, después, la impresora 3D, por ejemplo, teníamos el problema: no, no
+      podemos dejarla encendida, porque hay riesgo de incendio. Esto es un
+      instituto que por la tarde no hay nadie. Entonces, aparece la idea de
+      Pablo: vamos a crear el servidor con la webcam, la vigilamos desde casa,
+      la controlamos, ta, no sé qué. Seguramente Pablo no tenía esos
+      conocimientos y los adquirió aquí gracias a esto.
+  - time: '18:50'
+    text: >-
+      Sin querer y, y sin estar en un temario y sin estar en ningún lado escrito
+      que teníamos que, que aprender esto. Sin embargo, hasta yo he aprendido a
+      usar el servidor ese. Entonces, esto es una forma de aprender diferente y
+      van a aprender cosas que no van a, a encontrar en otro sitio, ¿vale?
+  - time: '19:10'
+    text: '¿Y qué es lo que más te apasiona de, de la docencia?'
+  - time: '19:15'
+    text: >-
+      Eh... Es una mezcla de cosas, ¿vale? Es decir, eh, la docencia tiene como
+      muchos aspectos que ustedes solo ven el de venir a clase y aprender
+      tecnología, ¿vale? Yo veo el de, eh, cuando yo los cogía a ellos en cuarto
+      B, me acuerdo que era un grupo que estaba dividido en dos partes. Y
+      Zitzen, por ejemplo, era un pibe muy, muy, muy tímido. Y ahora mismo,
+      mientras estamos nosotros grabando aquí, Zitzen está dando una clase de
+      informática a otro grupo. O sea, pasó de no hablar a, a no callarse (ríe)
+      , ¿vale? Entonces, esa progresión es algo que no es implícito a la materia
+      de Tecnología, ni a la de Lengua, ni a la de ninguna, sino que va
+      implícito en, en, en lo que es la docencia en sí, en el ambiente y tal. Y
+      esas cosas, por ejemplo, a mí me encantan.
+  - time: '20:04'
+    text: >-
+      Cuando yo veo a lo largo del tiempo cómo evolucionan ustedes, eh, cómo se
+      desarrollan, cómo se perfilan, eh, eso es algo que a mí me, me flipa,
+      porque me molesta mucho cuando escucho a gente, sobre todo mayor, decir:
+      «Es que la juventud no quiere trabajar, es que la juventud no quiere hacer
+      nada». Eh, eso es mentira. De hecho, la, la, la primera de las veces que
+      existe un registro de esa frase, de la juventud de hoy no quiere hacer
+      nada, fue Sócrates. Ya Sócrates decía eso. Y todas las generaciones dicen
+      lo mismo y es mentira. Es mentira, o sea, la, la inmensa mayoría de
+      ustedes va a llegar a donde le dé la gana. Entonces, a mí me gusta ser
+      testigo de ese proceso, ¿vale? Es lo que más me gusta, mucho más que la
+      materia en sí. La tecnología al final, pues hay partes del tema que me
+      gustan más y otras me gustan menos, ¿vale? Eso es así, igual que ustedes.
+      Pero a mí el proceso ese de-- evolutivo de...
+  - time: '20:57'
+    text: por el que pasan ustedes es el que me gusta
+  - time: '21:00'
+    text: 'Óscar, ¿alguna vez les has hecho exámenes (...) ?'
+  - time: '21:04'
+    text: >-
+      Eh, sí, el otro día hice un examen (ríe) . El-- no es la materia de
+      Tecnología. No, no, no lo llevo nada bien. No, porque... (ríe) El examen
+      como tal, eso realmente se llama prueba escrita, ¿no? Es un instrumento de
+      evaluación, pero es que ese instrumento es exactamente igual a una
+      exposición oral, a un mural, a un Canva, a una, a un esquema, a esto que
+      estamos haciendo ahora. Yo podría evaluarlos ahora o Alejandro los podría
+      evaluar ahora a ustedes aquí, ¿vale? Un programa de radio es un
+      instrumento de evaluación igual de válido que una prueba escrita.
+      Entonces, eh, yo prefiero usar otros métodos, porque mi materia, Examinar,
+      en prueba escrita Tecnología, podrías hacer un examen de circuitos. Pero
+      es que yo le-- yo sé que va a haber gente que va a sacar un diez en un
+      examen de asociación de resistancias en serie y no necesariamente va a
+      saber montar un circuito.
+  - time: '22:04'
+    text: >-
+      Entonces, yo el día de mañana creo que ustedes, como seres, mmm, de
+      sociedad, van a ser mucho más pragmáticos montando un circuito que
+      calculando matemáticamente cómo com-- cómo se comporta ese circuito. Vale,
+      entonces, yo les enseño a calcularlo matemáticamente, pero les voy a
+      evaluar, sobre todo, que sepan montarlo y que sepan por qué no enciende la
+      luz o por qué se enciende o por qué enciende una y no la otra. Vale, que
+      sepan los riesgos asociados. Yo siempre les hablo a ustedes de cuando yo
+      trabajaba en los barcos y les cuento, pues, anécdotas de accidentes que
+      tuvimos, de cosas que nos pasaron y tal, con el fin de que ustedes no los
+      repitan, porque así es como evoluciona la industria, es decir, aprendiendo
+      de los errores. Entonces, si yo los aviso desde ya, el día que ustedes
+      trabajen en la industria que sea, eh, evitarán esos errores, quiero pensar
+      eso.
+  - time: '22:54'
+    text: >-
+      Pues me centro mucho más en eso que en un examen escrito, que ustedes
+      pueden tener un mal día y les sale mal y, y entonces deja de ser objetivo
+      De hecho, yo, ah, yo tengo una asignatura este año que se llama Ámbito
+      científico, que es de, de diversificación, y, eh, cuando les hago una
+      prueba escrita, las hago de dos veces. Es decir, usamos dos horas y ellos
+      se van a casa y al día siguiente vuelven y siguen haciendo el mismo
+      examen. ¿Por qué? Porque así les doy un tiempo de recapacitar sobre sus
+      propios errores y aprenden más que si yo les devuelvo el examen con un
+      dos. Porque van a ver el dos y van a decir: «Ah, vale, me equivoqué». Pero
+      si tienen veinticuatro horas para recapacitar y decir: «¿Habré hecho bien
+      aquella operación?
+  - time: '23:39'
+    text: >-
+      Voy a investigar y voy a mirar los apuntes y voy a mirar en ChatGPT o
+      donde sea», pues ya están trabajando sin querer en, en, en ese error,
+      porque el ser humano, por desgracia, aprende a base de errores
+  - time: '23:53'
+    text: >-
+      ¿Crees que el proyecto de submarino es una también muy buena manera de,
+      eh, aplicar estos conocimientos?
+  - time: '24:03'
+    text: >-
+      El proyecto de submarino a mí me gusta muchísimo porque yo vengo de
+      trabajar en ese sector y cuando yo trabajaba ahí tenía un problema, y es
+      que cuando necesitaba contratar personas, no las encontraba. Entonces, a
+      mí me parecía una locura que viviendo en una isla que durante siglos ha
+      sido estratégica en el sector naval, porque hasta Cristóbal Colón estuvo
+      aquí, eh...Estuvo en Canarias. Me parece una locura cómo vivimos de
+      espaldas a ese sector. Entonces, yo decía: Si seguimos promocionando que
+      la gente trabaje en el sector industrial, pero no en el naval, cuando
+      somos una IS, que tenemos un puerto de interés general que tiene cuatro
+      siglos de historia, estamos haciendo el tonto. Entonces, en ese proyecto
+      de crear un submarino y de llevarlo al muelle y trabajar con él, con la
+      universidad y todo eso, yo encontré una forma de acercarlos a ustedes, a
+      ese sector. Y de hecho, algunos no tenían ni idea de que estaba la
+      Facultad de Náutica, fuimos, la vimos, encontraron allí una salida.
+  - time: '25:04'
+    text: >-
+      De hecho, este año me encontré un alumno que fue el año pasado con
+      nosotros y está este año haciendo el ciclo superior de navegación marítima
+      y que no lo conocía hasta que fuimos allí. Pues ese ya va a ser un futuro
+      profesional de marina mercante que no teníamos antes. Entonces, creo que
+      es un proyecto que no solo es la parte tecnológica de robótica y de tal y
+      de cual, sino de acercamiento a la industria, que es la industria que creo
+      yo que debería ser la principal en Canarias. Ahora mismo es el turismo,
+      pero yo creo que es mucho más beneficiosa para nosotros, para la clase
+      trabajadora, la naval se gana más dinero, se trabaja mejor y genera menos
+      impacto. Menos impacto a nivel social. Al final, el turismo es una
+      actividad que mueve personas, pero el sector naval lo que mueve es: mueve
+      barcos, mueve recambios, mueve logística. O sea, con menos personas
+      generas más ingresos y más actividad económica.
+  - time: '26:03'
+    text: >-
+      Entonces, si yo a ustedes les puedo abrir esa ventana y ya ustedes decidir
+      si meterse ahí o no, creo que es un acierto
+  - time: '26:15'
+    text: >-
+      Óscar, ya que hemos mencionado lo de las generaciones, por ejemplo, con
+      Sócrates, y tú siendo una persona que has experimentado tanto en tu
+      juventud con varias carreras y demás, ¿cuál crees que sería uno de los
+      mayores, o por no decir, el mayor de los desafíos que se enfrentan los
+      jóvenes de hoy en día?
+  - time: '26:33'
+    text: >-
+      Sin duda, el cambio. Es decir, durante siglos el ser humano ha efectuado
+      cambios sociales que han durado un montón de tiempo, que han ido poco a
+      poco. Sin embargo, hoy en día, la sociedad cambia en cuestión de semanas.
+      O sea, la sociedad hoy en día, al nivel tecnológico, a nivel de
+      comunicación, a nivel de información, cambia todos los días. Entonces,
+      ustedes van a necesitar adaptarse a ese cambio continuo, porque en la
+      industria que sea que trabajen, si no están adaptados al cambio, no
+      venden. Es decir, cuando yo trabajaba en los barcos, a nosotros, a mi
+      empresa, nos iba muy bien porque innovábamos. Entonces, siempre íbamos un
+      paso por delante, siempre queríamos ser los primeros en lo que fuera cada
+      vez. Si venía un sistema nuevo para instalar en los barcos, nosotros
+      éramos los primeros en instalarlo y los primeros en venderlo. ¿Por qué?
+      Porque estás adaptado al cambio. Hay profesiones que pasan siglos y no
+      cambian, siguen siempre igual.
+  - time: '27:31'
+    text: >-
+      Pero lo que pasa ahora del mercado laboral es que cambia por días. O sea,
+      ustedes piensen que durante décadas había personas que tocaban en las
+      puertas de las casas para vender libros y ganaban mucha pasta, vendían
+      enciclopedia. Sin embargo, eso en cuestión de años ha pasado de que ya no
+      los venden ni por internet, de que ahora el libro te lo escribe una
+      inteligencia artificial. Entonces, el cambio cada vez es más rápido y el
+      reto que tienen ustedes es tener capacidad de adaptarse al cambio y de no
+      tener miedo de adaptarse al cambio. ¿Y qué pasa? Que eso también tiene una
+      contrapartida y es cuando te lanzas a todo, porque vas a lanzarte en cosas
+      que luego no van a funcionar, que es cuando viene el problema. Pero bueno,
+      si no te equivocas, no vas a acertar. Antes estaban diciendo por ahí que
+      me iban a preguntar algo de Bitcoin.
+  - time: '28:24'
+    text: >-
+      A mí mi mejor amigo, que es Imanol, vino hace 15 años y me dijo: Tío, unos
+      colegas están comprando tarjetas gráficas, montando unos rack y hacen una
+      minería de unas monedas digitales y no sé qué rollo, que yo no sé cómo va,
+      pero me han dicho que si metemos 300 pavos, a lo mejor dentro de un año
+      recuperamos 350. Y yo le dije: No, yo paso de meterme ahí. Y él dijo:
+      Vamos, pues yo tampoco me meto. Si nos hubiéramos metido, ahora estaríamos
+      millonarios Pero es que hubo gente que se metió en otras monedas, hizo la
+      inversión y no ganó un duro. Simplemente fue porque un día un señor
+      decidió comprar dos pizzas con un Bitcoin. Y fue así. Y esa transacción,
+      dos pizzas por dos bitcoins, desencadenó lo que hemos visto ahora. Una
+      moneda de uso. Entonces, yo ahí me equivoqué, sí. Me tenía que haber
+      lanzado, sí, pero no me lancé. Me lancé a otras cosas.
+  - time: '29:19'
+    text: >-
+      Y creo que el reto de ustedes, yo me equivoqué una vez con el Bitcoin,
+      pero a ustedes eso les va a pasar muchas más veces, porque ahora todo se
+      mueve mucho más rápido y es a ver quién coge el qué, quién se atreve a
+      qué. Así que eso es lo que hay. Y acabando un poco la sesión, ¿qué opinas
+      del uso de inteligencia artificial en la aplicación? Yo la uso. A mí me
+      parece una auténtica locura y yo la uso. Yo la uso y yo mando, o sea, yo
+      organizo y escribo y diseño tareas para mi alumnado en donde les obligo a
+      utilizar el ChatGPT. ¿Qué pasa? Que yo no le te digo: Haz un trabajo en
+      ChatGPT. No sé cuál es. Haz un trabajo en ChatGPT y me lo entrega Yo lo
+      que te digo es: Habla con Chaje Pete, mantén una conversación, llévatelo a
+      tu terreno, métele condicionales, intenta rebatirle todo lo que te dice,
+      genera un contenido y a partir de ahí, saca conclusiones y después las
+      contrastasYo, por ejemplo, yo he visto abogados presentar recursos a
+      denuncias con ChasGPT y ganarlas. ¿Por qué?
+  - time: '30:38'
+    text: >-
+      Porque se pegan dos horas y media discutiendo. No, pero eso no es así. No,
+      pero compruébame entonces esta otra ley, compruébame el otro, compruébame
+      aquí, compruébeme acá, y acaba funcionando. Entonces, yo creo que es una
+      buena herramienta, solo que requiere más tiempo del que normalmente
+      ustedes le dan.
+  - time: '31:00'
+    text: Ya va a tocar la hora.
+  - time: '31:03'
+    text: Nos vamos a desayunar.
+  - time: '31:04'
+    text: 'Sí. Podríamos acabar aquí, ¿no?'
+  - time: '31:10'
+    text: >-
+      Una última pregunta, ¿cómo podríamos ayudarte a que nunca muera este
+      espacio?
+  - time: '31:17'
+    text: >-
+      Es muy sencillo, en realidad. Y esto es algo que yo aprendí de otro
+      profesor. Y es que ustedes, que están en segundo de bachillerato, enseñen
+      a otros que estén en cursos inferiores. Si ustedes transmiten sus
+      conocimientos, que creo que con Alejandro lo están haciendo, están creando
+      como unos tutoriales de cómo se usa la radio, cómo se usa lo otro. Si
+      ustedes transmiten esos conocimientos y esa responsabilidad que han cogido
+      ustedes de que forman parte de esto y lo cuidan y lo tratan bien. Si eso
+      se lo conseguimos transmitir a los que ahora están en primero de la ESE,
+      esto se convierte en una cadena y se mantiene vivo el proyecto durante
+      años. Yo me iré a otro sitio a lo mejor a trabajar y esto seguirá, porque
+      será el alumnado el que le diga al profesorado: No, no, queremos estar
+      aquí y queremos abrir el aula creativa en los recreos.
+  - time: '32:03'
+    text: >-
+      Entonces, si ustedes consiguen transmitir al alumnado, a los más pequeños,
+      todos los conocimientos y esa responsabilidad de vamos a cuidar el
+      espacio, esto se mantiene.
+  - time: '32:16'
+    text: >-
+      Yo creo que hasta aquí el primer episodio de este podcast y nos vemos la
+      próxima vez.
+  - time: '32:22'
+    text: 'Muy bien. Muchas gracias, Oscar.'
+  - time: '32:24'
+    text: Hasta luego. Chao.
+description: >-
+  Esta semana hemos tenido el inmenso placer de sentarnos a charlar con una de
+  las mentes más brillantes de nuestro centro: Oscar, un increíble profesor de
+  Tecnología del Instituto.
+pubDate: '2025-11-02T00:00:00.000Z'
+image: 'https://cdn.veredillasfm.es/img/001-v3.webp'
 season: 1
 episode: 1
-duration: "32 min"
-audioUrl: "https://cdn.veredillasfm.es/podcast-oscar-001.m4a"
-participants: ["Prof. Oscar"]
-tags: ["Profesorado", "Tecnología", "Innovación", "Profesorado"]
+duration: 32 min
+audioUrl: 'https://cdn.veredillasfm.es/podcast-oscar-001.m4a'
+participants:
+  - Prof. Oscar
 sections:
-  - time: "00:13"
-    title: "Intro / Bienvenida"
-  - time: "02:12"
-    title: "Profesión soñada de pequeño"
-  - time: "03:16"
-    title: "Ingeniería Fallida y Náutica"
-  - time: "05:12"
-    title: "De Operaciones Portuarias a Docencia"
-  - time: "06:15"
-    title: "Anécdotas surreales de alumnos"
-  - time: "09:57"
-    title: "Anécdota del Motor de Lavadora"
-  - time: "11:15"
-    title: "Accidente de Moto y Cambio de Vida"
-  - time: "13:17"
-    title: "Consejos a su yo de 17 años"
-  - time: "15:36"
-    title: "Origen del Aula Creativa"
-  - time: "19:10"
-    title: "Pasión por la Docencia"
-  - time: "21:00"
-    title: "Opinión sobre los Exámenes"
-  - time: "24:03"
-    title: "Proyecto Submarino y Sector Naval"
-  - time: "26:15"
-    title: "Desafío de los Jóvenes: El Cambio"
-  - time: "28:24"
-    title: "Historia del Bitcoin"
-  - time: "29:19"
-    title: "Uso de la Inteligencia Artificial"
-  - time: "31:10"
-    title: "El Legado del Aula Creativa"
-  - time: "32:16"
-    title: "Despedida"
-transcription:
-  - time: "00:00"
-    text: "(pausa de cinco segundos)"
-  - time: "00:05"
-    text: "Tres, dos, uno. Venga."
-  - time: "00:08"
-    text: "¿Se escucha algo, la música, o? No."
-  - time: "00:12"
-    text: "Que calidad."
-  - time: "00:13"
-    text: "Buenos días, nos encontramos aquí en Radio Veredilla y el día de hoy vamos a entrevistar a uno de nuestros profesores preferidos y favoritos del instituto. Y aquí estamos con Óscar. Démosle una cálida bienvenida. Hola."
-  - time: "00:28"
-    text: "Buenos días."
-  - time: "00:32"
-    text: "¿Cómo estás, Óscar?"
-  - time: "00:34"
-    text: "Yo gozando, como siempre. ¿Y ustedes?"
-  - time: "00:39"
-    text: "Nerviosos."
-  - time: "00:40"
-    text: "No, nervioso estoy yo, porque veo aquí siete personas, listas interminables de preguntas (ríe) . Y yo a las dos me voy a mi casa, así que... ¿Quién empieza? Venga, vamos. ¿Qué quieren saber?"
-  - time: "00:53"
-    text: "¿Cuántos años tienes, Óscar?"
-  - time: "00:56"
-    text: "En noviembre, el veinticinco, cumplo treinta y cuatro."
-  - time: "00:59"
-    text: "Primero que nada, Óscar, ¿cómo te sientes el día de hoy?"
-  - time: "01:03"
-    text: "Pueees... Bien, porque es viernes. Mal, porque es viernes, porque estoy más quemado ya que... que no sé ni el qué, porque esta semana ha sido complicada. Pero siempre gozando, siempre disfrutando."
-  - time: "01:16"
-    text: "Viendo la vida con buen ojo."
-  - time: "01:18"
-    text: "Sí, tío, es que... Si no, ¿qué hacemos? Venir aquí a sufrir, no vamos a venir a sufrir."
-  - time: "01:26"
-    text: "La vida son dos días y uno está lloviendo."
-  - time: "01:29"
-    text: "Bueno, bueno. A, a sufrir depende del día. Si tienes historia de filosofía, a lo mejor un poquito, un poquito sufres reclamando la notita del examen, ahí riéndose. La cara de Speed de mmm..."
-  - time: "01:43"
-    text: "Pero, o sea, octubre y ya estamos reclamando."
-  - time: "01:45"
-    text: "Sí, sí, pero es que eso fue una locura. Eso fue una locura. Eso fue... Corrí un examen y se vio por encima. Ah, esa... Un seis."
-  - time: "01:54"
-    text: "Que es filosofía."
-  - time: "01:55"
-    text: "Un seis. Pero tienes que leértelo. (risa) Tienes que leértelo. Bueno, vamos ahí a... Ya a lo bueno, yo estoy aquí de... acoplao porque yo soy público en verdad, pero bueno. Eh, ¿cuál era tu profesión soñada de pequeño?"
-  - time: "02:12"
-    text: "Uf. A ver, muchos años quise ser arquitecto. No se-- no me pregunten por qué. Yo creo que era una cosa de que... Era una época en la que, eh, el labu-- o sea, estábamos en burbuja de la... de la construcción aquí en España. Se fabricaban casas y edificios en todas las esquinas y era la profesión de moda, supongo. Yo no tengo ni idea de dibujar y tengo muy poca imaginación. Entonces, (ríe) obviamente, la arquitectura tiene más ámbitos, pero no era lo mío. Luego dije que quería ser profe, pero porque mis padres eran profe, no por nada que-- no tenía nin-- no era por vocación ni nada de eso, sino por herencia. Yyy... Y después me quise ser ingeniero y me salió mal. Yo creo que eso sí se los conté una vez. De hecho, lo dije aquí en la radio de... en Radio Veredilla, que empecé Ingeniería, eh, Industrial Mecánica. Aprobé una con un cinco. Eh, al año siguiente dije que me iba a poner en serio. Me puse a estudiar, a... reventar para sacar una asignatura que se llamaba Álgebra."
-  - time: "03:16"
-    text: "Estuve tres meses estudiando, fui al examen y saqué un cero con tres. (ríe) Ese examen era en enero, ¿no? La universidad de los exámenes son en enero y en junio. Y entonces ahí, después de ver la nota, me di de baja y me fui. Y dejé, dejé la universidad y me puse a trabajar ahí en una discoteca. Y en esos meses ahí de... hasta que se abre la matrícula otra vez, estuve dando vueltas pensando si hacer Empresariales, porque todo el mundo decía: \"Si no sabes qué hacer, haz Empresariales\". No me llamaba nada la atención, eh, y al final acabé en Náutica, pero de rebote, ¿vale? O sea, fu-- acabé en Náutica, yo no sabía ni que se podía estudiar esa carrera aquí en Tenerife, pero estaba en Santa Cruz con un colega y... nos... o sea, teníamos hambre y me dijo: \"Vamos a ir a Náutica y nos echamos un bocadillo de calamares\". Y cuando llego allí me veo una facultad en primera línea de playa, la cafetería con bocadillos de calamares y terracita, ensaladilla, cerveza fría."
-  - time: "04:12"
-    text: "Digo, esto es lo mío, o sea... Y me fui pa allí y me matriculé. Hice esa carrera, ahí sí aprobaba todo porque me gustaba. Y cuando las cosas te gustan, las estudias con otra... con otro... otro feeling. Pero cuando tú terminas Náutica, tienes que navegar trescientos sesenta días, eh, sin cobrar porque eres alumno, eres aprendiz. Y yo no tenía ganas de hacer eso O sea, yo no iba a trabajar gratis. Aparte, ya había perdido dos años en la otra ingeniería. Entonces, me empecé a especializar un poco cuando ya iba acabando la carrera en el tema de las operaciones portuarias y en trabajar de lo mío, pero en tierra. Y entonces estuve cinco años dedicado a eso, al sector naval. Vino el COVID, el sector naval se convirtió en una especie de prisión naval. (ríe) Trabajábamos el doble y cobrábamos lo mismo, porque las empresas tenían la excusa de que había una crisis y no se podía contratar personal, pero seguíamos ganando pasta. O sea, la empresa seguía ganando pasta."
-  - time: "05:12"
-    text: "Entonces, ahí, mmm, tuve la oportunidad de venir aquí a dar clases, empezar en, en este... en la docencia. Y dije: \"Bueno, mmm, lo dejo todo y me voy a la docencia. Si sale bien, sale bien. Si sale mal, vuelvo al muelle\". Dejé un trabajo, mmm, donde tenía un contrato fijo y me fui a un trabajo con un contrato precario y a jornada parcial y temporal, donde iba a cobrar la mitad que en el otro sitio. Pero, eh, me parecía una... gozada. Por eso siempre que ustedes me ven por los pasillos y me preguntan cómo estoy, les digo gozando, porque yo vengo de echar doce horas diarias a cuarenta grados en el muelle, de lunes a domingo Entonces, cuando sales de ahí, llegas aquí y encima estás aquí, eh, con ustedes hoy, o sea... Lo voy a decir y está feo, pero yo estoy aquí sentado hablando con ustedes y estoy cobrandoEstá feo, pero es así. Entonces, este es el trabajo de mi sueño. Y lo que intento es que como lo disfruto mucho, pues intento que ustedes disfruten cuando están en clase conmigo."
-  - time: "06:15"
-    text: "Y de momento, pues va saliendo medianamente bien. Más o menos. Y ese es el resumen así rápido de cómo llegué hasta aquí. Que en realidad no tiene mucho que ver con la pregunta, pero bueno. O sea, ustedes me preguntaron cuál era mi trabajo soñado o mis estudios soñados, no existe eso. La cabeza va cambiando y la vida te va llevando de un sitio para otro. Lo que son los caminos de la vida. ¿Qué más quieren saber? O sea, ¿cuál es la anécdota con un alumno o con un compañero que no te va a olvidar en tu vida de siendo profesor? A ver, tengo un montón. No sabría elegir el motér. Pablo está hablando, es que no se le escucha en el micro, pero Pablo está diciendo anécdotas con Abel. Tengo anécdotas con todos ustedes. A ver, ha habido experiencias muy guays, ha habido experiencias muy negativas. Es decir, este es un trabajo donde hay experiencias que no quieres recomendárselas a nadie, porque al final trabajas con menores y ustedes son personas vulnerables."
-  - time: "07:24"
-    text: "Entonces, son personas que tienen unos entornos y hay entornos que son complicados. Y eso es algo que a mí me afecta negativamente. Y también es anecdótico. Pero anécdotas graciosas. Mi primer puesto de trabajo de profe fue en un barrio complicado de Santa Cruz. No voy a decir cuál es. Y una anécdota que no es graciosa o no debería serlo, pero a mí me pareció una flipada, fue que un alumno llevaba herramientas en su mochila y robaba piezas de baño. Es decir, el alumno en los recreos se escondía, sacaba sus herramientas y se llevó lavabo, tazas del váter. Yo no quiero mirar a nadie de aquí, pero yo sé de alguien que tiene herramientas en su mochila y se ha robado un pomo de una puerta de un baño y tres procesadores. Y no quiero decir quién es Omar. Sí, yo lo de las memorias RAM creo que noté una bajada drástica de los niveles de almacenamiento de las memorias RAM del año 90, que íbamos a tirar a la basura. Pero bueno, anécdotas esas sí, me acuerdo."
-  - time: "08:42"
-    text: "Ese fue mi primer destino y fue una locura, una auténtica locura. Yo tenía alumnos que hacían cosas que yo decía: Esto no tiene sentido Tú no puedes hacer esto con 16 años. Yo entiendo que una persona con 16 años puedo llegar a entender que robe un teléfono móvil, por ejemplo, pero que me robes la taza del váter, una taza del váter de un instituto donde ha orinado miles de personas durante 30 años y la robas para llevártela a tu casa. Yo ese día dije: Esto lo tengo que escribir en algún lado. Pero bueno, sí. Y luego anécdotas mucho de reírnos, de pasándonoslo bien, hay miles. Acuérdense de nuestros amigos carreteros. Esa gente nos dejó marcados, como Abel, en este mismo espacio aquí. O cuando Omar tocó un soldador. Omar, que cogió un soldador por el lado que no era. Me lo tiró en la mano. Fue un accidente. Aitor Correa nos dejó de momento. Seguro estaría ahora aquí. Él sí se acordaría de un montón de cosas. Deberíamos invitarlo. ¿Para la próxima? Sí."
-  - time: "09:57"
-    text: "Cuando le pedimos a Aitor que trajera motores eléctricos de su casa y nos los trajo... Le dijimos: Un motor pequeño para un submarino pequeño, y él trajo un motor de lavadora de 6 kilos. Dios. No sé. Yo dije: ¿Tú entiendes que el submarino tiene que volver a la superficie Si tiene un motor de 6 kilos, no va a volver a la superficie. Bueno, después de aparecer en duro. A lo mejor. Sí, motores pequeños quemados. Pues eso son ratitos que fueron muy buenos. Óscar, cambiando un poco de tema, tú has dicho que te gustan mucho las motos. Demasiado. Y recuerdo también que has dicho que cuando estabas trabajando en el muelle, estabas tan cansado que un día ibas por la autopista o por la carretera y tuviste un accidente. Casi tuve un accidente. Ese fue el día que dije: Tengo que cambiar de trabajo. O sea, yo siempre voy en moto, siempre lo he dicho, yo me crié en un ambiente de motos, en mi casa siempre ha habido motos y yo no entiendo mi día a día sin motos."
-  - time: "11:15"
-    text: "Es decir, yo no duermo tranquilo sin mi moto en el garaje. Yo cuando mi moto está en el taller, yo estoy intranquilo, porque es como si a la casa le faltara el techo. Entonces, claro, uso la moto siempre, aunque esté lloviendo. Esta mañana estaba lloviendo, yo vine en moto. Y cuando trabajaba en el muelle era igual. ¿Qué pasaba? Que yo en el muelle dormía poco Si el barco llegaba a las cuatro de la mañana, yo a las cuatro de la mañana estaba despierto. Pero es que a las ocho me llegaba otro, a las tres me llegaba otro. Entonces, a veces encadenaba cuatro o cinco días durmiendo tramos de una hora y media, dos horas. Y vas acumulando cansancio. Y entonces me pasó que iba bajando por la autopista en la moto y me dejé dormir. Y ahí cuando volví a abrir los ojos, me iba rozando el pantalón con la mediana, con el muro de la autopista. Y no sé qué pasó que no me caí."
-  - time: "12:03"
-    text: "Pero si te caes en una autopista a 120 en una moto"
-  - time: "12:07"
-    text: "Sí, daño te hace."
-  - time: "12:09"
-    text: "O sea, el peor accidente de moto es en la autopista siempre. Entonces ahí dije: Que va, esto no puede seguir así. O sea, sí que es verdad que ganábamos mucho dinero, eso no lo voy a negar, y y y se trabajaba en una buena empresa, pero llegó un momento que era insostenible, o sea, era una cuestión de salud. Por eso siempre digo a la gente: Sí, haz lo que te gusta, pero tampoco te obsesiones. O sea, si puedes ganar mucho dinero en poco tiempo, a lo mejor es bueno aprovecharlo y coger ese filón, pero tienes que saber cuándo parar. Entonces, yo te digo, yo cuando empecé a trabajar en docencia cobraba la mitad que en el muelle. Pero no me arrepiento, o sea, al final el dinero es un número que viene y va. Si tiene cinco, gasta cinco, si tiene tres, gasta tres. Pero la otra parte compensa, que duermas en tu casa y no en un barco."
-  - time: "13:11"
-    text: "Claro."
-  - time: "13:12"
-    text: "Compensa. Así que ya saben."
-  - time: "13:17"
-    text: "Si tuvieras que decirle algo a tu yo de 17 años, ¿qué sería?"
-  - time: "13:24"
-    text: "Le podría decir varias cosas. La primera es: no te matricules en ingeniería mecánica por el simple hecho de que tus colegas lo hagan, porque vas a perder dos años. Pero es que esos dos años también me lo pasé muy bien. Estuve saliendo de fiesta de miércoles a domingo, dos años seguidos, que no los cambio por nada. Es decir, de hecho ahora no salgo por todo lo que salí en esa época. O sea, yo ahora a las 11 estoy tieso en la cama, sea viernes o sea el día que sea. Entonces, sí que le diría una cosa y es: piensa de bien lo que vas a estudiar, no lo hagas. O sea, estudia algo. Si tienes la oportunidad de ir a la universidad, vete, porque es una etapa que no se vuelve a repetir y con esa edad es una maravilla. Pasa tú por la universidad y no dejes que la universidad pase por ti, porque cuando la universidad pasa por ti, te aplasta y te ves mal. Y también le diría que esto ya es un poco..."
-  - time: "14:30"
-    text: "Cada uno tendrá sus experiencias, pero a esas edades tendemos siempre, pues tenemos las hormonas como las tenemos y tendemos siempre a estar en relaciones de pareja, en esto y lo otro. Y siempre, se los digo a ustedes también, tengan relaciones sanas, o sea, no se compliquen la vida ni se la compliquen ustedes a nadie. Porque entonces es tiempo que van a perder estando en una situación que no les va a gustar y no lo van a recuperar. Y es una etapa de la vida que tiene que ser top. Es decir, ustedes se tienen que levantar todos los días y decir: ¿A qué fiesta voy a ir hoy? ¿Con qué colega voy a quedar hoy? O ¿qué voy a hacer hoy con mi novia que va a ser un planazo? Pero no se puede levantar y decir... Otra vez a la universidad. Vaya asco de día, otra vez a la facultad. Que sí, que hay días malos, pero no puede ser así durante cuatro años porque les va a pasar la universidad por encima. Cambiando de nuevo de tema."
-  - time: "15:36"
-    text: "Nosotros estamos aquí en el aula creativa y queríamos saber cómo surgió esta idea del aula creativa. Mira, es un proyecto de la consejería. La consejería diseñó el proyecto este, están en unos cuantos centros y entonces al principio del todo, siempre que hacen proyectos como este, eligen una serie de institutos que los llaman pilotos, y es a quienes mandan el material y les dicen: Monten esto, pruébenlo y nos dicen qué tal va El material llegó aquí, quedó en las cajas esas que están ahí. Llegó todo, estaba guardado y no existía el espacio. Entonces, yo me enteré y dije: Vale, el próximo curso, si estoy aquí, yo me encargo de poner eso en marcha. Llegué aquí, abrí las cajas, había todo esto, la radio, las impresoras, los focos, todo el tema del chroma, la cámara. ¿Los iPad, los drones, todos estos jaleos. Este espacio estaba todo lleno de tierra, lleno de trastos. Limpié todo un poco, pero después me di cuenta de que yo solo no tenía tiempo de montar todo esto ni de utilizarlo."
-  - time: "16:35"
-    text: "Entonces, justo ese año, yo le daba clase a algunos de ustedes en cuarto B, que estaba Abel, Pablo, Sichen. No, Pablo no estaba. Tú trabajabas en otra tecnología. Entonces, con ese grupito de cuarto, que eran 10 o 12, como les gustaba tanto todo este tema, dije: Vale, pues vamos para abajo y vamos a montar el aula. No sé si se acuerdan que montamos todo nosotros y lo pusimos todo a prueba. Y ya después, lo que hemos ido haciendo, se acuerdan que en ese grupo había gente que tenía un perfil más artístico, que eran Giselle y Ruth, y a cierto Ellos se encargaron del mural. Pablo, Chen y tal tenían más rollo informático, se encargaron de las impresoras y tal. A ustedes les gustaba más el tema de la radio, el chroma, nos pusimos aquí, acuérdense que estaba Gilberto. Aitor. Aitor. Entonces, hicimos el telediario con el programa aquel que usaba Pablo y fuimos sacándole rentabilidad a todo este material."
-  - time: "17:35"
-    text: "Y ahora ya ustedes se van cuando acabe este curso, pero ya vienen grupos más pequeños que ustedes. De hecho, este año tengo otra vez a cuarto B que estamos trabajando aquí, gracias a lo que ustedes se curraron y montaron. Entonces, así nació. Y ahora lo que tenemos que intentar es que se mantenga en el tiempo"
-  - time: "17:54"
-    text: "Después de dos años, ¿crees que es buena idea este proyecto?"
-  - time: "17:59"
-    text: "Sí. Sacarlos a ustedes de las aulas normales y traerlos aquí hace que ustedes aprendan sin que se den cuenta. Es decir, ustedes en sus casas no tienen un equipo de radio como este, porque no es lo normal tener esto en casa. Sin embargo, vienen aquí y aprenden a utilizarlo.Y aprenden a conectarlo y aprenden an-- sin querer están haciendo, eh, trabajo colaborativo, porque el que no controla la mesa, controla de los micros, el que no controla la cámara, el que no controla la parte de los guiones. Eh, después, la impresora 3D, por ejemplo, teníamos el problema: no, no podemos dejarla encendida, porque hay riesgo de incendio. Esto es un instituto que por la tarde no hay nadie. Entonces, aparece la idea de Pablo: vamos a crear el servidor con la webcam, la vigilamos desde casa, la controlamos, ta, no sé qué. Seguramente Pablo no tenía esos conocimientos y los adquirió aquí gracias a esto."
-  - time: "18:50"
-    text: "Sin querer y, y sin estar en un temario y sin estar en ningún lado escrito que teníamos que, que aprender esto. Sin embargo, hasta yo he aprendido a usar el servidor ese. Entonces, esto es una forma de aprender diferente y van a aprender cosas que no van a, a encontrar en otro sitio, ¿vale?"
-  - time: "19:10"
-    text: "¿Y qué es lo que más te apasiona de, de la docencia?"
-  - time: "19:15"
-    text: "Eh... Es una mezcla de cosas, ¿vale? Es decir, eh, la docencia tiene como muchos aspectos que ustedes solo ven el de venir a clase y aprender tecnología, ¿vale? Yo veo el de, eh, cuando yo los cogía a ellos en cuarto B, me acuerdo que era un grupo que estaba dividido en dos partes. Y Zitzen, por ejemplo, era un pibe muy, muy, muy tímido. Y ahora mismo, mientras estamos nosotros grabando aquí, Zitzen está dando una clase de informática a otro grupo. O sea, pasó de no hablar a, a no callarse (ríe) , ¿vale? Entonces, esa progresión es algo que no es implícito a la materia de Tecnología, ni a la de Lengua, ni a la de ninguna, sino que va implícito en, en, en lo que es la docencia en sí, en el ambiente y tal. Y esas cosas, por ejemplo, a mí me encantan."
-  - time: "20:04"
-    text: "Cuando yo veo a lo largo del tiempo cómo evolucionan ustedes, eh, cómo se desarrollan, cómo se perfilan, eh, eso es algo que a mí me, me flipa, porque me molesta mucho cuando escucho a gente, sobre todo mayor, decir: «Es que la juventud no quiere trabajar, es que la juventud no quiere hacer nada». Eh, eso es mentira. De hecho, la, la, la primera de las veces que existe un registro de esa frase, de la juventud de hoy no quiere hacer nada, fue Sócrates. Ya Sócrates decía eso. Y todas las generaciones dicen lo mismo y es mentira. Es mentira, o sea, la, la inmensa mayoría de ustedes va a llegar a donde le dé la gana. Entonces, a mí me gusta ser testigo de ese proceso, ¿vale? Es lo que más me gusta, mucho más que la materia en sí. La tecnología al final, pues hay partes del tema que me gustan más y otras me gustan menos, ¿vale? Eso es así, igual que ustedes. Pero a mí el proceso ese de-- evolutivo de..."
-  - time: "20:57"
-    text: "por el que pasan ustedes es el que me gusta"
-  - time: "21:00"
-    text: "Óscar, ¿alguna vez les has hecho exámenes (...) ?"
-  - time: "21:04"
-    text: "Eh, sí, el otro día hice un examen (ríe) . El-- no es la materia de Tecnología. No, no, no lo llevo nada bien. No, porque... (ríe) El examen como tal, eso realmente se llama prueba escrita, ¿no? Es un instrumento de evaluación, pero es que ese instrumento es exactamente igual a una exposición oral, a un mural, a un Canva, a una, a un esquema, a esto que estamos haciendo ahora. Yo podría evaluarlos ahora o Alejandro los podría evaluar ahora a ustedes aquí, ¿vale? Un programa de radio es un instrumento de evaluación igual de válido que una prueba escrita. Entonces, eh, yo prefiero usar otros métodos, porque mi materia, Examinar, en prueba escrita Tecnología, podrías hacer un examen de circuitos. Pero es que yo le-- yo sé que va a haber gente que va a sacar un diez en un examen de asociación de resistancias en serie y no necesariamente va a saber montar un circuito."
-  - time: "22:04"
-    text: "Entonces, yo el día de mañana creo que ustedes, como seres, mmm, de sociedad, van a ser mucho más pragmáticos montando un circuito que calculando matemáticamente cómo com-- cómo se comporta ese circuito. Vale, entonces, yo les enseño a calcularlo matemáticamente, pero les voy a evaluar, sobre todo, que sepan montarlo y que sepan por qué no enciende la luz o por qué se enciende o por qué enciende una y no la otra. Vale, que sepan los riesgos asociados. Yo siempre les hablo a ustedes de cuando yo trabajaba en los barcos y les cuento, pues, anécdotas de accidentes que tuvimos, de cosas que nos pasaron y tal, con el fin de que ustedes no los repitan, porque así es como evoluciona la industria, es decir, aprendiendo de los errores. Entonces, si yo los aviso desde ya, el día que ustedes trabajen en la industria que sea, eh, evitarán esos errores, quiero pensar eso."
-  - time: "22:54"
-    text: "Pues me centro mucho más en eso que en un examen escrito, que ustedes pueden tener un mal día y les sale mal y, y entonces deja de ser objetivo De hecho, yo, ah, yo tengo una asignatura este año que se llama Ámbito científico, que es de, de diversificación, y, eh, cuando les hago una prueba escrita, las hago de dos veces. Es decir, usamos dos horas y ellos se van a casa y al día siguiente vuelven y siguen haciendo el mismo examen. ¿Por qué? Porque así les doy un tiempo de recapacitar sobre sus propios errores y aprenden más que si yo les devuelvo el examen con un dos. Porque van a ver el dos y van a decir: «Ah, vale, me equivoqué». Pero si tienen veinticuatro horas para recapacitar y decir: «¿Habré hecho bien aquella operación?"
-  - time: "23:39"
-    text: "Voy a investigar y voy a mirar los apuntes y voy a mirar en ChatGPT o donde sea», pues ya están trabajando sin querer en, en, en ese error, porque el ser humano, por desgracia, aprende a base de errores"
-  - time: "23:53"
-    text: "¿Crees que el proyecto de submarino es una también muy buena manera de, eh, aplicar estos conocimientos?"
-  - time: "24:03"
-    text: "El proyecto de submarino a mí me gusta muchísimo porque yo vengo de trabajar en ese sector y cuando yo trabajaba ahí tenía un problema, y es que cuando necesitaba contratar personas, no las encontraba. Entonces, a mí me parecía una locura que viviendo en una isla que durante siglos ha sido estratégica en el sector naval, porque hasta Cristóbal Colón estuvo aquí, eh...Estuvo en Canarias. Me parece una locura cómo vivimos de espaldas a ese sector. Entonces, yo decía: Si seguimos promocionando que la gente trabaje en el sector industrial, pero no en el naval, cuando somos una IS, que tenemos un puerto de interés general que tiene cuatro siglos de historia, estamos haciendo el tonto. Entonces, en ese proyecto de crear un submarino y de llevarlo al muelle y trabajar con él, con la universidad y todo eso, yo encontré una forma de acercarlos a ustedes, a ese sector. Y de hecho, algunos no tenían ni idea de que estaba la Facultad de Náutica, fuimos, la vimos, encontraron allí una salida."
-  - time: "25:04"
-    text: "De hecho, este año me encontré un alumno que fue el año pasado con nosotros y está este año haciendo el ciclo superior de navegación marítima y que no lo conocía hasta que fuimos allí. Pues ese ya va a ser un futuro profesional de marina mercante que no teníamos antes. Entonces, creo que es un proyecto que no solo es la parte tecnológica de robótica y de tal y de cual, sino de acercamiento a la industria, que es la industria que creo yo que debería ser la principal en Canarias. Ahora mismo es el turismo, pero yo creo que es mucho más beneficiosa para nosotros, para la clase trabajadora, la naval se gana más dinero, se trabaja mejor y genera menos impacto. Menos impacto a nivel social. Al final, el turismo es una actividad que mueve personas, pero el sector naval lo que mueve es: mueve barcos, mueve recambios, mueve logística. O sea, con menos personas generas más ingresos y más actividad económica."
-  - time: "26:03"
-    text: "Entonces, si yo a ustedes les puedo abrir esa ventana y ya ustedes decidir si meterse ahí o no, creo que es un acierto"
-  - time: "26:15"
-    text: "Óscar, ya que hemos mencionado lo de las generaciones, por ejemplo, con Sócrates, y tú siendo una persona que has experimentado tanto en tu juventud con varias carreras y demás, ¿cuál crees que sería uno de los mayores, o por no decir, el mayor de los desafíos que se enfrentan los jóvenes de hoy en día?"
-  - time: "26:33"
-    text: "Sin duda, el cambio. Es decir, durante siglos el ser humano ha efectuado cambios sociales que han durado un montón de tiempo, que han ido poco a poco. Sin embargo, hoy en día, la sociedad cambia en cuestión de semanas. O sea, la sociedad hoy en día, al nivel tecnológico, a nivel de comunicación, a nivel de información, cambia todos los días. Entonces, ustedes van a necesitar adaptarse a ese cambio continuo, porque en la industria que sea que trabajen, si no están adaptados al cambio, no venden. Es decir, cuando yo trabajaba en los barcos, a nosotros, a mi empresa, nos iba muy bien porque innovábamos. Entonces, siempre íbamos un paso por delante, siempre queríamos ser los primeros en lo que fuera cada vez. Si venía un sistema nuevo para instalar en los barcos, nosotros éramos los primeros en instalarlo y los primeros en venderlo. ¿Por qué? Porque estás adaptado al cambio. Hay profesiones que pasan siglos y no cambian, siguen siempre igual."
-  - time: "27:31"
-    text: "Pero lo que pasa ahora del mercado laboral es que cambia por días. O sea, ustedes piensen que durante décadas había personas que tocaban en las puertas de las casas para vender libros y ganaban mucha pasta, vendían enciclopedia. Sin embargo, eso en cuestión de años ha pasado de que ya no los venden ni por internet, de que ahora el libro te lo escribe una inteligencia artificial. Entonces, el cambio cada vez es más rápido y el reto que tienen ustedes es tener capacidad de adaptarse al cambio y de no tener miedo de adaptarse al cambio. ¿Y qué pasa? Que eso también tiene una contrapartida y es cuando te lanzas a todo, porque vas a lanzarte en cosas que luego no van a funcionar, que es cuando viene el problema. Pero bueno, si no te equivocas, no vas a acertar. Antes estaban diciendo por ahí que me iban a preguntar algo de Bitcoin."
-  - time: "28:24"
-    text: "A mí mi mejor amigo, que es Imanol, vino hace 15 años y me dijo: Tío, unos colegas están comprando tarjetas gráficas, montando unos rack y hacen una minería de unas monedas digitales y no sé qué rollo, que yo no sé cómo va, pero me han dicho que si metemos 300 pavos, a lo mejor dentro de un año recuperamos 350. Y yo le dije: No, yo paso de meterme ahí. Y él dijo: Vamos, pues yo tampoco me meto. Si nos hubiéramos metido, ahora estaríamos millonarios Pero es que hubo gente que se metió en otras monedas, hizo la inversión y no ganó un duro. Simplemente fue porque un día un señor decidió comprar dos pizzas con un Bitcoin. Y fue así. Y esa transacción, dos pizzas por dos bitcoins, desencadenó lo que hemos visto ahora. Una moneda de uso. Entonces, yo ahí me equivoqué, sí. Me tenía que haber lanzado, sí, pero no me lancé. Me lancé a otras cosas."
-  - time: "29:19"
-    text: "Y creo que el reto de ustedes, yo me equivoqué una vez con el Bitcoin, pero a ustedes eso les va a pasar muchas más veces, porque ahora todo se mueve mucho más rápido y es a ver quién coge el qué, quién se atreve a qué. Así que eso es lo que hay. Y acabando un poco la sesión, ¿qué opinas del uso de inteligencia artificial en la aplicación? Yo la uso. A mí me parece una auténtica locura y yo la uso. Yo la uso y yo mando, o sea, yo organizo y escribo y diseño tareas para mi alumnado en donde les obligo a utilizar el ChatGPT. ¿Qué pasa? Que yo no le te digo: Haz un trabajo en ChatGPT. No sé cuál es. Haz un trabajo en ChatGPT y me lo entrega Yo lo que te digo es: Habla con Chaje Pete, mantén una conversación, llévatelo a tu terreno, métele condicionales, intenta rebatirle todo lo que te dice, genera un contenido y a partir de ahí, saca conclusiones y después las contrastasYo, por ejemplo, yo he visto abogados presentar recursos a denuncias con ChasGPT y ganarlas. ¿Por qué?"
-  - time: "30:38"
-    text: "Porque se pegan dos horas y media discutiendo. No, pero eso no es así. No, pero compruébame entonces esta otra ley, compruébame el otro, compruébame aquí, compruébeme acá, y acaba funcionando. Entonces, yo creo que es una buena herramienta, solo que requiere más tiempo del que normalmente ustedes le dan."
-  - time: "31:00"
-    text: "Ya va a tocar la hora."
-  - time: "31:03"
-    text: "Nos vamos a desayunar."
-  - time: "31:04"
-    text: "Sí. Podríamos acabar aquí, ¿no?"
-  - time: "31:10"
-    text: "Una última pregunta, ¿cómo podríamos ayudarte a que nunca muera este espacio?"
-  - time: "31:17"
-    text: "Es muy sencillo, en realidad. Y esto es algo que yo aprendí de otro profesor. Y es que ustedes, que están en segundo de bachillerato, enseñen a otros que estén en cursos inferiores. Si ustedes transmiten sus conocimientos, que creo que con Alejandro lo están haciendo, están creando como unos tutoriales de cómo se usa la radio, cómo se usa lo otro. Si ustedes transmiten esos conocimientos y esa responsabilidad que han cogido ustedes de que forman parte de esto y lo cuidan y lo tratan bien. Si eso se lo conseguimos transmitir a los que ahora están en primero de la ESE, esto se convierte en una cadena y se mantiene vivo el proyecto durante años. Yo me iré a otro sitio a lo mejor a trabajar y esto seguirá, porque será el alumnado el que le diga al profesorado: No, no, queremos estar aquí y queremos abrir el aula creativa en los recreos."
-  - time: "32:03"
-    text: "Entonces, si ustedes consiguen transmitir al alumnado, a los más pequeños, todos los conocimientos y esa responsabilidad de vamos a cuidar el espacio, esto se mantiene."
-  - time: "32:16"
-    text: "Yo creo que hasta aquí el primer episodio de este podcast y nos vemos la próxima vez."
-  - time: "32:22"
-    text: "Muy bien. Muchas gracias, Oscar."
-  - time: "32:24"
-    text: "Hasta luego. Chao."
+  - time: '00:13'
+    title: Intro / Bienvenida
+  - time: '02:12'
+    title: Profesión soñada de pequeño
+  - time: '03:16'
+    title: Ingeniería Fallida y Náutica
+  - time: '05:12'
+    title: De Operaciones Portuarias a Docencia
+  - time: '06:15'
+    title: Anécdotas surreales de alumnos
+  - time: '09:57'
+    title: Anécdota del Motor de Lavadora
+  - time: '11:15'
+    title: Accidente de Moto y Cambio de Vida
+  - time: '13:17'
+    title: Consejos a su yo de 17 años
+  - time: '15:36'
+    title: Origen del Aula Creativa
+  - time: '19:10'
+    title: Pasión por la Docencia
+  - time: '21:00'
+    title: Opinión sobre los Exámenes
+  - time: '24:03'
+    title: Proyecto Submarino y Sector Naval
+  - time: '26:15'
+    title: 'Desafío de los Jóvenes: El Cambio'
+  - time: '28:24'
+    title: Historia del Bitcoin
+  - time: '29:19'
+    title: Uso de la Inteligencia Artificial
+  - time: '31:10'
+    title: El Legado del Aula Creativa
+  - time: '32:16'
+    title: Despedida
 ---
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
