@@ -20,23 +20,23 @@ image: 'https://cdn.veredillasfm.es/interno.png'
 audioUrl: 'https://example.com/veredillas-fm-episodio-5.mp3'
 videoUrl: 'https://example.com/veredillas-fm-episodio-5.mp4'
 ---
-# Reflexiones Post-Semana Trágica y Actualidad Variada
+# ¡Veredillas FM: Resucitando de la Semana Trágica (y otras cosillas)!
 
-¡Bienvenidos a un nuevo episodio de Veredillas FM, su podcast interno favorito!
+¡Ey, veredilleros! ¡Bienvenidos al podcast que te levanta el ánimo después de que los exámenes te dejaran más seco que una pasa!
 
-En esta ocasión, nos reunimos después de sobrevivir a la infame 'Semana Trágica' de exámenes. Analizaremos cómo nos fue, compartiremos anécdotas divertidas y debatiremos sobre el futuro (¡si es que lo hay después de tanto estrés!).
+¡Hemos vuelto! Y sí, sobrevivimos a la "Semana Trágica". Algunos con más dignidad que otros, pero aquí estamos, listos para contarles todo. ¡Prepárense para escuchar nuestras miserias y reírse un rato!
 
-## ¿Qué encontrarás en este episodio?
+## ¿Qué te espera en este episodio?
 
-*   **Análisis Post-Semana Trágica:** Reviviremos los momentos más intensos y compartiremos nuestras estrategias de supervivencia (¡algunas más exitosas que otras!).
-*   **Anécdotas Divertidas:** Siempre hay espacio para el humor, incluso en los momentos más difíciles. Prepárense para reírse con nuestras historias.
-*   **Debate: ¿Qué nos depara el futuro?:** Discutiremos sobre nuestros planes, aspiraciones y miedos. ¿Qué nos espera después de la tormenta?
-*   **¡Y mucho más!** Como siempre, habrá risas, reflexiones y buena compañía.
+*   **Autopsia Post-Semana Trágica:** Analizaremos los daños colaterales, compartiremos trucos para no morir en el intento (algunos funcionaron, otros... bueno, ya verán) y lloraremos un poquito (pero de risa, lo prometemos).
+*   **¡Ja, Ja, Ja! Anécdotas Épicas (o Estúpidas):** Porque hasta en el infierno hay momentos de comedia. Tenemos historias para todos los gustos, desde el que se quedó dormido en el examen hasta el que intentó sobornar al profe (¡no lo hagan!).
+*   **Debate Filosófico (con palomitas): ¿Hay vida después de los exámenes?** ¿Qué hacemos ahora? ¿Nos vamos de viaje? ¿Nos tiramos al sofá a ver Netflix? ¿O nos ponemos a estudiar para la siguiente tortura? ¡Lo debatiremos con argumentos (más o menos) sólidos!
+*   **¡Y más sorpresas!** Porque somos como una piñata llena de ocurrencias. ¡Prepárense para un festín de risas y buena onda!
 
-¡Esperamos que disfruten este episodio tanto como nosotros disfrutamos grabándolo!
+¡Esperamos que disfruten escuchándonos tanto como nosotros disfrutamos intentando no morir grabándolo!
 
-**No se olviden de suscribirse y compartir este podcast con sus compañeros.**
+**¡No sean gachos! Suscríbanse y compartan este podcast con sus compis de fatigas. ¡Se lo merecen!**
 
-¡Nos vemos en el próximo episodio!
+¡Nos escuchamos en el próximo episodio! (¡Y no se olviden de respirar!)
 
-**#VeredillasFM #Podcast #VidaEstudiantil #Exámenes #SemanaTrágica**
+**#VeredillasFM #Podcast #LaVidaDelEstudiante #ExámenesQueDanMiedo #SemanaTrágicaYComedia**
