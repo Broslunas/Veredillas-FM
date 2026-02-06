@@ -7,9 +7,6 @@ tags:
   - Reflexiones
   - Actualidad
   - Podcast Interno
-transcription:
-  - time: '00:00'
-    text: empty
 description: >-
   Un episodio relajado de Veredillas FM donde los integrantes comparten
   reflexiones sobre la vida, los exámenes de la 'Semana Trágica' y otros temas
@@ -22,10 +19,6 @@ episode: 9
 image: 'https://cdn.veredillasfm.es/interno.png'
 audioUrl: 'https://example.com/veredillas-fm-episodio-5.mp3'
 videoUrl: 'https://example.com/veredillas-fm-episodio-5.mp4'
-sections:
-  - title: Empty
-    startTime: '00:00'
-    duration: '00:05:00'
 ---
 # Reflexiones Post-Semana Trágica y Actualidad Variada
 
