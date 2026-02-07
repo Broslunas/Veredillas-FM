@@ -60,7 +60,6 @@ const gallery = defineCollection({
         images: z.array(z.object({
             title: z.string(),
             src: z.string(),
-            pubDate: z.coerce.date().optional(),
         })),
 	}),
 });
