@@ -54,4 +54,15 @@ const guests = defineCollection({
 	}),
 });
 
-export const collections = { episodios, blog, guests };
+const gallery = defineCollection({
+	schema: z.object({
+		category: z.string(),
+        images: z.array(z.object({
+            title: z.string(),
+            src: z.string(),
+            pubDate: z.coerce.date().optional(),
+        })),
+	}),
+});
+
+export const collections = { episodios, blog, guests, gallery };

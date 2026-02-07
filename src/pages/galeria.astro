@@ -1,78 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
 
-// Enhanced Data with clearer categories
-const galleryImages = [
-  {
-    src: "https://cdn.veredillasfm.es/img/008-v2.webp",
-    alt: "Charlas cotidianas - Carlos y Gustavo",
-    category: "Episodios"
-  },{
-    src: "https://cdn.veredillasfm.es/img/007-v2.webp",
-    alt: "Hablemos de Venezuela",
-    category: "Episodios"
-  },{
-    src: "https://cdn.veredillasfm.es/img/006.webp",
-    alt: "Episodio 006",
-    category: "Episodios"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/010.webp",
-    alt: "Entrevista Especial",
-    category: "Momentos"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/001.jpg",
-    alt: "Nuestro Equipo Técnico",
-    category: "Equipo"
-  },{
-    src: "https://cdn.veredillasfm.es/img/005.webp",
-    alt: "Episodio 005",
-    category: "Episodios"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/002.jpg",
-    alt: "Grabación en vivo",
-    category: "Estudio"
-  },{
-    src: "https://cdn.veredillasfm.es/img/004.webp",
-    alt: "Episodio 004",
-    category: "Episodios"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/005.jpg",
-    alt: "Mesa de mezclas",
-    category: "Estudio"
-  },{
-    src: "https://cdn.veredillasfm.es/img/003.webp",
-    alt: "Episodio 003",
-    category: "Episodios"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/007.jpg",
-    alt: "Preparando el programa",
-    category: "Equipo"
-  },{
-    src: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjnLK1u1y6yDhK6yumKrztTdimUtq91FmdvK2mHJ9zZyRKmYO8JBZmrAuDorqXAKUVkayN4uV5EcG7sOPOTVZCTqeOISM7jrzSxEac-RItneKwC4Q3NS0S8eL0ioG2v5V8ys6YPOAD9RBjrlkbtWSDp1SmoBxOX46qPTppBbr-sqsBQuLvcCWw-TmEW8DI/w640-h640/Imagen%20de%20WhatsApp%202025-12-10%20a%20las%2012.07.00_ac94ad9a.jpg",
-    alt: "Entrevista Especial",
-    category: "Momentos"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/003.jpg",
-    alt: "El equipo de redacción",
-    category: "Equipo"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/009.webp",
-    alt: "Momentos divertidos",
-    category: "Momentos"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/004.jpg",
-    alt: "Micrófonos listos",
-    category: "Estudio"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/006.jpg",
-    alt: "Debate en grupo",
-    category: "Equipo"
-  },{
-    src: "https://cdn.veredillasfm.es/galeria/008.jpg",
-    alt: "Edición de audio",
-    category: "Estudio"
-  }
-];
+// Fetch collections
+const galleryEntries = await getCollection('gallery');
+
+// Flatten all images into a single array for the UI
+const galleryImages = galleryEntries.flatMap(entry => 
+    (entry.data.images || []).map(img => ({
+        src: img.src,
+        alt: img.title,
+        category: entry.data.category,
+        pubDate: img.pubDate || new Date(0)
+    }))
+);
+
+// Sort (optional: global sort by date if they have one)
+galleryImages.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
 
 const categories = ["Todos", ...new Set(galleryImages.map(img => img.category))];
 ---
@@ -192,36 +136,33 @@ const categories = ["Todos", ...new Set(galleryImages.map(img => img.category))]
                 const category = btn.getAttribute('data-category');
                 
                 // Animate Out
-                const timeline = gsap.timeline({
-                    onComplete: () => {
-                        let visibleCount = 0;
-                        items.forEach(item => {
-                            if (category === 'Todos' || item.getAttribute('data-category') === category) {
-                                item.classList.remove('hidden');
-                                visibleCount++;
-                            } else {
-                                item.classList.add('hidden');
-                            }
-                        });
-
-                        // Show/Hide Empty State
-                        if (visibleCount === 0) {
-                            noResults.classList.remove('hidden');
-                            grid.style.display = 'none';
-                        } else {
-                            noResults.classList.add('hidden');
-                            grid.style.display = 'block'; // Or masonry display (block/column)
-                            
-                            // Animate In New Items
-                            gsap.fromTo('.grid-item:not(.hidden)', 
-                                { y: 20, opacity: 0, scale: 0.95 },
-                                { y: 0, opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: "back.out(1.2)" }
-                            );
-                        }
+                // Direct Toggle (faster and more reliable)
+                let visibleCount = 0;
+                items.forEach(item => {
+                    if (category === 'Todos' || item.getAttribute('data-category') === category) {
+                        item.classList.remove('hidden');
+                        item.style.opacity = '1';
+                        item.style.transform = 'scale(1)';
+                        visibleCount++;
+                    } else {
+                        item.classList.add('hidden');
                     }
                 });
-                
-                timeline.to('.grid-item', { opacity: 0, scale: 0.95, duration: 0.3 });
+
+                // Show/Hide Empty State
+                if (visibleCount === 0) {
+                    noResults.classList.remove('hidden');
+                    grid.style.display = 'none';
+                } else {
+                    noResults.classList.add('hidden');
+                    grid.style.display = 'block';
+                    
+                    // Simple Entrance for fresh look
+                    gsap.fromTo('.grid-item:not(.hidden)', 
+                        { y: 10, opacity: 0 },
+                        { y: 0, opacity: 1, duration: 0.3, stagger: 0.02 }
+                    );
+                }
             });
         });
 
@@ -297,22 +238,10 @@ const categories = ["Todos", ...new Set(galleryImages.map(img => img.category))]
              if (e.key === 'ArrowLeft') navigateLightbox(-1);
         });
 
-        // --- Initial Entrance Animation ---
-         gsap.from(".gs-reveal", {
-            y: 30,
-            opacity: 0,
-            duration: 0.8,
-            stagger: 0.2,
-            ease: "power2.out"
-        });
-        
-        gsap.from(".grid-item", {
-            y: 50,
-            opacity: 0,
-            duration: 0.6,
-            stagger: 0.1,
-            ease: "power2.out",
-            delay: 0.4
+        // Ensure all are visible initially
+        items.forEach(item => {
+            item.style.opacity = '1';
+            item.classList.remove('hidden');
         });
     }
 
