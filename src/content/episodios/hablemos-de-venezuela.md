@@ -807,7 +807,7 @@ duration: 42 min
 isPremiere: true
 season: 1
 episode: 7
-image: 'https://cdn.veredillasfm.es/img/007-v2.webp'
+image: 'https://cdn.broslunas.com/img/007-v3.webp'
 audioUrl: >-
   https://d3ctxlq1ktw2nl.cloudfront.net/staging/2026-0-20/416474725-44100-2-926848268cb11.m4a
 videoUrl: 'https://www.youtube.com/embed/gjkcwimemeM'
