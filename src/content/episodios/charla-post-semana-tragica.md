@@ -17,7 +17,7 @@ season: 1
 episode: 10
 image: 'https://cdn.veredillasfm.es/images/010.webp'
 audioUrl: 'https://example.com/veredillas-fm-episodio-5.mp3'
-videoUrl: 'https://example.com/veredillas-fm-episodio-5.mp4'
+videoUrl: 'https://youtube.com/embed/PONER_AQUI'
 ---
 # ¡Veredillas FM: Resucitando de la Semana Trágica (y otras cosillas)!
 
