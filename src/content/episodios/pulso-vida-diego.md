@@ -906,7 +906,7 @@ description: >-
   En este episodio, vamos a dejar los exámenes y las materias a un lado para
   adentrarnos en un terreno mucho más complejo y universal: el amor.
 pubDate: '2026-01-13T00:00:00.000Z'
-image: 'https://cdn.broslunas.com/img/006-v3.webp'
+image: 'https://cdn.veredillasfm.es/images/006.webp'
 audioUrl: >-
   https://anchor.fm/s/10ca1a038/podcast/play/113923867/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-0-13%2F416025362-44100-2-3226d8ff9bc7e.m4a
 videoUrl: 'https://www.youtube.com/embed/3eNWpFXrlVU'
