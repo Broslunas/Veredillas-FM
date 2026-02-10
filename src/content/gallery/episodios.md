@@ -1,6 +1,10 @@
 ---
 category: Episodios
 images:
+  - title: 010 - Reflexiones Post-Semana Trágica y Actualidad Variada
+    src: 'https://cdn.veredillasfm.es/images/010.webp'
+  - title: 009 - Amor Sin Filtros
+    src: 'https://cdn.veredillasfm.es/images/009.webp'
   - title: 008 - Charlas cotidianas - Carlos y Gustavo
     src: 'https://cdn.veredillasfm.es/images/008.webp'
   - title: 007 - Hablemos de Venezuela
