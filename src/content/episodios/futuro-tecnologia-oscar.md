@@ -565,7 +565,7 @@ description: >-
   las mentes más brillantes de nuestro centro: Oscar, un increíble profesor de
   Tecnología del Instituto.
 pubDate: '2025-11-02T00:00:00.000Z'
-image: 'https://cdn.broslunas.com/img/001-v4.webp'
+image: 'https://cdn.veredillasfm.es/images/001.webp'
 season: 1
 episode: 1
 duration: 32 min
