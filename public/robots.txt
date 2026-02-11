@@ -8,25 +8,13 @@ Sitemap: https://veredillasfm.es/sitemap-index.xml
 # Crawl Delay
 Crawl-delay: 10
 
-# Disallow admin or sensitive areas (if any)
-Disallow: /dashboard/admin/
+# Disallow admin or sensitive areas
+Disallow: /dashboard/
+Disallow: /perfil
+Disallow: /favoritos
+Disallow: /historial
+Disallow: /login
 
 # Disallow search result pages
 Disallow: /search
 Disallow: /*?q=
-
-# Allow all major search engines
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Slurp
-Allow: /
-
-User-agent: DuckDuckBot
-Allow: /
-
-User-agent: Baiduspider
-Allow: /

@@ -67,6 +67,11 @@ export default defineConfig({
         !page.includes('/newsletter/confirm') &&
         !page.includes('/verify-comment') &&
         !page.includes('/verify-delete') &&
+        !page.includes('/dashboard') &&
+        !page.includes('/login') &&
+        !page.includes('/perfil') &&
+        !page.includes('/favoritos') &&
+        !page.includes('/historial') &&
         // Exclude specific team members, but allow the main index
         !(page.includes('/equipo/') && page.split('/').filter(Boolean).length > 2),
       serialize: (item) => {
