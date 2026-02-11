@@ -1,12 +1,9 @@
 ---
 title: 'Amor Sin Filtros ft. Saray, Antonieta & Diego'
 tags:
-  - amor
-  - relaciones
-  - pareja
-  - sin filtros
-  - diálogo
-  - conversación
+  - Amor
+  - Relaciones
+  - Sin filtros
 description: >-
   Un análisis profundo y sin tapujos sobre el amor, la pareja y las relaciones
   modernas con Saray y Antonieta.
