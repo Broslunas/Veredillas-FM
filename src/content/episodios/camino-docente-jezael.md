@@ -784,7 +784,7 @@ description: >-
   de la pizarra: el Profesor Jezael, nuestro querido profesor de Matemáticas y
   tutor de 2º de Bachillerato B.
 pubDate: '2025-12-02T00:00:00.000Z'
-image: 'https://cdn.veredillasfm.es/images/003.webp'
+image: 'https://cdn.veredillasfm.es/images/003-v2.JPG'
 audioUrl: >-
   https://anchor.fm/s/10ca1a038/podcast/play/112420516/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2025-11-10%2F414127639-44100-2-39ec01c8344.m4a
 videoUrl: 'https://www.youtube.com/embed/5UEJgvv9tKU'
