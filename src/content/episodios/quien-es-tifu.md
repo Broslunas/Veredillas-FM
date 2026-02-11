@@ -7,9 +7,9 @@ tags:
   - Comunidad Educativa
   - Experiencias
 description: >-
-  Descubre la historia de Tifu, un alumno del Viera y Clavijo que, junto a Diego
-  Torres, dejó una huella imborrable en el IES Las Veredillas. Un relato sobre
-  amistad, impacto positivo y la riqueza del intercambio estudiantil.
+  Descubre la historia de Tifu, un alumno del Viera y Clavijo que, dejó una
+  huella imborrable en el IES Las Veredillas. Un relato sobre amistad, impacto
+  positivo y la riqueza del intercambio estudiantil.
 isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/011.png'
 participants:
