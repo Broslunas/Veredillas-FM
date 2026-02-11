@@ -15,7 +15,7 @@ duration: 37 min
 isPremiere: true
 season: 1
 episode: 9
-image: 'https://cdn.veredillasfm.es/images/009-v2.webp'
+image: 'https://cdn.veredillasfm.es/images/009-v3.webp'
 audioUrl: 'https://example.com/veredillas-fm-episodio-5.mp3'
 videoUrl: 'https://www.youtube.com/embed/y-aEbuts0fg'
 participants:
