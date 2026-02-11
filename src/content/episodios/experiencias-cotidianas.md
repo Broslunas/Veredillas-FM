@@ -5,7 +5,6 @@ tags:
   - Vida Diaria
   - Charla
   - Anécdotas
-<<<<<<< HEAD
 clips:
   - title: "¿Seríamos amigos de nuestros padres si tuviéramos su edad?"
     url: "https://youtube.com/shorts/sLOydLPWelk"
