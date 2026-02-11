@@ -192,7 +192,7 @@ description: >-
   Hoy, el foco se dirige hacia una iniciativa muy especial que está a la vuelta
   de la esquina: ¡el Mercadillo Escolar del 19 de diciembre!
 pubDate: '2025-12-10T00:00:00.000Z'
-image: 'https://cdn.veredillasfm.es/images/005.webp'
+image: 'https://cdn.veredillasfm.es/images/005-v2.jpeg'
 audioUrl: 'https://cdn.veredillasfm.es/podcast-005-mercadillo.wav'
 season: 1
 episode: 5
