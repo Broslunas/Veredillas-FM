@@ -6,8 +6,7 @@ import { getCollection } from 'astro:content';
 const allEpisodes = await getCollection('episodios');
 const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-// Get unique tags
-const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data.tags || []))];
+const now = new Date();
 ---
 
 <Layout 
@@ -17,37 +16,41 @@ const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data
   imageAlt="Episodios de Veredillas FM - Todos los podcasts del IES Veredillas"
   tags={['podcast', 'episodios', 'IES Veredillas', 'audio', 'entrevistas', 'contenido estudiantil']}
 >
-    <div class="container page-header">
-        <p class="subtitle">Nuestros episodios y podcasts</p>
-        
-        <!-- Filter System -->
-        <div class="filter-wrapper fade-in-up">
-            <!-- Search Bar -->
+    <!-- Background Decor -->
+    <div class="page-bg"></div>
 
+    <div class="container page-wrapper">
+        <header class="page-header fade-in">
+            <h1>Explora todos los <br><span class="text-gradient">Episodios</span></h1>
+            
+            <div class="controls-wrapper">
+                <!-- Search Bar -->
+                <div class="search-widget">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" id="episode-search" placeholder="Buscar episodios..." class="search-input" />
+                </div>
 
-            <!-- Tags -->
-            <div class="filter-container">
-                {allTags.map(tag => (
-                    <button 
-                        class={`filter-btn ${tag === 'Todos' ? 'active' : ''}`} 
-                        data-filter={tag}
-                    >
-                        {tag}
-                    </button>
-                ))}
+                <!-- Toggle for Upcoming -->
+                <div class="toggle-group">
+                    <span class="toggle-label">Ver próximos estrenos</span>
+                    <label class="switch">
+                        <input type="checkbox" id="upcoming-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
-        </div>
-    </div>
+        </header>
 
-    <div class="container">
         <div class="episodes-grid" id="episodes-grid">
             {sortedEpisodes.map((post, index) => {
+                 const isUpcoming = post.data.pubDate > now;
                  const searchContent = `${post.data.title} ${post.data.description} ${post.data.participants?.join(' ') || ''}`.toLowerCase();
                  return (
                     <div 
-                        class={`episode-item fade-in-up delay-${(index % 3 + 1) * 100}`}
-                        data-tags={post.data.tags?.join(',') || ''}
+                        class={`episode-item fade-in-up ${isUpcoming ? 'upcoming-item hidden-upcoming' : ''}`}
                         data-search-content={searchContent}
+                        data-is-upcoming={isUpcoming.toString()}
+                        style={`--delay: ${index % 6}`}
                     >
                          <EpisodeCard post={post} />
                     </div>
@@ -57,67 +60,49 @@ const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data
         
         <div id="no-results" class="no-results hidden">
             <span class="no-results-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             </span>
-            <p>No encontramos episodios que coincidan con tu búsqueda.</p>
-            <button id="reset-filter" class="btn btn-outline btn-sm">Ver todos</button>
+            <h3>No hay episodios para mostrar</h3>
+            <p>Prueba a cambiar tus filtros o activa el interruptor de "Próximos estrenos".</p>
+            <button id="reset-filter" class="btn btn-primary">Restablecer filtros</button>
         </div>
     </div>
 </Layout>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const filterBtns = document.querySelectorAll('.filter-btn');
+    function initFilters() {
         const items = document.querySelectorAll('.episode-item');
+        const upcomingToggle = document.getElementById('upcoming-toggle') as HTMLInputElement;
+        const searchInput = document.getElementById('episode-search') as HTMLInputElement;
         const noResults = document.getElementById('no-results');
         const resetBtn = document.getElementById('reset-filter');
 
-        // Helper to get current tag from URL
-        function getTagFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('tag') || 'Todos';
-        }
-
-        // Helper to update URL
-        function setTagInUrl(tag: string) {
-            const url = new URL(window.location.href);
-            if (tag === 'Todos') {
-                url.searchParams.delete('tag');
-            } else {
-                url.searchParams.set('tag', tag);
-            }
-            window.history.pushState({}, '', url);
-        }
+        if (!upcomingToggle || !searchInput) return;
 
         function filterItems() {
-            const currentCategory = getTagFromUrl();
+            const showUpcoming = upcomingToggle.checked;
+            const searchTerm = searchInput.value.toLowerCase().trim();
             let visibleCount = 0;
 
-            // Update Active State for Buttons
-            filterBtns.forEach(btn => {
-                if (btn.getAttribute('data-filter') === currentCategory) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            // Show/Hide Items
             items.forEach((item) => {
                 const itemEl = item as HTMLElement;
-                const tags = itemEl.getAttribute('data-tags')?.split(',') || [];
+                const searchContent = itemEl.getAttribute('data-search-content') || '';
+                const isUpcoming = itemEl.getAttribute('data-is-upcoming') === 'true';
                 
-                const matchesCategory = currentCategory === 'Todos' || tags.includes(currentCategory);
+                const matchesUpcoming = showUpcoming || !isUpcoming;
+                const matchesSearch = searchTerm === '' || searchContent.includes(searchTerm);
 
-                if (matchesCategory) {
-                    itemEl.style.display = '';
+                if (matchesUpcoming && matchesSearch) {
+                    itemEl.classList.remove('hidden-anim');
+                    itemEl.classList.remove('hidden-upcoming'); // Fix: remove the static hidden class
+                    itemEl.style.display = 'block';
                     visibleCount++;
                 } else {
+                    itemEl.classList.add('hidden-anim');
                     itemEl.style.display = 'none';
                 }
             });
 
-            // Empty State
             if (visibleCount === 0) {
                 noResults?.classList.remove('hidden');
             } else {
@@ -125,78 +110,111 @@ const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data
             }
         }
 
-        // Initial Filter
-        filterItems();
-
-        // Listen for popstate (browser back/forward)
-        window.addEventListener('popstate', filterItems);
-
-        // Tag Click Handler
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const category = btn.getAttribute('data-filter') || 'Todos';
-                setTagInUrl(category);
-                filterItems();
-            });
-        });
+        // Event Listeners
+        searchInput.addEventListener('input', filterItems);
+        upcomingToggle.addEventListener('change', filterItems);
         
-        // Reset Handler
         resetBtn?.addEventListener('click', () => {
-            setTagInUrl('Todos');
+            searchInput.value = '';
+            upcomingToggle.checked = false;
             filterItems();
         });
-    });
+
+        // Initial call
+        filterItems();
+    }
+
+    // Run on init and page transitions
+    document.addEventListener('DOMContentLoaded', initFilters);
+    document.addEventListener('astro:page-load', initFilters);
 </script>
 
 <style>
+    .page-bg {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100vh;
+        background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.08), transparent 60%);
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .page-wrapper {
+        padding: 2rem var(--spacing-md) 6rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
     .page-header {
-        padding: var(--spacing-lg) var(--spacing-md);
         text-align: center;
+        max-width: 900px;
+        margin: 0 auto 2.5rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        background: rgba(139, 92, 246, 0.1);
+        color: var(--color-primary);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        font-size: 0.9rem;
     }
 
     h1 {
-        font-size: 3rem;
-        margin-bottom: var(--spacing-sm);
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .text-gradient {
         background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
-    .subtitle {
-        color: var(--color-text-muted);
-        font-size: 1.25rem;
-    }
-
-    .episodes-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: var(--spacing-lg);
-        margin-bottom: var(--spacing-2xl);
-    }
-
-    /* Filter Styles */
-    .filter-wrapper {
-        margin-top: 2rem;
+    /* Controls Wrapper */
+    .controls-wrapper {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 1.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 1.5rem;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
     }
 
-    .search-bar-container {
+    @media (min-width: 768px) {
+        .controls-wrapper {
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+        }
+    }
+
+    /* Search Bar */
+    .search-widget {
         position: relative;
         width: 100%;
-        max-width: 500px;
+        max-width: 400px;
     }
 
     .search-input {
         width: 100%;
-        padding: 1rem 1rem 1rem 3rem;
+        padding: 0.8rem 1rem 0.8rem 2.8rem;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 100px;
+        border-radius: 16px;
         color: var(--color-text-main);
-        font-family: var(--font-body);
+        font-family: inherit;
         font-size: 1rem;
         transition: all 0.3s ease;
     }
@@ -210,65 +228,136 @@ const allTags = ['Todos', ...new Set(allEpisodes.flatMap(episode => episode.data
 
     .search-icon {
         position: absolute;
-        left: 1rem;
+        left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        font-size: 1.2rem;
         opacity: 0.5;
+        pointer-events: none;
+        color: var(--color-text-muted);
+    }
+
+    /* Toggle Switch */
+    .toggle-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-shrink: 0;
+    }
+
+    .toggle-label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 54px;
+        height: 28px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: .4s;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+        background-color: var(--color-primary);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .slider.round {
+        border-radius: 34px;
+    }
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
+    /* Grid */
+    .episodes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2.5rem;
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .episode-item {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: fadeInUp 0.6s ease forwards;
+        animation-delay: calc(var(--delay) * 0.1s);
+        opacity: 0;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden-anim {
+        opacity: 0;
+        transform: scale(0.95);
         pointer-events: none;
     }
 
-    .filter-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.75rem;
-    }
-
-    .filter-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--color-text-muted);
-        padding: 0.5rem 1.25rem;
-        border-radius: 100px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .filter-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--color-text-main);
-        transform: translateY(-2px);
-    }
-
-    .filter-btn.active {
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    .hidden-upcoming {
+        display: none !important;
     }
 
     /* No Results */
     .no-results {
         text-align: center;
-        padding: 4rem 0;
+        padding: 6rem 0;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 1.5rem;
+        gap: 1rem;
     }
 
     .no-results-icon {
-        font-size: 3rem;
-        opacity: 0.5;
-        margin-bottom: 0.5rem;
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+        opacity: 0.6;
+    }
+
+    .no-results h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
     }
 
     .no-results p {
         color: var(--color-text-muted);
-        font-size: 1.2rem;
+        max-width: 400px;
+        margin-bottom: 2rem;
     }
 
     .hidden {

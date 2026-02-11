@@ -11,8 +11,14 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 const allEpisodes = await getCollection('episodios');
-// Get latest 6 episodes for the slider
-const recentEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 6);
+const now = new Date();
+
+// Get latest 6 episodes for the slider (sorted by date)
+const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const recentEpisodes = sortedEpisodes.slice(0, 6);
+
+// Find the latest episode that has already been published for the Hero Spotlight
+const latestPublishedEpisode = sortedEpisodes.find(ep => ep.data.pubDate <= now) || sortedEpisodes[0];
 
 const allPosts = await getCollection('blog');
 const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);
@@ -64,8 +70,8 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
                 </div>
 
                 <div class="hero-visual gs-visual">
-                    {recentEpisodes.length > 0 ? (
-                        <a href={`/ep/${recentEpisodes[0].slug}`} class="vinyl-container" aria-label={`Escuchar ${recentEpisodes[0].data.title}`}>
+                    {latestPublishedEpisode ? (
+                        <a href={`/ep/${latestPublishedEpisode.slug}`} class="vinyl-container" aria-label={`Escuchar ${latestPublishedEpisode.data.title}`}>
                             <div class="vinyl-record">
                                 <div class="vinyl-label">
                                     <img src="/logo.png" alt="VFM" class="vinyl-logo-img" />
@@ -73,13 +79,13 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
                             </div>
                             <div class="vinyl-cover">
                                 <img 
-                                    src={recentEpisodes[0].data.image} 
-                                    alt={recentEpisodes[0].data.title}
-                                    transition:name={`cover-${recentEpisodes[0].slug}`}
+                                    src={latestPublishedEpisode.data.image} 
+                                    alt={latestPublishedEpisode.data.title}
+                                    transition:name={`cover-${latestPublishedEpisode.slug}`}
                                 />
                                 <div class="spectrum-overlay">
                                     <div class="vinyl-meta-top">
-                                        <h3 class="vinyl-title">{recentEpisodes[0].data.title}</h3>
+                                        <h3 class="vinyl-title">{latestPublishedEpisode.data.title}</h3>
                                     </div>
                                     <div class="spectrum-bars">
                                         <span></span><span></span><span></span><span></span><span></span>
@@ -87,7 +93,7 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
                                     </div>
                                     <div class="vinyl-meta-bottom">
                                         <time class="vinyl-date">
-                                            {recentEpisodes[0].data.pubDate.toLocaleDateString('es-ES', { 
+                                            {latestPublishedEpisode.data.pubDate.toLocaleDateString('es-ES', { 
                                                 year: 'numeric', 
                                                 month: 'long', 
                                                 day: 'numeric' 

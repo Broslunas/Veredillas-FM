@@ -14,9 +14,18 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
 	month: 'long',
 	day: 'numeric',
 });
+
+const isUpcoming = post.data.pubDate > new Date();
 ---
 
-<article class="episode-card glass-panel group">
+<article class={`episode-card glass-panel group ${isUpcoming ? 'upcoming-episode' : ''}`}>
+    {isUpcoming && (
+        <div class="upcoming-floating-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Próximamente</span>
+        </div>
+    )}
+
 	<div class="card-inner">
         {post.data.image ? (
             <div class="card-image-wrapper">
@@ -47,15 +56,7 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
                 <time datetime={post.data.pubDate.toISOString()}>{formattedDate}</time>
             </div>
 
-            {post.data.tags && (
-                <div class="tags">
-                    {post.data.tags.slice(0, 3).map((tag: string) => (
-                        <a href={`/ep?tag=${tag}`} class="tag">#{tag}</a>
-                    ))}
-                </div>
-            )}
-            
-			<h3 class="title group-hover:text-primary transition-colors">{post.data.title}</h3>
+            <h3 class="title group-hover:text-primary transition-colors">{post.data.title}</h3>
             
             {post.data.participants && post.data.participants.length > 0 && (
                 <div class="participants">
@@ -206,6 +207,48 @@ const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
     
     .season-badge {
         color: var(--color-secondary);
+    }
+    
+    .upcoming-floating-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+        background: rgba(139, 92, 246, 0.9);
+        backdrop-filter: blur(8px);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: floatingBadge 3s ease-in-out infinite;
+    }
+
+    @keyframes floatingBadge {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+
+    .upcoming-episode {
+        opacity: 0.9;
+    }
+
+    .upcoming-episode .card-image {
+        filter: saturate(0.5) brightness(0.8);
+    }
+
+    .upcoming-episode:hover {
+        opacity: 1;
+    }
+    
+    .upcoming-episode:hover .card-image {
+        filter: saturate(1) brightness(1);
     }
 
     .tags {
