@@ -69,8 +69,6 @@ sections:
     title: El sistema educativo y la PAU
   - time: '35:43'
     title: La apuesta del GTA VI
-=======
->>>>>>> 0f176dd28354f850aee6992ebddec225b063771c
 transcription:
   - time: '00:00'
     text: >-
@@ -839,8 +837,6 @@ transcription:
       sin más que decir, hasta un nuevo pódcast. Y recuerden, escuchando esto
       desde Veredias FM, donde te mantenemos al pendiente de los temas más
       candentes
-<<<<<<< HEAD
-=======
 clips:
   - title: ¿Seríamos amigos de nuestros padres si tuviéramos su edad?
     url: 'https://youtube.com/shorts/sLOydLPWelk'
@@ -910,7 +906,6 @@ sections:
     title: El sistema educativo y la PAU
   - time: '35:43'
     title: La apuesta del GTA VI
->>>>>>> 0f176dd28354f850aee6992ebddec225b063771c
 ---
 
 **¡Bienvenidos a otro episodio de Veredillas FM!**
