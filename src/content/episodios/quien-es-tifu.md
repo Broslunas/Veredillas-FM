@@ -15,7 +15,7 @@ image: 'https://cdn.veredillasfm.es/images/011.png'
 participants:
   - Diego Torres
 season: 1
-episode: 11
+episode: 13
 duration: ¿?
 pubDate: '2026-02-20T17:17:00.000Z'
 ---
