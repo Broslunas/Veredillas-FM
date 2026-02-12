@@ -19,4 +19,4 @@ episode: 11
 duration: ¿?
 pubDate: '2026-02-20T17:17:00.000Z'
 ---
-Recibimos a una visita muy especial desde el IES Viera y Clavijo. Diego Torres, un gran amigo de la casa, se sienta con nosotros para hablar sobre su conexión con Las Veredillas, cómo ha logrado tener tanta repercusión en nuestro centro sin ser alumno oficial, y por fin desvelamos el misterio: ¿Quién es realmente Tifu?
+Recibimos a una visita muy especial desde el IES Viera y Clavijo. Diego Torres, un gran amigo, se sienta con nosotros para hablar sobre su conexión con Las Veredillas, cómo ha logrado tener tanta repercusión en nuestro centro sin ser alumno oficial, y por fin desvelamos el misterio: ¿Quién es realmente Tifu?
