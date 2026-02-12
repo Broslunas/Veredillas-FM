@@ -16,7 +16,7 @@ participants:
 season: 1
 episode: 12
 duration: ¿?
-pubDate: 2026-02-12
+pubDate: 2026-02-25
 ---
 # Anécdotas y Metas Personales con Christopher
 
