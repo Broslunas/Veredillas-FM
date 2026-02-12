@@ -14,7 +14,7 @@ image: 'https://cdn.veredillasfm.es/images/012.png'
 participants:
   - Christopher
 season: 1
-episode: 11
+episode: 14
 duration: ¿?
 pubDate: 2026-02-25
 ---
