@@ -97,9 +97,11 @@ const { title, audioUrl, image, guests, slug, duration } = Astro.props;
 
 <style>
     .episode-actions-container {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         gap: 1rem;
+        flex-wrap: wrap;
         margin-top: 1.5rem;
         margin-bottom: 2rem;
         padding-top: 1.5rem;
@@ -107,27 +109,26 @@ const { title, audioUrl, image, guests, slug, duration } = Astro.props;
     }
     
     .action-btn {
-        display: flex;
-        flex-direction: column;
+        display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        padding: 1rem;
-        border-radius: 12px;
-        color: #d4d4d8;
+        justify-content: center;
+        gap: 10px;
+        background: #27272a; 
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 12px 24px;
+        border-radius: 100px;
+        color: white;
         cursor: pointer;
         text-decoration: none;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 0.9rem;
-        font-weight: 500;
-        width: 100%;
+        font-size: 0.95rem;
+        font-weight: 600;
+        min-width: 140px;
     }
     
     .action-btn:hover {
-        background: rgba(139, 92, 246, 0.1);
-        border-color: rgba(139, 92, 246, 0.3);
-        color: white;
+        background: #3f3f46;
+        border-color: rgba(255,255,255,0.2);
         transform: translateY(-2px);
     }
     
@@ -135,37 +136,29 @@ const { title, audioUrl, image, guests, slug, duration } = Astro.props;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.05);
-        color: #a1a1aa;
-        transition: all 0.2s;
+        color: inherit;
     }
     
     .action-btn:hover .icon-wrapper {
-        background: var(--color-primary);
-        color: white;
+        /* No change needed on hover for icon specifically */
     }
 
     @media (max-width: 600px) {
         .episode-actions-container {
-            gap: 0.5rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
         }
         
         .action-btn {
-            padding: 0.75rem 0.5rem;
-            font-size: 0.8rem;
-        }
-        
-        .icon-wrapper {
-            width: 32px;
-            height: 32px;
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 1rem;
         }
         
         .icon-wrapper svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
         }
     }
 </style>
