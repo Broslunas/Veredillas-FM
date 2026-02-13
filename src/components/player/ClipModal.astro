@@ -1,0 +1,55 @@
+
+---
+import ClipEditor from './ClipEditor';
+---
+
+<div id="clip-modal-root" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <!-- React Component Container -->
+    <div id="clip-editor-container" class="w-full max-w-2xl">
+        <!-- Will be mounted here -->
+    </div>
+</div>
+
+<script>
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import ClipEditor from './ClipEditor';
+
+    const rootEl = document.getElementById('clip-modal-root');
+    const container = document.getElementById('clip-editor-container');
+    let reactRoot: any = null;
+
+    window.addEventListener('veredillas:open-clip-editor', (e: any) => {
+        const { audioUrl, title, author, cover, duration } = e.detail;
+        
+        if (rootEl && container) {
+            rootEl.classList.remove('hidden');
+            
+            if (!reactRoot) reactRoot = createRoot(container);
+            
+            const closeHandler = () => {
+                rootEl.classList.add('hidden');
+                reactRoot.render(null); // Unmount to stop audio
+            };
+
+            reactRoot.render(
+                React.createElement(ClipEditor, {
+                    audioUrl,
+                    title,
+                    author,
+                    cover,
+                    duration,
+                    onClose: closeHandler
+                })
+            );
+        }
+    });
+
+    // Close on click outside
+    rootEl?.addEventListener('click', (e) => {
+        if (e.target === rootEl) {
+            rootEl.classList.add('hidden');
+            if (reactRoot) reactRoot.render(null);
+        }
+    });
+</script>

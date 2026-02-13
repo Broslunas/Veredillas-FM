@@ -444,7 +444,8 @@ input[type="range"].u-hidden-range {
 
 @media (max-width: 640px) {
     .volume-area { display: none; }
-    .player-extras .btn-ctrl { display: none; } /* Hide Maximize in mobile inline if cramped */
+    /* Hide specific controls but allow Clip button if possible */
+    .player-extras .btn-ctrl:not(#clipBtn) { display: none; } 
     .btn-ctrl.secondary-hide { display: none; }
     .player-extras { border-left: none; padding-left: 0; }
 }

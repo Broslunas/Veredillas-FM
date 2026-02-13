@@ -79,6 +79,10 @@ import './player/SharedPlayerStyles.css';
                     </button>
                     <input type="range" class="volume-slider" id="volumeBar" min="0" max="1" step="0.05" value="1" />
                 </div>
+                <!-- Clip Button -->
+                <button class="btn-ctrl" id="clipBtn" aria-label="Crear Clip">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 0 0 5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2h-4c-1.35 0-2.58.5-3.6 1.4L6 9"/><path d="M6 2h4c1.35 0 2.58.5 3.6 1.4L18 9"/></svg>
+                </button>
                 <button class="btn-ctrl" id="maximizeBtn" aria-label="Pantalla completa">
                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
                 </button>
@@ -381,6 +385,30 @@ import './player/SharedPlayerStyles.css';
                  const s = speeds[speedIdx];
                  audioElement.playbackRate = s;
                  speedBtn.innerText = `${s}x`;
+                 speedBtn.innerText = `${s}x`;
+             }
+
+             // Clip Button
+             const clipBtn = container.querySelector('#clipBtn') as HTMLElement;
+             if(clipBtn) {
+                 clipBtn.onclick = () => {
+                     // Pause player while clipping? Optional.
+                     audioElement.pause();
+                     
+                     const meta = window.playerMeta || { title: 'Episodio', author: 'Veredillas FM', image: '/logo.png' };
+                     
+                     // Dispatch event for React wrapper
+                     const evt = new CustomEvent('veredillas:open-clip-editor', {
+                         detail: {
+                             audioUrl: audioElement.src, // Assuming src is accessible
+                             title: meta.title,
+                             author: meta.author,
+                             cover: meta.image,
+                             duration: isFinite(audioElement.duration) ? audioElement.duration : 0
+                         }
+                     });
+                     window.dispatchEvent(evt);
+                 };
              }
 
              // Maximize
