@@ -1,5 +1,6 @@
 
 /* Clip Editor: Pure CSS, No Tailwind */
+/* Clip Editor: Pure CSS, No Tailwind */
 .clip-editor-modal {
     display: flex;
     flex-direction: column;
@@ -12,6 +13,7 @@
     box-shadow: 0 0 80px rgba(0,0,0,0.6);
     border: 1px solid rgba(255,255,255,0.1);
     position: relative;
+    max-height: 90vh; /* Limit height to viewport */
     /* Simulate fade-in-zoom */
     animation: fadeInZoom 0.3s ease-out forwards;
 }
@@ -31,39 +33,10 @@
     background: rgba(24, 24, 27, 0.5);
     backdrop-filter: blur(12px);
     z-index: 20;
+    flex-shrink: 0; /* Prevent header shrinking */
 }
 
-.clip-title h2 {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-}
-.clip-title span { color: #8b5cf6; } 
-.clip-subtitle {
-    font-size: 0.75rem;
-    color: #a1a1aa;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    margin-top: 2px;
-}
-
-.close-btn {
-    padding: 8px;
-    color: #71717a;
-    background: transparent;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.close-btn:hover {
-    color: white;
-    background: rgba(255,255,255,0.05);
-}
+/* ... (omitted parts) ... */
 
 /* Content Grid */
 .clip-editor-body {
@@ -73,6 +46,24 @@
     gap: 32px;
     position: relative;
     z-index: 10;
+    overflow-y: auto; /* Enable vertical scroll */
+    flex: 1; /* Take remaining space */
+    min-height: 0;
+}
+
+/* Custom Scrollbar */
+.clip-editor-body::-webkit-scrollbar {
+    width: 6px;
+}
+.clip-editor-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.clip-editor-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+.clip-editor-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 @media (max-width: 1024px) {
