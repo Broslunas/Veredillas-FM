@@ -75,6 +75,9 @@ function formatDateShort(date: string | Date | undefined) {
                 <a href="https://n8n.broslunas.com/workflow/kozHuKfSLnb6rPmE_kEy9" target="_blank" class="action-btn">
                     <span>⚡ Ver en n8n</span>
                 </a>
+                <button onclick="openDocsModal()" class="action-btn">
+                    <span>📄 Autorizaciones</span>
+                </button>
             </div>
         </div>
 
@@ -109,6 +112,7 @@ function formatDateShort(date: string | Date | undefined) {
                                      {item.status === 'invited' && item.token && (
                                          <button class="btn-mini copy-link" onclick={`copyInviteLink('${item.token}', '${item.email}', event)`} title="Copiar Link">🔗</button>
                                      )}
+                                     <button class="btn-mini docs-btn" onclick={`handleDocsModal('${item.name}', '${item.email}', event)`} title="Enviar Documentos">📄</button>
                                 </div>
                                 <textarea style="display:none;" id={`data-${item._id}`}>{JSON.stringify(item)}</textarea>
                             </div>
@@ -195,6 +199,97 @@ function formatDateShort(date: string | Date | undefined) {
             </div>
             <div class="modal-actions">
                 <button class="btn-modal cancel" onclick="closeDetailsModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docs Modal -->
+    <div id="docsModal" class="modal-backdrop">
+        <div class="modal-content glass-panel" style="max-width: 700px;">
+            <h3>📥 Centro de Autorizaciones</h3>
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem; margin-bottom: 1rem;">
+                Descarga el documento o envíalo directamente por correo electrónico al interesado.
+            </p>
+            
+            <div class="send-auth-form">
+                <div class="form-row">
+                    <input type="text" id="authRecipientName" placeholder="Nombre completo del destinatario" class="auth-input" />
+                    <input type="email" id="authRecipientEmail" placeholder="Correo electrónico del destinatario" class="auth-input" />
+                </div>
+            </div>
+
+            <div class="docs-grid">
+                <!-- Alumno < 14 -->
+                <div class="doc-card">
+                    <div class="doc-icon">👶</div>
+                    <div class="doc-info">
+                        <span class="doc-title">Menores 14 años</span>
+                        <span class="doc-subtitle">Autorización Alumnos</span>
+                    </div>
+                    <div class="doc-actions">
+                        <a href="https://cdn.veredillasfm.es/docs/Veredillas-FM-autorizaci%C3%B3n-menores-14-a%C3%B1os.pdf" target="_blank" class="btn-mini-action download">
+                            ⬇️ Descargar
+                        </a>
+                        <button onclick="sendAuthorization('menores-14', 'https://cdn.veredillasfm.es/docs/Veredillas-FM-autorizaci%C3%B3n-menores-14-a%C3%B1os.pdf')" class="btn-mini-action send">
+                            📧 Enviar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Alumno > 14 -->
+                <div class="doc-card">
+                    <div class="doc-icon">🧑‍🎓</div>
+                    <div class="doc-info">
+                        <span class="doc-title">Mayores 14 años</span>
+                        <span class="doc-subtitle">Autorización Alumnos</span>
+                    </div>
+                    <div class="doc-actions">
+                         <a href="https://cdn.veredillasfm.es/docs/Veredillas-FM-autorizaci%C3%B3n-mayores-14-a%C3%B1os.pdf" target="_blank" class="btn-mini-action download">
+                            ⬇️ Descargar
+                        </a>
+                        <button onclick="sendAuthorization('mayores-14', 'https://cdn.veredillasfm.es/docs/Veredillas-FM-autorizaci%C3%B3n-mayores-14-a%C3%B1os.pdf')" class="btn-mini-action send">
+                            📧 Enviar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Docente -->
+                <div class="doc-card">
+                    <div class="doc-icon">👩‍🏫</div>
+                    <div class="doc-info">
+                        <span class="doc-title">Docentes</span>
+                        <span class="doc-subtitle">Autorización Profesorado</span>
+                    </div>
+                     <div class="doc-actions">
+                         <a href="https://cdn.veredillasfm.es/docs/Veredillas-FM-autorizaci%C3%B3n-docentes.pdf" target="_blank" class="btn-mini-action download">
+                            ⬇️ Descargar
+                        </a>
+                        <button onclick="sendAuthorization('docentes', 'https://cdn.veredillasfm.es/docs/Veredillas-FM-autorizaci%C3%B3n-docentes.pdf')" class="btn-mini-action send">
+                            📧 Enviar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Externos -->
+                <div class="doc-card">
+                    <div class="doc-icon">🌍</div>
+                    <div class="doc-info">
+                        <span class="doc-title">Externos</span>
+                        <span class="doc-subtitle">Autorización Invitados</span>
+                    </div>
+                     <div class="doc-actions">
+                         <a href="https://cdn.veredillasfm.es/docs/Veredillas-FM-autorizaci%C3%B3n-externos.pdf" target="_blank" class="btn-mini-action download">
+                            ⬇️ Descargar
+                        </a>
+                        <button onclick="sendAuthorization('externos', 'https://cdn.veredillasfm.es/docs/Veredillas-FM-autorizaci%C3%B3n-externos.pdf')" class="btn-mini-action send">
+                            📧 Enviar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+             <div class="modal-actions">
+                <button class="btn-modal cancel" onclick="closeDocsModal()">Cerrar</button>
             </div>
         </div>
     </div>
@@ -310,6 +405,7 @@ function formatDateShort(date: string | Date | undefined) {
     // --- Modal Logic ---
     const createModal = document.getElementById('createModal');
     const detailsModal = document.getElementById('detailsModal');
+    const docsModal = document.getElementById('docsModal');
     const createForm = document.getElementById('createForm');
     const userSelect = document.getElementById('userSelect');
     const nameInput = createForm.querySelector('[name="name"]');
@@ -317,6 +413,23 @@ function formatDateShort(date: string | Date | undefined) {
 
     function openCreateModal() {
         createModal.classList.add('active');
+    }
+
+    function openDocsModal(name = '', email = '') {
+        if(name) document.getElementById('authRecipientName').value = name;
+        if(email) document.getElementById('authRecipientEmail').value = email;
+        
+        docsModal.classList.add('active');
+    }
+
+    // Proxy function for button click to handle event propagation
+    function handleDocsModal(name, email, event) {
+        if(event) event.stopPropagation();
+        openDocsModal(name, email);
+    }
+
+    function closeDocsModal() {
+        docsModal.classList.remove('active');
     }
 
     function closeCreateModal() {
@@ -401,11 +514,54 @@ function formatDateShort(date: string | Date | undefined) {
     });
 
     // Close on backdrop click
-    [createModal, detailsModal].forEach(m => {
+    [createModal, detailsModal, docsModal].forEach(m => {
         m.addEventListener('click', e => {
             if (e.target === m) m.classList.remove('active');
         })
     });
+
+    async function sendAuthorization(docType, docUrl) {
+        const nameInput = document.getElementById('authRecipientName');
+        const emailInput = document.getElementById('authRecipientEmail');
+        
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        
+        if (!name || !email) {
+            window.showToast('Por favor, indica Nombre y Email del destinatario', 'error');
+            return;
+        }
+
+        const btn = event.currentTarget || event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Enviando...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/admin/send-authorization', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, docType, docUrl })
+            });
+            
+            const data = await response.json();
+
+            if (response.ok) {
+                 window.showToast('Autorización enviada correctamente', 'success');
+                 // Optional: Clear form
+                 // nameInput.value = '';
+                 // emailInput.value = '';
+            } else {
+                 window.showToast(data.message || 'Error al enviar', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            window.showToast('Error de conexión', 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
 </script>
 
 <style>
@@ -597,6 +753,14 @@ function formatDateShort(date: string | Date | undefined) {
   
   .copy-link {
       color: #60a5fa;
+  }
+  
+  .docs-btn {
+      color: #a78bfa;
+      margin-left: 0.5rem;
+  }
+  .docs-btn:hover {
+      transform: scale(1.1);
   }
 
   .empty-placeholder {
@@ -797,6 +961,146 @@ function formatDateShort(date: string | Date | undefined) {
   .modal-backdrop.active {
       opacity: 1;
       pointer-events: auto;
+  }
+
+  /* Docs Modal Styles */
+  .docs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+  }
+  
+  .doc-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+  }
+  
+  .doc-card:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, 0.5);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+  }
+  
+  .doc-card .doc-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+      transition: transform 0.3s ease;
+  }
+  
+  .doc-card:hover .doc-icon {
+      transform: scale(1.1) rotate(5deg);
+  }
+
+  .doc-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+  }
+  
+  .doc-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #fff;
+  }
+  
+  .doc-subtitle {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+  }
+
+  /* Responsive for small screens */
+  @media (max-width: 500px) {
+      .docs-grid {
+          grid-template-columns: 1fr;
+      }
+      .form-row {
+          flex-direction: column;
+      }
+  }
+
+  .send-auth-form {
+      background: rgba(0,0,0,0.2);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .form-row {
+      display: flex;
+      gap: 1rem;
+  }
+  
+  .auth-input {
+      flex: 1;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+  }
+  
+  .auth-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      background: rgba(255,255,255,0.1);
+  }
+
+  .doc-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+  }
+
+  .btn-mini-action {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+  }
+
+  .btn-mini-action.download {
+      background: rgba(255,255,255,0.1);
+      color: white;
+  }
+  .btn-mini-action.download:hover {
+      background: rgba(255,255,255,0.2);
+  }
+
+  .btn-mini-action.send {
+      background: rgba(139, 92, 246, 0.2);
+      color: #a78bfa;
+      border-color: rgba(139, 92, 246, 0.3);
+  }
+  .btn-mini-action.send:hover {
+      background: rgba(139, 92, 246, 0.4);
+      color: white;
   }
 
   .modal-content {
