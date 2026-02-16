@@ -956,6 +956,47 @@ sections:
     title: Facilidad de Pagos
   - time: '35:58'
     title: Despedida
+clips:
+  - title: Chicos Guapos  ¿La Inteligencia Importa en una Relación
+    url: 'https://youtu.be/MxDuvHiV9dE'
+  - title: Dinero Digital  ¿Adiós al Valor del Dinero Físico
+    url: 'https://youtu.be/8DMJSoGIwFo'
+  - title: TikTok vs 2016  ¿Éramos Más Felices Sin Pantallas
+    url: 'https://youtu.be/awGW1Ka5gXk'
+  - title: ¡Basta de Estafas! Niños y Dinero en Internet
+    url: 'https://youtu.be/gdYio3gdN6o'
+  - title: 'Amor y Poder  ¿Quién ama menos, el que gana'
+    url: 'https://youtu.be/aTRgjECupKc'
+  - title: El Amor  Cómo las Películas Disney Moldean Nuestras Relaciones
+    url: 'https://youtu.be/2FldTP5CYos'
+  - title: Flores en Primera Cita  ¿Avanzó la Sociedad
+    url: 'https://youtu.be/XKPSx-f52nE'
+  - title: Infancia Digital  ¡Las Pantallas Están Matando la Niñez!
+    url: 'https://youtu.be/XFpdKk9k17Y'
+  - title: Mi Vida Sin Redes Sociales  Prioridades y Bienestar
+    url: 'https://youtu.be/xGJbAmfBtcw'
+  - title: Niños vs  Móviles  ¿Perdemos la Magia de Jugar
+    url: 'https://youtu.be/g6riYf8RHlU'
+  - title: No Puedo Ahorrar Dinero  Mi Secreto Revelado
+    url: 'https://youtu.be/4q1GupjEWAo'
+  - title: TABLETS vs NIÑOS  ¿Cuándo es Demasiado
+    url: 'https://youtu.be/NSg6-NSQ-8A'
+  - title: 'Amor Propio  Ya Eres Completo, No Busques a Tu Media Naranja'
+    url: 'https://youtu.be/JLPqXHG57ek'
+  - title: ¿Por qué no te responden al instante  Explicación real
+    url: 'https://youtu.be/sH3ZZGxKRY0'
+  - title: Flores y Chocolates  ¿Regalos Para Hombres y Mujeres
+    url: 'https://youtu.be/ZqrSDzWzg04'
+  - title: El Secreto  ¿Qué es lo REALMENTE importante
+    url: 'https://youtu.be/m2mib1tqZvo'
+  - title: Expectativas Surrealistas  El Romance Idealizado
+    url: 'https://youtu.be/rnfLE-CYSuE'
+  - title: Mensajes  ¿Contestación Rápida o Interés Genuino
+    url: 'https://youtu.be/-C4egt0z7N0'
+  - title: Redes Sociales  El Espejo Crítico de la Sociedad Moderna
+    url: 'https://youtu.be/wPUzWCxzaOE'
+  - title: ¡Adiós Monosílabos! Conexión Real en Conversaciones
+    url: 'https://youtu.be/yle-qOhRPeQ'
 ---
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde te mantenemos al pendiente de los temas más candentes**
