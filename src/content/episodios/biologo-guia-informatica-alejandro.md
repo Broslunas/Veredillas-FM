@@ -795,6 +795,59 @@ sections:
     title: Reflexión sobre la Naturaleza
   - time: '37:06'
     title: Despedida
+clips:
+  - title: Mariposario de Icod  Descubre la Magia Natural de Tenerife
+    url: 'https://youtu.be/X0eQo4RMjyo'
+  - title: Estudio de Alimentos  Mi Experiencia en Gallina Blanca
+    url: 'https://youtu.be/5HC0lvOAulM'
+  - title: Mi Experiencia como Profesor Interino en Andalucía  COVID y Estabilidad
+    url: 'https://youtu.be/CyfKxqmivdk'
+  - title: Crea Hábito de Estudio  Mi Secreto para Aprender Más
+    url: 'https://youtu.be/sNTzNEXoR40'
+  - title: Biología a Tecnología  Mi Salto Inesperado
+    url: 'https://youtu.be/eVvtDPPeNKI'
+  - title: Mi Vida Sin Ser Profesor  ¿Qué Hubiera Pasado
+    url: 'https://youtu.be/KgIbEjLI-BE'
+  - title: Mi Dolor Más Profundo  Superando el Fracaso y el Duelo
+    url: 'https://youtu.be/ZH4viEQzM6g'
+  - title: Mi Gata  Amor Incondicional y Dolor Inmenso
+    url: 'https://youtu.be/TcAYyJc1Alg'
+  - title: Mi Experiencia Engañosa en Gallina Blanca
+    url: 'https://youtu.be/UiErIuSvSFA'
+  - title: ¡Inspección Sanitaria! Peligros de la Carne de Mérida Revelados
+    url: 'https://youtu.be/Kz-hBviHKqI'
+  - title: ¡Supera el Bachillerato! Nivel Universitario Garantizado
+    url: 'https://youtu.be/Qyag1Q4J7RY'
+  - title: Cálculos de Alquiler  ¿Podrás Costearlo
+    url: 'https://youtu.be/amUdB7kj8Lw'
+  - title: Clase Personalizada  Temario a Vuestro Gusto!
+    url: 'https://youtu.be/5CcfoOuHrS8'
+  - title: De Plan B a Plan A  Mi Camino a Profesor
+    url: 'https://youtu.be/fQaYhdsh_S8'
+  - title: Despido Injusto  Mi Bebé y los Recortes del Gobierno
+    url: 'https://youtu.be/ejz4Umgzo8A'
+  - title: Estrategia Maestra  Cómo Manejar a un Profesor
+    url: 'https://youtu.be/nekbEmZHlZ8'
+  - title: 'Genética Divertida  Pokémon, Harry Potter y Star Wars'
+    url: 'https://youtu.be/lMf6w7NjW94'
+  - title: Habla y Desahógate  Tu Espacio de Libertad y Aprendizaje
+    url: 'https://youtu.be/SMbRUZUQEVU'
+  - title: Hackeo Ético  ¿Un Pago de Deuda Social
+    url: 'https://youtu.be/1PX8ycYBXe8'
+  - title: La Oveja Negra  Mi Lucha Contra el Instituto
+    url: 'https://youtu.be/xnzAFdY7rBw'
+  - title: 'Máster  ¿Biodiversidad, Oceanografía o Criminología'
+    url: 'https://youtu.be/jKOb6ZE6gt8'
+  - title: Mi Vida Cambió  De Criminología a Profesor Exitoso
+    url: 'https://youtu.be/zHsdU8jxsiE'
+  - title: Motiva a tus Alumnos  ¡La Clave del Éxito Escolar!
+    url: 'https://youtu.be/6rvNvBluiPw'
+  - title: Motivación Estudiantil  ¡Pasión por la Mecánica Transformando Educación!
+    url: 'https://youtu.be/NKM4-K-q48s'
+  - title: Revolución Educativa  Más Allá del Temario Tradicional
+    url: 'https://youtu.be/4qJn0MP9dWk'
+  - title: Búsqueda de Empleo  Bolsa Extraordinaria y Opción Extranjero
+    url: 'https://youtu.be/dJgi5fv3hGk'
 ---
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
