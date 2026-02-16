@@ -854,6 +854,57 @@ sections:
     title: 'Reflexión Final: Economía y Poder'
   - time: '42:22'
     title: Despedida
+clips:
+  - title: Vivencias Venezolanas y su Inspiradora Ilusión
+    url: 'https://youtu.be/9vYfpuGfZIU'
+  - title: Análisis  ¿Ganó la Oposición en Venezuela  ¡Polémica Revelada!
+    url: 'https://youtu.be/OFi-Cf1YR6g'
+  - title: Drones y Guerras Futuras  ¿Robots Lucharán Entre Sí
+    url: 'https://youtu.be/rJAiWd13n0g'
+  - title: 'Drones, Ciberataques y la Intervención  ¿Cuándo Justificar una Invasión'
+    url: 'https://youtu.be/i0hqRiJa65o'
+  - title: España vs  Trump  ¿Quién tiene más poder real
+    url: 'https://youtu.be/nBr_rAniZoA'
+  - title: 'Guerra en Ucrania  ¿Por qué te afecta si no estás allí? #podcast'
+    url: 'https://youtu.be/SwOw7PBNe4A'
+  - title: Guerra Futura  ¿Drones y Robots o Palos y Flechas
+    url: 'https://youtu.be/9WXh45MmIhA'
+  - title: 'Guerra Mundial  Trump, Venezuela y Groenlandia'
+    url: 'https://youtu.be/Pjqb1AQCPzk'
+  - title: Guerra y Política  ¿Invasiones por Capricho
+    url: 'https://youtu.be/qQw5eIJqOMI'
+  - title: Invasión de Gibraltar  ¿Qué Pasaría Realmente
+    url: 'https://youtu.be/yOpA7NYOJbo'
+  - title: La Sinvergüenza  Trump y la Verdad del Twitter
+    url: 'https://youtu.be/7IYmDYVG-ww'
+  - title: Manifestación Violenta  Tragedia con Víctimas Mortales
+    url: 'https://youtu.be/B-n7RXIygyE'
+  - title: Manifestaciones y Represalias  ¿Dónde está el Límite
+    url: 'https://youtu.be/_A7x8kxL0Wg'
+  - title: Operación Exitosa  Análisis de Táctica Militar y Estrategia
+    url: 'https://youtu.be/JEo_s4BqDqQ'
+  - title: Operación Impecable  Barco Militar y Evacuación a Nueva York
+    url: 'https://youtu.be/XBddqDWZztE'
+  - title: Reflexiones sobre la Vida y las Guerras en Medio Oriente
+    url: 'https://youtu.be/7Dqvbb_sCK8'
+  - title: Régimen No Ha Caído  ¿Cambio Real o Misma Historia
+    url: 'https://youtu.be/w9qqbFbYNzU'
+  - title: Segunda Guerra Mundial  ¿Podría una nueva guerra ser inimaginable
+    url: 'https://youtu.be/0I6CaVWZn8c'
+  - title: Trump Justificado  La Opinión Venezolana Tras Maduro
+    url: 'https://youtu.be/vsYFoOfNzOs'
+  - title: Trump y sus Intereses  ¿Verdad Detrás de sus Acciones
+    url: 'https://youtu.be/THU749HISXI'
+  - title: Trump  Operación Sorpresa y sus Peligros Ocultos
+    url: 'https://youtu.be/z2MjsM2uX5c'
+  - title: Venezolanos en el Mundo  Inmigración y Realidades
+    url: 'https://youtu.be/e4311t9Zxzw'
+  - title: Venezuela  Jóvenes Mueren Luchando por su Futuro
+    url: 'https://youtu.be/_gkiOud3kVk'
+  - title: Venezuela  La dura realidad que marcó mi infancia
+    url: 'https://youtu.be/EbRRJDXjamQ'
+  - title: La Guerra Cerca  Por Qué La Distancia Nos Hace Insensibles
+    url: 'https://youtu.be/3dSUAbs3wGQ'
 ---
 
 **¡Bienvenidos a una edición especial de Veredillas FM!**
