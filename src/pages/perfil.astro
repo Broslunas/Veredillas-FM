@@ -61,32 +61,7 @@ function formatTime(seconds: number): string {
 // Fetch Clips
 
 
-function getVideoId(url: string): string | null {
-  const patterns = [
-    /youtube\.com\/shorts\/([^?&]+)/,
-    /(?:youtube\.com\/watch\?v=|youtube\.com\/watch\?.+&v=)([^&]+)/,
-    /youtu\.be\/([^?&]+)/,
-    /youtube\.com\/embed\/([^?&]+)/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  return null;
-}
-
-const userLikedIds = user.likedClips || [];
-const likedClips = allEpisodes.flatMap(episode => {
-    return (episode.data.clips || []).map(clip => {
-        const videoId = getVideoId(clip.url);
-        return {
-            ...clip,
-            videoId,
-            episodeTitle: episode.data.title,
-            episodeSlug: episode.slug
-        };
-    });
-}).filter(clip => clip.videoId && userLikedIds.includes(clip.videoId));
+// Likes logic moved to Dashboard
 ---
 
 <Layout title="Mi Perfil" description="Gestiona tu perfil de Veredillas FM" robots="noindex, nofollow">
@@ -170,37 +145,7 @@ const likedClips = allEpisodes.flatMap(episode => {
                      
                 </div>
 
-                <!-- Liked Clips Section -->
-                <div class="glass-panel full-width-panel" style="margin-bottom: 2rem;">
-                    <div class="panel-header">
-                        <h2>Clips Favoritos</h2>
-                        <p>{likedClips.length > 0 ? `Te han gustado ${likedClips.length} clips.` : 'Aún no has guardado ningún clip.'}</p>
-                    </div>
-
-                    {likedClips.length > 0 ? (
-                        <div class="clips-grid">
-                            {likedClips.map(clip => (
-                                <a href={`/clips?watch=${clip.videoId}`} class="clip-card-mini">
-                                    <div class="clip-thumbnail">
-                                        <img src={`https://img.youtube.com/vi/${clip.videoId}/hqdefault.jpg`} alt={clip.title} loading="lazy" />
-                                        <div class="play-overlay">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"/></svg>
-                                        </div>
-                                    </div>
-                                    <div class="clip-mini-info">
-                                        <h4>{clip.title}</h4>
-                                        <span>{clip.episodeTitle}</span>
-                                    </div>
-                                </a>
-                            ))}
-                        </div>
-                    ) : (
-                        <div class="empty-clips-state">
-                            <p>Ve a la sección de clips para descubrir momentos épicos.</p>
-                            <a href="/clips" class="btn btn-secondary" style="margin-top: 1rem; display: inline-block;">Descubrir Clips</a>
-                        </div>
-                    )}
-                </div>
+                <!-- Liked Clips moved to Dashboard -->
 
                 <!-- Settings Form -->
                 <div class="glass-panel settings-panel">

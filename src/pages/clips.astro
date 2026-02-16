@@ -67,10 +67,10 @@ if (watchId) {
             </div>
             
             <div class="clip-actions">
-                <button class="action-btn like-btn" aria-label="Me gusta" data-clip-id={videoId}>
+                <button class="action-btn like-btn" aria-label="Me gusta" data-clip-id={videoId} onclick="handleLikeClip(this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                 </button>
-                <button class="action-btn share-btn" aria-label="Compartir" data-clip-id={videoId}>
+                <button class="action-btn share-btn" aria-label="Compartir" data-clip-id={videoId} onclick="handleShareClip(this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                 </button>
                 <a href={`/ep/${clip.episodeSlug}`} class="action-btn" aria-label="Ver episodio completo">
@@ -354,377 +354,313 @@ if (watchId) {
   }
 </style>
 
-<script>
-    // Define interfaces for YouTube API logic
-    interface YTPlayer {
-        playVideo(): void;
-        pauseVideo(): void;
-        mute(): void;
-        unMute(): void;
-        getPlayerState(): number;
-        getIframe(): HTMLIFrameElement;
-        destroy(): void;
-    }
+<script is:inline>
+    // Use an IIFE or just global scope carefully. 
+    // Since Astro viewtransitions re-runs scripts, we need to be careful about redeclaring variables.
+    // The previous implementation had 'let players' at top level which is fine for module scope, 
+    // BUT if the script tag is re-injected, it re-runs.
+    
+    // We will attach state to window to survive re-runs and avoid "redeclaration" errors if this were a classic script,
+    // though as a module it should be fine. However, let's be extremely robust.
 
-    interface YTEvent {
-        target: YTPlayer;
-        data: number;
-    }
-
-    // Augment window to include YouTube API globals
-    declare global {
-        interface Window {
-            onYouTubeIframeAPIReady: () => void;
-            YT: {
-                Player: new (id: string, options: any) => YTPlayer;
-                PlayerState: {
-                    ENDED: number;
-                    PLAYING: number;
-                    PAUSED: number;
-                };
+    (function() {
+        const WIN = window;
+        
+        // Initialize global state container if not exists
+        if (!WIN._clipsState) {
+            WIN._clipsState = {
+                players: {},
+                playbackObserver: null,
+                loadingObserver: null,
+                urlObserver: null,
+                queue: [],
+                apiReady: false,
+                stateCache: new Map()
             };
         }
-    }
 
-    let players: Record<string, YTPlayer> = {};
-    let playbackObserver: IntersectionObserver;
-    let loadingObserver: IntersectionObserver;
-    let apiReady = false;
-    const queue: string[] = [];
-    let stateCache = new Map<string, number>(); // Cache player states
+        const state = WIN._clipsState;
 
-    // Load YouTube IFrame API
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
-
-    window.onYouTubeIframeAPIReady = function() {
-        apiReady = true;
-        processQueue();
-    };
-
-    function processQueue() {
-        while (queue.length > 0) {
-            const id = queue.shift();
-            if (id) createPlayer(id);
-        }
-    }
-
-    function createPlayer(id: string) {
-        if (!apiReady) {
-            if (!queue.includes(id)) queue.push(id);
-            return;
-        }
-
-        if (players[id]) return; // Already created
-
-        const element = document.getElementById(id);
-        if (!element) return;
-
-        const videoId = element.getAttribute('data-video-id');
-        if (!videoId) return;
-
-        players[id] = new window.YT.Player(id, {
-            height: '100%',
-            width: '100%',
-            videoId: videoId,
-            playerVars: {
-                'playsinline': 1,
-                'controls': 0, // HIDE CONTROLS
-                'rel': 0,
-                'modestbranding': 1,
-                'showinfo': 0, 
-                'iv_load_policy': 3, 
-                'fs': 0,
-                'disablekb': 1,
-                'origin': window.location.origin
-            },
-            events: {
-                'onStateChange': (e: YTEvent) => onPlayerStateChange(id, e)
+        // --- YOUTUBE API SETUP ---
+        if (!WIN.YT) {
+            if (!document.getElementById('yt-api-script')) {
+                const tag = document.createElement('script');
+                tag.id = 'yt-api-script';
+                tag.src = "https://www.youtube.com/iframe_api";
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
             }
-        });
-    }
-
-    function onPlayerStateChange(id: string, event: YTEvent) {
-        stateCache.set(id, event.data);
-        
-        // Loop video when ended
-        if (event.data === window.YT.PlayerState.ENDED) {
-            event.target.playVideo();
-        }
-    }
-
-    // Toggle Play/Pause on user interaction
-    function togglePlay(id: string) {
-        const player = players[id];
-        if (player && typeof player.getPlayerState === 'function') {
-            // Use cached state or fetch if available, but getPlayerState is reliable
-            const state = player.getPlayerState();
-            if (state === window.YT.PlayerState.PLAYING) {
-                player.pauseVideo();
-            } else {
-                player.playVideo();
-                player.unMute(); // Ensure sound is on
-            }
-        }
-    }
-
-    function initObservers() {
-        // 1. Loading Observer: Preload players
-        loadingObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const el = entry.target as HTMLElement;
-                const playerDiv = el.querySelector('.youtube-player');
-                if (!playerDiv) return;
-                
-                const id = playerDiv.id;
-
-                if (entry.isIntersecting) {
-                    createPlayer(id);
-                }
-            });
-        }, {
-            root: document.querySelector('main'),
-            rootMargin: '50% 0px 50% 0px' 
-        });
-
-        // 2. Playback Observer: Play visible, pause invisible
-        playbackObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const el = entry.target as HTMLElement;
-                const playerDiv = el.querySelector('.youtube-player');
-                if (!playerDiv) return;
-                
-                const id = playerDiv.id;
-                const player = players[id];
-
-                if (entry.isIntersecting) {
-                    // Start playing if player exists
-                    if (player && typeof player.playVideo === 'function') {
-                        player.playVideo();
-                    }
-                } else {
-                    // Pause if scrolling away
-                    if (player && typeof player.pauseVideo === 'function') {
-                        player.pauseVideo();
-                    }
-                }
-            });
-        }, {
-            root: document.querySelector('main'),
-            rootMargin: '0px',
-            threshold: 0.6 // 60% visibility
-        });
-
-        const sections = document.querySelectorAll('.clip-section');
-        sections.forEach(section => {
-            loadingObserver.observe(section);
-            playbackObserver.observe(section);
-        });
-
-        // Initialize click handlers on interaction layer
-        document.querySelectorAll('.interaction-layer').forEach((layer) => {
-            layer.addEventListener('click', (e) => {
-                const targetId = (e.currentTarget as HTMLElement).getAttribute('data-target');
-                if (targetId) togglePlay(targetId);
-            });
-        });
-    }
-
-    // Init
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-             initObservers();
-             checkWatchParam();
-             initUrlObserver();
-        });
-    } else {
-        initObservers();
-        checkWatchParam();
-        initUrlObserver();
-    }
-    
-     function checkWatchParam() {
-         const urlParams = new URLSearchParams(window.location.search);
-         const watchId = urlParams.get('watch');
-         
-         // If no watch param, set the first one to reflect current state
-         if (!watchId) {
-             const firstPlayer = document.querySelector('.youtube-player');
-             if (firstPlayer) {
-                 const firstId = firstPlayer.getAttribute('data-video-id');
-                 if (firstId) {
-                     const url = new URL(window.location.href);
-                     url.searchParams.set('watch', firstId);
-                     window.history.replaceState({}, '', url);
-                 }
-             }
-         }
-    }
-    
-    // Observer to update URL on scroll
-    let urlObserver: IntersectionObserver;
-    
-    function initUrlObserver() {
-        if (urlObserver) urlObserver.disconnect();
-        
-        urlObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const playerDiv = entry.target.querySelector('.youtube-player');
-                    if (playerDiv) {
-                         const videoId = playerDiv.getAttribute('data-video-id');
-                         if (videoId) {
-                             const url = new URL(window.location.href);
-                             const currentWatch = url.searchParams.get('watch');
-                             if (currentWatch !== videoId) {
-                                 url.searchParams.set('watch', videoId);
-                                 window.history.replaceState({}, '', url);
-                             }
-                         }
-                    }
-                }
-            });
-        }, {
-            threshold: 0.7 // Must be mostly visible to count as "active"
-        });
-        
-        document.querySelectorAll('.clip-section').forEach(section => {
-            urlObserver.observe(section);
-        });
-    }
-
-
-
-    // --- Button Handling (Re-written from scratch) ---
-
-    async function loadLikes() {
-        try {
-            const response = await fetch('/api/clips/liked');
-            if (response.ok) {
-                const data = await response.json();
-                const likedClips = data.likedClips || [];
-                
-                document.querySelectorAll('.like-btn').forEach(btn => {
-                    const clipId = btn.getAttribute('data-clip-id');
-                    if (clipId && likedClips.includes(clipId)) {
-                        btn.classList.add('liked');
-                        btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
-                    } else {
-                        btn.classList.remove('liked');
-                        btn.querySelector('svg')?.setAttribute('fill', 'none');
-                    }
-                });
-            }
-        } catch (e) {
-            console.error('Error loading likes', e);
-        }
-    }
-
-     // --- GLOBAL EVENT DELEGATION ---
-    // We attach ONCE to the document. 
-    // To handle this idempotently, we can set a property on window.
-    
-    if (!(window as any)._clipsEventDelegationAttached) {
-        console.log('Attaching global clips event delegation');
-        (window as any)._clipsEventDelegationAttached = true;
-        
-        document.addEventListener('click', async (e) => {
-            const target = e.target as HTMLElement;
             
-            // --- SHARE ---
-            const shareBtn = target.closest('.share-btn');
-            if (shareBtn) {
-                e.stopPropagation();
-                e.preventDefault();
-                const btn = shareBtn as HTMLElement;
-                const clipId = btn.getAttribute('data-clip-id');
-                const url = new URL(window.location.href);
-                if (clipId) url.searchParams.set('watch', clipId);
-                
-                navigator.clipboard.writeText(url.toString()).then(() => {
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                    setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
-                });
+            WIN.onYouTubeIframeAPIReady = function() {
+                state.apiReady = true;
+                processQueue();
+            };
+        } else {
+            state.apiReady = true;
+            // Process queue next tick to ensure DOM is ready if valid
+            setTimeout(processQueue, 0);
+        }
+
+        function processQueue() {
+            while (state.queue.length > 0) {
+                const id = state.queue.shift();
+                if (id) createPlayer(id);
+            }
+        }
+
+        function createPlayer(id) {
+            // Check global YT object
+            if (!WIN.YT || !WIN.YT.Player) {
+                if (!state.queue.includes(id)) state.queue.push(id);
                 return;
             }
-            
-            // --- LIKE ---
-            const likeBtn = target.closest('.like-btn');
-            if (likeBtn) {
-                e.stopPropagation();
-                e.preventDefault();
-                const btn = likeBtn as HTMLElement;
-                const clipId = btn.getAttribute('data-clip-id');
-                if (!clipId) return;
-                
-                const isLiked = btn.classList.contains('liked');
-                
-                // Optimistic UI
-                if (isLiked) {
-                    btn.classList.remove('liked');
-                    btn.querySelector('svg')?.setAttribute('fill', 'none');
-                } else {
-                    btn.classList.add('liked');
-                    btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
-                    // Animation
-                    btn.animate([
-                        { transform: 'scale(1)' },
-                        { transform: 'scale(1.3)' },
-                        { transform: 'scale(1)' }
-                    ], { duration: 200 });
-                }
 
-                try {
-                    const res = await fetch('/api/clips/like', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ clipId })
-                    });
-                    
-                    if (res.status === 401) {
-                         alert('Inicia sesión para dar me gusta');
-                         window.location.href = '/login';
-                         return;
+            if (state.players[id]) return; // Already created
+
+            const element = document.getElementById(id);
+            if (!element) return;
+
+            const videoId = element.getAttribute('data-video-id');
+            if (!videoId) return;
+
+            // Create player
+            state.players[id] = new WIN.YT.Player(id, {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    'playsinline': 1,
+                    'controls': 0,
+                    'rel': 0,
+                    'modestbranding': 1,
+                    'showinfo': 0, 
+                    'iv_load_policy': 3, 
+                    'fs': 0,
+                    'disablekb': 1,
+                    'origin': WIN.location.origin
+                },
+                events: {
+                    'onStateChange': (e) => onPlayerStateChange(id, e)
+                }
+            });
+        }
+
+        function onPlayerStateChange(id, event) {
+            state.stateCache.set(id, event.data);
+            if (event.data === WIN.YT.PlayerState.ENDED) {
+                event.target.playVideo();
+            }
+        }
+
+        function togglePlay(id) {
+            const player = state.players[id];
+            if (player && typeof player.getPlayerState === 'function') {
+                const playerState = player.getPlayerState();
+                if (playerState === WIN.YT.PlayerState.PLAYING) {
+                    player.pauseVideo();
+                } else {
+                    player.playVideo();
+                    player.unMute();
+                }
+            }
+        }
+
+        // --- OBSERVERS ---
+        function initObservers() {
+            // Loading
+            state.loadingObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const playerDiv = entry.target.querySelector('.youtube-player');
+                        if (playerDiv) createPlayer(playerDiv.id);
                     }
-                } catch (err) {
-                    console.error(err);
-                    // Revert
-                    if (isLiked) {
-                        btn.classList.add('liked');
-                        btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
+                });
+            }, { root: null, rootMargin: '50% 0px 50% 0px' });
+
+            // Playback
+            state.playbackObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const playerDiv = entry.target.querySelector('.youtube-player');
+                    if (!playerDiv) return;
+                    const id = playerDiv.id;
+                    const player = state.players[id];
+                    
+                    if (entry.isIntersecting) {
+                        if (player && typeof player.playVideo === 'function') player.playVideo();
                     } else {
-                        btn.classList.remove('liked');
-                        btn.querySelector('svg')?.setAttribute('fill', 'none');
+                        if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
+                    }
+                });
+            }, { root: null, rootMargin: '0px', threshold: 0.6 });
+
+            document.querySelectorAll('.clip-section').forEach(section => {
+                state.loadingObserver.observe(section);
+                state.playbackObserver.observe(section);
+            });
+
+            // Interaction Layer Clicks
+            document.querySelectorAll('.interaction-layer').forEach((layer) => {
+                // Remove old listeners? The elements are new on page load, so simple add is fine.
+                layer.onclick = (e) => {
+                    const targetId = e.currentTarget.getAttribute('data-target');
+                    if (targetId) togglePlay(targetId);
+                };
+            });
+        }
+
+        function checkWatchParam() {
+            const urlParams = new URLSearchParams(WIN.location.search);
+            const watchId = urlParams.get('watch');
+            if (!watchId) {
+                const firstPlayer = document.querySelector('.youtube-player');
+                if (firstPlayer) {
+                    const firstId = firstPlayer.getAttribute('data-video-id');
+                    if (firstId) {
+                        const url = new URL(WIN.location.href);
+                        url.searchParams.set('watch', firstId);
+                        WIN.history.replaceState({}, '', url);
                     }
                 }
             }
-        });
-    }
+        }
 
-    // --- LIFECYCLE ---
-    document.addEventListener('astro:page-load', () => {
-         // Clean up old players
-         Object.values(players).forEach(p => {
-             if (typeof p.destroy === 'function') p.destroy();
-         });
-         players = {};
-         loadingObserver?.disconnect();
-         playbackObserver?.disconnect();
-         urlObserver?.disconnect();
-         
-         initObservers();
-         loadLikes(); 
-         checkWatchParam();
-         initUrlObserver();
-    });
-    
-    // Initial run check
-    if (document.readyState === 'loading') {
-         document.addEventListener('DOMContentLoaded', () => loadLikes());
-    } else {
-         loadLikes();
-    }
+        function initUrlObserver() {
+            if (state.urlObserver) state.urlObserver.disconnect();
+            
+            state.urlObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const playerDiv = entry.target.querySelector('.youtube-player');
+                        if (playerDiv) {
+                            const videoId = playerDiv.getAttribute('data-video-id');
+                            if (videoId) {
+                                const url = new URL(WIN.location.href);
+                                if (url.searchParams.get('watch') !== videoId) {
+                                    url.searchParams.set('watch', videoId);
+                                    WIN.history.replaceState({}, '', url);
+                                }
+                            }
+                        }
+                    }
+                });
+            }, { threshold: 0.7 });
+
+            document.querySelectorAll('.clip-section').forEach(section => {
+                state.urlObserver.observe(section);
+            });
+        }
+
+        // --- GLOBAL ACTIONS (for onclick) ---
+        WIN.handleLikeClip = async function(btn) {
+            if (WIN.event) {
+                WIN.event.stopPropagation();
+                WIN.event.preventDefault();
+            }
+
+            const clipId = btn.getAttribute('data-clip-id');
+            if (!clipId) return;
+
+            const isLiked = btn.classList.contains('liked');
+
+            // Optimistic
+            if (isLiked) {
+                btn.classList.remove('liked');
+                btn.querySelector('svg')?.setAttribute('fill', 'none');
+            } else {
+                btn.classList.add('liked');
+                btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
+                btn.animate([{transform:'scale(1)'}, {transform:'scale(1.3)'}, {transform:'scale(1)'}], {duration:200});
+            }
+
+            try {
+                const res = await fetch('/api/clips/like', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({clipId})
+                });
+                if (res.status === 401) {
+                    WIN.location.href = '/login';
+                    return;
+                }
+            } catch(e) {
+                console.error(e);
+                // Revert
+                 if (isLiked) {
+                    btn.classList.add('liked');
+                    btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
+                } else {
+                    btn.classList.remove('liked');
+                    btn.querySelector('svg')?.setAttribute('fill', 'none');
+                }
+            }
+        };
+
+        WIN.handleShareClip = function(btn) {
+            if (WIN.event) {
+                WIN.event.stopPropagation();
+                WIN.event.preventDefault();
+            }
+            const clipId = btn.getAttribute('data-clip-id');
+            const url = new URL(WIN.location.href);
+            if (clipId) url.searchParams.set('watch', clipId);
+            
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                const original = btn.innerHTML;
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                setTimeout(() => { btn.innerHTML = original; }, 2000);
+            });
+        };
+
+        async function loadLikes() {
+            try {
+                const res = await fetch('/api/clips/liked');
+                if (res.ok) {
+                    const data = await res.json();
+                    const liked = data.likedClips || [];
+                    document.querySelectorAll('.like-btn').forEach(btn => {
+                        const cid = btn.getAttribute('data-clip-id');
+                        if (cid && liked.includes(cid)) {
+                            btn.classList.add('liked');
+                            btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
+                        }
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // --- INIT ---
+        function initPage() {
+            // Only run on clips page
+            if (!document.querySelector('.clips-container')) return;
+            
+            // Cleanup
+            if (state.loadingObserver) state.loadingObserver.disconnect();
+            if (state.playbackObserver) state.playbackObserver.disconnect();
+            if (state.urlObserver) state.urlObserver.disconnect();
+            
+            // Destroy old players
+            Object.values(state.players).forEach(p => { 
+                if(p && typeof p.destroy === 'function') { try { p.destroy(); } catch(e) {} }
+            });
+            state.players = {};
+
+            // Start
+            initObservers();
+            loadLikes();
+            checkWatchParam();
+            initUrlObserver();
+        }
+
+        // Register astro:page-load only once (guard against duplicate registration on script re-run)
+        if (!WIN._clipsPageLoadRegistered) {
+            WIN._clipsPageLoadRegistered = true;
+            document.addEventListener('astro:page-load', initPage);
+        }
+        
+        // CRITICAL: Also call initPage() immediately!
+        // With is:inline, the astro:page-load event may have already fired before this script runs.
+        // So we must initialize now.
+        initPage();
+        
+    })();
 </script>
