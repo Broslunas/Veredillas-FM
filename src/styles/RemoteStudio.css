@@ -1,0 +1,383 @@
+/* Remote Studio Styles - Clean UI */
+
+.rs-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    background-color: #000;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.rs-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    z-index: 50;
+    pointer-events: none; /* Let clicks pass through header area */
+}
+
+.rs-header > * {
+    pointer-events: auto; /* Re-enable pointer events for buttons/badges */
+}
+
+.rs-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.rs-status-badge {
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: monospace;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.rs-status-badge.connected {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.rs-status-badge.waiting {
+    background-color: rgba(234, 179, 8, 0.2);
+    color: #facc15;
+    border-color: rgba(234, 179, 8, 0.4);
+}
+
+.rs-status-badge.disconnected {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Video Layout */
+.rs-video-grid {
+    flex: 1;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: #111;
+}
+
+/* Grid Mode (Default) */
+.rs-video-grid.grid-mode {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+}
+
+@media (min-width: 768px) {
+    .rs-video-grid.grid-mode {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Fullscreen Mode */
+.rs-video-grid.fullscreen-mode {
+    display: block;
+}
+
+.rs-video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+/* Specific styling for video wrapper when in fullscreen */
+.rs-video-grid.fullscreen-mode .rs-video-wrapper.minimized {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    width: 240px;
+    height: 135px; /* 16:9 aspect ratio */
+    z-index: 40;
+    border-radius: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.rs-video-grid.fullscreen-mode .rs-video-wrapper.maximized {
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+.rs-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Maintain aspect ratio for OBS capture */
+}
+
+/* Guest or Host video might need cover if requested, but contain is safer for broadcast */
+.rs-video.mirrored {
+    transform: scaleX(-1);
+}
+
+/* Labels & Overlays */
+.rs-label {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    padding: 0.4rem 0.85rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 20;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: opacity 0.3s;
+}
+
+/* Hide label when controls are visible if overlaps, or just make it cleaner */
+.rs-video-wrapper:hover .rs-label {
+    opacity: 0; /* Hide label on hover to show controls clearly */
+}
+
+.rs-label-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: #3b82f6; /* blue-500 */
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.rs-label-dot.guest {
+    background-color: #22c55e; /* green-500 */
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+/* Controls Overlay */
+.rs-controls-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    z-index: 30;
+}
+
+.rs-video-wrapper:hover .rs-controls-overlay {
+    opacity: 1;
+}
+
+.rs-icon-btn {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.rs-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.rs-icon-btn.active {
+    background-color: #ef4444; /* red-500 */
+    border-color: #ef4444;
+}
+
+.rs-icon-btn.active:hover {
+    background-color: #dc2626; /* red-600 */
+}
+
+/* Fullscreen Toggle Button */
+.rs-fs-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+    z-index: 35;
+}
+
+.rs-video-wrapper:hover .rs-fs-btn {
+    opacity: 1;
+}
+
+.rs-fs-btn:hover {
+    background: rgba(0,0,0,0.8);
+}
+
+/* Waiting Screen */
+.rs-waiting-screen {
+    text-align: center;
+    padding: 3rem;
+    max-width: 28rem;
+    z-index: 10;
+}
+
+.rs-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top-color: #6366f1; /* indigo-500 */
+    border-radius: 50%;
+    margin: 0 auto 2rem;
+    animation: rs-spin 1s linear infinite;
+}
+
+@keyframes rs-spin {
+    to { transform: rotate(360deg); }
+}
+
+.rs-waiting-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.rs-waiting-text {
+    color: #9ca3af; /* gray-400 */
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.rs-copy-btn {
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.rs-copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+}
+
+/* Clean Footer - Minimal */
+.rs-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    z-index: 50;
+    pointer-events: none;
+}
+
+.rs-controls-bar {
+    pointer-events: auto;
+    display: flex;
+    gap: 1rem;
+    background: rgba(20, 20, 20, 0.8);
+    backdrop-filter: blur(16px);
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.rs-control-btn {
+    background: transparent;
+    border: none;
+    color: #e5e7eb;
+    padding: 0.75rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rs-control-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.rs-control-btn.active-red {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.rs-control-btn.active-red:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Error Toast */
+.rs-error-toast {
+    position: absolute;
+    top: 5rem;
+    right: 1.5rem;
+    background-color: #ef4444;
+    color: white;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 100;
+}
+
+.rs-error-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    padding: 0.25rem;
+}

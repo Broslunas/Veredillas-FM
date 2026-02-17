@@ -1,0 +1,162 @@
+---
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import Layout from '../../../layouts/Layout.astro';
+import RemoteStudio from '../../../components/studio/RemoteStudio.jsx';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import mongoose from 'mongoose';
+
+// Security Check
+const userPayload = getUserFromCookie(Astro.request.headers.get('cookie'));
+
+if (!userPayload) {
+  return Astro.redirect('/login');
+}
+
+// Ensure DB connection
+if (mongoose.connection.readyState !== 1) {
+   const MONGODB_URI = import.meta.env.MONGODB_URI;
+   if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
+}
+
+const user = await User.findById(userPayload.userId);
+// Allow 'owner' and 'admin'
+if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
+    return Astro.redirect('/');
+}
+
+const title = "Studio Remoto | Veredillas FM";
+const description = "Graba episodios con invitados remotos en alta calidad.";
+---
+
+<Layout title={title} description={description}>
+  <div class="rs-page-container">
+    <div style="margin-bottom: 2rem;">
+        <AdminNav />
+    </div>
+
+    <div class="rs-intro">
+      <h1 class="rs-main-title">
+        Studio Remoto
+      </h1>
+      <p class="rs-subtitle">
+        Invita a colaboradores y graba tu podcast desde cualquier lugar.
+      </p>
+    </div>
+
+    <div class="rs-studio-wrapper">
+      <div class="rs-card">
+        <RemoteStudio client:only="react" mode="host" roomId="" />
+      </div>
+      
+      <div class="rs-steps-grid">
+        <div class="rs-step-card">
+            <h3 class="rs-step-title">
+                <span class="rs-step-num step-1">1</span>
+                Genera el Link
+            </h3>
+            <p>Comparte el enlace único con tu invitado. Ellos podrán unirse sin instalar nada.</p>
+        </div>
+        <div class="rs-step-card">
+            <h3 class="rs-step-title">
+                <span class="rs-step-num step-2">2</span>
+                Graba en Local
+            </h3>
+            <p>El audio y video se graban localmente en cada dispositivo para máxima calidad.</p>
+        </div>
+        <div class="rs-step-card">
+            <h3 class="rs-step-title">
+                <span class="rs-step-num step-3">3</span>
+                Descarga y Edita
+            </h3>
+            <p>Al finalizar, descarga los archivos de cada participante para editar en post-producción.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .rs-page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      min-height: 80vh;
+      font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  .rs-intro {
+      margin-bottom: 2rem;
+      text-align: center;
+  }
+
+  .rs-main-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #818cf8, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+  }
+
+  .rs-subtitle {
+     color: #94a3b8;
+     font-size: 1.125rem;
+  }
+
+  .rs-studio-wrapper {
+      max-width: 64rem;
+      margin: 0 auto;
+  }
+
+  .rs-card {
+      background-color: rgba(30, 41, 59, 0.5);
+      border-radius: 1rem;
+      padding: 0.25rem;
+      border: 1px solid rgba(51, 65, 85, 0.5);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(24px);
+  }
+
+  .rs-steps-grid {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      font-size: 0.875rem;
+      color: #94a3b8;
+  }
+
+  @media (min-width: 768px) {
+      .rs-steps-grid {
+          grid-template-columns: repeat(3, 1fr);
+      }
+  }
+
+  .rs-step-card {
+      background-color: rgba(15, 23, 42, 0.5); /* slate-900/50 */
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #1e293b; /* slate-800 */
+  }
+
+  .rs-step-title {
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0;
+  }
+
+  .rs-step-num {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+  }
+
+  .rs-step-num.step-1 { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+  .rs-step-num.step-2 { background-color: rgba(168, 85, 247, 0.2); color: #c084fc; }
+  .rs-step-num.step-3 { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
+</style>

@@ -1,0 +1,71 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import RemoteStudio from '../../../components/studio/RemoteStudio.jsx';
+
+const { roomId } = Astro.params;
+const title = "Studio Remoto - Invitado | Veredillas FM";
+const description = "Únete a la grabación en el estudio remoto.";
+---
+
+<Layout title={title} description={description}>
+  <div class="rs-guest-container">
+    <div class="rs-guest-header">
+      <h1 class="rs-guest-title">
+        Studio de Invitado
+      </h1>
+      <p class="rs-guest-subtitle">
+        Estás uniéndote a la sala: <code class="rs-code">{roomId}</code>
+      </p>
+    </div>
+
+    <div class="rs-studio-wrapper">
+      <RemoteStudio client:only="react" mode="guest" roomId={roomId} />
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .rs-guest-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  .rs-guest-header {
+      margin-bottom: 1.5rem;
+      text-align: center;
+  }
+
+  .rs-guest-title {
+      font-size: 1.875rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #4ade80, #14b8a6); /* green-400 to teal-500 */
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0.5rem 0;
+  }
+
+  .rs-guest-subtitle {
+     color: #94a3b8; /* slate-400 */
+  }
+
+  .rs-code {
+      background-color: #1e293b; /* slate-800 */
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      color: white;
+  }
+
+  .rs-studio-wrapper {
+      flex: 1;
+      width: 100%;
+      min-height: 500px;
+      margin: 0 auto;
+      max-width: 1024px;
+  }
+</style>
