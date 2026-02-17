@@ -88,7 +88,7 @@
 
 @media (min-width: 768px) {
     .rs-video-grid.grid-mode {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
     }
 }
 
