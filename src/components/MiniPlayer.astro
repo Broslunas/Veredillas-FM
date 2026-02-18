@@ -116,7 +116,7 @@ import './player/SharedPlayerStyles.css';
         interface Window {
             hasGlobalPlayerListener: boolean;
             playerCurrentUrl: string | null;
-            playerMeta: { title: string, image: string, author: string } | null;
+            playerMeta: any;
             playerSlug: string | null;
             visualizerInterval: number;
             YT: any;
@@ -1355,12 +1355,6 @@ import './player/SharedPlayerStyles.css';
               
               setupCustomPlayer(container, url, title, image, author);
              updatePlayerState();
-             
-             // FORCE PLAY
-             const audio = container.querySelector('audio') as HTMLAudioElement;
-             if(audio) {
-                 audio.play().catch(e => console.error("Auto-play failed:", e));
-             }
          }
     }));
 
@@ -1385,15 +1379,9 @@ import './player/SharedPlayerStyles.css';
          // 1. Force update to detect the now-visible inline player placeholder
          updatePlayerState(); 
          
-         // 2. Wait a tick for DOM injection then Play
+         // 2. Wait a tick for DOM injection - No auto-play as requested
          setTimeout(() => {
-             const container = document.getElementById('player-placeholder');
-             if(container) {
-                 const audio = container.querySelector('audio') as HTMLAudioElement;
-                 if(audio) {
-                     audio.play().catch(e => console.error("Premiere transition play failed", e));
-                 }
-             }
+             updatePlayerState();
          }, 500);
     });
 
