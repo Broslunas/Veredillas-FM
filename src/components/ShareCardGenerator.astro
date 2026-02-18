@@ -25,56 +25,144 @@ const { title, image = '/logo.png', guests = [], url = Astro.url, triggerId } = 
 <div id="generator-modal" class="generator-backdrop" data-trigger-id={triggerId}>
     <div class="generator-dialog">
         <div class="generator-header">
-            <h3>Crear Story para Instagram</h3>
+            <h3>Diseñador de Stories</h3>
             <button class="close-btn" id="close-generator-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
 
         <div class="generator-content">
-            <!-- Controls -->
-            <div class="controls-panel">
-                <div class="input-group">
-                    <label for="card-title">Título</label>
-                    <input type="text" id="card-title" value={title} />
-                </div>
+            <!-- Controls Sidebar -->
+            <div class="controls-panel custom-scrollbar">
                 
-                <div class="input-group">
-                    <label for="card-guest">Invitado</label>
-                    <input type="text" id="card-guest" value={guests.join(', ') || ''} placeholder="Nombre del invitado" />
-                </div>
-                
-                <div class="input-group">
-                    <label for="card-quote">Frase Destacada</label>
-                    <textarea id="card-quote" rows="3" placeholder="Una frase inspiradora del episodio..."></textarea>
-                </div>
-                
-                <div class="input-group">
-                    <label>Imagen de Fondo</label>
-                    <div class="bg-options">
-                        <button class="bg-btn active" data-bg="cover">Portada</button>
-                        <button class="bg-btn" data-bg="gradient-1">Neon</button>
-                        <button class="bg-btn" data-bg="gradient-2">Mint</button>
-                        <button class="bg-btn" data-bg="gradient-3">Dark</button>
+                <!-- Section: Content -->
+                <div class="control-section">
+                    <h4 class="section-title">Contenido</h4>
+                    <div class="input-group">
+                        <label for="card-title">Título</label>
+                        <textarea id="card-title" rows="2">{title}</textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="card-guest">Invitado</label>
+                        <input type="text" id="card-guest" value={guests.join(', ') || ''} placeholder="Nombre del invitado" />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="card-quote">Frase Destacada</label>
+                        <textarea id="card-quote" rows="3" placeholder="Una frase inspiradora del episodio..."></textarea>
                     </div>
                 </div>
 
-                <div class="customization-section">
-                    <h4>Personalización</h4>
-                    <div class="range-group">
-                        <label for="img-scale">Escala Imagen</label>
-                        <input type="range" id="img-scale" min="50" max="150" value="100" />
+                <!-- Section: Background -->
+                <div class="control-section">
+                    <h4 class="section-title">Fondo</h4>
+                    <div class="bg-picker">
+                        <div class="bg-preset active" data-bg="cover" title="Portada Borrosa">
+                            <span class="preview-dot" style="background: gray;"></span>
+                        </div>
+                        <div class="bg-preset" data-bg="gradient-1" title="Neon">
+                            <span class="preview-dot" style="background: linear-gradient(135deg, #FF0080 0%, #7928CA 100%);"></span>
+                        </div>
+                        <div class="bg-preset" data-bg="gradient-2" title="Fresh">
+                            <span class="preview-dot" style="background: linear-gradient(135deg, #0cebeb 0%, #20e3b2 50%, #29ffc6 100%);"></span>
+                        </div>
+                        <div class="bg-preset" data-bg="gradient-3" title="Dark">
+                            <span class="preview-dot" style="background: linear-gradient(0deg, #0f172a 0%, #334155 100%);"></span>
+                        </div>
+                         <div class="bg-preset" data-bg="solid" title="Color Sólido">
+                            <span class="preview-dot" style="background: #111;"></span>
+                        </div>
                     </div>
-                    <div class="range-group">
-                        <label for="img-radius">Redondeo</label>
-                        <input type="range" id="img-radius" min="0" max="80" value="40" />
+                    
+                    <div class="input-group" style="margin-top: 10px;">
+                        <label for="custom-image-upload" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Subir Imagen Propia
+                        </label>
+                        <input type="file" id="custom-image-upload" accept="image/*" style="display: none;" />
+                    </div>
+
+                    <div id="solid-color-picker" class="input-group hidden" style="margin-top: 10px;">
+                        <label for="bg-color">Color de Fondo</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="bg-color" value="#000000" />
+                            <span class="color-value">#000000</span>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Section: Appearance -->
+                <div class="control-section">
+                    <h4 class="section-title">Apariencia</h4>
+                    
+                    <!-- Cover Image Settings -->
+                    <div class="setting-row">
+                        <label>Mostrar Portada</label>
+                        <label class="switch">
+                            <input type="checkbox" id="show-cover" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div id="cover-settings">
+                        <div class="range-group">
+                            <label>Tamaño Portada</label>
+                            <input type="range" id="img-scale" min="50" max="150" value="100" />
+                        </div>
+                        <div class="range-group">
+                            <label>Redondeo</label>
+                            <input type="range" id="img-radius" min="0" max="100" value="40" />
+                        </div>
+                    </div>
+
+                    <!-- Typography -->
+                    <div class="setting-divider"></div>
+                    
+                    <div class="range-group">
+                        <label>Tamaño Título</label>
+                        <input type="range" id="title-size" min="30" max="100" value="64" />
+                    </div>
+                    
+                    <div class="input-group">
+                         <label>Color de Acento</label>
+                         <div class="color-options">
+                             <button class="color-btn active" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
+                             <button class="color-btn" data-color="#E1306C" style="background: #E1306C;"></button>
+                             <button class="color-btn" data-color="#22c55e" style="background: #22c55e;"></button>
+                             <button class="color-btn" data-color="#fbbf24" style="background: #fbbf24;"></button>
+                             <button class="color-btn" data-color="#ffffff" style="background: #ffffff;"></button>
+                         </div>
+                    </div>
+
+                </div>
+
+                 <!-- Section: Layout Elements -->
+                 <div class="control-section">
+                    <h4 class="section-title">Elementos</h4>
+                    <div class="toggles-grid">
+                        <div class="toggle-item">
+                            <label for="show-logo">Logo</label>
+                            <input type="checkbox" id="show-logo" checked />
+                        </div>
+                        <div class="toggle-item">
+                            <label for="show-tag">Etiqueta "Nuevo"</label>
+                            <input type="checkbox" id="show-tag" checked />
+                        </div>
+                        <div class="toggle-item">
+                            <label for="show-website">Sitio Web</label>
+                            <input type="checkbox" id="show-website" checked />
+                        </div>
+                        <div class="toggle-item">
+                            <label for="show-wave">Onda de Audio</label>
+                            <input type="checkbox" id="show-wave" checked />
+                        </div>
+                    </div>
+                 </div>
 
                 <div class="actions">
                     <button id="download-card-btn" class="primary-btn">
-                        <span class="btn-text">Descargar Imagen</span>
-                        <span class="loading-spinner" style="display: none;">Wait...</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span class="btn-text">Descargar Story</span>
                     </button>
                 </div>
             </div>
@@ -87,32 +175,54 @@ const { title, image = '/logo.png', guests = [], url = Astro.url, triggerId } = 
                         <div class="card-bg" id="card-bg-layer">
                              <img src={image} alt="Background" class="bg-image blurred" />
                              <div class="bg-overlay"></div>
+                             <div class="bg-solid" style="display: none;"></div>
+                        </div>
+                        
+                        <!-- Audio Wave Decoration -->
+                        <div class="audio-wave-decoration" id="wave-decoration">
+                            <span></span><span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span><span></span>
                         </div>
 
                         <!-- Content -->
                         <div class="card-content">
-                            <div class="brand-header">
-                                <img src="/logo.png" alt="Logo" class="brand-logo" crossorigin="anonymous" />
-                                <span class="brand-name">VEREDILLAS FM</span>
+                            <!-- Top Bar -->
+                            <div class="card-top-bar">
+                                <div class="brand-badge" id="el-logo">
+                                    <img src="/logo.png" alt="Logo" class="brand-logo" />
+                                    <span class="brand-name">VEREDILLAS FM</span>
+                                </div>
+                                <div class="episode-pill" id="el-tag">NUEVO EPISODIO</div>
                             </div>
 
-                            <div class="main-visual">
-                                 <img src={image} alt="Cover" class="cover-image" id="card-cover-img" />
+                            <!-- Visual -->
+                            <div class="main-visual" id="visual-container">
+                                 <div class="cover-wrapper">
+                                     <img src={image} alt="Cover" class="cover-image" id="card-cover-img" />
+                                 </div>
                             </div>
 
+                            <!-- Text -->
                             <div class="text-content">
-                                <div class="episode-tag">NUEVO EPISODIO</div>
                                 <h1 class="card-title-text" id="preview-title">{title}</h1>
+                                
                                 <div class="card-guest-text" id="preview-guest" style={guests.length === 0 ? 'display:none' : ''}>
-                                    <span class="guest-label">FT.</span>
-                                    <span class="guest-name">{guests.join(', ')}</span>
+                                    <span class="guest-label accent-text">FT.</span>
+                                    <span class="guest-name accent-text">{guests.join(', ')}</span>
                                 </div>
+                                
                                 <div class="card-quote-container" id="preview-quote-container" style="display:none">
-                                    <span class="quote-mark">“</span>
                                     <p class="card-quote-text" id="preview-quote"></p>
-                                    <span class="quote-mark">”</span>
                                 </div>
                             </div>
+                            
+                             <!-- Footer -->
+                             <div class="card-footer" id="el-website">
+                                <div class="website-pill">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                    <span class="website-text">veredillasfm.es</span>
+                                </div>
+                             </div>
                         </div>
                     </div>
                 </div>
@@ -129,14 +239,27 @@ const { title, image = '/logo.png', guests = [], url = Astro.url, triggerId } = 
     const closeBtn = document.getElementById('close-generator-btn');
     
     // Inputs
-    const titleInput = document.getElementById('card-title') as HTMLInputElement;
+    const titleInput = document.getElementById('card-title') as HTMLTextAreaElement;
     const guestInput = document.getElementById('card-guest') as HTMLInputElement;
     const quoteInput = document.getElementById('card-quote') as HTMLTextAreaElement;
     
-    // Customization Inputs
+    // Groups
+    const coverSettings = document.getElementById('cover-settings');
+    const solidColorPicker = document.getElementById('solid-color-picker');
+
+    // Controls
+    const showCoverInput = document.getElementById('show-cover') as HTMLInputElement;
     const imgScaleInput = document.getElementById('img-scale') as HTMLInputElement;
-    const imgRadiusInput = document.getElementById('img-radius') as HTMLInputElement; // New
-    
+    const imgRadiusInput = document.getElementById('img-radius') as HTMLInputElement;
+    const titleSizeInput = document.getElementById('title-size') as HTMLInputElement;
+    const bgColorInput = document.getElementById('bg-color') as HTMLInputElement;
+
+    // Toggles
+    const showLogoInput = document.getElementById('show-logo') as HTMLInputElement;
+    const showTagInput = document.getElementById('show-tag') as HTMLInputElement;
+    const showWebsiteInput = document.getElementById('show-website') as HTMLInputElement;
+    const showWaveInput = document.getElementById('show-wave') as HTMLInputElement;
+
     // Preview Elements
     const previewTitle = document.getElementById('preview-title');
     const previewGuest = document.getElementById('preview-guest');
@@ -144,22 +267,28 @@ const { title, image = '/logo.png', guests = [], url = Astro.url, triggerId } = 
     const previewQuoteContainer = document.getElementById('preview-quote-container');
     const previewQuote = document.getElementById('preview-quote');
     const cardBgLayer = document.getElementById('card-bg-layer');
-    const cardCoverImg = document.getElementById('card-cover-img'); // New
+    const visualContainer = document.getElementById('visual-container');
+    const cardCoverImg = document.getElementById('card-cover-img');
+    const elLogo = document.getElementById('el-logo');
+    const elTag = document.getElementById('el-tag');
+    const elWebsite = document.getElementById('el-website');
+    const elWave = document.getElementById('wave-decoration');
     
     // Background Buttons
-    const bgBtns = document.querySelectorAll('.bg-btn');
+    const bgPresets = document.querySelectorAll('.bg-preset');
+    const colorBtns = document.querySelectorAll('.color-btn');
 
-    // State
+    // --- State Management ---
+
     const toggleModal = (show: boolean) => {
         if (show) {
             modal?.classList.add('visible');
-            setTimeout(fitPreview, 50); // Calc scale after render
+            setTimeout(fitPreview, 50);
         } else {
             modal?.classList.remove('visible');
         }
     };
 
-    // Responsive Preview Scaling
     const fitPreview = () => {
         const panel = document.querySelector('.preview-panel');
         const container = document.querySelector('.canvas-container') as HTMLElement;
@@ -170,21 +299,45 @@ const { title, image = '/logo.png', guests = [], url = Astro.url, triggerId } = 
             (panel.clientWidth - margin) / 1080,
             (panel.clientHeight - margin) / 1920
         );
-        
-        // Prevent excessive scaling on huge screens, but ensuring fit is priority
-        // Minimum meaningful scale usually around 0.2 on mobile
         container.style.transform = `scale(${Math.min(scale, 0.8)})`;
     };
 
     window.addEventListener('resize', fitPreview);
 
-    // Support external triggers (Restored)
+    // --- Global Access ---
+    window.openStoryGenerator = (data) => {
+        if (titleInput && data.title !== undefined) titleInput.value = data.title;
+        
+        if (guestInput && data.guests !== undefined) {
+             guestInput.value = Array.isArray(data.guests) ? data.guests.join(', ') : data.guests;
+        }
+        
+        if (quoteInput && data.quote !== undefined) quoteInput.value = data.quote;
+        
+        if (data.image) {
+             const bgImg = cardBgLayer?.querySelector('.bg-image') as HTMLImageElement;
+             if (bgImg) bgImg.src = data.image; // No crossorigin needed for display
+             if (cardCoverImg) (cardCoverImg as HTMLImageElement).src = data.image;
+        }
+        
+        updatePreview();
+        toggleModal(true);
+    };
+    
+    // Image Error Handling
+    document.querySelectorAll('.share-card img').forEach(img => {
+        img.addEventListener('error', function() {
+            if ((this as HTMLImageElement).src !== '/logo.png') {
+                (this as HTMLImageElement).src = '/logo.png';
+            }
+        });
+    });
+
+    // External Trigger
     const triggerId = modal?.dataset.triggerId;
     if (triggerId) {
         const extBtn = document.getElementById(triggerId);
-        if (extBtn) {
-            extBtn.addEventListener('click', () => toggleModal(true));
-        }
+        extBtn?.addEventListener('click', () => toggleModal(true));
     }
 
     openBtn?.addEventListener('click', () => toggleModal(true));
@@ -193,11 +346,13 @@ const { title, image = '/logo.png', guests = [], url = Astro.url, triggerId } = 
         if (e.target === modal) toggleModal(false);
     });
 
-    // Update Logic
+    // --- Updates ---
+
     const updatePreview = () => {
-        if (titleInput && previewTitle) previewTitle.textContent = titleInput.value;
+        // Text Content
+        if (previewTitle) previewTitle.textContent = titleInput?.value || '';
         
-        if (guestInput && previewGuest && previewGuestName) {
+        if (previewGuest && previewGuestName && guestInput) {
             const val = guestInput.value.trim();
             if (val) {
                 previewGuestName.textContent = val;
@@ -207,97 +362,141 @@ const { title, image = '/logo.png', guests = [], url = Astro.url, triggerId } = 
             }
         }
         
-        if (quoteInput && previewQuote && previewQuoteContainer) {
+        if (previewQuote && previewQuoteContainer && quoteInput) {
             const val = quoteInput.value.trim();
             if (val) {
-                previewQuote.textContent = val;
+                previewQuote.textContent = `“${val}”`;
                 previewQuoteContainer.style.display = 'flex';
             } else {
                 previewQuoteContainer.style.display = 'none';
             }
         }
-        // Customization Updates
+
+        // Appearance
+        if (visualContainer && showCoverInput) {
+             visualContainer.style.display = showCoverInput.checked ? 'flex' : 'none';
+             if (coverSettings) coverSettings.classList.toggle('disabled', !showCoverInput.checked);
+        }
+
         if (cardCoverImg) {
             if (imgScaleInput) {
-                const scale = parseInt(imgScaleInput.value) / 100;
-                cardCoverImg.style.transform = `scale(${scale})`;
+                cardCoverImg.style.transform = `scale(${parseInt(imgScaleInput.value) / 100})`;
             }
             if (imgRadiusInput) {
-                const radius = imgRadiusInput.value;
-                cardCoverImg.style.borderRadius = `${radius}px`;
+                cardCoverImg.style.borderRadius = `${imgRadiusInput.value}px`;
             }
+        }
+
+        if (previewTitle && titleSizeInput) {
+            previewTitle.style.fontSize = `${titleSizeInput.value}px`;
+        }
+        
+        // Visibility
+        if (elLogo && showLogoInput) elLogo.style.opacity = showLogoInput.checked ? '1' : '0';
+        if (elTag && showTagInput) elTag.style.opacity = showTagInput.checked ? '1' : '0';
+        if (elWebsite && showWebsiteInput) elWebsite.style.opacity = showWebsiteInput.checked ? '1' : '0';
+        if (elWave && showWaveInput) elWave.style.opacity = showWaveInput.checked ? '1' : '0';
+
+        // Custom BG Color
+        if (bgColorInput && solidColorPicker && !solidColorPicker.classList.contains('hidden')) {
+            const solidLayer = cardBgLayer?.querySelector('.bg-solid') as HTMLElement;
+            if (solidLayer) {
+                solidLayer.style.backgroundColor = bgColorInput.value;
+            }
+            const valDisplay = solidColorPicker.querySelector('.color-value');
+            if (valDisplay) valDisplay.textContent = bgColorInput.value;
         }
     };
 
-    titleInput?.addEventListener('input', updatePreview);
-    guestInput?.addEventListener('input', updatePreview);
-    quoteInput?.addEventListener('input', updatePreview);
-    imgScaleInput?.addEventListener('input', updatePreview);
-    imgRadiusInput?.addEventListener('input', updatePreview);
+    // Listeners
+    [titleInput, guestInput, quoteInput, imgScaleInput, imgRadiusInput, titleSizeInput, bgColorInput]
+        .forEach(el => el?.addEventListener('input', updatePreview));
+    
+    [showCoverInput, showLogoInput, showTagInput, showWebsiteInput, showWaveInput]
+        .forEach(el => el?.addEventListener('change', updatePreview));
 
-    // Background selection
-    bgBtns.forEach(btn => {
+    // Background Presets
+    bgPresets.forEach(btn => {
         btn.addEventListener('click', () => {
-            bgBtns.forEach(b => b.classList.remove('active'));
+            bgPresets.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            
             const bgType = btn.getAttribute('data-bg');
+            // Reset
             if (cardBgLayer) {
-                cardBgLayer.className = 'card-bg'; // reset
+                cardBgLayer.className = 'card-bg';
+                const bgImg = cardBgLayer.querySelector('.bg-image') as HTMLElement;
+                const bgSolid = cardBgLayer.querySelector('.bg-solid') as HTMLElement;
+                
+                if (bgImg) bgImg.style.display = 'block';
+                if (bgSolid) bgSolid.style.display = 'none';
+                if (solidColorPicker) solidColorPicker.classList.add('hidden');
+
                 if (bgType === 'cover') {
-                    // Default behavior (img + overlay)
+                    // Default
+                } else if (bgType === 'solid') {
+                    if (bgImg) bgImg.style.display = 'none';
+                    if (bgSolid) bgSolid.style.display = 'block';
+                    if (solidColorPicker) solidColorPicker.classList.remove('hidden');
+                    updatePreview(); // Apply current color
                 } else {
-                     cardBgLayer.classList.add(bgType || '');
+                    cardBgLayer.classList.add(bgType || '');
+                     if (bgImg) bgImg.style.display = 'none';
                 }
             }
         });
     });
 
-    // Download Logic
+    // Accent Color
+    colorBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+             colorBtns.forEach(b => b.classList.remove('active'));
+             btn.classList.add('active');
+             const color = btn.getAttribute('data-color');
+             
+             // Update CSS variables or specific elements
+             document.documentElement.style.setProperty('--card-accent', color || '#8b5cf6');
+             
+             const accentEls = document.querySelectorAll('.accent-text');
+             accentEls.forEach((el) => (el as HTMLElement).style.color = color || '#8b5cf6');
+             
+             // Also update wave
+             const waveBars = document.querySelectorAll('.audio-wave-decoration span');
+             waveBars.forEach((el) => (el as HTMLElement).style.background = color || '#8b5cf6');
+        });
+    });
+
+    // Download
     const downloadBtn = document.getElementById('download-card-btn');
     downloadBtn?.addEventListener('click', async () => {
         const card = document.getElementById('share-card');
         if (!card) return;
 
-        const originalText = downloadBtn.innerHTML;
-        downloadBtn.innerHTML = '<span class="loading-spinner">...</span> Generando...';
+        const originalHTML = downloadBtn.innerHTML;
+        downloadBtn.innerHTML = '<span class="loading-spinner"></span> Generando...';
         (downloadBtn as HTMLButtonElement).disabled = true;
 
         try {
-            // Wait for images to be fully loaded
-            const images = Array.from(card.querySelectorAll('img'));
-            await Promise.all(images.map(img => {
-                if (img.complete) return Promise.resolve();
-                return new Promise((resolve, reject) => {
-                    img.onload = resolve;
-                    img.onerror = resolve; // Continue even if error
-                });
-            }));
-
-            // Small delay to ensure rendering matches
-            await new Promise(resolve => setTimeout(resolve, 100));
-
+            await new Promise(resolve => setTimeout(resolve, 100)); // Render wait
+            
             const dataUrl = await toPng(card, {
                 quality: 0.95,
                 width: 1080,
                 height: 1920,
-                cacheBust: true, // Fix for CORS/Caching issues
+                cacheBust: true,
                 skipAutoScale: true,
-                style: {
-                    transform: 'none', // Ensure the clone isn't scaled down
-                    transformOrigin: 'top left'
-                }
+                style: { transform: 'none' }
             });
 
             const link = document.createElement('a');
-            link.download = `veredillas-story-${Date.now()}.png`;
+            link.download = `story-${Date.now()}.png`;
             link.href = dataUrl;
             link.click();
         } catch (err) {
-            console.error('Error generating image', err);
-            // More detailed error for the user
-            alert(`Hubo un error al generar la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}. Intenta de nuevo.`);
+            console.error(err);
+            alert('Error al generar la imagen.');
         } finally {
-            downloadBtn.innerHTML = originalText;
+            downloadBtn.innerHTML = originalHTML;
             (downloadBtn as HTMLButtonElement).disabled = false;
         }
     });
@@ -305,483 +504,315 @@ const { title, image = '/logo.png', guests = [], url = Astro.url, triggerId } = 
 </script>
 
 <style>
-  /* Button Styles (Matching SocialShare) */
+  :root {
+      --card-accent: #8b5cf6;
+  }
+
+  /* --- UI Components --- */
+  
+  .hidden { display: none !important; }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.1);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #3f3f46;
+      border-radius: 3px;
+  }
+
+  .generator-btn {
+      color: white; 
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+  
   .generator-btn:hover {
-      background: #E1306C !important; /* Instagram Color */
+      background: #E1306C !important;
       border-color: #E1306C !important;
   }
 
-  /* Modal Styles */
   .generator-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(8px); z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
   }
   
-  .generator-backdrop.visible {
-      opacity: 1;
-      pointer-events: auto;
-  }
+  .generator-backdrop.visible { opacity: 1; pointer-events: auto; }
 
   .generator-dialog {
-      background: #18181b;
-      border: 1px solid #27272a;
-      width: 95%;
-      max-width: 1000px;
-      height: 90vh;
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      background: #18181b; border: 1px solid #3f3f46;
+      width: 95%; max-width: 1200px; height: 90vh;
+      border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.7);
   }
 
   .generator-header {
-      padding: 1.5rem;
-      border-bottom: 1px solid #27272a;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #18181b;
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid #27272a;
+      display: flex; justify-content: space-between; align-items: center; background: #27272a;
   }
-
-  .generator-header h3 {
-      margin: 0;
-      color: white;
-      font-size: 1.25rem;
-  }
-
+  .generator-header h3 { margin: 0; color: white; font-weight: 600; }
+  
   .close-btn {
-      background: transparent;
-      border: none;
-      color: #a1a1aa;
-      cursor: pointer;
-      padding: 0.5rem;
-      border-radius: 6px;
-      transition: all 0.2s;
+      background: transparent; border: none; color: #a1a1aa; cursor: pointer;
+      padding: 0.5rem; border-radius: 6px;
   }
-  
-  .close-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: white;
-  }
+  .close-btn:hover { background: rgba(255,255,255,0.1); color: white; }
 
-  .generator-content {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-  }
+  .generator-content { flex: 1; display: flex; overflow: hidden; }
 
-  /* Controls Panel */
+  /* Sidebar Controls */
   .controls-panel {
-      width: 350px;
-      padding: 1.5rem;
-      border-right: 1px solid #27272a;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      background: #18181b;
+      width: 380px; padding: 1.5rem; border-right: 1px solid #27272a;
+      overflow-y: auto; display: flex; flex-direction: column; gap: 2rem;
+      background: #18181b; flex-shrink: 0;
   }
 
-  .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      position: relative; /* Ensure context */
-  }
-
-  .input-group label {
-      color: #a1a1aa;
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      position: static; /* Force static positioning to avoid overlap */
-      transform: none;
-      margin-bottom: 0.25rem;
-  }
-
-  .input-group input, .input-group textarea {
-      background: #27272a;
-      border: 1px solid #3f3f46;
-      border-radius: 8px;
-      padding: 0.75rem;
-      color: white;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-  }
-
-  .input-group input:focus, .input-group textarea:focus {
-      border-color: #8b5cf6;
-  }
+  .control-section { display: flex; flex-direction: column; gap: 1rem; }
   
-  .customization-section {
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid #27272a;
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-  }
-  
-  .customization-section h4 {
-      color: #d4d4d8;
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-  }
-  
-  .range-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-  }
-  
-  .range-group label {
-      color: #a1a1aa;
-      font-size: 0.8rem;
-      display: flex;
-      justify-content: space-between;
-  }
-  
-  .range-group input[type="range"] {
-      width: 100%;
-      height: 6px;
-      background: #3f3f46;
-      border-radius: 3px;
-      accent-color: #8b5cf6;
-      border: none;
-      outline: none;
+  .section-title {
+      font-size: 0.75rem; color: #71717a; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.5rem 0;
   }
 
-  .bg-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
+  .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  .input-group label { color: #d4d4d8; font-size: 0.9rem; font-weight: 500; }
+  
+  input[type="text"], textarea {
+      background: #27272a; border: 1px solid #3f3f46; border-radius: 8px;
+      padding: 0.75rem; color: white; font-size: 0.95rem; outline: none;
+      width: 100%; transition: border-color 0.2s; font-family: inherit;
   }
+  input[type="text"]:focus, textarea:focus { border-color: #8b5cf6; }
 
-  .bg-btn {
-      background: #27272a;
-      border: 1px solid #3f3f46;
-      color: #d4d4d8;
-      padding: 0.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
+  /* BG Picker */
+  .bg-picker { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .bg-preset {
+      width: 48px; height: 48px; border-radius: 12px; border: 2px solid #3f3f46;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.2s;
   }
+  .bg-preset:hover { transform: translateY(-2px); }
+  .bg-preset.active { border-color: #8b5cf6; box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3); }
+  .preview-dot { width: 100%; height: 100%; border-radius: 10px; }
 
-  .bg-btn.active {
-      background: #8b5cf6;
-      color: white;
-      border-color: #8b5cf6;
+  /* Color Input */
+  .color-input-wrapper {
+      display: flex; alignItems: center; gap: 10px; background: #27272a;
+      padding: 5px; border-radius: 8px; border: 1px solid #3f3f46;
+  }
+  input[type="color"] {
+      -webkit-appearance: none; border: none; width: 32px; height: 32px;
+      padding: 0; background: none; cursor: pointer;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
+  .color-value { font-family: monospace; color: #a1a1aa; font-size: 0.9rem; }
+
+  /* Toggles */
+  .toggles-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .toggle-item { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-item label { font-size: 0.9rem; color: #d4d4d8; }
+  
+  .switch { position: relative; display: inline-block; width: 40px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+      position: absolute; cursor: pointer; inset: 0; background-color: #3f3f46;
+      transition: .4s; border-radius: 24px;
+  }
+  .slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background-color: white; transition: .4s; border-radius: 50%;
+  }
+  input:checked + .slider { background-color: #8b5cf6; }
+  input:checked + .slider:before { transform: translateX(16px); }
+
+  /* Setting Row & Ranges */
+  .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .setting-row label { color: #d4d4d8; font-weight: 500; font-size: 0.9rem; }
+  
+  .disabled {
+      opacity: 0.5; pointer-events: none; filter: grayscale(1);
+  }
+  
+  .range-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  .range-group label { font-size: 0.8rem; color: #a1a1aa; }
+  input[type="range"] {
+      width: 100%; cursor: pointer; accent-color: #8b5cf6; height: 4px;
+      background: #3f3f46; border-radius: 2px;
   }
 
+  .setting-divider { height: 1px; background: #3f3f46; margin: 1rem 0; }
+
+  .color-options { display: flex; gap: 0.5rem; }
+  .color-btn {
+      width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; transition: transform 0.2s;
+  }
+  .color-btn.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
+  .actions { margin-top: auto; padding-top: 1rem; }
   .primary-btn {
-      width: 100%;
-      padding: 1rem;
-      background: #8b5cf6;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
+      width: 100%; padding: 1rem; background: #8b5cf6; color: white;
+      border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
       transition: background 0.2s;
-      margin-top: auto;
   }
+  .primary-btn:hover { background: #7c3aed; }
+  .loading-spinner {
+        width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: white; border-radius: 50%; animation: spin 1s infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .primary-btn:hover {
-      background: #7c3aed;
-  }
-  
-  .primary-btn:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-  }
-
-  /* Preview Panel */
+  /* --- Preview & Canvas --- */
   .preview-panel {
-      flex: 1;
-      background: #09090b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      overflow: hidden;
+      flex: 1; background: #09090b; display: flex; align-items: center;
+      justify-content: center; padding: 2rem; position: relative;
+      background-image: radial-gradient(#27272a 1px, transparent 1px);
+      background-size: 20px 20px;
   }
-
+  
   .canvas-container {
-      /* Dynamic scale via JS, default fallback */
-      transform: scale(0.3); 
-      transform-origin: center;
-      box-shadow: 0 0 50px rgba(0,0,0,0.5);
-      border-radius: 24px;
-      transition: transform 0.2s ease-out;
+      transform: scale(0.3); transition: transform 0.2s ease-out;
+      box-shadow: 0 0 60px rgba(0,0,0,0.8); border-radius: 24px;
   }
 
-  /* THE CARD - 1080x1920 */
+  /* --- THE CARD --- */
   .share-card {
-      width: 1080px;
-      height: 1920px;
-      background: #000;
-      position: relative;
-      overflow: hidden;
-      font-family: 'Inter', sans-serif;
-      color: white;
+      width: 1080px; height: 1920px; background: #000; position: relative;
+      overflow: hidden; font-family: 'Inter', sans-serif; color: white;
+      display: flex; flex-direction: column;
   }
 
-  /* Layers */
-  .card-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-  }
-
+  .card-bg { position: absolute; inset: 0; z-index: 1; }
   .bg-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: blur(40px) brightness(0.6);
-      transform: scale(1.1); /* Avoid white edges from blur */
+      width: 100%; height: 100%; object-fit: cover;
+      filter: blur(50px) brightness(0.5); transform: scale(1.2);
   }
-
+  .bg-solid { position: absolute; inset: 0; background: #111; }
   .bg-overlay {
-      position: absolute;
-      inset: 0;
-      /* More vibrant overlay */
-      background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%);
   }
   
-  /* Gradient Backgrounds */
+  /* Gradients */
   .card-bg.gradient-1 { background: linear-gradient(135deg, #FF0080 0%, #7928CA 100%); }
-  .card-bg.gradient-1 .bg-image { display: none; }
-  
   .card-bg.gradient-2 { background: linear-gradient(135deg, #0cebeb 0%, #20e3b2 50%, #29ffc6 100%); }
-  .card-bg.gradient-2 .bg-image { display: none; }
-  
   .card-bg.gradient-3 { background: linear-gradient(0deg, #0f172a 0%, #334155 100%); }
-  .card-bg.gradient-3 .bg-image { display: none; }
 
+  /* Decoration */
+  .audio-wave-decoration {
+        position: absolute; top: 50%; left: 0; right: 0; height: 400px;
+        display: flex; align-items: center; justify-content: center; gap: 30px;
+        z-index: 1; opacity: 0.3; transform: translateY(-50%) rotate(-10deg);
+  }
+  .audio-wave-decoration span {
+      width: 15px; background: var(--card-accent); border-radius: 10px;
+      animation: wave 2s infinite ease-in-out; height: 100px;
+  }
+  @keyframes wave {
+      0%, 100% { height: 100px; opacity: 0.5; }
+      50% { height: 300px; opacity: 1; }
+  }
+  .audio-wave-decoration span:nth-child(odd) { animation-duration: 2.2s; }
+  .audio-wave-decoration span:nth-child(2n) { animation-duration: 1.8s; }
 
+  /* Content Layout */
   .card-content {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
+      position: absolute; inset: 0; z-index: 10;
+      padding: 100px 80px; display: flex; flex-direction: column;
+  }
+  
+  /* Top Bar */
+  .card-top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 60px; }
+  
+  .brand-badge {
+      display: flex; align-items: center; gap: 20px;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+      padding: 12px 24px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.15);
+      transition: opacity 0.3s;
+  }
+  .brand-logo { width: 50px; height: 50px; border-radius: 12px; }
+  .brand-name { font-size: 28px; font-weight: 800; letter-spacing: 0.1em; }
+
+  .episode-pill {
+      background: white; color: black; padding: 16px 32px;
+      border-radius: 100px; font-size: 24px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      box-shadow: 0 10px 20px rgba(255,255,255,0.2);
+  }
+
+  /* Main Visual */
+  .main-visual {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      margin: 40px 0 80px 0; max-height: 950px; width: 100%;
+  }
+  .cover-wrapper {
+      position: relative; 
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      padding: 120px 80px;
+      /* box-shadow removed to avoid black box artifacts */
+  }
+  .cover-image {
+      width: auto; height: auto;
+      min-width: 800px; /* Force larger size */
+      max-width: 95%; 
+      max-height: 1100px; /* Allow more vertical space */
+      object-fit: contain;
+      border-radius: 40px; 
+      filter: drop-shadow(0 40px 80px rgba(0,0,0,0.6)); /* Shadow on content */
+  }
+
+  /* Text Content */
+  .text-content {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: start;
       text-align: center;
   }
-
-  .brand-header {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      margin-bottom: 60px;
-      opacity: 1;
-      background: rgba(0,0,0,0.3);
-      padding: 16px 32px;
-      border-radius: 100px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .brand-logo {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-  }
-
-  .brand-name {
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-  }
-
-  .main-visual {
-      margin-bottom: 60px;
-      position: relative;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex: 1; 
-      max-height: 850px; 
-  }
-
-  .cover-image {
-      width: 100%;
-      height: 100%; 
-      max-height: 850px;
-      object-fit: contain;
-      border-radius: 70px;
-      filter: drop-shadow(0 40px 60px rgba(0,0,0,0.6));
-  }
-
-  .text-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-  }
-
-  .episode-tag {
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(20px);
-      padding: 16px 40px;
-      border-radius: 100px;
-      font-size: 28px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      margin-bottom: 50px;
-      border: 1px solid rgba(255,255,255,0.3);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  }
-
+  
   .card-title-text {
-      font-size: 64px;
-      line-height: 1.1;
-      font-weight: 800;
-      margin-bottom: 40px;
-      text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      max-width: 900px;
-      /* Clamp lines? */
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-size: 64px; line-height: 1.1; font-weight: 800;
+      margin: 0 0 30px 0; max-width: 950px;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
 
   .card-guest-text {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 60px;
+      display: flex; flex-direction: column; align-items: center; gap: 5px; margin-bottom: 40px;
   }
-
-  .guest-label {
-      font-size: 28px;
-      color: rgba(255,255,255,0.8);
-      font-weight: 500;
-  }
-
-  .guest-name {
-      font-size: 48px;
-      font-weight: 700;
-      color: #d7d7d7; /* Gold/Yellow highlight */
-  }
+  .guest-label { font-size: 24px; letter-spacing: 0.1em; opacity: 0.8; font-weight: 600; }
+  .guest-name { font-size: 48px; font-weight: 800; }
+  .accent-text { color: var(--card-accent); }
 
   .card-quote-container {
-      margin-top: 20px;
-      max-width: 800px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+      padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
+      max-width: 850px;
   }
-
-  .quote-mark {
-      font-size: 120px;
-      line-height: 0.5;
-      font-family: serif;
-      color: rgba(255,255,255,0.3);
-      margin-bottom: 20px;
-  }
-
   .card-quote-text {
-      font-size: 42px;
-      line-height: 1.4;
-      font-style: italic;
-      color: rgba(255,255,255,0.95);
-      font-weight: 300;
+      font-size: 36px; line-height: 1.4; font-weight: 500; font-style: italic;
+      color: rgba(255,255,255,0.9); margin: 0;
   }
 
-  .card-footer {
-      margin-top: auto;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      padding-top: 60px;
-  }
-
-  .listen-on {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-  }
-
+  /* Footer */
+  .card-footer { margin-top: auto; display: flex; justify-content: center; padding-top: 40px; }
   .website-pill {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(15px);
-      padding: 20px 48px;
-      border-radius: 100px;
-      border: 2px solid rgba(255,255,255,0.2);
-      color: white;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      display: flex; align-items: center; gap: 20px;
+      color: rgba(255,255,255,0.7);
   }
-  
-  .website-text {
-      font-size: 36px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-  }
+  .website-text { font-size: 32px; font-weight: 600; letter-spacing: 0.05em; }
 
-  /* Responsive Adjustments for Mobile View of the Tool */
-  @media (max-width: 768px) {
-      .generator-dialog {
-          flex-direction: column;
-          height: 100%;
-          border-radius: 0;
-      }
-      
-      .controls-panel {
-          width: 100%;
-          height: 50%; /* Top half */
-          border-right: none;
-          border-bottom: 1px solid #27272a;
-      }
-      
-      .preview-panel {
-          height: 50%; /* Bottom half */
-          padding: 1rem;
-      }
-      
-      .canvas-container {
-          transform: scale(0.18); /* Much smaller on mobile */
-      }
-  }
-
-  @keyframes spin {
-      to { transform: rotate(360deg); }
-  }
-  
-  .loading-spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 8px;
+  @media (max-width: 1024px) {
+    .generator-dialog { flex-direction: column; height: 100%; border-radius: 0; }
+    .controls-panel { width: 100%; height: 45%; border-right: none; border-bottom: 1px solid #27272a; }
+    .preview-panel { height: 55%; padding: 1rem; }
+    .canvas-container { transform: scale(0.18) !important; }
   }
 </style>
