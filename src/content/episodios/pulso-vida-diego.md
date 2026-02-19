@@ -914,7 +914,7 @@ season: 1
 episode: 6
 duration: 37 min
 participants:
-  - Diego
+  - Diego Medrano
 sections:
   - time: '00:05'
     title: Intro / Bienvenida
