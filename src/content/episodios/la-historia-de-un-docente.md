@@ -14,7 +14,7 @@ description: >-
 isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/011.jpeg'
 participants:
-  - Dulce
+  - Prof. Dulce
 season: 1
 episode: 11
 duration: ¿?
