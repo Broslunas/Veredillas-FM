@@ -16,8 +16,8 @@ image: 'https://cdn.veredillasfm.es/images/013.png'
 participants:
   - Elio
   - Gustavo
-season: 1
-episode: 12
+season: 2
+episode: 5
 duration: ¿?
 pubDate: '2026-03-04T17:00:00.000Z'
 ---
