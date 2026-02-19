@@ -12,7 +12,7 @@ tags:
 description: >-
   Estrenamos temporada con Diego Torres y Diego Medrano en '¿Quién es Tifu?'.
   ¡No te lo pierdas! 
-pubDate: '2026-01-19T00:00:00.000Z'
+pubDate: '2026-02-19T00:00:00.000Z'
 author: Redacción Veredillas
 image: 'https://cdn.veredillasfm.es/blog/c36f7aee-4f44-4a59-aa6f-c758efcd324e.jpeg'
 ---
