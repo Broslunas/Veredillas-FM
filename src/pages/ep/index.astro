@@ -6,6 +6,9 @@ import { getCollection } from 'astro:content';
 const allEpisodes = await getCollection('episodios');
 const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
+// Get unique seasons and sort them
+// We filter(Boolean) to ensure we only get valid numbers (truthy values)
+const uniqueSeasons = [...new Set(sortedEpisodes.map(ep => ep.data.season).filter(Boolean))].sort((a, b) => a - b);
 
 const now = new Date();
 
@@ -40,19 +43,41 @@ const episodesWithMeta = sortedEpisodes.map(post => {
             <h1>Explora todos los <br><span class="text-gradient">Episodios</span></h1>
             
             <div class="controls-wrapper">
-                <!-- Search Bar -->
-                <div class="search-widget">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" id="episode-search" placeholder="Buscar episodios..." class="search-input" />
+                <!-- Season Selector -->
+                <div class="season-selector-wrapper">
+                    <span class="control-label">Temporada</span>
+                    <div class="season-selector" id="season-selector">
+                        <button class="season-btn active" data-season="all">
+                            Todas
+                            <span class="season-indicator"></span>
+                        </button>
+                        {uniqueSeasons.map(season => (
+                            <button class="season-btn" data-season={season}>
+                                {season}ª
+                                <span class="season-indicator"></span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                <!-- Toggle for Upcoming -->
-                <div class="toggle-group">
-                    <span class="toggle-label">Ver próximos estrenos</span>
-                    <label class="switch">
-                        <input type="checkbox" id="upcoming-toggle">
-                        <span class="slider round"></span>
-                    </label>
+                <div class="divider"></div>
+
+                <!-- Search and Toggle Container -->
+                <div class="secondary-controls">
+                    <!-- Search Bar -->
+                    <div class="search-widget">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="text" id="episode-search" placeholder="Buscar episodios..." class="search-input" />
+                    </div>
+
+                    <!-- Toggle for Upcoming -->
+                    <div class="toggle-group">
+                        <span class="toggle-label">Próximos</span>
+                        <label class="switch">
+                            <input type="checkbox" id="upcoming-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </header>
@@ -63,6 +88,7 @@ const episodesWithMeta = sortedEpisodes.map(post => {
                     <div 
                         class={`episode-item fade-in-up ${isUpcoming && !isAboutToPremiere ? 'upcoming-item hidden-upcoming' : ''}`}
                         data-search-content={searchContent}
+                        data-season={post.data.season || 'unknown'}
                         data-is-upcoming={isUpcoming.toString()}
                         data-is-about-to-premiere={isAboutToPremiere.toString()}
                         style={`--delay: ${index % 6}`}
@@ -89,10 +115,13 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         const items = document.querySelectorAll('.episode-item');
         const upcomingToggle = document.getElementById('upcoming-toggle') as HTMLInputElement;
         const searchInput = document.getElementById('episode-search') as HTMLInputElement;
+        const seasonBtns = document.querySelectorAll('.season-btn');
         const noResults = document.getElementById('no-results');
         const resetBtn = document.getElementById('reset-filter');
 
         if (!upcomingToggle || !searchInput) return;
+
+        let currentSeason = 'all';
 
         function filterItems() {
             const showUpcoming = upcomingToggle.checked;
@@ -102,20 +131,26 @@ const episodesWithMeta = sortedEpisodes.map(post => {
             items.forEach((item) => {
                 const itemEl = item as HTMLElement;
                 const searchContent = itemEl.getAttribute('data-search-content') || '';
+                const itemSeason = itemEl.getAttribute('data-season') || '';
                 const isUpcoming = itemEl.getAttribute('data-is-upcoming') === 'true';
                 const isAboutToPremiere = itemEl.getAttribute('data-is-about-to-premiere') === 'true';
                 
+                const matchesSeason = currentSeason === 'all' || itemSeason === currentSeason;
                 const matchesUpcoming = showUpcoming || !isUpcoming || isAboutToPremiere;
                 const matchesSearch = searchTerm === '' || searchContent.includes(searchTerm);
 
-                if (matchesUpcoming && matchesSearch) {
+                if (matchesSeason && matchesUpcoming && matchesSearch) {
                     itemEl.classList.remove('hidden-anim');
-                    itemEl.classList.remove('hidden-upcoming'); // Fix: remove the static hidden class
+                    itemEl.classList.remove('hidden-upcoming'); 
                     itemEl.style.display = 'block';
                     visibleCount++;
                 } else {
                     itemEl.classList.add('hidden-anim');
-                    itemEl.style.display = 'none';
+                    setTimeout(() => {
+                        if (itemEl.classList.contains('hidden-anim')) {
+                             itemEl.style.display = 'none';
+                        }
+                    }, 500); // match CSS transition
                 }
             });
 
@@ -126,6 +161,19 @@ const episodesWithMeta = sortedEpisodes.map(post => {
             }
         }
 
+        // Season Buttons Logic
+        seasonBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active state
+                seasonBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update filter
+                currentSeason = btn.getAttribute('data-season') || 'all';
+                filterItems();
+            });
+        });
+
         // Event Listeners
         searchInput.addEventListener('input', filterItems);
         upcomingToggle.addEventListener('change', filterItems);
@@ -133,6 +181,11 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         resetBtn?.addEventListener('click', () => {
             searchInput.value = '';
             upcomingToggle.checked = false;
+            // Reset season
+            currentSeason = 'all';
+            seasonBtns.forEach(b => b.classList.remove('active'));
+            document.querySelector('.season-btn[data-season="all"]')?.classList.add('active');
+            
             filterItems();
         });
 
@@ -162,26 +215,14 @@ const episodesWithMeta = sortedEpisodes.map(post => {
 
     .page-header {
         text-align: center;
-        max-width: 900px;
-        margin: 0 auto 2.5rem;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 0.5rem 1.5rem;
-        border-radius: 50px;
-        background: rgba(139, 92, 246, 0.1);
-        color: var(--color-primary);
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(139, 92, 246, 0.2);
-        font-size: 0.9rem;
+        max-width: 1000px;
+        margin: 0 auto 3.5rem;
     }
 
     h1 {
         font-size: clamp(2.5rem, 5vw, 4rem);
         line-height: 1.1;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2.5rem;
         font-weight: 800;
         letter-spacing: -0.02em;
     }
@@ -199,20 +240,110 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         align-items: center;
         gap: 1.5rem;
         background: rgba(255, 255, 255, 0.03);
-        padding: 1.5rem;
-        border-radius: 24px;
+        padding: 1rem;
+        border-radius: 20px;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(12px);
         width: 100%;
-        max-width: 800px;
+        max-width: 900px;
         margin: 0 auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 860px) {
         .controls-wrapper {
             flex-direction: row;
             justify-content: space-between;
-            padding: 1rem 2rem;
+            padding: 0.75rem 1.5rem;
+            gap: 2rem;
+        }
+    }
+
+    /* Season Selector */
+    .season-selector-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .control-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        display: none;
+    }
+    
+    @media (min-width: 640px) {
+        .control-label {
+            display: block;
+        }
+    }
+
+    .season-selector {
+        display: flex;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 4px;
+        border-radius: 14px;
+        position: relative;
+        isolation: isolate;
+    }
+
+    .season-btn {
+        background: transparent;
+        border: none;
+        color: var(--color-text-muted);
+        padding: 0.5rem 1.25rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .season-btn:hover {
+        color: var(--color-text-main);
+    }
+
+    .season-btn.active {
+        color: white;
+        background: var(--color-primary);
+        box-shadow: 0 2px 10px rgba(139, 92, 246, 0.3);
+    }
+    
+    /* Divider */
+    .divider {
+        width: 100%;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        display: block;
+    }
+    
+    @media (min-width: 860px) {
+        .divider {
+            width: 1px;
+            height: 40px;
+            display: block;
+        }
+    }
+
+    /* Secondary Controls */
+    .secondary-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        align-items: center;
+    }
+
+    @media (min-width: 640px) {
+        .secondary-controls {
+            flex-direction: row;
+            justify-content: flex-end;
+            width: auto;
         }
     }
 
@@ -220,18 +351,18 @@ const episodesWithMeta = sortedEpisodes.map(post => {
     .search-widget {
         position: relative;
         width: 100%;
-        max-width: 400px;
+        min-width: 200px;
     }
 
     .search-input {
         width: 100%;
-        padding: 0.8rem 1rem 0.8rem 2.8rem;
+        padding: 0.6rem 1rem 0.6rem 2.8rem;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        border-radius: 12px;
         color: var(--color-text-main);
         font-family: inherit;
-        font-size: 1rem;
+        font-size: 0.95rem;
         transition: all 0.3s ease;
     }
 
@@ -239,12 +370,12 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         outline: none;
         background: rgba(255, 255, 255, 0.1);
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
     }
 
     .search-icon {
         position: absolute;
-        left: 12px;
+        left: 10px;
         top: 50%;
         transform: translateY(-50%);
         opacity: 0.5;
@@ -256,21 +387,21 @@ const episodesWithMeta = sortedEpisodes.map(post => {
     .toggle-group {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        flex-shrink: 0;
+        gap: 0.75rem;
+        white-space: nowrap;
     }
 
     .toggle-label {
-        font-size: 0.95rem;
-        font-weight: 600;
+        font-size: 0.9rem;
+        font-weight: 500;
         color: var(--color-text-muted);
     }
 
     .switch {
         position: relative;
         display: inline-block;
-        width: 54px;
-        height: 28px;
+        width: 48px;
+        height: 26px;
     }
 
     .switch input {
@@ -294,12 +425,12 @@ const episodesWithMeta = sortedEpisodes.map(post => {
     .slider:before {
         position: absolute;
         content: "";
-        height: 20px;
-        width: 20px;
+        height: 18px;
+        width: 18px;
         left: 3px;
         bottom: 3px;
         background-color: white;
-        transition: .4s;
+        transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
@@ -308,7 +439,7 @@ const episodesWithMeta = sortedEpisodes.map(post => {
     }
 
     input:checked + .slider:before {
-        transform: translateX(26px);
+        transform: translateX(22px);
     }
 
     .slider.round {
@@ -378,5 +509,20 @@ const episodesWithMeta = sortedEpisodes.map(post => {
 
     .hidden {
         display: none !important;
+    }
+    
+    .btn-primary {
+         background: var(--color-primary);
+         color: white;
+         border: none;
+         padding: 0.75rem 1.5rem;
+         border-radius: 12px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: opacity 0.2s;
+    }
+    
+    .btn-primary:hover {
+        opacity: 0.9;
     }
 </style>
