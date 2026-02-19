@@ -1,5 +1,5 @@
 ---
-title: ¿Quién es Tifu? ft. Diego Torres
+title: ¿Quién es Tifu? ft. Diego Torres & Diego Medrano
 tags:
   - Viera y Clavijo
   - Educación
@@ -14,6 +14,7 @@ isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/011.png'
 participants:
   - Diego Torres
+  - Diego Medrano
 season: 1
 episode: 10
 duration: ¿?
