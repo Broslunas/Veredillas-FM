@@ -14,7 +14,8 @@ description: >-
 isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/013.png'
 participants:
-  - Prof. Dulce
+  - Elio
+  - Gustavo
 season: 1
 episode: 12
 duration: ¿?
