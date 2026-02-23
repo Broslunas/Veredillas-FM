@@ -117,7 +117,16 @@ const podcastEpisodeSchema = {
     "description": entry.data.description,
     "datePublished": entry.data.pubDate.toISOString(),
     ...(entry.data.duration ? { "duration": (() => {
-        const parts = entry.data.duration!.split(':').map(Number);
+        const dur = entry.data.duration!;
+        if (dur.includes('?')) return undefined;
+        // "37 min" or "37min"
+        const minOnly = dur.match(/^(\d+)\s*min/i);
+        if (minOnly) return `PT${minOnly[1]}M`;
+        // "1h 30min"
+        const hourMin = dur.match(/(\d+)\s*h[a-z]*\s*(\d+)?\s*m?/i);
+        if (hourMin) return `PT${hourMin[1]}H${hourMin[2] ?? '0'}M`;
+        // "MM:SS" or "HH:MM:SS"
+        const parts = dur.split(':').map(Number);
         if (parts.length === 2) return `PT${parts[0]}M${parts[1]}S`;
         if (parts.length === 3) return `PT${parts[0]}H${parts[1]}M${parts[2]}S`;
         return undefined;
