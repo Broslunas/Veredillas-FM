@@ -1,0 +1,813 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import dbConnect from '../../../lib/mongodb';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+if (!userPayload) return Astro.redirect('/404');
+
+await dbConnect();
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404');
+}
+---
+
+<Layout title="Analíticas de Usuarios - Admin" robots="noindex, nofollow">
+  <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <div class="admin-container fade-in-up">
+    <div class="admin-header">
+      <div class="header-content">
+        <h1>Analíticas</h1>
+        <p>Panel de estadísticas avanzado de usuarios y retención</p>
+      </div>
+      <div class="header-actions">
+        <button id="refreshBtn" class="refresh-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Actualizar
+        </button>
+      </div>
+    </div>
+
+    <AdminNav />
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando analíticas...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="error-state hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <h3>Error al cargar datos</h3>
+      <p id="errorMsg">No se pudieron obtener las analíticas.</p>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden">
+
+      <!-- ── KPI Cards ── -->
+      <section class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiTotalUsers">–</div>
+            <div class="kpi-label">Usuarios Totales</div>
+            <div class="kpi-sub" id="kpiNewUsers">–</div>
+          </div>
+        </div>
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiActiveUsers">–</div>
+            <div class="kpi-label">Activos (30 días)</div>
+            <div class="kpi-sub" id="kpiActiveRate">– tasa de actividad</div>
+          </div>
+        </div>
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiTotalListens">–</div>
+            <div class="kpi-label">Reproducciones</div>
+            <div class="kpi-sub" id="kpiCompletionRate">– tasa de completado</div>
+          </div>
+        </div>
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiTotalTime">–</div>
+            <div class="kpi-label">Horas Escuchadas</div>
+            <div class="kpi-sub" id="kpiAvgTime">– promedio por usuario</div>
+          </div>
+        </div>
+        <div class="kpi-card kpi-pink">
+          <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.89 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.63 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.66a16 16 0 0 0 6.29 6.29l1.02-.97a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiNewsletter">–</div>
+            <div class="kpi-label">Newsletter</div>
+            <div class="kpi-sub" id="kpiNewsletterRate">– tasa de suscripción</div>
+          </div>
+        </div>
+        <div class="kpi-card kpi-red">
+          <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiInactive">–</div>
+            <div class="kpi-label">Sin Actividad</div>
+            <div class="kpi-sub" id="kpiInactiveRate">– sin reproduccion alguna</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Charts Row 1 ── -->
+      <div class="charts-row">
+        <!-- User Growth -->
+        <div class="panel chart-panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                Crecimiento de Usuarios
+              </h2>
+              <p class="panel-sub">Nuevos registros por mes (últimos 12 meses)</p>
+            </div>
+          </div>
+          <div id="userGrowthChart" class="bar-chart-container"></div>
+        </div>
+
+        <!-- Role Distribution -->
+        <div class="panel chart-panel-sm">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Distribución de Roles
+              </h2>
+              <p class="panel-sub">Composición de la base de usuarios</p>
+            </div>
+          </div>
+          <div id="roleChart" class="donut-container"></div>
+        </div>
+      </div>
+
+      <!-- ── Listen Timeline & Hour Heatmap ── -->
+      <div class="charts-row">
+        <!-- Listen Timeline -->
+        <div class="panel chart-panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Reproducciones Diarias
+              </h2>
+              <p class="panel-sub">Eventos de escucha en los últimos 30 días</p>
+            </div>
+          </div>
+          <div id="listenTimelineChart" class="bar-chart-container"></div>
+        </div>
+
+        <!-- Hour Heatmap -->
+        <div class="panel chart-panel-sm">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Horario Pico de Escucha
+              </h2>
+              <p class="panel-sub">Distribución por hora del día</p>
+            </div>
+          </div>
+          <div id="hourHeatmap" class="hour-heatmap"></div>
+        </div>
+      </div>
+
+      <!-- ── Retention + Engagement ── -->
+      <div class="charts-row">
+        <!-- Retention Buckets -->
+        <div class="panel chart-panel-sm">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Antigüedad de Usuarios
+              </h2>
+              <p class="panel-sub">Usuarios según días desde su registro</p>
+            </div>
+          </div>
+          <div id="retentionChart" class="retention-bars"></div>
+        </div>
+
+        <!-- Top Engagement -->
+        <div class="panel chart-panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Top Engagement
+              </h2>
+              <p class="panel-sub">Usuarios más comprometidos por puntuación combinada</p>
+            </div>
+          </div>
+          <div id="engagementList" class="engagement-list"></div>
+        </div>
+      </div>
+
+      <!-- ── Top Listeners ── -->
+      <div class="panel" style="margin-bottom: 2rem;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+              Top 10 Oyentes
+            </h2>
+            <p class="panel-sub">Los usuarios con más tiempo de escucha acumulado</p>
+          </div>
+        </div>
+        <div id="topListenersList" class="top-listeners-grid"></div>
+      </div>
+
+      <!-- ── Recent Top Episodes (30d) ── -->
+      <div class="panel" style="margin-bottom: 4rem;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+              Episodios Calientes (30 días)
+            </h2>
+            <p class="panel-sub">Los más escuchados en el último mes</p>
+          </div>
+        </div>
+        <div id="recentTopList" class="recent-top-list"></div>
+      </div>
+
+    </div><!-- /mainContent -->
+  </div><!-- /admin-container -->
+</Layout>
+
+<script>
+  function fmtTime(s: number): string {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    if (h >= 100) return `${h}h`;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  }
+
+  function fmtNum(n: number): string {
+    return n.toLocaleString('es-ES');
+  }
+
+  const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  async function loadStats() {
+    const loading = document.getElementById('loadingState');
+    const errorEl = document.getElementById('errorState');
+    const main = document.getElementById('mainContent');
+    if (!loading || !main || !errorEl) return;
+
+    try {
+      const res = await fetch('/api/stats/admin-users');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      loading.classList.add('hidden');
+      main.classList.remove('hidden');
+
+      renderKPIs(data.kpis);
+      renderBarChart('userGrowthChart', data.userGrowth, (d: any) => {
+        const [y, m] = d.month.split('-');
+        return `${MONTHS[parseInt(m) - 1]} '${y.slice(2)}`;
+      }, 'usuarios', '#a78bfa');
+      renderBarChart('listenTimelineChart', data.listenTimeline, (d: any) => {
+        const dt = new Date(d.date);
+        return `${dt.getDate()}/${dt.getMonth()+1}`;
+      }, 'plays', '#34d399', 'count');
+      renderRoleChart(data.roleDistribution);
+      renderHourHeatmap(data.hourDistribution);
+      renderRetention(data.retentionBuckets);
+      renderEngagement(data.engagementRaw);
+      renderTopListeners(data.topListeners);
+      renderRecentTop(data.recentTopEpisodes);
+
+    } catch (err) {
+      loading.classList.add('hidden');
+      errorEl.classList.remove('hidden');
+      const msgEl = document.getElementById('errorMsg');
+      if (msgEl) msgEl.textContent = String(err);
+      console.error(err);
+    }
+  }
+
+  function renderKPIs(kpis: any) {
+    const set = (id: string, val: string) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+
+    set('kpiTotalUsers', fmtNum(kpis.totalUsers));
+    set('kpiNewUsers', `+${fmtNum(kpis.newUsersLast30)} este mes`);
+    set('kpiActiveUsers', fmtNum(kpis.activeUsersLast30));
+    const actRate = kpis.totalUsers > 0 ? Math.round((kpis.activeUsersLast30 / kpis.totalUsers) * 100) : 0;
+    set('kpiActiveRate', `${actRate}% del total`);
+    set('kpiTotalListens', fmtNum(kpis.totalListens));
+    set('kpiCompletionRate', `${kpis.completionRate}% tasa de completado`);
+    const totalHours = Math.round(kpis.totalListeningSeconds / 3600);
+    set('kpiTotalTime', fmtNum(totalHours) + 'h');
+    set('kpiAvgTime', fmtTime(Math.round(kpis.avgListeningSeconds)) + ' promedio');
+    set('kpiNewsletter', fmtNum(kpis.newsletterSubscribers));
+    const nlRate = kpis.totalUsers > 0 ? Math.round((kpis.newsletterSubscribers / kpis.totalUsers) * 100) : 0;
+    set('kpiNewsletterRate', `${nlRate}% suscritos`);
+    set('kpiInactive', fmtNum(kpis.inactiveUsers));
+    const inactRate = kpis.totalUsers > 0 ? Math.round((kpis.inactiveUsers / kpis.totalUsers) * 100) : 0;
+    set('kpiInactiveRate', `${inactRate}% nunca escucharon`);
+
+    // Animate numbers
+    document.querySelectorAll('.kpi-value').forEach(el => {
+      el.classList.add('kpi-animated');
+    });
+  }
+
+  function renderBarChart(id: string, data: any[], labelFn: (d: any) => string, unit: string, color: string, valueKey = 'count') {
+    const el = document.getElementById(id);
+    if (!el || !data || data.length === 0) {
+      if (el) el.innerHTML = '<div class="no-data">Sin datos disponibles</div>';
+      return;
+    }
+    const max = Math.max(...data.map((d: any) => d[valueKey]));
+    el.innerHTML = `
+      <div class="bar-chart-inner">
+        ${data.map((d: any, i: number) => {
+          const pct = max > 0 ? (d[valueKey] / max) * 100 : 0;
+          return `
+            <div class="bc-col" style="animation-delay:${i * 40}ms">
+              <div class="bc-wrap" title="${fmtNum(d[valueKey])} ${unit}">
+                <div class="bc-fill" style="height:${Math.max(pct,2)}%;background:${color}"></div>
+                <span class="bc-val">${d[valueKey]}</span>
+              </div>
+              <span class="bc-lbl">${labelFn(d)}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function renderRoleChart(roles: any[]) {
+    const el = document.getElementById('roleChart');
+    if (!el || !roles || roles.length === 0) return;
+    const total = roles.reduce((s: number, r: any) => s + r.count, 0);
+    const colors: Record<string, string> = { owner: '#f472b6', admin: '#a78bfa', user: '#4ade80' };
+    const labels: Record<string, string> = { owner: 'Propietario', admin: 'Admin', user: 'Usuario' };
+
+    el.innerHTML = `
+      <div class="donut-chart">
+        <svg viewBox="0 0 42 42" class="donut-svg">
+          ${(() => {
+            let offset = 25;
+            return roles.map((r: any) => {
+              const pct = (r.count / total) * 100;
+              const dash = `${pct} ${100 - pct}`;
+              const seg = `<circle class="donut-seg" r="15.9155" cx="21" cy="21" fill="transparent" stroke="${colors[r.role] || '#64748b'}" stroke-width="5" stroke-dasharray="${dash}" stroke-dashoffset="${offset}" />`;
+              offset -= pct;
+              return seg;
+            }).join('');
+          })()}
+          <text x="21" y="21" class="donut-total-text" dominant-baseline="middle" text-anchor="middle">${fmtNum(total)}</text>
+          <text x="21" y="27" class="donut-sub-text" dominant-baseline="middle" text-anchor="middle">usuarios</text>
+        </svg>
+      </div>
+      <div class="donut-legend">
+        ${roles.map((r: any) => `
+          <div class="legend-item">
+            <span class="legend-dot" style="background:${colors[r.role] || '#64748b'}"></span>
+            <span class="legend-label">${labels[r.role] || r.role}</span>
+            <span class="legend-count">${fmtNum(r.count)}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderHourHeatmap(hours: any[]) {
+    const el = document.getElementById('hourHeatmap');
+    if (!el) return;
+    const max = Math.max(...hours.map((h: any) => h.count), 1);
+    el.innerHTML = `
+      <div class="heatmap-grid">
+        ${hours.map((h: any) => {
+          const intensity = h.count / max;
+          const opacity = 0.05 + intensity * 0.95;
+          const isAM = h.hour < 12;
+          const label = h.hour === 0 ? '12am' : h.hour < 12 ? `${h.hour}am` : h.hour === 12 ? '12pm' : `${h.hour - 12}pm`;
+          return `
+            <div class="heat-cell" title="${label}: ${h.count} plays" style="opacity:${opacity}; background: ${h.count > 0 ? '#a78bfa' : 'rgba(255,255,255,0.05)'}">
+              <span class="heat-label">${label}</span>
+              <span class="heat-count">${h.count}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function renderRetention(buckets: any[]) {
+    const el = document.getElementById('retentionChart');
+    if (!el || !buckets || buckets.length === 0) return;
+    const labels: Record<string, string> = {
+      '0': '0-7 días', '7': '8-30 días', '30': '1-3 meses',
+      '90': '3-6 meses', '180': '6-12 meses', '365': '+1 año', 'older': 'Muy antiguos'
+    };
+    const max = Math.max(...buckets.map((b: any) => b.count), 1);
+    el.innerHTML = buckets.map((b: any) => {
+      const pct = (b.count / max) * 100;
+      const key = String(b._id);
+      return `
+        <div class="ret-row">
+          <span class="ret-label">${labels[key] || key}</span>
+          <div class="ret-track">
+            <div class="ret-fill" style="width:${pct}%"></div>
+          </div>
+          <span class="ret-count">${fmtNum(b.count)}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderEngagement(users: any[]) {
+    const el = document.getElementById('engagementList');
+    if (!el || !users || users.length === 0) {
+      if (el) el.innerHTML = '<div class="no-data">Sin datos de engagement</div>';
+      return;
+    }
+    const max = users[0]?.engagementScore || 1;
+    el.innerHTML = users.map((u: any, i: number) => {
+      const pct = (u.engagementScore / max) * 100;
+      const score = Math.round(u.engagementScore);
+      const medals = ['🥇','🥈','🥉'];
+      return `
+        <div class="eng-row">
+          <span class="eng-rank">${medals[i] || (i+1)}</span>
+          <img src="${u.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=8b5cf6&color=fff`}" class="eng-avatar" alt="${u.name}" />
+          <div class="eng-info">
+            <div class="eng-name">${u.name}</div>
+            <div class="eng-meta">${fmtTime(u.listeningTime)} · ${u.favCount} favs · ${u.completedCount} completados</div>
+            <div class="eng-bar-track"><div class="eng-bar-fill" style="width:${pct}%"></div></div>
+          </div>
+          <div class="eng-score">${fmtNum(score)} <small>pts</small></div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderTopListeners(listeners: any[]) {
+    const el = document.getElementById('topListenersList');
+    if (!el || !listeners || listeners.length === 0) {
+      if (el) el.innerHTML = '<div class="no-data">Sin datos de oyentes</div>';
+      return;
+    }
+    const medalColors = ['#f59e0b','#9ca3af','#cd7f32'];
+    el.innerHTML = listeners.map((u: any, i: number) => {
+      const fmtLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('es-ES') : 'N/A';
+      const roleBadge = u.role !== 'user' ? `<span class="tl-role ${u.role}">${u.role}</span>` : '';
+      return `
+        <div class="tl-card" style="animation-delay:${i * 60}ms">
+          <div class="tl-rank" style="color:${medalColors[i] || 'rgba(255,255,255,0.3)'}; border-color:${medalColors[i] || 'rgba(255,255,255,0.1)'}">
+            ${i + 1}
+          </div>
+          <img src="${u.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=8b5cf6&color=fff`}" class="tl-avatar" alt="${u.name}" />
+          <div class="tl-info">
+            <div class="tl-name">${u.name} ${roleBadge}</div>
+            <div class="tl-meta">Último acceso: ${fmtLogin}</div>
+          </div>
+          <div class="tl-stats">
+            <div class="tl-time">${fmtTime(u.listeningTime)}</div>
+            <div class="tl-favs">${(u.favorites?.length || 0)} favs</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderRecentTop(episodes: any[]) {
+    const el = document.getElementById('recentTopList');
+    if (!el || !episodes || episodes.length === 0) {
+      if (el) el.innerHTML = '<div class="no-data">Sin reproducciones este mes</div>';
+      return;
+    }
+    const max = episodes[0]?.count || 1;
+    el.innerHTML = `
+      <div class="rt-list">
+        ${episodes.map((ep: any, i: number) => {
+          const pct = (ep.count / max) * 100;
+          return `
+            <div class="rt-row">
+              <span class="rt-rank rank-${i+1}">${i+1}</span>
+              <div class="rt-info">
+                <a href="/ep/${ep.slug}" class="rt-slug" target="_blank">${ep.slug}</a>
+                <div class="rt-bar-track"><div class="rt-bar-fill" style="width:${pct}%"></div></div>
+              </div>
+              <span class="rt-count">${fmtNum(ep.count)} <small>plays</small></span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        document.getElementById('mainContent')?.classList.add('hidden');
+        document.getElementById('errorState')?.classList.add('hidden');
+        document.getElementById('loadingState')?.classList.remove('hidden');
+        loadStats();
+      });
+    }
+  });
+  document.addEventListener('astro:after-swap', loadStats);
+</script>
+
+<style is:global>
+  /* ─── Layout ─── */
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--color-text-main);
+  }
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+  }
+  .admin-header h1 {
+    font-size: 3.5rem;
+    margin: 0 0 0.25rem;
+    background: linear-gradient(to right, #fff, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    filter: drop-shadow(0 0 30px rgba(167, 139, 250, 0.4));
+  }
+  .admin-header p { color: var(--color-text-muted); font-size: 1.1rem; margin: 0; }
+
+  .refresh-btn {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.3);
+    color: #a78bfa;
+    border-radius: 0.75rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .refresh-btn:hover { background: rgba(167,139,250,0.2); transform: translateY(-2px); }
+
+  /* ─── States ─── */
+  .loading-state, .error-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 300px; gap: 1rem; color: var(--color-text-muted); font-size: 1.1rem;
+  }
+  .error-state { color: #f87171; }
+  .error-state h3 { margin: 0; font-size: 1.5rem; }
+  .error-state p { margin: 0; font-size: 0.95rem; opacity: 0.8; }
+  .spinner {
+    width: 48px; height: 48px; border: 4px solid rgba(167,139,250,0.2);
+    border-top-color: #a78bfa; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hidden { display: none !important; }
+
+  /* ─── KPI Grid ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .kpi-card {
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    display: flex; flex-direction: column; gap: 1rem;
+    transition: transform 0.25s, box-shadow 0.25s;
+    animation: fadeInUp 0.5s ease both;
+  }
+  .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+
+  .kpi-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .kpi-primary .kpi-icon { background: rgba(139,92,246,0.15); color: #a78bfa; }
+  .kpi-green  .kpi-icon { background: rgba(52,211,153,0.15); color: #34d399; }
+  .kpi-purple .kpi-icon { background: rgba(167,139,250,0.15); color: #c4b5fd; }
+  .kpi-orange .kpi-icon { background: rgba(251,146,60,0.15);  color: #fb923c; }
+  .kpi-pink   .kpi-icon { background: rgba(244,114,182,0.15); color: #f472b6; }
+  .kpi-red    .kpi-icon { background: rgba(248,113,113,0.15); color: #f87171; }
+
+  .kpi-primary { border-color: rgba(139,92,246,0.25); }
+  .kpi-green   { border-color: rgba(52,211,153,0.25); }
+  .kpi-purple  { border-color: rgba(167,139,250,0.25); }
+  .kpi-orange  { border-color: rgba(251,146,60,0.25); }
+  .kpi-pink    { border-color: rgba(244,114,182,0.25); }
+  .kpi-red     { border-color: rgba(248,113,113,0.25); }
+
+  .kpi-value {
+    font-size: 2.2rem; font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    font-family: var(--font-display);
+  }
+  .kpi-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); font-weight: 600; }
+  .kpi-sub { font-size: 0.75rem; color: var(--color-text-dim); }
+
+  /* ─── Panels ─── */
+  .panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+  }
+  .panel-header { margin-bottom: 1.5rem; }
+  .panel-title {
+    font-size: 1.1rem; font-weight: 700;
+    display: flex; align-items: center; gap: 0.5rem;
+    margin: 0 0 0.25rem; color: var(--color-text-main);
+    color: #c4b5fd;
+  }
+  .panel-sub { font-size: 0.82rem; color: var(--color-text-muted); margin: 0; }
+
+  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .chart-panel { }
+  .chart-panel-sm { }
+
+  /* ─── Bar Chart ─── */
+  .bar-chart-container { min-height: 180px; }
+  .bar-chart-inner {
+    display: flex; align-items: flex-end; gap: 0.4rem;
+    height: 180px; padding-top: 1.5rem;
+  }
+  .bc-col {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 0.4rem; height: 100%; justify-content: flex-end;
+    animation: fadeInUp 0.5s ease both;
+  }
+  .bc-wrap {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    position: relative; cursor: default;
+  }
+  .bc-fill {
+    width: 100%; border-radius: 4px 4px 0 0; min-height: 4px;
+    opacity: 0.8; transition: opacity 0.2s;
+  }
+  .bc-col:hover .bc-fill { opacity: 1; }
+  .bc-val {
+    position: absolute; top: -20px; font-size: 0.65rem; font-weight: 700;
+    color: var(--color-text-muted); white-space: nowrap;
+  }
+  .bc-lbl { font-size: 0.6rem; color: var(--color-text-dim); white-space: nowrap; }
+
+  /* ─── Donut Chart ─── */
+  .donut-container { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
+  .donut-chart { width: 140px; }
+  .donut-svg { transform: rotate(-90deg); }
+  .donut-seg { transition: stroke-dasharray 1s ease; }
+  .donut-total-text { font-size: 5px; font-weight: 800; fill: #fff; transform: rotate(90deg); transform-box: fill-box; transform-origin: center; }
+  .donut-sub-text  { font-size: 3px; fill: rgba(255,255,255,0.5); transform: rotate(90deg); transform-box: fill-box; transform-origin: center; }
+  .donut-legend { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; }
+  .legend-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label { flex: 1; color: var(--color-text-muted); }
+  .legend-count { font-weight: 700; color: #fff; }
+
+  /* ─── Hour Heatmap ─── */
+  .hour-heatmap { }
+  .heatmap-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+  }
+  .heat-cell {
+    border-radius: 6px; padding: 0.4rem 0.25rem;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    cursor: default; transition: transform 0.15s;
+  }
+  .heat-cell:hover { transform: scale(1.1); }
+  .heat-label { font-size: 0.55rem; color: rgba(255,255,255,0.6); }
+  .heat-count { font-size: 0.65rem; font-weight: 700; color: #fff; }
+
+  /* ─── Retention ─── */
+  .retention-bars { display: flex; flex-direction: column; gap: 0.75rem; }
+  .ret-row { display: flex; align-items: center; gap: 0.75rem; }
+  .ret-label { font-size: 0.78rem; color: var(--color-text-muted); width: 90px; flex-shrink: 0; }
+  .ret-track { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+  .ret-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); border-radius: 999px; transition: width 1s ease; }
+  .ret-count { font-size: 0.78rem; font-weight: 700; color: #fff; width: 36px; text-align: right; }
+
+  /* ─── Engagement ─── */
+  .engagement-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .eng-row {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.75rem; border-radius: 0.75rem;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.2s;
+  }
+  .eng-row:hover { background: rgba(255,255,255,0.05); }
+  .eng-rank { font-size: 1.3rem; width: 28px; text-align: center; flex-shrink: 0; }
+  .eng-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .eng-info { flex: 1; min-width: 0; }
+  .eng-name { font-weight: 700; font-size: 0.9rem; color: #fff; margin-bottom: 2px; }
+  .eng-meta { font-size: 0.72rem; color: var(--color-text-muted); margin-bottom: 0.4rem; }
+  .eng-bar-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+  .eng-bar-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #34d399); border-radius: 999px; transition: width 1s ease; }
+  .eng-score { font-size: 1rem; font-weight: 800; color: #a78bfa; text-align: right; white-space: nowrap; }
+  .eng-score small { display: block; font-size: 0.65rem; color: var(--color-text-dim); font-weight: 400; }
+
+  /* ─── Top Listeners ─── */
+  .top-listeners-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem;
+  }
+  .tl-card {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.875rem 1rem; border-radius: 0.875rem;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s; animation: fadeInUp 0.4s ease both;
+  }
+  .tl-card:hover { background: rgba(255,255,255,0.05); transform: translateY(-2px); }
+  .tl-rank {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
+  }
+  .tl-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .tl-info { flex: 1; min-width: 0; }
+  .tl-name { font-weight: 700; font-size: 0.88rem; color: #fff; display: flex; align-items: center; gap: 0.4rem; }
+  .tl-meta { font-size: 0.72rem; color: var(--color-text-muted); margin-top: 2px; }
+  .tl-stats { text-align: right; }
+  .tl-time { font-weight: 800; font-size: 1rem; color: #a78bfa; }
+  .tl-favs { font-size: 0.72rem; color: var(--color-text-muted); }
+  .tl-role { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+  .tl-role.admin { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+  .tl-role.owner { background: rgba(244,114,182,0.2); color: #f9a8d4; }
+
+  /* ─── Recent Top List ─── */
+  .rt-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .rt-row { display: flex; align-items: center; gap: 1rem; }
+  .rt-rank {
+    width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem; flex-shrink: 0;
+    background: rgba(255,255,255,0.06); color: var(--color-text-muted);
+  }
+  .rt-rank.rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 0 12px rgba(245,158,11,.4); }
+  .rt-rank.rank-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
+  .rt-rank.rank-3 { background: linear-gradient(135deg, #cd7f32, #92400e); color: #fff; }
+  .rt-info { flex: 1; min-width: 0; }
+  .rt-slug {
+    display: block; font-weight: 600; font-size: 0.9rem; color: #fff;
+    text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+    text-decoration: none; transition: color 0.2s; margin-bottom: 0.4rem;
+  }
+  .rt-slug:hover { color: #a78bfa; }
+  .rt-bar-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+  .rt-bar-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); border-radius: 999px; transition: width 1s ease; }
+  .rt-count { font-weight: 700; font-size: 0.95rem; color: #a78bfa; white-space: nowrap; text-align: right; min-width: 70px; }
+  .rt-count small { display: block; font-size: 0.65rem; font-weight: 400; color: var(--color-text-dim); }
+
+  /* ─── No Data ─── */
+  .no-data { padding: 2rem; text-align: center; color: var(--color-text-muted); font-size: 0.9rem; }
+
+  /* ─── Blobs ─── */
+  .blob { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.07; pointer-events: none; }
+  .blob-1 { top: -200px; left: -200px; background: #8b5cf6; }
+  .blob-2 { bottom: -200px; right: -200px; background: #ec4899; }
+  .grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 40%, transparent 100%); opacity: 0.4; pointer-events: none; }
+
+  /* ─── Animations ─── */
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in-up { animation: fadeInUp 0.6s ease both; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .charts-row { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  }
+  @media (max-width: 600px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-header h1 { font-size: 2.5rem; }
+    .heatmap-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>

@@ -10,6 +10,9 @@ const currentPath = Astro.url.pathname;
     <a href="/dashboard/admin/users" class={currentPath === '/dashboard/admin/users' ? 'active' : ''}>
       👥 Usuarios
     </a>
+    <a href="/dashboard/admin/user-stats" class={currentPath === '/dashboard/admin/user-stats' ? 'active' : ''}>
+      📈 Analíticas
+    </a>
     <a href="/dashboard/admin/content" class={currentPath === '/dashboard/admin/content' ? 'active' : ''}>
       🎙️ Contenido
     </a>
