@@ -16,7 +16,7 @@ image: 'https://cdn.veredillasfm.es/images/011.jpeg'
 participants:
   - Prof. Dulce
 season: 2
-episode: 2
+episode: 1
 duration: ¿?
 pubDate: '2026-02-24T17:00:00.000Z'
 ---
