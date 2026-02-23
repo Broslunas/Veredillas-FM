@@ -5,27 +5,40 @@ interface Props {
 
 const { slug } = Astro.props;
 
-// Basic user check for initial state if possible (optional as client handles it too)
 import { verifyToken } from '../lib/auth';
 import dbConnect from '../lib/mongodb';
 import User from '../models/User';
 
-let currentUser = null;
+// Safe serializable user object for the client
+let currentUserSafe: { name: string; role: string; picture?: string } | null = null;
 try {
     const token = Astro.cookies.get('auth-token')?.value;
+    console.log('[LiveChat] token exists:', !!token);
     if (token) {
         const payload = verifyToken(token);
+        console.log('[LiveChat] payload:', payload ? { userId: payload.userId, name: payload.name } : null);
         if (payload) {
              await dbConnect();
-             currentUser = await User.findById(payload.userId).lean();
+             const dbUser = await User.findById(payload.userId).select('name role picture').lean();
+             console.log('[LiveChat] dbUser role:', dbUser?.role, 'name:', dbUser?.name);
+             if (dbUser) {
+                 currentUserSafe = {
+                     name: dbUser.name,
+                     role: dbUser.role as string,
+                     picture: dbUser.picture
+                 };
+             }
         }
     }
 } catch(e) {
-    console.error("Auth helper error", e);
+    console.error('[LiveChat] Auth helper error', e);
 }
+
+// Encode safely to avoid HTML attribute issues with quotes
+const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JSON.stringify(currentUserSafe)))) : '';
 ---
 
-<div class="live-chat-container" id="live-chat-widget" data-slug={slug} data-current-user={JSON.stringify(currentUser)}>
+<div class="live-chat-container" id="live-chat-widget" data-slug={slug} data-current-user={currentUserEncoded}>
     <div class="chat-header">
         <div class="live-indicator">
             <span class="dot"></span> EN DIRECTO
@@ -40,11 +53,11 @@ try {
     </div>
 
     <div class="input-area">
-        {(!currentUser) && (
+        {(!currentUserSafe) && (
             <input type="text" id="guest-name-input" placeholder="Tu nombre..." class="guest-input" autocomplete="off" />
         )}
         <div class="input-row">
-            <input type="text" id="chat-input" placeholder={currentUser ? `Escribe como ${currentUser.name}...` : "Escribe un mensaje..."} autocomplete="off" />
+            <input type="text" id="chat-input" placeholder={currentUserSafe ? `Escribe como ${currentUserSafe.name}...` : "Escribe un mensaje..."} autocomplete="off" />
             <button id="send-btn" type="button" aria-label="Enviar">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
@@ -560,8 +573,15 @@ try {
         constructor(el: HTMLElement) {
             this.el = el;
             this.slug = el.dataset.slug || '';
-            this.currentUser = JSON.parse(el.dataset.currentUser || 'null');
-            console.log("Current Chat User:", this.currentUser); // DEBUG
+            const encoded = el.dataset.currentUser || '';
+            try {
+                this.currentUser = encoded ? JSON.parse(decodeURIComponent(escape(atob(encoded)))) : null;
+            } catch(e) {
+                console.error('[LiveChat] Error parsing currentUser:', e);
+                this.currentUser = null;
+            }
+            console.log('[LiveChat] currentUser parsed:', this.currentUser);
+            console.log('[LiveChat] role:', this.currentUser?.role, 'isAdmin:', !!(this.currentUser && (this.currentUser.role === "admin" || this.currentUser.role === "owner")));
             
             this.msgArea = el.querySelector('#chat-messages') as HTMLElement;
             this.input = el.querySelector('#chat-input') as HTMLInputElement;
@@ -831,7 +851,7 @@ try {
                     <div class="pinned-author">${this.escapeHtml(msg.user.name)}</div>
                     <div class="pinned-text">${this.escapeHtml(msg.content)}</div>
                 </div>
-                ${this.currentUser && this.currentUser.role === 'admin' ? `
+                ${this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'owner') ? `
                 <button class="delete-btn" title="Desfijar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -855,7 +875,7 @@ try {
             div.className = 'chat-msg';
             div.dataset.id = msg._id;
             
-            const isAdmin = this.currentUser && this.currentUser.role === 'admin';
+            const isAdmin = this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'owner');
             
             div.innerHTML = `
                 <img src="${this.escapeHtml(msg.user.avatar)}" alt="${this.escapeHtml(msg.user.name)}" class="chat-avatar">

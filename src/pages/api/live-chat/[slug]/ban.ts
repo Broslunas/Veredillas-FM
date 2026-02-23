@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request, params }) => {
          
          // Verify Admin
          const adminUser = await User.findById(payload.userId);
-         if (!adminUser || adminUser.role !== 'admin') {
+         if (!adminUser || (adminUser.role !== 'admin' && adminUser.role !== 'owner')) {
              return new Response(JSON.stringify({ success: false, error: 'Forbidden' }), { status: 403 });
          }
 

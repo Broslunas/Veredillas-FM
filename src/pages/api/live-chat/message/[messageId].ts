@@ -30,7 +30,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
         
         // Verify Admin Status
         const user = await User.findById(payload.userId);
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
             return new Response(JSON.stringify({ success: false, error: 'Forbidden' }), { status: 403 });
         }
         
@@ -74,7 +74,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
         
         // Verify Admin Status
         const user = await User.findById(payload.userId);
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
             return new Response(JSON.stringify({ success: false, error: 'Forbidden' }), { status: 403 });
         }
 
