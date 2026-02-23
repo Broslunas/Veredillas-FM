@@ -7,23 +7,45 @@ const allEpisodes = await getCollection('episodios');
 const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 // Get unique seasons and sort them
-// We filter(Boolean) to ensure we only get valid numbers (truthy values)
 const uniqueSeasons = [...new Set(sortedEpisodes.map(ep => ep.data.season).filter(Boolean))].sort((a, b) => a - b);
+
+// Load guests collection to get images and roles
+const allGuests = await getCollection('guests');
+const guestMap = new Map(allGuests.map(g => [g.data.name.toLowerCase().trim(), g.data]));
+
+// Get unique guests across all episodes, sorted alphabetically
+const uniqueGuestNames = [...new Set(
+    sortedEpisodes
+        .flatMap(ep => ep.data.participants || [])
+        .map(g => g.trim())
+        .filter(Boolean)
+)].sort((a, b) => a.localeCompare(b, 'es'));
+
+// Build enriched guest list with image/role from collection
+const uniqueGuests = uniqueGuestNames.map(name => {
+    const data = guestMap.get(name.toLowerCase().trim());
+    return {
+        name,
+        image: data?.image || null,
+        role: data?.role || null,
+    };
+});
 
 const now = new Date();
 
 const episodesWithMeta = sortedEpisodes.map(post => {
     const isUpcoming = post.data.pubDate > now;
-    // Calculate if it's about to premiere (<= 2 hours)
     const diffInHours = (new Date(post.data.pubDate).getTime() - now.getTime()) / (1000 * 60 * 60);
     const isAboutToPremiere = isUpcoming && diffInHours <= 2;
     const searchContent = `${post.data.title} ${post.data.description || ''} ${post.data.participants?.join(' ') || ''}`.toLowerCase();
+    const participantsStr = (post.data.participants || []).join('|').toLowerCase();
     
     return {
         post,
         isUpcoming,
         isAboutToPremiere,
-        searchContent
+        searchContent,
+        participantsStr
     };
 });
 ---
@@ -43,32 +65,93 @@ const episodesWithMeta = sortedEpisodes.map(post => {
             <h1>Explora todos los <br><span class="text-gradient">Episodios</span></h1>
             
             <div class="controls-wrapper">
-                <!-- Season Selector -->
-                <div class="season-selector-wrapper">
-                    <span class="control-label">Temporada</span>
-                    <div class="season-selector" id="season-selector">
-                        <button class="season-btn active" data-season="all">
-                            Todas
-                            <span class="season-indicator"></span>
-                        </button>
-                        {uniqueSeasons.map(season => (
-                            <button class="season-btn" data-season={season}>
-                                {season}ª
-                                <span class="season-indicator"></span>
+                <!-- Row 1: Season Selector -->
+                <div class="controls-row controls-row--top">
+                    <div class="season-selector-wrapper">
+                        <span class="control-label">Temporada</span>
+                        <div class="season-selector" id="season-selector">
+                            <button class="season-btn active" data-season="all">
+                                Todas
                             </button>
-                        ))}
+                            {uniqueSeasons.map(season => (
+                                <button class="season-btn" data-season={season}>
+                                    {season}ª
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
-                <div class="divider"></div>
+                <div class="controls-divider-h"></div>
 
-                <!-- Search and Toggle Container -->
-                <div class="secondary-controls">
+                <!-- Row 2: Search + Guest + Toggle -->
+                <div class="controls-row controls-row--bottom">
                     <!-- Search Bar -->
                     <div class="search-widget">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                        <input type="text" id="episode-search" placeholder="Buscar episodios..." class="search-input" />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="text" id="episode-search" placeholder="Buscar episodios..." class="search-input" autocomplete="off" />
                     </div>
+
+                    <!-- Custom Guest Dropdown -->
+                    {uniqueGuests.length > 0 && (
+                        <div class="guest-dropdown" id="guest-dropdown" role="combobox" aria-expanded="false" aria-haspopup="listbox">
+                            <!-- Trigger button -->
+                            <button class="guest-trigger" id="guest-trigger" type="button" aria-label="Filtrar por invitado">
+                                <span class="guest-trigger-avatar" id="guest-trigger-avatar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                </span>
+                                <span class="guest-trigger-label" id="guest-trigger-label">Invitado</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="guest-chevron"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+
+                            <!-- Dropdown panel -->
+                            <div class="guest-panel" id="guest-panel" role="listbox" aria-label="Lista de invitados">
+                                <div class="guest-panel-inner">
+                                    <!-- "All" option -->
+                                    <button class="guest-option guest-option--all active" data-value="" role="option" aria-selected="true">
+                                        <span class="guest-option-avatar guest-option-avatar--all">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        </span>
+                                        <span class="guest-option-info">
+                                            <span class="guest-option-name">Todos los invitados</span>
+                                        </span>
+                                        <span class="guest-option-check">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                        </span>
+                                    </button>
+
+                                    <div class="guest-panel-divider"></div>
+
+                                    <!-- Guest options -->
+                                    {uniqueGuests.map(guest => (
+                                        <button 
+                                            class="guest-option"
+                                            data-value={guest.name.toLowerCase()}
+                                            data-image={guest.image || ''}
+                                            data-name={guest.name}
+                                            role="option"
+                                            aria-selected="false"
+                                        >
+                                            <span class="guest-option-avatar">
+                                                {guest.image ? (
+                                                    <img src={guest.image} alt={guest.name} loading="lazy" />
+                                                ) : (
+                                                    <span class="guest-option-initials">{guest.name.charAt(0).toUpperCase()}</span>
+                                                )}
+                                            </span>
+                                            <span class="guest-option-info">
+                                                <span class="guest-option-name">{guest.name}</span>
+                                                {guest.role && <span class="guest-option-role">{guest.role}</span>}
+                                            </span>
+                                            <span class="guest-option-check">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <!-- Toggle for Upcoming -->
                     <div class="toggle-group">
@@ -83,7 +166,7 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         </header>
 
         <div class="episodes-grid" id="episodes-grid">
-            {episodesWithMeta.map(({ post, isUpcoming, isAboutToPremiere, searchContent }, index) => {
+            {episodesWithMeta.map(({ post, isUpcoming, isAboutToPremiere, searchContent, participantsStr }, index) => {
                  return (
                     <div 
                         class={`episode-item fade-in-up ${isUpcoming && !isAboutToPremiere ? 'upcoming-item hidden-upcoming' : ''}`}
@@ -91,6 +174,7 @@ const episodesWithMeta = sortedEpisodes.map(post => {
                         data-season={post.data.season || 'unknown'}
                         data-is-upcoming={isUpcoming.toString()}
                         data-is-about-to-premiere={isAboutToPremiere.toString()}
+                        data-participants={participantsStr}
                         style={`--delay: ${index % 6}`}
                     >
                          <EpisodeCard post={post} />
@@ -119,10 +203,97 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         const noResults = document.getElementById('no-results');
         const resetBtn = document.getElementById('reset-filter');
 
+        // Custom dropdown elements
+        const guestDropdown = document.getElementById('guest-dropdown');
+        const guestTrigger = document.getElementById('guest-trigger');
+        const guestPanel = document.getElementById('guest-panel');
+        const guestTriggerLabel = document.getElementById('guest-trigger-label');
+        const guestTriggerAvatar = document.getElementById('guest-trigger-avatar');
+        const guestOptions = document.querySelectorAll('.guest-option');
+
         if (!upcomingToggle || !searchInput) return;
 
         let currentSeason = 'all';
+        let selectedGuest = '';
 
+        // ── Custom dropdown logic ──────────────────────────────────────
+        function openDropdown() {
+            guestPanel?.classList.add('open');
+            guestDropdown?.setAttribute('aria-expanded', 'true');
+            guestTrigger?.classList.add('open');
+        }
+
+        function closeDropdown() {
+            guestPanel?.classList.remove('open');
+            guestDropdown?.setAttribute('aria-expanded', 'false');
+            guestTrigger?.classList.remove('open');
+        }
+
+        function toggleDropdown() {
+            guestPanel?.classList.contains('open') ? closeDropdown() : openDropdown();
+        }
+
+        guestTrigger?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown();
+        });
+
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (guestDropdown && !guestDropdown.contains(e.target as Node)) {
+                closeDropdown();
+            }
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDropdown();
+        });
+
+        // Select a guest option
+        guestOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const value = (option as HTMLElement).getAttribute('data-value') || '';
+                const name = (option as HTMLElement).getAttribute('data-name') || '';
+                const image = (option as HTMLElement).getAttribute('data-image') || '';
+
+                selectedGuest = value;
+
+                // Update active state
+                guestOptions.forEach(o => {
+                    o.classList.remove('active');
+                    o.setAttribute('aria-selected', 'false');
+                });
+                option.classList.add('active');
+                option.setAttribute('aria-selected', 'true');
+
+                // Update trigger label & avatar
+                if (guestTriggerLabel) {
+                    guestTriggerLabel.textContent = value === '' ? 'Invitado' : name;
+                }
+                if (guestTriggerAvatar) {
+                    if (value === '') {
+                        guestTriggerAvatar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+                    } else if (image) {
+                        guestTriggerAvatar.innerHTML = `<img src="${image}" alt="${name}" />`;
+                    } else {
+                        guestTriggerAvatar.innerHTML = `<span class="trigger-initials">${name.charAt(0).toUpperCase()}</span>`;
+                    }
+                }
+
+                // Active styling on trigger
+                if (value !== '') {
+                    guestTrigger?.classList.add('has-selection');
+                } else {
+                    guestTrigger?.classList.remove('has-selection');
+                }
+
+                closeDropdown();
+                filterItems();
+            });
+        });
+
+        // ── Main filter function ───────────────────────────────────────
         function filterItems() {
             const showUpcoming = upcomingToggle.checked;
             const searchTerm = searchInput.value.toLowerCase().trim();
@@ -134,12 +305,14 @@ const episodesWithMeta = sortedEpisodes.map(post => {
                 const itemSeason = itemEl.getAttribute('data-season') || '';
                 const isUpcoming = itemEl.getAttribute('data-is-upcoming') === 'true';
                 const isAboutToPremiere = itemEl.getAttribute('data-is-about-to-premiere') === 'true';
+                const participants = itemEl.getAttribute('data-participants') || '';
                 
                 const matchesSeason = currentSeason === 'all' || itemSeason === currentSeason;
                 const matchesUpcoming = showUpcoming || !isUpcoming || isAboutToPremiere;
                 const matchesSearch = searchTerm === '' || searchContent.includes(searchTerm);
+                const matchesGuest = selectedGuest === '' || participants.split('|').some(p => p.trim() === selectedGuest);
 
-                if (matchesSeason && matchesUpcoming && matchesSearch) {
+                if (matchesSeason && matchesUpcoming && matchesSearch && matchesGuest) {
                     itemEl.classList.remove('hidden-anim');
                     itemEl.classList.remove('hidden-upcoming'); 
                     itemEl.style.display = 'block';
@@ -150,7 +323,7 @@ const episodesWithMeta = sortedEpisodes.map(post => {
                         if (itemEl.classList.contains('hidden-anim')) {
                              itemEl.style.display = 'none';
                         }
-                    }, 500); // match CSS transition
+                    }, 500);
                 }
             });
 
@@ -164,11 +337,8 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         // Season Buttons Logic
         seasonBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                // Update active state
                 seasonBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
-                // Update filter
                 currentSeason = btn.getAttribute('data-season') || 'all';
                 filterItems();
             });
@@ -181,10 +351,21 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         resetBtn?.addEventListener('click', () => {
             searchInput.value = '';
             upcomingToggle.checked = false;
-            // Reset season
+            selectedGuest = '';
             currentSeason = 'all';
             seasonBtns.forEach(b => b.classList.remove('active'));
             document.querySelector('.season-btn[data-season="all"]')?.classList.add('active');
+
+            // Reset guest dropdown UI
+            guestOptions.forEach(o => {
+                o.classList.remove('active');
+                o.setAttribute('aria-selected', 'false');
+            });
+            document.querySelector('.guest-option--all')?.classList.add('active');
+            document.querySelector('.guest-option--all')?.setAttribute('aria-selected', 'true');
+            if (guestTriggerLabel) guestTriggerLabel.textContent = 'Invitado';
+            if (guestTriggerAvatar) guestTriggerAvatar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+            guestTrigger?.classList.remove('has-selection');
             
             filterItems();
         });
@@ -193,7 +374,6 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         filterItems();
     }
 
-    // Run on init and page transitions
     document.addEventListener('DOMContentLoaded', initFilters);
     document.addEventListener('astro:page-load', initFilters);
 </script>
@@ -215,8 +395,10 @@ const episodesWithMeta = sortedEpisodes.map(post => {
 
     .page-header {
         text-align: center;
-        max-width: 1000px;
+        max-width: 1100px;
         margin: 0 auto 3.5rem;
+        position: relative;
+        z-index: 200;
     }
 
     h1 {
@@ -233,166 +415,154 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         -webkit-text-fill-color: transparent;
     }
 
-    /* Controls Wrapper */
+    /* ── Controls Wrapper ─────────────────────────────────────────── */
     .controls-wrapper {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
+        gap: 0;
         background: rgba(255, 255, 255, 0.03);
-        padding: 1rem;
         border-radius: 20px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
         width: 100%;
-        max-width: 900px;
         margin: 0 auto;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        overflow: visible;
     }
 
-    @media (min-width: 860px) {
-        .controls-wrapper {
-            flex-direction: row;
-            justify-content: space-between;
-            padding: 0.75rem 1.5rem;
-            gap: 2rem;
+    .controls-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.85rem 1.25rem;
+    }
+
+    .controls-row--top {
+        justify-content: center;
+    }
+
+    .controls-row--bottom {
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    @media (min-width: 680px) {
+        .controls-row--bottom {
+            justify-content: center;
+            flex-wrap: nowrap;
         }
     }
 
-    /* Season Selector */
+    .controls-divider-h {
+        width: calc(100% - 2.5rem);
+        height: 1px;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 0 1.25rem;
+        flex-shrink: 0;
+    }
+
+    /* ── Season Selector ──────────────────────────────────────────── */
     .season-selector-wrapper {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.85rem;
     }
 
     .control-label {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 600;
+        letter-spacing: 0.07em;
+        font-weight: 700;
         color: var(--color-text-muted);
         display: none;
     }
     
-    @media (min-width: 640px) {
-        .control-label {
-            display: block;
-        }
+    @media (min-width: 560px) {
+        .control-label { display: block; }
     }
 
     .season-selector {
         display: flex;
         background: rgba(0, 0, 0, 0.2);
-        padding: 4px;
-        border-radius: 14px;
-        position: relative;
-        isolation: isolate;
+        padding: 3px;
+        border-radius: 12px;
+        gap: 2px;
     }
 
     .season-btn {
         background: transparent;
         border: none;
         color: var(--color-text-muted);
-        padding: 0.5rem 1.25rem;
-        font-size: 0.95rem;
+        padding: 0.45rem 1.1rem;
+        font-size: 0.9rem;
         font-weight: 600;
-        border-radius: 10px;
+        border-radius: 9px;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
+        transition: all 0.25s ease;
+        white-space: nowrap;
     }
 
-    .season-btn:hover {
-        color: var(--color-text-main);
-    }
+    .season-btn:hover { color: var(--color-text-main); }
 
     .season-btn.active {
         color: white;
         background: var(--color-primary);
-        box-shadow: 0 2px 10px rgba(139, 92, 246, 0.3);
-    }
-    
-    /* Divider */
-    .divider {
-        width: 100%;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.1);
-        display: block;
-    }
-    
-    @media (min-width: 860px) {
-        .divider {
-            width: 1px;
-            height: 40px;
-            display: block;
-        }
+        box-shadow: 0 2px 10px rgba(139, 92, 246, 0.35);
     }
 
-    /* Secondary Controls */
-    .secondary-controls {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        width: 100%;
-        align-items: center;
-    }
-
-    @media (min-width: 640px) {
-        .secondary-controls {
-            flex-direction: row;
-            justify-content: flex-end;
-            width: auto;
-        }
-    }
-
-    /* Search Bar */
+    /* ── Search Bar ───────────────────────────────────────────────── */
     .search-widget {
         position: relative;
-        width: 100%;
-        min-width: 200px;
+        flex: 1;
+        min-width: 160px;
+        max-width: 320px;
     }
 
     .search-input {
         width: 100%;
-        padding: 0.6rem 1rem 0.6rem 2.8rem;
+        padding: 0.6rem 1rem 0.6rem 2.6rem;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         color: var(--color-text-main);
         font-family: inherit;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         transition: all 0.3s ease;
+        box-sizing: border-box;
     }
+
+    .search-input::placeholder { color: var(--color-text-muted); opacity: 0.7; }
 
     .search-input:focus {
         outline: none;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.09);
         border-color: var(--color-primary);
         box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
     }
 
     .search-icon {
         position: absolute;
-        left: 10px;
+        left: 9px;
         top: 50%;
         transform: translateY(-50%);
-        opacity: 0.5;
+        opacity: 0.45;
         pointer-events: none;
         color: var(--color-text-muted);
     }
 
-    /* Toggle Switch */
+    /* ── Toggle Switch ────────────────────────────────────────────── */
     .toggle-group {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.65rem;
         white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .toggle-label {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         font-weight: 500;
         color: var(--color-text-muted);
     }
@@ -400,57 +570,273 @@ const episodesWithMeta = sortedEpisodes.map(post => {
     .switch {
         position: relative;
         display: inline-block;
-        width: 48px;
-        height: 26px;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
     }
 
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
+    .switch input { opacity: 0; width: 0; height: 0; }
 
     .slider {
         position: absolute;
         cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
         background-color: rgba(255, 255, 255, 0.1);
-        transition: .4s;
+        transition: .35s;
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .slider:before {
         position: absolute;
         content: "";
-        height: 18px;
-        width: 18px;
+        height: 16px;
+        width: 16px;
         left: 3px;
         bottom: 3px;
         background-color: white;
-        transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: .35s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    input:checked + .slider {
-        background-color: var(--color-primary);
+    input:checked + .slider { background-color: var(--color-primary); }
+    input:checked + .slider:before { transform: translateX(20px); }
+    .slider.round { border-radius: 34px; }
+    .slider.round:before { border-radius: 50%; }
+
+    /* ── Custom Guest Dropdown ────────────────────────────────────── */
+    .guest-dropdown {
+        position: relative;
+        flex-shrink: 0;
+        z-index: 1000;
     }
 
-    input:checked + .slider:before {
-        transform: translateX(22px);
+    .guest-trigger {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.5rem 0.85rem 0.5rem 0.55rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: var(--color-text-muted);
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        white-space: nowrap;
+        min-width: 140px;
     }
 
-    .slider.round {
-        border-radius: 34px;
+    .guest-trigger:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.18);
+        color: var(--color-text-main);
     }
 
-    .slider.round:before {
+    .guest-trigger.open {
+        border-color: var(--color-primary);
+        background: rgba(139, 92, 246, 0.08);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    }
+
+    .guest-trigger.has-selection {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        background: rgba(139, 92, 246, 0.08);
+        font-weight: 600;
+    }
+
+    .guest-trigger-avatar {
+        width: 26px;
+        height: 26px;
         border-radius: 50%;
+        overflow: hidden;
+        background: rgba(139, 92, 246, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: var(--color-primary);
     }
 
-    /* Grid */
+    .guest-trigger-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .trigger-initials {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--color-primary);
+    }
+
+    .guest-trigger-label {
+        flex: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .guest-chevron {
+        flex-shrink: 0;
+        opacity: 0.5;
+        transition: transform 0.25s ease;
+    }
+
+    .guest-trigger.open .guest-chevron {
+        transform: rotate(180deg);
+        opacity: 1;
+        color: var(--color-primary);
+    }
+
+    /* Panel */
+    .guest-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%) translateY(-6px);
+        width: 240px;
+        background: var(--color-surface, #1a1a2e);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.1);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        backdrop-filter: blur(20px);
+        overflow: hidden;
+        z-index: 1001;
+    }
+
+    .guest-panel.open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .guest-panel-inner {
+        max-height: 320px;
+        overflow-y: auto;
+        padding: 6px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+    }
+
+    .guest-panel-inner::-webkit-scrollbar { width: 4px; }
+    .guest-panel-inner::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.3); border-radius: 4px; }
+
+    .guest-panel-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.07);
+        margin: 4px 6px;
+    }
+
+    /* Guest Option */
+    .guest-option {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        width: 100%;
+        padding: 0.55rem 0.65rem;
+        background: transparent;
+        border: none;
+        border-radius: 10px;
+        color: var(--color-text-main);
+        font-family: inherit;
+        font-size: 0.88rem;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .guest-option:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .guest-option.active {
+        background: rgba(139, 92, 246, 0.12);
+        color: var(--color-primary);
+    }
+
+    .guest-option-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: rgba(139, 92, 246, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1.5px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .guest-option.active .guest-option-avatar {
+        border-color: rgba(139, 92, 246, 0.4);
+    }
+
+    .guest-option-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .guest-option-avatar--all {
+        background: rgba(139, 92, 246, 0.1);
+        color: var(--color-primary);
+    }
+
+    .guest-option-initials {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--color-primary);
+    }
+
+    .guest-option-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        overflow: hidden;
+    }
+
+    .guest-option-name {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .guest-option-role {
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .guest-option.active .guest-option-role {
+        color: rgba(139, 92, 246, 0.7);
+    }
+
+    .guest-option-check {
+        flex-shrink: 0;
+        width: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-primary);
+        opacity: 0;
+        transition: opacity 0.15s;
+    }
+
+    .guest-option.active .guest-option-check {
+        opacity: 1;
+    }
+
+    /* ── Grid ─────────────────────────────────────────────────────── */
     .episodes-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -480,7 +866,7 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         display: none !important;
     }
 
-    /* No Results */
+    /* ── No Results ───────────────────────────────────────────────── */
     .no-results {
         text-align: center;
         padding: 6rem 0;
@@ -507,9 +893,7 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         margin-bottom: 2rem;
     }
 
-    .hidden {
-        display: none !important;
-    }
+    .hidden { display: none !important; }
     
     .btn-primary {
          background: var(--color-primary);
@@ -522,7 +906,5 @@ const episodesWithMeta = sortedEpisodes.map(post => {
          transition: opacity 0.2s;
     }
     
-    .btn-primary:hover {
-        opacity: 0.9;
-    }
+    .btn-primary:hover { opacity: 0.9; }
 </style>
