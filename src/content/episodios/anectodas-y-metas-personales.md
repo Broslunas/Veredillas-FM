@@ -14,7 +14,7 @@ image: 'https://cdn.veredillasfm.es/images/ba084403-b99d-463f-9afe-ffb655dcc7ba.
 participants:
   - Christopher
 season: 2
-episode: 3
+episode: 4
 duration: ¿?
 pubDate: '2026-02-25T17:00:00.000Z'
 ---
