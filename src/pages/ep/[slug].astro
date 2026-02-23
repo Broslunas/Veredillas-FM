@@ -102,6 +102,51 @@ try {
     console.warn("Failed to fetch playback history for episode", e);
 }
 
+// --- Schema.org data ---
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') ?? 'https://veredillasfm.es';
+const canonicalEpisodeUrl = `${siteUrl}/ep/${slug}`;
+const ogImageUrl = `${siteUrl}/og/${slug}.png`;
+
+// Build PodcastEpisode JSON-LD
+const podcastEpisodeSchema = {
+    "@context": "https://schema.org",
+    "@type": "PodcastEpisode",
+    "@id": canonicalEpisodeUrl,
+    "url": canonicalEpisodeUrl,
+    "name": entry.data.title,
+    "description": entry.data.description,
+    "datePublished": entry.data.pubDate.toISOString(),
+    ...(entry.data.duration ? { "duration": (() => {
+        const parts = entry.data.duration!.split(':').map(Number);
+        if (parts.length === 2) return `PT${parts[0]}M${parts[1]}S`;
+        if (parts.length === 3) return `PT${parts[0]}H${parts[1]}M${parts[2]}S`;
+        return undefined;
+    })() } : {}),
+    "image": entry.data.image ? (entry.data.image.startsWith('http') ? entry.data.image : `${siteUrl}${entry.data.image}`) : ogImageUrl,
+    "thumbnailUrl": entry.data.image ? (entry.data.image.startsWith('http') ? entry.data.image : `${siteUrl}${entry.data.image}`) : ogImageUrl,
+    ...(entry.data.audioUrl ? { "associatedMedia": { "@type": "MediaObject", "contentUrl": entry.data.audioUrl } } : {}),
+    ...(entry.data.spotifyUrl ? { "sameAs": [entry.data.spotifyUrl] } : {}),
+    "partOfSeries": {
+        "@type": "PodcastSeries",
+        "@id": siteUrl,
+        "name": "Veredillas FM",
+        "description": "El podcast oficial del IES Veredillas. Entrevistas exclusivas, noticias del instituto, cultura estudiantil y mucho más.",
+        "url": siteUrl,
+        "image": `${siteUrl}/logo.png`
+    },
+    "episodeNumber": entry.data.episode,
+    ...(entry.data.season !== undefined ? { "partOfSeason": { "@type": "PodcastSeason", "seasonNumber": entry.data.season } } : {}),
+    "author": { "@type": "Person", "name": entry.data.author },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Veredillas FM",
+        "url": siteUrl,
+        "logo": { "@type": "ImageObject", "url": `${siteUrl}/logo.png` }
+    },
+    "keywords": entry.data.tags?.join(', '),
+    "inLanguage": "es-ES"
+};
+
 ---
 
 <Layout 
@@ -113,7 +158,10 @@ try {
   publishedTime={entry.data.pubDate.toISOString()}
   author={entry.data.author}
   tags={[`Temporada ${entry.data.season}`, `Episodio ${entry.data.episode}`, 'podcast', 'audio']}
+  canonicalURL={canonicalEpisodeUrl}
 >
+    <!-- Schema.org PodcastEpisode Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(podcastEpisodeSchema)} slot="head" />
     <article class="episode-article">
         <!-- Header -->
         <header class="article-header container">

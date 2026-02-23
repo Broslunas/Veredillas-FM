@@ -161,6 +161,9 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         
 
 
+        <!-- Named slot for extra head content (e.g. per-page JSON-LD) -->
+        <slot name="head" />
+
         <script is:inline>
             // Initialize theme from LocalStorage or Cookies
             const getCookie = (name) => {

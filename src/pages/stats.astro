@@ -1,0 +1,904 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export const prerender = false;
+
+const allEpisodes = await getCollection('episodios');
+const now = new Date();
+const publishedEpisodes = allEpisodes.filter(ep => ep.data.pubDate <= now);
+
+// Compute total duration from episodes that have duration string
+function parseDuration(dur?: string): number {
+  if (!dur || dur.includes('?')) return 0;
+
+  // "37 min" or "37min"
+  const minOnly = dur.match(/^(\d+)\s*min/i);
+  if (minOnly) return parseInt(minOnly[1]) * 60;
+
+  // "1h 30min" or "1h30m"
+  const hourMin = dur.match(/(\d+)\s*h[a-z]*\s*(\d+)?\s*m?/i);
+  if (hourMin) {
+    const h = parseInt(hourMin[1]) || 0;
+    const m = parseInt(hourMin[2] ?? '0') || 0;
+    return h * 3600 + m * 60;
+  }
+
+  // "MM:SS" or "HH:MM:SS"
+  const parts = dur.split(':').map(Number);
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+
+  return 0;
+}
+
+const totalRawMinutes = publishedEpisodes.reduce((acc, ep) => {
+  return acc + parseDuration(ep.data.duration) / 60;
+}, 0);
+
+const siteUrl = Astro.site?.href || 'https://veredillasfm.es';
+---
+
+<Layout
+  title="Estadísticas"
+  description="Descubre los datos del podcast: episodios más escuchados, etiquetas populares, oyentes activos y mucho más sobre Veredillas FM."
+  image="/logo.png"
+>
+  <!-- Page Hero -->
+  <section class="stats-hero">
+    <div class="container">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>Datos en tiempo real</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="text-gradient">Estadísticas</span>
+        <span class="hero-title-line">de Veredillas FM</span>
+      </h1>
+      <p class="hero-desc">
+        Transparencia total. Aquí puedes ver el impacto real de nuestra comunidad, los episodios más escuchados y el crecimiento del podcast.
+      </p>
+    </div>
+    <div class="hero-glow"></div>
+  </section>
+
+  <!-- Static summary cards (from content collection, no DB needed) -->
+  <section class="container section-gap">
+    <div id="summary-cards" class="summary-grid">
+      <!-- Static: episodes & content -->
+      <div class="stat-card card-primary">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+        </div>
+        <div class="stat-value" id="stat-episodes">{publishedEpisodes.length}</div>
+        <div class="stat-label">Episodios publicados</div>
+      </div>
+      <div class="stat-card card-secondary">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-value" id="stat-minutes">{Math.round(totalRawMinutes)}</div>
+        <div class="stat-label">Minutos de contenido</div>
+      </div>
+      <!-- Dynamic (filled by JS) -->
+      <div class="stat-card card-accent">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-value" id="stat-users">–</div>
+        <div class="stat-label">Oyentes registrados</div>
+      </div>
+      <div class="stat-card card-muted">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </div>
+        <div class="stat-value" id="stat-listens">–</div>
+        <div class="stat-label">Reproducciones totales</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top Episodes & Tags -->
+  <section class="container section-gap two-col-grid">
+    <!-- Top Episodes -->
+    <div class="panel">
+      <h2 class="panel-title">
+        <span class="icon-prefix">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        </span>
+        Top Episodios
+      </h2>
+      <p class="panel-sub">Los más reproducidos de todos los tiempos</p>
+      <ol id="top-episodes-list" class="top-list">
+        <li class="skeleton-row"></li>
+        <li class="skeleton-row"></li>
+        <li class="skeleton-row"></li>
+        <li class="skeleton-row"></li>
+        <li class="skeleton-row"></li>
+      </ol>
+    </div>
+
+    <!-- Top Tags -->
+    <div class="panel">
+      <h2 class="panel-title">
+        <span class="icon-prefix">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+        </span>
+        Temáticas Populares
+      </h2>
+      <p class="panel-sub">Los temas que más interesan a nuestra audiencia</p>
+      <div id="tags-chart" class="tags-chart">
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Monthly Episodes Chart -->
+  <section class="container section-gap">
+    <div class="panel">
+      <h2 class="panel-title">
+        <span class="icon-prefix">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        </span>
+        Episodios por Mes
+      </h2>
+      <p class="panel-sub">Frecuencia de publicación en los últimos 12 meses</p>
+      <div id="monthly-chart" class="monthly-chart">
+        <div class="chart-placeholder">Cargando datos...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seasons Breakdown -->
+  <section class="container section-gap">
+    <div class="panel">
+      <h2 class="panel-title">
+        <span class="icon-prefix">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </span>
+        Episodios por Temporada
+      </h2>
+      <div id="seasons-chart" class="seasons-chart">
+        <div class="chart-placeholder">Cargando datos...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="container section-gap cta-section">
+    <div class="cta-box glass-panel">
+      <h2>¿Quieres aparecer en estas estadísticas?</h2>
+      <p>Escucha, comenta y comparte episodios para subir en el ranking de oyentes.</p>
+      <div class="cta-actions">
+        <a href="/ep" class="btn btn-primary">Ver episodios</a>
+        <a href="/login" class="btn btn-outline">Crear cuenta</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/stats/public');
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+
+      // --- Summary cards ---
+      const userEl = document.getElementById('stat-users');
+      const listensEl = document.getElementById('stat-listens');
+      if (userEl) userEl.textContent = data.totalUsers?.toLocaleString('es-ES') ?? '–';
+      if (listensEl) listensEl.textContent = data.totalListens?.toLocaleString('es-ES') ?? '–';
+
+      // --- Top Episodes ---
+      const list = document.getElementById('top-episodes-list');
+      if (list && data.topEpisodes?.length > 0) {
+        list.innerHTML = data.topEpisodes.map((ep: any, i: number) => `
+          <li class="top-item" style="animation-delay: ${i * 80}ms">
+            <span class="rank rank-${i + 1}">${i + 1}</span>
+            <div class="top-ep-info">
+              ${ep.image ? `<img src="${ep.image}" alt="${ep.title}" class="ep-thumb" />` : ''}
+              <div>
+                <a href="/ep/${ep.slug}" class="ep-title">${ep.title}</a>
+                <span class="ep-meta">T${ep.season ?? '?'} · E${ep.episode ?? '?'} · ${ep.duration ?? '–'}</span>
+              </div>
+            </div>
+            <span class="play-count" title="Reproducciones">${ep.count?.toLocaleString('es-ES')} <small>plays</small></span>
+          </li>
+        `).join('');
+      } else if (list) {
+        list.innerHTML = '<li class="no-data">Aún no hay suficientes datos de escucha.</li>';
+      }
+
+      // --- Tags Chart ---
+      const tagsEl = document.getElementById('tags-chart');
+      if (tagsEl && data.topTags?.length > 0) {
+        const maxCount = data.topTags[0].count;
+        tagsEl.innerHTML = data.topTags.map((t: any, i: number) => `
+          <div class="tag-bar-row" style="animation-delay: ${i * 60}ms">
+            <span class="tag-name">#${t.tag}</span>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: ${(t.count / maxCount) * 100}%"></div>
+            </div>
+            <span class="tag-count">${t.count}</span>
+          </div>
+        `).join('');
+      } else if (tagsEl) {
+        tagsEl.innerHTML = '<div class="no-data">Sin datos de etiquetas.</div>';
+      }
+
+      // --- Monthly Chart ---
+      const monthlyEl = document.getElementById('monthly-chart');
+      if (monthlyEl && data.monthlyEpisodes?.length > 0) {
+        const maxCount = Math.max(...data.monthlyEpisodes.map((m: any) => m.count));
+        const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        monthlyEl.innerHTML = `
+          <div class="bar-chart">
+            ${data.monthlyEpisodes.map((m: any, i: number) => {
+              const [year, month] = m.month.split('-');
+              const label = `${months[parseInt(month) - 1]} ${year.slice(2)}`;
+              const pct = (m.count / maxCount) * 100;
+              return `
+                <div class="bar-col" style="animation-delay: ${i * 50}ms">
+                  <div class="bar-wrap" title="${m.count} episodio${m.count > 1 ? 's' : ''}">
+                    <div class="bar-col-fill" style="height: ${pct}%"></div>
+                    <span class="bar-value">${m.count}</span>
+                  </div>
+                  <span class="bar-label">${label}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (monthlyEl) {
+        monthlyEl.innerHTML = '<div class="no-data">No hay episodios en los últimos 12 meses.</div>';
+      }
+
+      // --- Seasons chart ---
+      const seasonsEl = document.getElementById('seasons-chart');
+      if (seasonsEl && data.seasons?.length > 0) {
+        const maxCount = Math.max(...data.seasons.map((s: any) => s.count));
+        seasonsEl.innerHTML = `
+          <div class="seasons-grid">
+            ${data.seasons.map((s: any, i: number) => `
+              <div class="season-card" style="animation-delay: ${i * 100}ms">
+                <div class="season-ring" style="--pct: ${(s.count / maxCount) * 100}">
+                  <svg viewBox="0 0 36 36" class="ring-svg">
+                    <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <path class="ring-fg" stroke-dasharray="${(s.count / maxCount) * 100}, 100"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  </svg>
+                  <span class="ring-count">${s.count}</span>
+                </div>
+                <span class="season-label">Temporada ${s.season}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (seasonsEl) {
+        seasonsEl.innerHTML = '<div class="no-data">Sin datos de temporadas.</div>';
+      }
+
+      // --- Animate stat numbers ---
+      animateNumber('stat-users', data.totalUsers ?? 0);
+      animateNumber('stat-listens', data.totalListens ?? 0);
+
+    } catch (err) {
+      console.warn('Stats API unavailable, showing static data only.', err);
+      const els = ['stat-users', 'stat-listens'];
+      els.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.textContent === '–') el.textContent = 'N/A';
+      });
+
+      const listEl = document.getElementById('top-episodes-list');
+      if (listEl) listEl.innerHTML = '<li class="no-data">No se pudieron cargar los datos en este momento.</li>';
+      
+      const tagsEl = document.getElementById('tags-chart');
+      if (tagsEl) tagsEl.innerHTML = '<div class="no-data">No se pudieron cargar los datos.</div>';
+
+      const monthlyEl = document.getElementById('monthly-chart');
+      if (monthlyEl) monthlyEl.innerHTML = '<div class="no-data">No se pudieron cargar los datos.</div>';
+
+      const seasonsEl = document.getElementById('seasons-chart');
+      if (seasonsEl) seasonsEl.innerHTML = '<div class="no-data">No se pudieron cargar los datos.</div>';
+    }
+  }
+
+  function animateNumber(id: string, target: number) {
+    const el = document.getElementById(id);
+    if (!el || target === 0) return;
+    let current = 0;
+    const step = Math.ceil(target / 60);
+    const interval = setInterval(() => {
+      current = Math.min(current + step, target);
+      el.textContent = current.toLocaleString('es-ES');
+      if (current >= target) clearInterval(interval);
+    }, 16);
+  }
+
+  // Animate stat cards on static numbers too
+  function animateStaticNumbers() {
+    const episodesEl = document.getElementById('stat-episodes');
+    const minutesEl = document.getElementById('stat-minutes');
+    if (episodesEl) {
+      const target = parseInt(episodesEl.textContent || '0');
+      episodesEl.textContent = '0';
+      animateNumber('stat-episodes', target);
+    }
+    if (minutesEl) {
+      const target = parseInt(minutesEl.textContent || '0');
+      minutesEl.textContent = '0';
+      animateNumber('stat-minutes', target);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    animateStaticNumbers();
+    loadStats();
+  });
+  document.addEventListener('astro:after-swap', () => {
+    animateStaticNumbers();
+    loadStats();
+  });
+</script>
+
+<style is:global>
+  /* ---- Hero ---- */
+  .stats-hero {
+    position: relative;
+    padding: 5rem 0 3rem;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    animation: pulse-green 2s infinite;
+  }
+
+  @keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    letter-spacing: -0.03em;
+  }
+
+  .hero-title .hero-title-line {
+    display: block;
+    color: var(--color-text-main);
+  }
+
+  .hero-desc {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ---- Layout helpers ---- */
+  .section-gap {
+    margin-bottom: 4rem;
+  }
+
+  .two-col-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  /* ---- Summary Cards ---- */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+
+  .stat-card {
+    border-radius: 1.25rem;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeInUp 0.6s ease forwards;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  }
+
+  .card-primary { border-color: rgba(139,92,246,0.3); }
+  .card-secondary { border-color: rgba(14,165,233,0.3); }
+  .card-accent { border-color: rgba(236,72,153,0.3); }
+  .card-muted { border-color: rgba(255,255,255,0.1); }
+
+  .stat-card:nth-child(1) { animation-delay: 0ms; }
+  .stat-card:nth-child(2) { animation-delay: 100ms; }
+  .stat-card:nth-child(3) { animation-delay: 200ms; }
+  .stat-card:nth-child(4) { animation-delay: 300ms; }
+
+  .stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--color-primary);
+  }
+
+  .card-secondary .stat-icon { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
+  .card-accent   .stat-icon { background: rgba(236, 72, 153, 0.1); color: #ec4899; }
+  .card-muted    .stat-icon { background: rgba(255, 255, 255, 0.05); color: var(--color-text-muted); }
+
+  .stat-value {
+    font-size: 3rem;
+    font-weight: 800;
+    font-family: var(--font-display);
+    line-height: 1;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ---- Panel ---- */
+  .panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 1.25rem;
+    padding: 2rem;
+  }
+
+  .panel-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .icon-prefix {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  .panel-sub {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1.75rem;
+  }
+
+  /* ---- Top Episodes List ---- */
+  .top-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .top-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    animation: fadeInUp 0.4s ease both;
+  }
+
+  .top-item:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: var(--color-border);
+  }
+
+  .rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    background: var(--color-surface-hover);
+    color: var(--color-text-muted);
+  }
+
+  .rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; box-shadow: 0 0 12px rgba(245,158,11,0.4);}
+  .rank-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: white; }
+  .rank-3 { background: linear-gradient(135deg, #cd7f32, #92400e); color: white; }
+
+  .top-ep-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ep-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .ep-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text-main);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+
+  .ep-title:hover { color: var(--color-primary); }
+
+  .ep-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .play-count {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-primary);
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  .play-count small {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--color-text-dim);
+    display: block;
+  }
+
+  /* ---- Skeleton ---- */
+  .skeleton-row {
+    height: 54px;
+    border-radius: 0.75rem;
+    background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-surface-hover) 50%, var(--color-surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ---- Tags Chart ---- */
+  .tags-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tag-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: fadeInUp 0.4s ease both;
+  }
+
+  .tag-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    width: 120px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    border-radius: 999px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0;
+    animation: growBar 1s 0.3s ease forwards;
+  }
+
+  @keyframes growBar {
+    from { width: 0 !important; }
+    to { /* width set inline */ }
+  }
+
+  /* Override to use var set from JS */
+  .tag-bar-row .bar-fill {
+    animation: none;
+  }
+
+  .tag-count {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    width: 30px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ---- Monthly Bar Chart ---- */
+  .monthly-chart {
+    min-height: 200px;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    width: 100%;
+    height: 200px;
+    padding-top: 1rem;
+  }
+
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    height: 100%;
+    justify-content: flex-end;
+    animation: fadeInUp 0.4s ease both;
+  }
+
+  .bar-wrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
+    cursor: default;
+  }
+
+  .bar-col-fill {
+    width: 100%;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--color-primary), rgba(139,92,246,0.4));
+    transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 4px;
+  }
+
+  .bar-value {
+    position: absolute;
+    top: -22px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .bar-label {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  /* ---- Seasons Chart ---- */
+  .seasons-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    padding: 1rem 0;
+  }
+
+  .season-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  .season-ring {
+    position: relative;
+    width: 100px;
+    height: 100px;
+  }
+
+  .ring-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .ring-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 3;
+  }
+
+  .ring-fg {
+    fill: none;
+    stroke: url(#ringGradient);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke: var(--color-primary);
+    transition: stroke-dasharray 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ring-count {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    font-family: var(--font-display);
+  }
+
+  .season-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---- CTA ---- */
+  .cta-section {
+    margin-bottom: 6rem;
+  }
+
+  .cta-box {
+    border-radius: 1.5rem;
+    padding: 3.5rem 3rem;
+    text-align: center;
+  }
+
+  .cta-box h2 {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .cta-box p {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+  }
+
+  .cta-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ---- Misc ---- */
+  .no-data {
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .chart-placeholder {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    color: var(--color-text-dim);
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+
+  /* ---- Animations ---- */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 1024px) {
+    .summary-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .two-col-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .summary-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .stat-value { font-size: 2rem; }
+    .hero-title { font-size: 2.5rem; }
+    .bar-label { display: none; }
+    .bar-chart { gap: 0.35rem; }
+    .cta-box { padding: 2rem 1.5rem; }
+    .cta-box h2 { font-size: 1.5rem; }
+  }
+</style>
