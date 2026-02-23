@@ -1,5 +1,5 @@
 ---
-category: Episodios
+category: Episodios Temporada 1
 images:
   - title: 010 - Reflexiones Post-Semana Trágica y Actualidad Variada
     src: 'https://cdn.veredillasfm.es/interno.png'
