@@ -107,6 +107,10 @@ function formatTime(seconds: number): string {
                     </div>
 
                     <div class="sidebar-actions">
+                        <a href={`/perfil/${user._id}`} class="btn btn-primary btn-full" style="margin-bottom: 0.75rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                            Ver mi Perfil Público
+                        </a>
                         <a href="/api/auth/logout" class="btn btn-secondary btn-full">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                             Cerrar Sesión

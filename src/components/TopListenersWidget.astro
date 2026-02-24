@@ -29,6 +29,7 @@
     import { getLevel } from '../lib/gamification';
 
     interface Listener {
+        _id: string;
         name: string;
         picture?: string;
         listeningTime: number;
@@ -80,8 +81,15 @@
 
                 const level = getLevel(listener.listeningTime);
 
+                const profileUrl = listener._id ? `/perfil/${listener._id}` : null;
+                const tag = profileUrl ? 'a' : 'div';
+                const tagOpen = profileUrl
+                    ? `<a href="${profileUrl}" class="listener-row listener-link ${isTop3 ? 'top-rank' : ''} rank-${rank}" title="Ver perfil de ${listener.name}">`
+                    : `<div class="listener-row ${isTop3 ? 'top-rank' : ''} rank-${rank}">`;
+                const tagClose = profileUrl ? '</a>' : '</div>';
+
                 return `
-                    <div class="listener-row ${isTop3 ? 'top-rank' : ''} rank-${rank}">
+                    ${tagOpen}
                         <div class="rank-badge">${rank}</div>
                         
                         <div class="avatar-wrapper">
@@ -101,8 +109,9 @@
                         
                         <div class="listener-stat">
                             <span class="time-value">${formatTime(listener.listeningTime)}</span>
+                            ${profileUrl ? '<svg class="profile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>' : ''}
                         </div>
-                    </div>
+                    ${tagClose}
                 `;
             }).join('');
         } catch (error) {
@@ -203,6 +212,37 @@
         background: rgba(255, 255, 255, 0.05);
         border-color: rgba(255,255,255,0.05);
     }
+
+    /* Link variant */
+    .top-listeners-widget .listener-link {
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        display: grid;
+    }
+
+    .top-listeners-widget .listener-link:hover {
+        background: rgba(139, 92, 246, 0.08) !important;
+        border-color: rgba(139, 92, 246, 0.25) !important;
+        transform: translateX(3px);
+        transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+
+    .top-listeners-widget .listener-link:hover .name {
+        color: #a78bfa;
+    }
+
+    .top-listeners-widget .profile-arrow {
+        color: rgba(167, 139, 250, 0.5);
+        opacity: 0;
+        transition: opacity 0.2s, transform 0.2s;
+        flex-shrink: 0;
+    }
+
+    .top-listeners-widget .listener-link:hover .profile-arrow {
+        opacity: 1;
+        transform: translateX(3px);
+    }
     
     /* Rank Styling */
     .top-listeners-widget .rank-badge {
@@ -290,6 +330,10 @@
     /* Stat */
     .top-listeners-widget .listener-stat {
         text-align: right;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
     }
 
     .top-listeners-widget .time-value {

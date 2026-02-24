@@ -1,0 +1,1114 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import mongoose from 'mongoose';
+import User from '../../models/User';
+import UserAchievement from '../../models/UserAchievement';
+import { ACHIEVEMENTS, RARITY_COLORS, RARITY_LABELS, CATEGORY_LABELS } from '../../lib/achievements';
+import { getLevel, getNextLevel, getProgressToNextLevel } from '../../lib/gamification';
+import { getUserFromCookie } from '../../lib/auth';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+  return Astro.redirect('/404');
+}
+
+// Connect to MongoDB
+let user: any = null;
+let unlockedAchievements: any[] = [];
+let totalPoints = 0;
+
+try {
+  if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = import.meta.env.MONGODB_URI;
+    if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
+  }
+
+  user = await User.findById(id).select(
+    'name picture bio favorites likedClips listeningTime completedEpisodes createdAt role'
+  );
+
+  if (user) {
+    const storedUnlocks = await UserAchievement.find({ userId: user._id });
+    const unlockedIds = new Set(storedUnlocks.map((u: { achievementId: string }) => u.achievementId));
+    const unlockedAtMap = new Map(storedUnlocks.map((u: { achievementId: string; unlockedAt: Date }) => [u.achievementId, u.unlockedAt]));
+
+    totalPoints = ACHIEVEMENTS.reduce((sum, a) => unlockedIds.has(a.id) ? sum + a.points : sum, 0);
+    unlockedAchievements = ACHIEVEMENTS
+      .filter(a => unlockedIds.has(a.id))
+      .map(a => ({
+        ...a,
+        rarityColor: RARITY_COLORS[a.rarity],
+        rarityLabel: RARITY_LABELS[a.rarity],
+        categoryLabel: CATEGORY_LABELS[a.category],
+        unlockedAt: unlockedAtMap.get(a.id) ?? null,
+      }))
+      .sort((a, b) => {
+        const order: Record<string, number> = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
+        return order[a.rarity] - order[b.rarity];
+      });
+  }
+} catch (err) {
+  console.error('[perfil/[id]]', err);
+}
+
+if (!user) {
+  return Astro.redirect('/404');
+}
+
+// Check if visitor is the owner
+const cookieHeader = Astro.request.headers.get('cookie');
+const visitorPayload = getUserFromCookie(cookieHeader);
+const isOwner = visitorPayload?.userId === id;
+
+// Gamification
+const listeningTime = user.listeningTime || 0;
+const currentLevel = getLevel(listeningTime);
+const nextLevel = getNextLevel(listeningTime);
+const progress = getProgressToNextLevel(listeningTime);
+
+// Format time
+function formatTime(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+// Member since
+const createdDate = new Date(user.createdAt).toLocaleDateString('es-ES', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+const daysSinceJoin = Math.floor(
+  (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+);
+
+// Favorites episodes data
+const allEpisodes = await getCollection('episodios');
+const favoriteSlugs: string[] = user.favorites || [];
+const favoriteEpisodes = allEpisodes
+  .filter(ep => favoriteSlugs.includes(ep.slug))
+  .sort((a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime())
+  .slice(0, 6);
+
+// Liked Clips (just IDs, displayed as YouTube embeds)
+const likedClipIds: string[] = (user.likedClips || []).slice(0, 6);
+
+// Stats
+const completedCount = (user.completedEpisodes || []).length;
+const favCount = favoriteSlugs.length;
+const likedClipsCount = (user.likedClips || []).length;
+
+// Role badge
+const ROLE_BADGES: Record<string, { label: string; color: string; icon: string }> = {
+  owner:  { label: 'Creador',   color: '#f59e0b', icon: '👑' },
+  admin:  { label: 'Admin',     color: '#ec4899', icon: '🛡️' },
+  user:   { label: 'Oyente',    color: '#8b5cf6', icon: '🎧' },
+};
+const roleBadge = ROLE_BADGES[user.role] || ROLE_BADGES['user'];
+
+// OG image
+const ogDescription = user.bio
+  ? `${user.bio.slice(0, 120)}… - Perfil en Veredillas FM`
+  : `Descubre el perfil de ${user.name} en Veredillas FM: ${unlockedAchievements.length} logros, ${favCount} favoritos.`;
+---
+
+<Layout
+  title={`Perfil de ${user.name}`}
+  description={ogDescription}
+  image={user.picture || '/logo.png'}
+  type="profile"
+>
+  <!-- Ambient BG -->
+  <div class="pub-bg" aria-hidden="true">
+    <div class="pub-orb pub-orb-1"></div>
+    <div class="pub-orb pub-orb-2"></div>
+    <div class="pub-orb pub-orb-3"></div>
+    <div class="pub-grid"></div>
+  </div>
+
+  <div class="pub-page">
+
+    <!-- ── HERO BANNER ── -->
+    <header class="hero-banner">
+      <div class="hero-left">
+        <div class="avatar-ring" style={`--level-color: ${currentLevel.color}`}>
+          {user.picture
+            ? <img src={user.picture} alt={user.name} class="avatar-img" />
+            : <div class="avatar-placeholder" style={`background: ${currentLevel.color}`}>{user.name.charAt(0).toUpperCase()}</div>
+          }
+          <div class="level-badge" style={`background: ${currentLevel.color}`} title={currentLevel.name}>
+            <span>{currentLevel.icon}</span>
+          </div>
+        </div>
+
+        <div class="hero-info">
+          <div class="hero-name-row">
+            <h1 class="hero-name">{user.name}</h1>
+            <span class="role-badge" style={`color: ${roleBadge.color}; border-color: ${roleBadge.color}30; background: ${roleBadge.color}15`}>
+              {roleBadge.icon} {roleBadge.label}
+            </span>
+          </div>
+          <p class="hero-level" style={`color: ${currentLevel.color}`}>{currentLevel.name} · {currentLevel.description}</p>
+          {user.bio && <p class="hero-bio">{user.bio}</p>}
+          <p class="hero-joined">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Miembro desde {createdDate}
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="hero-stats-bar">
+        <div class="qs">
+          <span class="qs-value">{formatTime(listeningTime)}</span>
+          <span class="qs-label">Escuchado</span>
+        </div>
+        <div class="qs-sep"></div>
+        <div class="qs">
+          <span class="qs-value">{completedCount}</span>
+          <span class="qs-label">Episodios</span>
+        </div>
+        <div class="qs-sep"></div>
+        <div class="qs">
+          <span class="qs-value">{favCount}</span>
+          <span class="qs-label">Favoritos</span>
+        </div>
+        <div class="qs-sep"></div>
+        <div class="qs">
+          <span class="qs-value qs-gold">{totalPoints}</span>
+          <span class="qs-label">Puntos ⭐</span>
+        </div>
+        <div class="qs-sep"></div>
+        <div class="qs">
+          <span class="qs-value">{daysSinceJoin}</span>
+          <span class="qs-label">Días</span>
+        </div>
+      </div>
+
+      <!-- Level progress bar -->
+      <div class="level-progress-wrap">
+        <div class="level-progress-labels">
+          <span>Nivel: <strong>{currentLevel.name}</strong></span>
+          {nextLevel
+            ? <span>Siguiente: <strong style={`color:${nextLevel.color}`}>{nextLevel.icon} {nextLevel.name}</strong></span>
+            : <span class="level-max">🏆 Nivel máximo</span>
+          }
+        </div>
+        <div class="level-bar-track">
+          <div class="level-bar-fill" style={`width:${progress}%; background:${currentLevel.color}`}></div>
+          <div class="level-bar-glow" style={`left:${progress}%; background:${currentLevel.color}`}></div>
+        </div>
+        <div class="level-pct">{Math.floor(progress)}% al siguiente nivel</div>
+      </div>
+
+      {isOwner && (
+        <a href="/perfil" class="edit-profile-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar mi perfil
+        </a>
+      )}
+    </header>
+
+    <!-- ── CONTENT GRID ── -->
+    <div class="content-grid">
+
+      <!-- ── ACHIEVEMENTS WIDGET ── -->
+      <section class="glass-card achievements-card" id="logros">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">🏅</span>
+            <h2>Logros</h2>
+          </div>
+          <div class="card-badge">{unlockedAchievements.length} / {ACHIEVEMENTS.filter(a => !a.secret).length + unlockedAchievements.filter(a => a.secret).length}</div>
+        </div>
+
+        {unlockedAchievements.length === 0 ? (
+          <div class="empty-state">
+            <span class="empty-icon">🔒</span>
+            <p>Este usuario aún no ha desbloqueado logros</p>
+          </div>
+        ) : (
+          <div class="achievements-grid">
+            {unlockedAchievements.map((ach) => (
+              <div
+                class="ach-chip"
+                style={`--ach-color: ${ach.rarityColor}`}
+                title={`${ach.name}: ${ach.description}`}
+              >
+                <span class="ach-icon">{ach.icon}</span>
+                <div class="ach-text">
+                  <span class="ach-name">{ach.name}</span>
+                  <span class="ach-rarity" style={`color:${ach.rarityColor}`}>{ach.rarityLabel}</span>
+                </div>
+                {ach.points > 0 && <span class="ach-pts">+{ach.points}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <!-- ── FAVORITES WIDGET ── -->
+      <section class="glass-card favorites-card" id="favoritos">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">❤️</span>
+            <h2>Episodios Favoritos</h2>
+          </div>
+          <div class="card-badge">{favCount}</div>
+        </div>
+
+        {favoriteEpisodes.length === 0 ? (
+          <div class="empty-state">
+            <span class="empty-icon">💔</span>
+            <p>Sin favoritos aún</p>
+          </div>
+        ) : (
+          <div class="fav-list">
+            {favoriteEpisodes.map((ep) => (
+              <a href={`/ep/${ep.slug}`} class="fav-item">
+                {ep.data.image
+                  ? <img src={ep.data.image} alt={ep.data.title} class="fav-thumb" loading="lazy" />
+                  : <div class="fav-thumb-placeholder">🎙️</div>
+                }
+                <div class="fav-info">
+                  <span class="fav-title">{ep.data.title}</span>
+                  <span class="fav-date">{new Date(ep.data.pubDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                </div>
+                <svg class="fav-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            ))}
+            {favCount > 6 && (
+              <div class="fav-more">+{favCount - 6} episodios más guardados</div>
+            )}
+          </div>
+        )}
+      </section>
+
+      <!-- ── LIKED CLIPS WIDGET ── -->
+      <section class="glass-card clips-card" id="clips">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">🎬</span>
+            <h2>Clips Favoritos</h2>
+          </div>
+          <div class="card-badge">{likedClipsCount}</div>
+        </div>
+
+        {likedClipIds.length === 0 ? (
+          <div class="empty-state">
+            <span class="empty-icon">🎞️</span>
+            <p>Sin clips guardados aún</p>
+          </div>
+        ) : (
+          <div class="clips-grid">
+            {likedClipIds.map((clipId) => (
+              <a
+                href={`https://www.youtube.com/watch?v=${clipId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="clip-card"
+              >
+                <div class="clip-thumb-wrap">
+                  <img
+                    src={`https://i.ytimg.com/vi/${clipId}/hqdefault.jpg`}
+                    alt="Clip de Veredillas FM"
+                    class="clip-thumb"
+                    loading="lazy"
+                  />
+                  <div class="clip-play-overlay">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+        {likedClipsCount > 0 && (
+          <a href="/clips" class="see-all-link">Ver todos los clips →</a>
+        )}
+      </section>
+
+      <!-- ── STATS MINI-WIDGET ── -->
+      <section class="glass-card stats-mini-card" id="estadisticas">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">📊</span>
+            <h2>Estadísticas</h2>
+          </div>
+        </div>
+
+        <div class="stat-rows">
+          <div class="stat-row">
+            <div class="stat-row-icon">⏱️</div>
+            <div class="stat-row-label">Tiempo total escuchado</div>
+            <div class="stat-row-value">{formatTime(listeningTime)}</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row-icon">✅</div>
+            <div class="stat-row-label">Episodios completados</div>
+            <div class="stat-row-value">{completedCount}</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row-icon">❤️</div>
+            <div class="stat-row-label">Episodios favoritos</div>
+            <div class="stat-row-value">{favCount}</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row-icon">🎬</div>
+            <div class="stat-row-label">Clips con Me Gusta</div>
+            <div class="stat-row-value">{likedClipsCount}</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row-icon">🏅</div>
+            <div class="stat-row-label">Logros desbloqueados</div>
+            <div class="stat-row-value">{unlockedAchievements.length}</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row-icon">⭐</div>
+            <div class="stat-row-label">Puntos totales</div>
+            <div class="stat-row-value stat-gold">{totalPoints}</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row-icon">📅</div>
+            <div class="stat-row-label">Días en comunidad</div>
+            <div class="stat-row-value">{daysSinceJoin}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── RARITY BREAKDOWN ── -->
+      {unlockedAchievements.length > 0 && (
+        <section class="glass-card rarity-card" id="rareza">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="card-icon">💎</span>
+              <h2>Logros por Rareza</h2>
+            </div>
+          </div>
+
+          <div class="rarity-bars">
+            {(['legendary','epic','rare','uncommon','common'] as const).map(rarity => {
+              const count = unlockedAchievements.filter(a => a.rarity === rarity).length;
+              const total = ACHIEVEMENTS.filter(a => a.rarity === rarity && !a.secret).length;
+              const maxTotal = Math.max(total, 1);
+              const pct = Math.round((count / maxTotal) * 100);
+              const color = RARITY_COLORS[rarity];
+              const label = RARITY_LABELS[rarity];
+              return (
+                <div class="rarity-row">
+                  <span class="rarity-label" style={`color:${color}`}>{label}</span>
+                  <div class="rarity-bar-track">
+                    <div class="rarity-bar-fill" style={`width:${pct}%; background:${color}`}></div>
+                  </div>
+                  <span class="rarity-count">{count}/{total}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+    </div><!-- /.content-grid -->
+
+    <!-- Back nav -->
+    <div class="back-nav">
+      <a href="/ep" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Explorar episodios
+      </a>
+      {!isOwner && (
+        <span class="profile-note">Perfil público de {user.name}</span>
+      )}
+    </div>
+
+  </div>
+</Layout>
+
+<style>
+  /* ── Ambient BG ── */
+  .pub-bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .pub-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+  }
+  .pub-orb-1 {
+    width: 700px; height: 700px;
+    top: -200px; left: -150px;
+    background: radial-gradient(circle, #7c3aed, transparent 70%);
+    opacity: 0.15;
+    animation: orbDrift 20s ease-in-out infinite alternate;
+  }
+  .pub-orb-2 {
+    width: 600px; height: 600px;
+    bottom: 0; right: -100px;
+    background: radial-gradient(circle, #ec4899, transparent 70%);
+    opacity: 0.13;
+    animation: orbDrift 25s ease-in-out infinite alternate-reverse;
+  }
+  .pub-orb-3 {
+    width: 400px; height: 400px;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, #0ea5e9, transparent 70%);
+    opacity: 0.07;
+    animation: orbPulse 14s ease-in-out infinite;
+  }
+  @keyframes orbDrift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(40px, 30px) scale(1.1); }
+  }
+  @keyframes orbPulse {
+    0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.05; }
+    50%      { transform: translate(-50%,-50%) scale(1.3); opacity: 0.1; }
+  }
+  .pub-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ── Page ── */
+  .pub-page {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 6rem;
+  }
+
+  /* ── Hero Banner ── */
+  .hero-banner {
+    background: rgba(12, 12, 18, 0.75);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border-radius: 28px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: slideInDown 0.7s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hero-banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(236,72,153,0.05));
+    pointer-events: none;
+  }
+  @keyframes slideInDown {
+    from { opacity:0; transform: translateY(-30px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .hero-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Avatar */
+  .avatar-ring {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    flex-shrink: 0;
+  }
+  .avatar-ring::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--level-color), transparent 60%, var(--level-color));
+    animation: spin 6s linear infinite;
+    opacity: 0.7;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .avatar-img,
+  .avatar-placeholder {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255,255,255,0.05);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 1;
+  }
+  .avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: white;
+  }
+  .level-badge {
+    position: absolute;
+    bottom: 2px; right: 2px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    border: 3px solid rgba(12,12,18,0.9);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  /* Hero Info */
+  .hero-info { flex: 1; min-width: 0; }
+  .hero-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+  }
+  .hero-name {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--color-text);
+  }
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.85rem;
+    border: 1px solid;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .hero-level {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .hero-bio {
+    font-size: 0.97rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin: 0 0 0.75rem;
+    max-width: 520px;
+  }
+  .hero-joined {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--color-text-dim, #6b7280);
+  }
+
+  /* Quick Stats Bar */
+  .hero-stats-bar {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    overflow: hidden;
+    width: fit-content;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+  }
+  .qs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 1.75rem;
+    gap: 0.15rem;
+  }
+  .qs-sep {
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.07);
+  }
+  .qs-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: var(--font-display, inherit);
+    line-height: 1;
+  }
+  .qs-gold {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .qs-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+
+  /* Level progress */
+  .level-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .level-progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+  .level-max { color: #f59e0b; font-weight: 700; }
+  .level-bar-track {
+    position: relative;
+    height: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    overflow: visible;
+  }
+  .level-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s cubic-bezier(0.22,1,0.36,1);
+    position: relative;
+  }
+  .level-bar-glow {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    filter: blur(8px);
+    opacity: 0.7;
+    pointer-events: none;
+    transition: left 1s cubic-bezier(0.22,1,0.36,1);
+  }
+  .level-pct {
+    font-size: 0.75rem;
+    color: var(--color-text-dim, #6b7280);
+    text-align: right;
+  }
+
+  /* Edit btn */
+  .edit-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 100px;
+    color: #a78bfa;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    width: fit-content;
+  }
+  .edit-profile-btn:hover {
+    background: rgba(139,92,246,0.22);
+    border-color: rgba(139,92,246,0.6);
+    transform: translateY(-1px);
+  }
+
+  /* ── Glass Card ── */
+  .glass-card {
+    background: rgba(12, 12, 18, 0.65);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2rem;
+    transition: border-color 0.3s;
+    animation: fadeUp 0.6s ease both;
+  }
+  .glass-card:hover {
+    border-color: rgba(255,255,255,0.13);
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(20px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .card-icon { font-size: 1.4rem; }
+  .card-header h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+  }
+  .card-badge {
+    background: rgba(139,92,246,0.15);
+    border: 1px solid rgba(139,92,246,0.3);
+    color: #a78bfa;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.2rem 0.7rem;
+    border-radius: 100px;
+  }
+
+  /* Empty states */
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--color-text-muted);
+  }
+  .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; opacity: 0.5; }
+
+  /* ── Content Grid ── */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .achievements-card { grid-column: span 2; }
+  .stats-mini-card   { grid-column: span 1; }
+  .rarity-card       { grid-column: span 1; }
+
+  /* ── Achievements Grid ── */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.75rem;
+  }
+  .ach-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-left: 3px solid var(--ach-color);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .ach-chip:hover {
+    background: rgba(255,255,255,0.07);
+    transform: translateY(-2px);
+  }
+  .ach-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .ach-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    flex: 1;
+  }
+  .ach-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ach-rarity {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .ach-pts {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #f59e0b;
+    flex-shrink: 0;
+    background: rgba(245,158,11,0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+  }
+
+  /* ── Favorites List ── */
+  .fav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .fav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s;
+  }
+  .fav-item:hover {
+    background: rgba(139,92,246,0.1);
+    border-color: rgba(139,92,246,0.3);
+    transform: translateX(4px);
+  }
+  .fav-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .fav-thumb-placeholder {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    background: rgba(139,92,246,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+  .fav-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .fav-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fav-date {
+    font-size: 0.75rem;
+    color: var(--color-text-dim, #6b7280);
+  }
+  .fav-arrow {
+    color: var(--color-text-dim, #6b7280);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .fav-item:hover .fav-arrow { transform: translateX(4px); }
+  .fav-more {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.02);
+    border-radius: 10px;
+    border: 1px dashed rgba(255,255,255,0.08);
+  }
+
+  /* ── Clips Grid ── */
+  .clips-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .clip-card {
+    display: block;
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .clip-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .clip-thumb-wrap {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: #111;
+  }
+  .clip-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .clip-play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0);
+    transition: background 0.2s;
+  }
+  .clip-play-overlay svg {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s;
+  }
+  .clip-card:hover .clip-play-overlay {
+    background: rgba(0,0,0,0.45);
+  }
+  .clip-card:hover .clip-play-overlay svg {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .see-all-link {
+    display: block;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #a78bfa;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .see-all-link:hover { color: #c4b5fd; }
+
+  /* ── Stats Mini ── */
+  .stat-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.875rem;
+    background: rgba(255,255,255,0.02);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.2s;
+  }
+  .stat-row:hover { background: rgba(255,255,255,0.05); }
+  .stat-row-icon { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
+  .stat-row-label { flex: 1; font-size: 0.88rem; color: var(--color-text-muted); }
+  .stat-row-value { font-size: 0.95rem; font-weight: 700; color: var(--color-text); }
+  .stat-gold { color: #f59e0b !important; }
+
+  /* ── Rarity Breakdown ── */
+  .rarity-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+  .rarity-row {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+  }
+  .rarity-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: 90px;
+    flex-shrink: 0;
+  }
+  .rarity-bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .rarity-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 1.2s cubic-bezier(0.22,1,0.36,1);
+    min-width: 4px;
+  }
+  .rarity-count {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    width: 36px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── Back Nav ── */
+  .back-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color 0.2s, gap 0.2s;
+  }
+  .back-link:hover { color: var(--color-text); gap: 0.6rem; }
+  .profile-note {
+    font-size: 0.8rem;
+    color: var(--color-text-dim, #6b7280);
+    font-style: italic;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+    .achievements-card,
+    .stats-mini-card,
+    .rarity-card { grid-column: span 1; }
+  }
+  @media (max-width: 640px) {
+    .hero-banner { padding: 1.5rem; }
+    .hero-left { flex-direction: column; align-items: center; text-align: center; }
+    .hero-name-row { justify-content: center; }
+    .hero-bio { text-align: center; }
+    .hero-joined { justify-content: center; }
+    .hero-stats-bar { width: 100%; justify-content: center; }
+    .qs { padding: 0.75rem 1rem; }
+    .clips-grid { grid-template-columns: repeat(2, 1fr); }
+    .pub-page { padding: 1.25rem 1rem 4rem; }
+  }
+  @media (max-width: 400px) {
+    .clips-grid { grid-template-columns: 1fr; }
+    .hero-stats-bar { flex-wrap: wrap; width: 100%; }
+    .qs-sep { display: none; }
+    .qs { flex: 1; min-width: 80px; }
+  }
+</style>

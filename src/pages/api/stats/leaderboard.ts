@@ -21,7 +21,7 @@ export const GET: APIRoute = async () => {
     const topListeners = await User.find({ listeningTime: { $gt: 0 } })
       .sort({ listeningTime: -1 })
       .limit(5)
-      .select('name picture listeningTime -_id')
+      .select('name picture listeningTime _id')
       .lean();
 
     return new Response(JSON.stringify(topListeners), {
