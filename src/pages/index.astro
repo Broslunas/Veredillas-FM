@@ -952,11 +952,15 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
 
     .featured-side {
         height: 100%;
+        position: relative;
+        z-index: 10;
     }
 
     .featured-side :global(.top-listeners) {
         height: 100%;
         min-height: 400px;
+        position: relative;
+        z-index: 10;
     }
 
     .spectrum-overlay {

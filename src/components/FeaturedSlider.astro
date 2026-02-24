@@ -216,6 +216,11 @@ const featuredEpisodes = allEpisodes
         z-index: 5;
     }
 
+    /* Inactive fade slides must not block clicks outside the slider */
+    :global(.featured-swiper .swiper-slide:not(.swiper-slide-active)) {
+        pointer-events: none;
+    }
+
     @media (max-width: 768px) {
         .featured-swiper {
             height: 450px;
