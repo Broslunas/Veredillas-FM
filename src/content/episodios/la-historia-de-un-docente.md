@@ -18,7 +18,7 @@ participants:
 season: 2
 episode: 1
 duration: ¿?
-pubDate: '2026-02-24T17:00:00.000Z'
+pubDate: '2026-03-03T17:00:00.000Z'
 ---
 ¿Alguna vez te has preguntado qué sucede realmente detrás de las puertas de un aula? Más allá de los libros y las pizarras, existen historias que transforman vidas.
 
