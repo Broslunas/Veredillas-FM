@@ -5,6 +5,19 @@ import User from '../../../models/User';
 
 export const prerender = false;
 
+/**
+ * POST /api/history/update
+ *
+ * Body: { episodeSlug, progress, duration, completed? }
+ *
+ * Improvements over the old version:
+ *  - Marks an episode as complete if progress ≥ 90% of duration (not just onEnded)
+ *  - Persists completed slugs to `completedEpisodes[]` — a permanent list that is
+ *    never truncated (unlike playbackHistory which caps at 50)
+ *  - Also increments `listeningTime` with the delta since the last saved progress,
+ *    so time is only counted once per real second listened (no double-counting)
+ *  - Validates and caps incoming values to prevent abuse
+ */
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const token = cookies.get('auth-token')?.value;
@@ -19,21 +32,24 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (mongoose.connection.readyState !== 1) {
       const MONGODB_URI = import.meta.env.MONGODB_URI;
-      if (!MONGODB_URI) {
-        throw new Error('MONGODB_URI not configured');
-      }
+      if (!MONGODB_URI) throw new Error('MONGODB_URI not configured');
       await mongoose.connect(MONGODB_URI);
     }
 
     const body = await request.json();
-    const { episodeSlug, progress, duration, completed } = body;
+    let { episodeSlug, progress, duration, completed } = body;
 
-    if (!episodeSlug) {
-      return new Response(JSON.stringify({ error: 'Episode slug is required' }), {
+    if (!episodeSlug || typeof episodeSlug !== 'string') {
+      return new Response(JSON.stringify({ error: 'episodeSlug is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    // Sanitize numbers
+    progress = typeof progress === 'number' && isFinite(progress) && progress >= 0 ? progress : 0;
+    duration = typeof duration === 'number' && isFinite(duration) && duration > 0 ? duration : 0;
+    completed = completed === true;
 
     const user = await User.findById(userPayload.userId);
     if (!user) {
@@ -43,48 +59,77 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    // Remove existing entry for this episode if it exists
-    const existingHistoryIndex = user.playbackHistory?.findIndex(h => h.episodeSlug === episodeSlug);
+    // ── Retrieve previous entry for this episode ─────────────────────────────
+    const existingIdx = user.playbackHistory?.findIndex(h => h.episodeSlug === episodeSlug) ?? -1;
     let previousProgress = 0;
-    let previousDuration = 0;
-    
-    if (existingHistoryIndex !== undefined && existingHistoryIndex !== -1) {
-      previousProgress = user.playbackHistory[existingHistoryIndex].progress;
-      previousDuration = user.playbackHistory[existingHistoryIndex].duration;
-      user.playbackHistory.splice(existingHistoryIndex, 1);
+    let previousDuration  = 0;
+    let wasAlreadyCompleted = false;
+
+    if (existingIdx !== -1) {
+      previousProgress     = user.playbackHistory[existingIdx].progress  ?? 0;
+      previousDuration     = user.playbackHistory[existingIdx].duration  ?? 0;
+      wasAlreadyCompleted  = user.playbackHistory[existingIdx].completed ?? false;
+      user.playbackHistory.splice(existingIdx, 1); // Remove (we'll re-add at top)
     }
 
-    // Use incoming duration if valid, otherwise fallback to previous
-    const finalDuration = (typeof duration === 'number' && duration > 0 && isFinite(duration)) ? duration : previousDuration;
+    // ── Determine final duration ──────────────────────────────────────────────
+    const finalDuration = duration > 0 ? duration : (previousDuration > 0 ? previousDuration : 0);
 
-    // Add new entry to the beginning
+    // ── Determine if completed ────────────────────────────────────────────────
+    // Three conditions mark an episode as complete:
+    //   1. The client explicitly sends completed=true (onended)
+    //   2. Progress ≥ 90% of the known duration
+    //   3. It was already marked completed before (never regress a completed episode)
+    const completedByThreshold =
+      finalDuration > 0 && progress >= finalDuration * 0.90;
+
+    const isNowCompleted = completed || completedByThreshold || wasAlreadyCompleted;
+
+    // ── Accumulate listeningTime delta ────────────────────────────────────────
+    // Only add the *new* seconds listened (progress - previousProgress).
+    // This prevents double-counting when the same progress is re-sent.
+    // Cap at 5 min per update to prevent abuse or seek-to-end tricks.
+    const MAX_DELTA_SECONDS = 300;
+    const delta = Math.min(Math.max(progress - previousProgress, 0), MAX_DELTA_SECONDS);
+
+    // ── Persist completed episode slug permanently ────────────────────────────
+    // completedEpisodes is a permanent Set-like array, never truncated.
+    if (isNowCompleted && !(user.completedEpisodes ?? []).includes(episodeSlug)) {
+      user.completedEpisodes = [...(user.completedEpisodes ?? []), episodeSlug];
+    }
+
+    // ── Update playbackHistory (rotating, capped at 100) ─────────────────────
     user.playbackHistory.unshift({
       episodeSlug,
-      progress: progress || 0,
-      duration: finalDuration || 0,
+      progress,
+      duration: finalDuration,
       listenedAt: new Date(),
-      completed: completed || false
+      completed: isNowCompleted,
     });
 
-    // Keep only the last 50 items
-    if (user.playbackHistory.length > 50) {
-      user.playbackHistory = user.playbackHistory.slice(0, 50);
+    if (user.playbackHistory.length > 100) {
+      user.playbackHistory = user.playbackHistory.slice(0, 100);
     }
 
-    // Update total listening time (approximate, adds difference if progress increased)
-    // This is a naive implementation. A better one would track increment. 
-    // For now, let's just assume the client sends the current progress.
-    // If we want to track TOTAL listening time strictly, we rely on the client sending "time listened since last update" or similar.
-    // However, the USER request is just "Playback history". 
-    // Updating listeningTime is a side bonus. Let's just update the history for now to be safe and avoid double counting issues with simple progress updates.
-    
-    // Actually, let's just save the user.
+    // ── Atomically increment listeningTime if delta > 0 ─────────────────────
+    // Using $inc via findByIdAndUpdate after the history save to avoid race conditions.
     await user.save();
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    if (delta > 0) {
+      await User.findByIdAndUpdate(userPayload.userId, {
+        $inc: { listeningTime: delta }
+      });
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        completed: isNowCompleted,
+        completedByThreshold,
+        delta,
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('Error updating history:', error);

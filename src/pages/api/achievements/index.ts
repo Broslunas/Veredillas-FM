@@ -50,9 +50,7 @@ export const GET: APIRoute = async ({ request }) => {
       (h: { listenedAt: Date }) => new Date(h.listenedAt) >= oneWeekAgo
     ).length;
 
-    const completedEpisodes = (user.playbackHistory || []).filter(
-      (h: { completed: boolean }) => h.completed
-    ).length;
+    const completedEpisodes = (user.completedEpisodes ?? []).length;
 
     const commentCount = await Comment.countDocuments({ email: user.email });
 
@@ -66,14 +64,16 @@ export const GET: APIRoute = async ({ request }) => {
     const stats: AchievementStats = {
       listeningTime: user.listeningTime || 0,
       favoritesCount: (user.favorites || []).length,
-      playbackHistoryCount: (user.playbackHistory || []).length,
+      // Use completedEpisodes (permanent list) for playbackHistoryCount so achievements
+      // based on "total episodes" are never reset by the rotating 100-entry history cache
+      playbackHistoryCount: (user.completedEpisodes ?? []).length,
       completedEpisodesCount: completedEpisodes,
-      consecutiveEpisodes: 0, // Tracked via frontend / session
+      consecutiveEpisodes: 0,
       commentsCount: commentCount,
       likedClipsCount: (user.likedClips || []).length,
       newsletterSubscribed: user.newsletter !== false,
       daysSinceJoin,
-      favoritedSeasonsCount: 0, // Would require content collection
+      favoritedSeasonsCount: 0,
       totalSeasonsCount: 1,
       loginStreakDays: daysSinceJoin >= 1 ? Math.min(daysSinceJoin, 7) : 0,
       hasProfilePicture: !!user.picture,
@@ -82,17 +82,32 @@ export const GET: APIRoute = async ({ request }) => {
       peakListeningHour: Math.round(peakHour),
       episodesListenedThisWeek: episodesThisWeek,
       chatMessagesCount: 0,
+      totalPoints: 0,
     };
 
-    // Compute which achievements should be unlocked by stats
-    const qualifiedIds = new Set(computeUnlockedAchievements(stats));
+    // ── Pass 1: evaluate non-meta achievements (those with real check logic)
+    // Meta-achievements like 'estrella' depend on totalPoints, so exclude them first.
+    const META_IDS = new Set(['estrella']);
+    const qualifiedIds = new Set(computeUnlockedAchievements(stats).filter(id => !META_IDS.has(id)));
 
     // Fetch already stored unlocks from DB
     const storedUnlocks = await UserAchievement.find({ userId: user._id });
     const storedIds = new Set(storedUnlocks.map(u => u.achievementId));
     const unlockedAtMap = new Map(storedUnlocks.map(u => [u.achievementId, u.unlockedAt]));
 
-    // Determine new unlocks to persist
+    // Combine stored + newly qualified (pass 1) to compute real points
+    const pass1UnlockedIds = new Set([...storedIds, ...qualifiedIds]);
+    const currentPoints = ACHIEVEMENTS.reduce((sum, a) => {
+      if (pass1UnlockedIds.has(a.id)) return sum + a.points;
+      return sum;
+    }, 0);
+
+    // ── Pass 2: re-evaluate with totalPoints injected into stats
+    stats.totalPoints = currentPoints;
+    const metaQualifiedIds = computeUnlockedAchievements(stats).filter(id => META_IDS.has(id));
+    for (const id of metaQualifiedIds) qualifiedIds.add(id);
+
+    // Determine newly unlocked vs stored
     const newlyUnlocked: string[] = [];
     for (const id of qualifiedIds) {
       if (!storedIds.has(id)) {
@@ -114,7 +129,7 @@ export const GET: APIRoute = async ({ request }) => {
     // All unlock ids (stored + just-added)
     const allUnlockedIds = new Set([...storedIds, ...newlyUnlocked]);
 
-    // Build response payload
+    // Final points (may differ slightly if a new meta-achievement was just added, but its points = 0)
     const totalPoints = ACHIEVEMENTS.reduce((sum, a) => {
       if (allUnlockedIds.has(a.id)) return sum + a.points;
       return sum;

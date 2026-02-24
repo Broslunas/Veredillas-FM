@@ -16,6 +16,7 @@ export interface IUser extends mongoose.Document {
     completed: boolean;
   }[];
   listeningTime: number; // Total seconds listened
+  completedEpisodes: string[]; // Slugs of fully-listened episodes (persistent, never truncated)
   createdAt: Date;
   updatedAt: Date;
   lastLogin: Date;
@@ -80,7 +81,11 @@ const userSchema = new mongoose.Schema<IUser>({
   likedClips: {
     type: [String],
     default: []
-  }
+  },
+  completedEpisodes: {
+    type: [String],
+    default: []
+  },
 }, {
   timestamps: true,
   strict: true,

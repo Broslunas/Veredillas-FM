@@ -43,6 +43,8 @@ export interface AchievementStats {
   peakListeningHour: number;       // 0-23, for night-owl badge
   episodesListenedThisWeek: number;
   chatMessagesCount: number;
+  /** Sum of points from already-unlocked achievements — computed server-side before evaluating meta-achievements. */
+  totalPoints: number;
 }
 
 // Rarity colours for UI display
@@ -527,9 +529,9 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '⭐',
     rarity: 'epic',
     category: 'especial',
-    points: 0, // No extra points for meta-achievement
-    check: _s => false, // Calculated from total points, done server-side
-    secret: false,
+    points: 0, // meta-achievement, no extra points to avoid infinite loops
+    check: s => s.totalPoints >= 500,
+    progress: s => ({ current: Math.min(s.totalPoints, 500), max: 500, unit: 'pts' }),
   },
   {
     id: 'vip',
@@ -541,17 +543,6 @@ export const ACHIEVEMENTS: Achievement[] = [
     points: 500,
     check: s => s.listeningTime >= 18000 && s.completedEpisodesCount >= 30,
     secret: true,
-  },
-  {
-    id: 'perfeccionista',
-    name: 'Perfeccionista',
-    description: 'Escucha el mismo episodio 3 veces.',
-    icon: '🔁',
-    rarity: 'rare',
-    category: 'especial',
-    points: 80,
-    check: _s => false, // Tracked elsewhere
-    secret: false,
   },
   {
     id: 'todo_favorito',

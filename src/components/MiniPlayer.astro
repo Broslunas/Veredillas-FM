@@ -389,50 +389,65 @@ import './player/SharedPlayerStyles.css';
              
              let lastTrackedTime = audioElement.currentTime;
              let sessionAccumulator = 0;
-             const SESSION_SYNC_THRESHOLD = 10; 
+             const SESSION_SYNC_THRESHOLD = 10;
              
              // Listen Tracking
              let totalListenedForEpisode = 0;
-             let hasRecordedListen = false; 
+             let hasRecordedListen = false;
+             // Completion tracking — fires once when ≥ 90%, or on 'ended'
+             let hasFiredCompletion = false;
 
 // Moved to top level
 
 
-              const updateSeek = () => {
+               const updateSeek = () => {
                    const current = audioElement.currentTime;
+                   const dur     = audioElement.duration;
                    
                    // Tracking Logic
                    const delta = current - lastTrackedTime;
-                   // Only count if playing normal speed (approx) and not seeking (large jumps)
                    if (delta > 0 && delta < 5 && !audioElement.paused) {
                        sessionAccumulator += delta;
                        totalListenedForEpisode += delta;
 
-                       // Record Listen if > 30s
+                       // Record listen event after 30s
                        if (totalListenedForEpisode > 30 && !hasRecordedListen && window.playerSlug) {
                            hasRecordedListen = true;
                            recordListen(window.playerSlug);
                        }
 
-                       if(sessionAccumulator >= SESSION_SYNC_THRESHOLD) {
+                       // ── 90% completion threshold ───────────────────────────
+                       if (
+                         !hasFiredCompletion &&
+                         window.playerSlug &&
+                         isFinite(dur) && dur > 0 &&
+                         current >= dur * 0.90
+                       ) {
+                           hasFiredCompletion = true;
+                           syncPlaybackHistory(window.playerSlug, current, dur, true);
+                       }
+
+                       if (sessionAccumulator >= SESSION_SYNC_THRESHOLD) {
                            syncListeningTime(sessionAccumulator);
-                           // Sync history every 10s as well
-                           if(window.playerSlug) syncPlaybackHistory(window.playerSlug, current, audioElement.duration);
+                           // Sync history every 10s (without overriding completion flag)
+                           if (window.playerSlug && !hasFiredCompletion) {
+                               syncPlaybackHistory(window.playerSlug, current, dur);
+                           }
                            sessionAccumulator = 0;
                        }
                    }
                    lastTrackedTime = current;
                    
-                   if(document.activeElement !== seekBar) {
+                   if (document.activeElement !== seekBar) {
                        seekBar.value = current.toString();
                        updateSeekUI();
                    }
                    
                    // Dispatch Global Event for Widgets
                    document.dispatchEvent(new CustomEvent('veredillas:audio-timeupdate', {
-                       detail: { currentTime: current, duration: audioElement.duration }
+                       detail: { currentTime: current, duration: dur }
                    }));
-              };
+               };
 
              volumeBar.oninput = () => {
                  audioElement.volume = parseFloat(volumeBar.value);
@@ -507,7 +522,10 @@ import './player/SharedPlayerStyles.css';
              };
 
              audioElement.onended = () => {
-                 if(window.playerSlug) syncPlaybackHistory(window.playerSlug, audioElement.duration, audioElement.duration, true);
+                 if (window.playerSlug && !hasFiredCompletion) {
+                     hasFiredCompletion = true;
+                     syncPlaybackHistory(window.playerSlug, audioElement.duration, audioElement.duration, true);
+                 }
              };
              
              // Visualizer & Auto-Loudness Normalization (Always Active)
