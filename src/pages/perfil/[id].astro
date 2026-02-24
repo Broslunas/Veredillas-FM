@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 import mongoose from 'mongoose';
-import User from '../../models/User';
+import User, { type IUser } from '../../models/User';
 import UserAchievement from '../../models/UserAchievement';
 import { ACHIEVEMENTS, RARITY_COLORS, RARITY_LABELS, CATEGORY_LABELS } from '../../lib/achievements';
 import { getLevel, getNextLevel, getProgressToNextLevel } from '../../lib/gamification';
@@ -17,7 +17,7 @@ if (!id || !mongoose.Types.ObjectId.isValid(id)) {
 }
 
 // Connect to MongoDB
-let user: any = null;
+let user: IUser | null = null;
 let unlockedAchievements: any[] = [];
 let totalPoints = 0;
 

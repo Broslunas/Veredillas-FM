@@ -1,0 +1,518 @@
+---
+import Layout from '../layouts/Layout.astro';
+import mongoose from 'mongoose';
+import User, { type IUser } from '../models/User';
+import { getLevel } from '../lib/gamification';
+import { getUserFromCookie } from '../lib/auth';
+
+export const prerender = false;
+
+// Conectar a MongoDB
+try {
+  if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = import.meta.env.MONGODB_URI;
+    if (MONGODB_URI) {
+      await mongoose.connect(MONGODB_URI);
+    }
+  }
+} catch (error) {
+  console.error('Error connecting to MongoDB:', error);
+}
+
+// Obtener todos los usuarios ordenados por tiempo de escucha (descendente)
+let users: IUser[] = [];
+try {
+  users = await User.find({})
+    .select('name picture listeningTime role bio createdAt')
+    .sort({ listeningTime: -1 }) as unknown as IUser[];
+} catch (error) {
+  console.error('Error fetching users:', error);
+}
+
+// Formatear tiempo
+function formatTime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+}
+
+// Deterministic colors for placeholders
+const colors = ['#FF6B6B', '#4FACFE', '#43E97B', '#FA709A', '#667EEA', '#8B5CF6'];
+function getPlaceholderColor(name: string) {
+    const charCode = name.charCodeAt(0) || 0;
+    return colors[charCode % colors.length];
+}
+
+const ROLE_BADGES: Record<string, { label: string; color: string; icon: string }> = {
+  owner:  { label: 'Creador',   color: '#f59e0b', icon: '👑' },
+  admin:  { label: 'Admin',     color: '#ec4899', icon: '🛡️' },
+  user:   { label: 'Oyente',    color: '#8b5cf6', icon: '🎧' },
+};
+---
+
+<Layout 
+    title="Comunidad" 
+    description="Conoce a todos los oyentes y miembros de la comunidad de Veredillas FM."
+>
+    <!-- Background Decor -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="container community-container gs-fade-up">
+        <header class="community-header">
+            <div class="header-content">
+                <div class="badge-accent">COMUNIDAD</div>
+                <h1>Nuestros <span class="gradient-text">Oyentes</span></h1>
+                <p>Descubre a las personas que hacen posible Veredillas FM. Una comunidad de apasionados por el audio educativo.</p>
+            </div>
+            
+            <div class="search-bar-wrapper">
+                <div class="search-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" id="user-search" placeholder="Buscar oyentes por nombre..." aria-label="Buscar usuarios" />
+                </div>
+                <div id="search-stats" class="search-stats">
+                    Mostrando {users.length} usuarios
+                </div>
+            </div>
+        </header>
+
+        <main class="users-grid" id="users-grid">
+            {users.map((user, index) => {
+                const level = getLevel(user.listeningTime || 0);
+                const role = ROLE_BADGES[user.role] || ROLE_BADGES.user;
+                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                const bgColor = getPlaceholderColor(user.name);
+                const isTop = index < 3;
+
+                return (
+                    <a href={`/perfil/${user._id}`} class="user-card glass-panel" data-name={user.name.toLowerCase()}>
+                        {isTop && <div class="top-rank-badge">#{index + 1}</div>}
+                        
+                        <div class="card-header">
+                            <div class="avatar-wrapper">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="user-avatar" loading="lazy" />
+                                ) : (
+                                    <div class="user-avatar-placeholder" style={`background: ${bgColor}`}>
+                                        {initials}
+                                    </div>
+                                )}
+                                <div class="level-badge" style={`background: ${level.color}`} title={level.name}>
+                                    {level.icon}
+                                </div>
+                            </div>
+                            
+                            <div class="user-main-info">
+                                <h2 class="user-name">{user.name}</h2>
+                                <div class="user-role" style={`color: ${role.color}; border-color: ${role.color}40; background: ${role.color}10`}>
+                                    {role.icon} {role.label}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            {user.bio ? (
+                                <p class="user-bio">{user.bio}</p>
+                            ) : (
+                                <p class="user-bio empty">Sin biografía</p>
+                            )}
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="stat">
+                                <span class="stat-label">Nivel</span>
+                                <span class="stat-value" style={`color: ${level.color}`}>{level.name}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Tiempo</span>
+                                <span class="stat-value">{formatTime(user.listeningTime || 0)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-hover-border" style={`background: linear-gradient(135deg, ${level.color}, ${role.color})`}></div>
+                    </a>
+                )
+            })}
+        </main>
+        
+        <div id="no-results" class="no-results hidden">
+            <div class="no-results-icon">🔍</div>
+            <h3>No hemos encontrado a nadie</h3>
+            <p>Prueba con otro nombre o borra la búsqueda.</p>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    const searchInput = document.getElementById('user-search') as HTMLInputElement;
+    const usersGrid = document.getElementById('users-grid');
+    const noResults = document.getElementById('no-results');
+    const searchStats = document.getElementById('search-stats');
+    
+    if (searchInput && usersGrid && noResults && searchStats) {
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase().trim();
+            const cards = usersGrid.querySelectorAll('.user-card');
+            let visibleCount = 0;
+            
+            cards.forEach(card => {
+                const name = (card as HTMLElement).dataset.name || '';
+                if (name.includes(query)) {
+                    (card as HTMLElement).classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    (card as HTMLElement).classList.add('hidden');
+                }
+            });
+            
+            if (visibleCount === 0) {
+                usersGrid.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            } else {
+                usersGrid.classList.remove('hidden');
+                noResults.classList.add('hidden');
+            }
+            
+            searchStats.textContent = `Mostrando ${visibleCount} usuarios`;
+        });
+    }
+</script>
+
+<style>
+    .community-container {
+        padding-top: 4rem;
+        padding-bottom: 6rem;
+    }
+
+    .community-header {
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto 4rem;
+    }
+
+    .badge-accent {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        color: #a78bfa;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        margin-bottom: 1.5rem;
+    }
+
+    .community-header h1 {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #a78bfa, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .community-header p {
+        font-size: 1.25rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+        margin-bottom: 3rem;
+    }
+
+    /* Search Bar */
+    .search-bar-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .search-inner {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-text-dim);
+        pointer-events: none;
+    }
+
+    .search-inner input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1.5rem;
+        color: var(--color-text);
+        font-size: 1.1rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-inner input:focus {
+        outline: none;
+        border-color: #a78bfa;
+        background: rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.1);
+    }
+
+    .search-stats {
+        font-size: 0.9rem;
+        color: var(--color-text-dim);
+        font-weight: 500;
+    }
+
+    /* Users Grid */
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+
+    /* User Card */
+    .user-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 2rem;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 2rem;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        height: 100%;
+    }
+
+    .user-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        border-color: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .user-card.hidden {
+        display: none;
+    }
+
+    .top-rank-badge {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: black;
+        font-size: 0.8rem;
+        font-weight: 800;
+        padding: 0.25rem 0.75rem;
+        border-radius: 100px;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        z-index: 10;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+    }
+
+    .user-avatar, .user-avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 2rem;
+        object-fit: cover;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .user-avatar-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: white;
+    }
+
+    .level-badge {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        border: 3px solid #000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .user-main-info {
+        min-width: 0;
+    }
+
+    .user-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-text-main);
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-role {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.75rem;
+        border: 1px solid;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .card-body {
+        margin-bottom: 2rem;
+        flex: 1;
+    }
+
+    .user-bio {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .user-bio.empty {
+        font-style: italic;
+        opacity: 0.5;
+    }
+
+    .card-footer {
+        display: flex;
+        gap: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--color-text-dim);
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        font-family: var(--font-display);
+    }
+
+    .card-hover-border {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .user-card:hover .card-hover-border {
+        opacity: 1;
+    }
+
+    /* No Results */
+    .no-results {
+        text-align: center;
+        padding: 6rem 1rem;
+    }
+
+    .no-results-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .no-results h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .no-results p {
+        color: var(--color-text-muted);
+    }
+
+    /* Background blobs */
+    .blob {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.2;
+    }
+    
+    .blob-1 {
+        top: -100px;
+        left: -100px;
+        background: radial-gradient(circle, var(--color-primary), transparent);
+    }
+    
+    .blob-2 {
+        bottom: -100px;
+        right: -100px;
+        background: radial-gradient(circle, var(--color-secondary), transparent);
+    }
+
+    .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+    }
+
+    @media (max-width: 640px) {
+        .users-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
