@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { getUserFromCookie } from '../lib/auth';
 import mongoose from 'mongoose';
-import User from '../models/User';
+import User, { type IUser } from '../models/User';
 import { getLevel, getNextLevel, getProgressToNextLevel } from '../lib/gamification';
 import LevelsModal from '../components/LevelsModal.astro';
 import { getCollection } from 'astro:content';
@@ -20,7 +20,7 @@ if (!userPayload) {
 }
 
 // Conectar a MongoDB y obtener datos completos del usuario
-let user = null;
+let user: IUser | null = null;
 try {
   if (mongoose.connection.readyState !== 1) {
     const MONGODB_URI = import.meta.env.MONGODB_URI;
