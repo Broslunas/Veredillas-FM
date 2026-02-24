@@ -8,6 +8,7 @@ import type { IUser } from '../models/User';
 import mongoose from 'mongoose';
 import { getLevel, getNextLevel, getProgressToNextLevel } from '../lib/gamification';
 import LevelsModal from '../components/LevelsModal.astro';
+import AchievementsPanel from '../components/AchievementsPanel.astro';
 
 export const prerender = false;
 
@@ -74,8 +75,9 @@ const hoursToNext = nextLevel ? Math.ceil((nextLevel.minSeconds - (user.listenin
                      </div>
                      <p class="dashboard-subtitle">Tu resumen de actividad en Veredillas FM.</p>
                      
-                     <div class="header-actions" style="margin-top: 1rem;">
+                     <div class="header-actions" style="margin-top: 1rem; display:flex; gap: 0.5rem; flex-wrap: wrap;">
                         <a href="/perfil" class="btn-sm btn-secondary">Editar Perfil</a>
+                        <a href="/logros" class="btn-sm btn-achievements">🏅 Mis Logros</a>
                      </div>
                 </div>
             </div>
@@ -149,6 +151,9 @@ const hoursToNext = nextLevel ? Math.ceil((nextLevel.minSeconds - (user.listenin
                 </div>
             )}
         </section>
+
+        <!-- Achievements Section -->
+        <AchievementsPanel />
     </div>
     <LevelsModal currentLevelName={currentLevel.name} listeningTime={user.listeningTime || 0} />
 </Layout>
@@ -410,6 +415,18 @@ const hoursToNext = nextLevel ? Math.ceil((nextLevel.minSeconds - (user.listenin
     
     .btn-secondary:hover {
         background: rgba(255,255,255,0.2);
+    }
+
+    .btn-achievements {
+        background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(236,72,153,0.2));
+        color: #c4b5fd;
+        border: 1px solid rgba(124,58,237,0.4);
+    }
+
+    .btn-achievements:hover {
+        background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(236,72,153,0.35));
+        border-color: rgba(124,58,237,0.7);
+        box-shadow: 0 0 16px rgba(124,58,237,0.3);
     }
     
     .view-all-link {

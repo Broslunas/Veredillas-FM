@@ -13,14 +13,11 @@ import User from '../models/User';
 let currentUserSafe: { name: string; role: string; picture?: string } | null = null;
 try {
     const token = Astro.cookies.get('auth-token')?.value;
-    console.log('[LiveChat] token exists:', !!token);
     if (token) {
         const payload = verifyToken(token);
-        console.log('[LiveChat] payload:', payload ? { userId: payload.userId, name: payload.name } : null);
         if (payload) {
              await dbConnect();
              const dbUser = await User.findById(payload.userId).select('name role picture').lean();
-             console.log('[LiveChat] dbUser role:', dbUser?.role, 'name:', dbUser?.name);
              if (dbUser) {
                  currentUserSafe = {
                      name: dbUser.name,

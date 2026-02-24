@@ -1,0 +1,455 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AchievementsPanel from '../components/AchievementsPanel.astro';
+import { getUserFromCookie } from '../lib/auth';
+import mongoose from 'mongoose';
+import User from '../models/User';
+import UserAchievement from '../models/UserAchievement';
+import { ACHIEVEMENTS, RARITY_COLORS } from '../lib/achievements';
+
+export const prerender = false;
+
+const userPayload = getUserFromCookie(Astro.request.headers.get('cookie'));
+if (!userPayload) {
+  return Astro.redirect('/login');
+}
+
+// Load user stats for the hero bar
+let totalUnlocked = 0;
+let totalPoints = 0;
+
+try {
+  if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = import.meta.env.MONGODB_URI;
+    if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
+  }
+  const user = await User.findById(userPayload.userId);
+  if (user) {
+    const unlocks = await UserAchievement.find({ userId: user._id });
+    const unlockedSet = new Set(unlocks.map((u: { achievementId: string }) => u.achievementId));
+    totalUnlocked = unlockedSet.size;
+    totalPoints = ACHIEVEMENTS.reduce((sum, a) => unlockedSet.has(a.id) ? sum + a.points : sum, 0);
+  }
+} catch {}
+
+const totalAchievements = ACHIEVEMENTS.length;
+const progressPct = Math.round((totalUnlocked / totalAchievements) * 100);
+---
+
+<Layout title="Mis Logros — Veredillas FM" description="Tus logros y badges en Veredillas FM" robots="noindex, nofollow">
+
+  <!-- Ambient background -->
+  <div class="logros-bg" aria-hidden="true">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <div class="logros-page">
+
+    <!-- ── Hero ── -->
+    <header class="logros-hero">
+      <div class="hero-left">
+        <div class="hero-icon-ring">
+          <span class="hero-icon">🏅</span>
+          <div class="hero-icon-pulse"></div>
+        </div>
+        <div class="hero-text">
+          <p class="hero-eyebrow">Panel de Logros</p>
+          <h1 class="hero-title">Mis <span class="gradient-text">Badges</span></h1>
+          <p class="hero-subtitle">
+            Completa hitos, descubre secretos y demuestra tu devoción por Veredillas FM.
+          </p>
+        </div>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="hero-stats">
+        <div class="hstat">
+          <span class="hstat-value" id="hstat-unlocked">{totalUnlocked}</span>
+          <span class="hstat-label">Desbloqueados</span>
+        </div>
+        <div class="hstat-divider"></div>
+        <div class="hstat">
+          <span class="hstat-value">{totalAchievements}</span>
+          <span class="hstat-label">Total</span>
+        </div>
+        <div class="hstat-divider"></div>
+        <div class="hstat">
+          <span class="hstat-value hstat-gold" id="hstat-points">{totalPoints}</span>
+          <span class="hstat-label">Puntos ⭐</span>
+        </div>
+      </div>
+
+      <!-- Overall progress bar -->
+      <div class="hero-progress-wrap">
+        <div class="hero-progress-labels">
+          <span>Progreso total</span>
+          <span class="hero-progress-pct">{progressPct}%</span>
+        </div>
+        <div class="hero-progress-track">
+          <div
+            class="hero-progress-fill"
+            style={`width: ${progressPct}%`}
+            id="hero-progress-fill"
+          ></div>
+          <div class="hero-progress-glow" style={`left: ${progressPct}%`}></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Back link ── -->
+    <a href="/dashboard" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver al Dashboard
+    </a>
+
+    <!-- ── Achievements Panel ── -->
+    <AchievementsPanel />
+
+  </div>
+</Layout>
+
+<style>
+  /* ── Reset helpers ── */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  /* ── Ambient BG ── */
+  .logros-bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.18;
+  }
+
+  .bg-orb-1 {
+    width: 700px;
+    height: 700px;
+    top: -200px;
+    left: -150px;
+    background: radial-gradient(circle, #7c3aed, transparent 70%);
+    animation: orbDrift 18s ease-in-out infinite alternate;
+  }
+
+  .bg-orb-2 {
+    width: 600px;
+    height: 600px;
+    bottom: -100px;
+    right: -100px;
+    background: radial-gradient(circle, #ec4899, transparent 70%);
+    animation: orbDrift 22s ease-in-out infinite alternate-reverse;
+  }
+
+  .bg-orb-3 {
+    width: 400px;
+    height: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, #0ea5e9, transparent 70%);
+    animation: orbPulse 12s ease-in-out infinite;
+    opacity: 0.08;
+  }
+
+  @keyframes orbDrift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(40px, 30px) scale(1.1); }
+  }
+
+  @keyframes orbPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.06; }
+    50%       { transform: translate(-50%, -50%) scale(1.3); opacity: 0.12; }
+  }
+
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ── Page wrapper ── */
+  .logros-page {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 6rem;
+  }
+
+  /* ── Back link ── */
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: color 0.2s, gap 0.2s;
+  }
+
+  .back-link:hover {
+    color: var(--color-text);
+    gap: 0.6rem;
+  }
+
+  /* ── Hero ── */
+  .logros-hero {
+    background: rgba(12, 12, 18, 0.7);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2.5rem 2.5rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: heroSlideIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .logros-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(236,72,153,0.04) 100%);
+    pointer-events: none;
+  }
+
+  @keyframes heroSlideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-left {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+  }
+
+  /* Icon with pulsing ring */
+  .hero-icon-ring {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+  }
+
+  .hero-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    font-size: 2.8rem;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(236,72,153,0.2));
+    border: 1px solid rgba(124,58,237,0.4);
+    position: relative;
+    z-index: 1;
+    animation: iconFloat 4s ease-in-out infinite;
+  }
+
+  @keyframes iconFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    33%  { transform: translateY(-6px) rotate(-3deg); }
+    66%  { transform: translateY(-3px) rotate(2deg); }
+  }
+
+  .hero-icon-pulse {
+    position: absolute;
+    inset: -8px;
+    border-radius: 28px;
+    border: 2px solid rgba(124,58,237,0.3);
+    animation: ringPulse 2.5s ease-out infinite;
+  }
+
+  @keyframes ringPulse {
+    0%   { transform: scale(1);   opacity: 0.8; }
+    100% { transform: scale(1.3); opacity: 0; }
+  }
+
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+    color: #a78bfa;
+    margin: 0 0 0.35rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    margin: 0 0 0.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #c4b5fd 0%, #f472b6 60%, #fb923c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.5;
+    max-width: 480px;
+  }
+
+  /* Stats row */
+  .hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    overflow: hidden;
+    width: fit-content;
+  }
+
+  .hstat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 2rem;
+    gap: 0.2rem;
+  }
+
+  .hstat-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .hstat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff, #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: var(--font-display, inherit);
+    transition: all 0.5s;
+  }
+
+  .hstat-gold {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hstat-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+
+  /* Progress bar */
+  .hero-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hero-progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .hero-progress-pct {
+    font-weight: 700;
+    color: #a78bfa;
+  }
+
+  .hero-progress-track {
+    position: relative;
+    height: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    overflow: visible;
+  }
+
+  .hero-progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #7c3aed, #ec4899, #f59e0b);
+    background-size: 200% 100%;
+    animation: progressShimmer 3s linear infinite;
+    position: relative;
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes progressShimmer {
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+  }
+
+  .hero-progress-glow {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #f59e0b;
+    filter: blur(8px);
+    opacity: 0.6;
+    pointer-events: none;
+    transition: left 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .logros-hero {
+      padding: 1.75rem 1.25rem 1.5rem;
+    }
+    .hero-left {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .hero-stats {
+      width: 100%;
+      justify-content: stretch;
+    }
+    .hstat {
+      flex: 1;
+      padding: 0.75rem 1rem;
+    }
+    .logros-page {
+      padding: 1.5rem 1rem 4rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-icon-ring { width: 64px; height: 64px; }
+    .hero-icon { width: 64px; height: 64px; font-size: 2rem; border-radius: 18px; }
+    .hero-title { font-size: 2rem; }
+  }
+</style>

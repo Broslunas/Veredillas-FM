@@ -30,6 +30,10 @@
         if (cursor === konamiCode.length) {
             activatePartyMode();
             cursor = 0;
+            // Unlock the secret Konami achievement
+            if (typeof (window as any).unlockAchievement === 'function') {
+                (window as any).unlockAchievement('konami');
+            }
         }
     });
 
