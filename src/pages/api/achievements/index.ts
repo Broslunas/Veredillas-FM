@@ -5,6 +5,9 @@ import mongoose from 'mongoose';
 import User from '../../../models/User';
 import UserAchievement from '../../../models/UserAchievement';
 import Comment from '../../../models/Comment';
+import UnlockedCard from '../../../models/UnlockedCard';
+import ChatMessage from '../../../models/ChatMessage';
+import { getCollection } from 'astro:content';
 import {
   ACHIEVEMENTS,
   computeUnlockedAchievements,
@@ -61,6 +64,11 @@ export const GET: APIRoute = async ({ request }) => {
       ? hours.reduce((acc: number, h: number) => acc + h, 0) / hours.length 
       : 12;
 
+    const chatMessagesCount = await ChatMessage.countDocuments({ 'user.userId': user._id.toString() });
+    const unlockedCards = await UnlockedCard.countDocuments({ userId: user._id });
+    const allGuests = await getCollection('guests');
+    const totalCardsCount = allGuests.length;
+
     const stats: AchievementStats = {
       listeningTime: user.listeningTime || 0,
       favoritesCount: (user.favorites || []).length,
@@ -79,16 +87,28 @@ export const GET: APIRoute = async ({ request }) => {
       maxStreakDays: user.maxStreak || 0,
       hasProfilePicture: !!user.picture,
       hasBio: !!(user.bio && user.bio.trim().length > 0),
+      bioLength: user.bio ? user.bio.trim().length : 0,
       joinedYear: new Date(user.createdAt).getFullYear(),
       peakListeningHour: Math.round(peakHour),
       episodesListenedThisWeek: episodesThisWeek,
-      chatMessagesCount: 0,
+      chatMessagesCount,
+      unlockedCardsCount: unlockedCards,
+      totalCardsCount,
+      differentGuestsListenedCount: unlockedCards, // simplified mapping
       totalPoints: 0,
     };
 
     // ── Pass 1: evaluate non-meta achievements (those with real check logic)
     // Meta-achievements like 'estrella' depend on totalPoints, so exclude them first.
-    const META_IDS = new Set(['estrella']);
+    const META_IDS = new Set([
+      'estrella', 
+      'punto_mil', 
+      'punto_dosmil', 
+      'punto_cincomil', 
+      'punto_diezmil',
+      'fan_numero_uno',
+      'completista_comun'
+    ]);
     const qualifiedIds = new Set(computeUnlockedAchievements(stats).filter(id => !META_IDS.has(id)));
 
     // Fetch already stored unlocks from DB
