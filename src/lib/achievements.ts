@@ -513,16 +513,6 @@ export const ACHIEVEMENTS: Achievement[] = [
     secret: true,
   },
   {
-    id: 'racha_diaria',
-    name: 'Criatura de Hábitos',
-    description: 'Escucha un episodio al menos 3 días seguidos.',
-    icon: '⏰',
-    rarity: 'uncommon',
-    category: 'especial',
-    points: 55,
-    check: s => s.loginStreakDays >= 3,
-  },
-  {
     id: 'estrella',
     name: 'Estrella del Podcast',
     description: 'Consigue 500 puntos de logros en total.',

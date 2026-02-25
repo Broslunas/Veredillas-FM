@@ -211,7 +211,9 @@ const { episodeSlug, className = '' } = Astro.props;
             button.classList.remove('favorited');
           }
           
-          if (window.showToast) {
+          if ((window as any).triggerAuthPrompt) {
+            (window as any).triggerAuthPrompt();
+          } else if (window.showToast) {
             window.showToast('Inicia sesión para guardar favoritos ❤️', 'info');
           } else {
             alert('Debes iniciar sesión para guardar favoritos');

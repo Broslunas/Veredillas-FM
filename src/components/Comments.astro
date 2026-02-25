@@ -370,7 +370,11 @@ const isLoggedIn = !!currentUser;
           
           if (!json.success) {
                if(res.status === 401) {
-                  showToast('Inicia sesión para dar like', 'info');
+                  if (window.triggerAuthPrompt) {
+                    window.triggerAuthPrompt();
+                  } else {
+                    showToast('Inicia sesión para dar like', 'info');
+                  }
                } else {
                   showToast(json.error || 'Error', 'error');
                }
