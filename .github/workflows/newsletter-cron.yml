@@ -1,0 +1,19 @@
+name: Weekly Newsletter Cron
+
+on:
+  schedule:
+    # 14:00 Canary Islands time. 
+    # In winter (WET, UTC+0) it's 14:00 UTC.
+    # In summer (WEST, UTC+1) it's 13:00 UTC. 
+    # This cron runs at 14:00 UTC every Friday.
+    - cron: '0 14 * * 5'
+
+jobs:
+  send-newsletter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Newsletter API
+        run: |
+          curl -X POST "https://veredillasfm.es/api/newsletter/send-weekly" \
+          -H "Authorization: Bearer ${{ secrets.NEWSLETTER_CRON_SECRET }}" \
+          -H "Content-Type: application/json"

@@ -54,6 +54,12 @@ function formatTime(seconds: number) {
                 <h1>Usuarios</h1>
                 <p>Gestión de la base de usuarios ({users.length} total)</p>
             </div>
+            <div class="header-actions">
+                <button id="sendBulkNewsletterBtn" class="btn-bulk-newsletter" title="Enviar newsletter personalizada a todos los suscritos">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                    <span>Enviar a Todos</span>
+                </button>
+            </div>
         </div>
 
         <AdminNav />
@@ -107,6 +113,12 @@ function formatTime(seconds: number) {
                                         </button>
                                         <button class="icon-btn edit-btn" data-user={JSON.stringify(user)} aria-label="Editar usuario" title="Editar">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </button>
+                                        <button class="icon-btn test-email-btn" data-id={user._id} data-name={user.name} aria-label="Enviar email de prueba" title="Enviar Prueba al Usuario">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                        </button>
+                                        <button class="icon-btn test-to-me-btn" data-id={user._id} data-name={user.name} aria-label="Enviarme prueba a mí" title="Enviarme prueba a mí con sus datos">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                                         </button>
                                         {user._id.toString() !== currentUser._id.toString() && (
                                             <button class="icon-btn delete-btn" data-id={user._id} aria-label="Eliminar usuario" title="Eliminar">
@@ -212,8 +224,33 @@ function formatTime(seconds: number) {
             </div>
         </div>
     </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-backdrop hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirmar Acción</h3>
+                <button id="closeConfirmModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" style="color: var(--color-text-muted); line-height: 1.6; margin-bottom: 2rem;"></p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" id="cancelConfirm">Cancelar</button>
+                <button type="button" class="btn-save" id="executeConfirm" style="background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <script>
+        declare global {
+            interface Window {
+                showToast: (message: string, type?: 'info' | 'success' | 'error') => void;
+                customConfirm: (title: string, message: string, callback: () => void) => void;
+            }
+        }
+
         function attachEventListeners() {
             const modal = document.getElementById('editUserModal');
             const form = document.getElementById('editUserForm') as HTMLFormElement;
@@ -224,6 +261,16 @@ function formatTime(seconds: number) {
             const viewModal = document.getElementById('viewUserModal');
             const closeViewBtn = document.getElementById('closeViewModal');
 
+            // Confirm Modal Elements
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmTitle = document.getElementById('confirmTitle');
+            const confirmMessage = document.getElementById('confirmMessage');
+            const cancelConfirmBtn = document.getElementById('cancelConfirm');
+            const executeConfirmBtn = document.getElementById('executeConfirm');
+            const closeConfirmBtn = document.getElementById('closeConfirmModal');
+
+            let confirmCallback: (() => void) | null = null;
+
             function openModal(modalEl: HTMLElement | null) {
                 if(modalEl) modalEl.classList.remove('hidden');
             }
@@ -232,12 +279,30 @@ function formatTime(seconds: number) {
                 if(modalEl) modalEl.classList.add('hidden');
             }
 
+            window.customConfirm = (title: string, message: string, callback: () => void) => {
+                if (confirmTitle) confirmTitle.innerText = title;
+                if (confirmMessage) confirmMessage.innerText = message;
+                confirmCallback = callback;
+                openModal(confirmModal);
+            };
+
+            if (executeConfirmBtn) {
+                executeConfirmBtn.onclick = () => {
+                    if (confirmCallback) confirmCallback();
+                    closeModal(confirmModal);
+                };
+            }
+
             // Edit Modal Closers
             if (closeBtn) closeBtn.onclick = () => closeModal(modal);
             if (cancelBtn) cancelBtn.onclick = () => closeModal(modal);
             
              // View Modal Closers
             if (closeViewBtn) closeViewBtn.onclick = () => closeModal(viewModal);
+
+            // Confirm Modal Closers
+            if (closeConfirmBtn) closeConfirmBtn.onclick = () => closeModal(confirmModal);
+            if (cancelConfirmBtn) cancelConfirmBtn.onclick = () => closeModal(confirmModal);
             
             // Click outside
             if (modal) {
@@ -360,33 +425,151 @@ function formatTime(seconds: number) {
                 });
             });
 
+            // Test Email Buttons
+            document.querySelectorAll('.test-email-btn').forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode?.replaceChild(newBtn, btn);
+
+                newBtn.addEventListener('click', (e) => {
+                    const target = e.currentTarget as HTMLElement;
+                    const userName = target.dataset.name;
+                    
+                    window.customConfirm(
+                        'Enviar Prueba',
+                        `¿Quieres enviar un email de prueba con el resumen personalizado a ${userName}?`,
+                        async () => {
+                            const userId = target.dataset.id;
+                            target.style.opacity = '0.5';
+                            target.style.pointerEvents = 'none';
+                            
+                            try {
+                                const res = await fetch('/api/admin/newsletter-test', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ userId })
+                                });
+                                if (res.ok) {
+                                    window.showToast('Email de prueba enviado correctamente a ' + userName, 'success');
+                                } else {
+                                    const data = await res.json();
+                                    window.showToast('Error: ' + (data.error || 'Fallo desconocido'), 'error');
+                                }
+                            } catch (e) {
+                                window.showToast('Error de conexión', 'error');
+                            } finally {
+                                target.style.opacity = '1';
+                                target.style.pointerEvents = 'auto';
+                            }
+                        }
+                    );
+                });
+            });
+
+            // Test to Me Buttons
+            document.querySelectorAll('.test-to-me-btn').forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode?.replaceChild(newBtn, btn);
+
+                newBtn.addEventListener('click', (e) => {
+                    const target = e.currentTarget as HTMLElement;
+                    const userName = target.dataset.name;
+                    
+                    window.customConfirm(
+                        'Probar Perfil',
+                        `¿Quieres enviarte A TI MISMO un correo de prueba con los datos de ${userName}?`,
+                        async () => {
+                            const userId = target.dataset.id;
+                            target.style.opacity = '0.5';
+                            target.style.pointerEvents = 'none';
+                            
+                            try {
+                                const res = await fetch('/api/admin/newsletter-test', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ userId, sendToMe: true })
+                                });
+                                if (res.ok) {
+                                    window.showToast('Email enviado a tu bandeja de entrada con el perfil de ' + userName, 'success');
+                                } else {
+                                    const data = await res.json();
+                                    window.showToast('Error: ' + (data.error || 'Fallo desconocido'), 'error');
+                                }
+                            } catch (e) {
+                                window.showToast('Error de conexión', 'error');
+                            } finally {
+                                target.style.opacity = '1';
+                                target.style.pointerEvents = 'auto';
+                            }
+                        }
+                    );
+                });
+            });
+
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode?.replaceChild(newBtn, btn);
 
-                newBtn.addEventListener('click', async (e) => {
+                newBtn.addEventListener('click', (e) => {
                     const target = e.currentTarget as HTMLElement;
-                    if (!confirm('¿Estás seguro de que quieres eliminar a este usuario? Esta acción no se puede deshacer.')) return;
                     
-                    const userId = target.dataset.id;
-                    try {
-                        const res = await fetch('/api/admin/users', {
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId })
-                        });
-                        if (res.ok) {
-                            alert('Usuario eliminado correctamente');
-                            window.location.reload();
-                        } else {
-                            const data = await res.json();
-                            alert('Error: ' + data.error);
+                    window.customConfirm(
+                        'Eliminar Usuario',
+                        '¿Estás seguro de que quieres eliminar a este usuario? Esta acción no se puede deshacer.',
+                        async () => {
+                            const userId = target.dataset.id;
+                            try {
+                                const res = await fetch('/api/admin/users', {
+                                    method: 'DELETE',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ userId })
+                                });
+                                if (res.ok) {
+                                    window.showToast('Usuario eliminado correctamente', 'success');
+                                    setTimeout(() => window.location.reload(), 1000);
+                                } else {
+                                    const data = await res.json();
+                                    window.showToast('Error: ' + data.error, 'error');
+                                }
+                            } catch (e) {
+                                window.showToast('Error de conexión', 'error');
+                            }
                         }
-                    } catch (e) {
-                        alert('Error de conexión');
-                    }
+                    );
                 });
             });
+
+            const bulkBtn = document.getElementById('sendBulkNewsletterBtn');
+            if (bulkBtn) {
+                bulkBtn.onclick = () => {
+                    window.customConfirm(
+                        'Envío Masivo',
+                        '¿Estás seguro de que quieres enviar la newsletter personalizada a TODOS los usuarios suscritos ahora mismo?',
+                        async () => {
+                            if (!bulkBtn) return;
+                            bulkBtn.style.opacity = '0.5';
+                            bulkBtn.style.pointerEvents = 'none';
+                            const originalText = bulkBtn.innerHTML;
+                            bulkBtn.innerHTML = 'Enviando...';
+
+                            try {
+                                const res = await fetch('/api/admin/newsletter-bulk', { method: 'POST' });
+                                const data = await res.json();
+                                if (res.ok) {
+                                    window.showToast(`Newsletter enviada: ${data.results.sent} éxitos, ${data.results.errors.length} errores`, 'success');
+                                } else {
+                                    window.showToast('Error: ' + (data.error || 'Fallo desconocido'), 'error');
+                                }
+                            } catch (e) {
+                                window.showToast('Error de conexión', 'error');
+                            } finally {
+                                bulkBtn.style.opacity = '1';
+                                bulkBtn.style.pointerEvents = 'auto';
+                                bulkBtn.innerHTML = originalText;
+                            }
+                        }
+                    );
+                };
+            }
 
             if (form) {
                 form.onsubmit = async (e) => {
@@ -413,14 +596,14 @@ function formatTime(seconds: number) {
                             body: JSON.stringify(data)
                         });
                         if (res.ok) {
-                            alert('Usuario actualizado correctamente');
-                            window.location.reload();
+                            window.showToast('Usuario actualizado correctamente', 'success');
+                            setTimeout(() => window.location.reload(), 1000);
                         } else {
                             const err = await res.json();
-                            alert('Error: ' + err.error);
+                            window.showToast('Error: ' + err.error, 'error');
                         }
                     } catch (e) {
-                        alert('Error de conexión');
+                        window.showToast('Error de conexión', 'error');
                     }
                 };
             }
@@ -467,6 +650,31 @@ function formatTime(seconds: number) {
     color: var(--color-text-muted);
     font-size: 1.1rem;
     letter-spacing: 0.02em;
+  }
+
+  .btn-bulk-newsletter {
+      background: linear-gradient(135deg, #8b5cf6, #d946ef);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-bulk-newsletter:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
+      filter: brightness(1.1);
+  }
+
+  .btn-bulk-newsletter:active {
+      transform: translateY(0) scale(0.98);
   }
 
   /* Glass Panel & Table */
@@ -577,6 +785,18 @@ function formatTime(seconds: number) {
       background: rgba(239, 68, 68, 0.2);
       border-color: rgba(239, 68, 68, 0.5);
       box-shadow: 0 5px 15px rgba(239, 68, 68, 0.2);
+  }
+  .icon-btn.test-email-btn:hover {
+      background: rgba(52, 211, 153, 0.2);
+      border-color: rgba(52, 211, 153, 0.5);
+      color: #34d399;
+      box-shadow: 0 5px 15px rgba(52, 211, 153, 0.2);
+  }
+  .icon-btn.test-to-me-btn:hover {
+      background: rgba(129, 140, 248, 0.2);
+      border-color: rgba(129, 140, 248, 0.5);
+      color: #818cf8;
+      box-shadow: 0 5px 15px rgba(129, 140, 248, 0.2);
   }
 
   /* MODAL */
