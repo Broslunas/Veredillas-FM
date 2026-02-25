@@ -52,7 +52,10 @@ export async function processTestNewsletter(userId: string, overrideRecipientEma
     return { ep, score };
   });
   
-  scoredCandidates.sort((a, b) => b.score - a.score || b.ep.data.pubDate.getTime() - a.ep.data.pubDate.getTime());
+  scoredCandidates.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return Math.random() - 0.5;
+  });
   const recommendations = scoredCandidates.slice(0, 3).map(c => c.ep);
 
   if (recommendations.length === 0) throw new Error('No episodes available to recommend');

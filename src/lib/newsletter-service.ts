@@ -73,7 +73,11 @@ export async function processWeeklyNewsletter() {
       });
 
       // Pick best candidates (up to 3)
-      scoredCandidates.sort((a, b) => b.score - a.score || b.ep.data.pubDate.getTime() - a.ep.data.pubDate.getTime());
+      // Sort by score (tastes), and use random tie-breaker if tastes don't differ
+      scoredCandidates.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return Math.random() - 0.5; // Random for users with no specific match
+      });
       const recommendations = scoredCandidates.slice(0, 3).map(c => c.ep);
 
       if (recommendations.length === 0) continue;
