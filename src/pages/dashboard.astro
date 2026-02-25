@@ -78,6 +78,7 @@ const hoursToNext = nextLevel ? Math.ceil((nextLevel.minSeconds - (user.listenin
                      <div class="header-actions" style="margin-top: 1rem; display:flex; gap: 0.5rem; flex-wrap: wrap;">
                         <a href="/perfil" class="btn-sm btn-secondary">Editar Perfil</a>
                         <a href="/logros" class="btn-sm btn-achievements">🏅 Mis Logros</a>
+                        <a href="/cromos" class="btn-sm btn-cromos">✨ Álbum de Cromos</a>
                      </div>
                 </div>
             </div>
@@ -427,6 +428,18 @@ const hoursToNext = nextLevel ? Math.ceil((nextLevel.minSeconds - (user.listenin
         background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(236,72,153,0.35));
         border-color: rgba(124,58,237,0.7);
         box-shadow: 0 0 16px rgba(124,58,237,0.3);
+    }
+
+    .btn-cromos {
+        background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(251,146,60,0.2));
+        color: #fcd34d;
+        border: 1px solid rgba(245,158,11,0.4);
+    }
+
+    .btn-cromos:hover {
+        background: linear-gradient(135deg, rgba(245,158,11,0.4), rgba(251,146,60,0.35));
+        border-color: rgba(245,158,11,0.7);
+        box-shadow: 0 0 16px rgba(245,158,11,0.3);
     }
     
     .view-all-link {

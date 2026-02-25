@@ -123,6 +123,7 @@ import './player/SharedPlayerStyles.css';
             onYouTubeIframeAPIReady: () => void;
             playerResizeObserver: ResizeObserver | null;
             currentYTPlayer: any;
+            showToast: (message: string, type?: string) => void;
         }
     }
 
@@ -196,7 +197,7 @@ import './player/SharedPlayerStyles.css';
         if(!slug) return;
         
         try {
-            fetch('/api/history/update', {
+            const response = await fetch('/api/history/update', {
                 method: 'POST',
                 credentials: 'include', // Ensure cookies are sent (localhost/cors safety)
                 headers: { 'Content-Type': 'application/json' },
@@ -207,6 +208,17 @@ import './player/SharedPlayerStyles.css';
                     completed
                 })
             });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.newlyUnlockedCards && data.newlyUnlockedCards.length > 0) {
+                    data.newlyUnlockedCards.forEach((guestName: string) => {
+                        if (window.showToast) {
+                            window.showToast(`¡Cromo desbloqueado: ${guestName}! ✨`, 'success');
+                        }
+                    });
+                }
+            }
         } catch(e) {
             console.error("History sync error", e);
         }

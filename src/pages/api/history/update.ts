@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import { verifyToken } from '../../../lib/auth';
 import User from '../../../models/User';
+import { checkAndUnlockCards } from '../../../lib/cards';
 
 export const prerender = false;
 
@@ -121,12 +122,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
+    // ── Check for Guest Card Unlocks ──────────────────────────────────────────
+    // If the episode was just newly marked as completed, try to unlock guest cards.
+    let newlyUnlockedCards: string[] = [];
+    if (isNowCompleted && !wasAlreadyCompleted) {
+      newlyUnlockedCards = await checkAndUnlockCards(userPayload.userId, episodeSlug);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         completed: isNowCompleted,
         completedByThreshold,
         delta,
+        newlyUnlockedCards, // Pass this to the client so it can show a notification
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

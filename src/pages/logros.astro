@@ -97,6 +97,12 @@ const progressPct = Math.round((totalUnlocked / totalAchievements) * 100);
           <div class="hero-progress-glow" style={`left: ${progressPct}%`}></div>
         </div>
       </div>
+
+      <div class="hero-footer-actions" style="margin-top: 1.5rem;">
+        <a href="/cromos" class="btn-cromos-link">
+          ✨ Ver mi Álbum de Cromos
+        </a>
+      </div>
     </header>
 
     <!-- ── Back link ── -->
@@ -422,6 +428,28 @@ const progressPct = Math.round((totalUnlocked / totalAchievements) * 100);
     opacity: 0.6;
     pointer-events: none;
     transition: left 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .btn-cromos-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.7rem 1.4rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 146, 60, 0.15));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fcd34d;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-cromos-link:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(251, 146, 60, 0.25));
+    border-color: rgba(245, 158, 11, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    color: #fff;
   }
 
   /* ── Responsive ── */

@@ -1,0 +1,697 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getUserFromCookie } from '../lib/auth';
+import { getCollection } from 'astro:content';
+import mongoose from 'mongoose';
+import UnlockedCard from '../models/UnlockedCard';
+import User from '../models/User';
+import { syncAllUserCards } from '../lib/cards';
+
+export const prerender = false;
+
+const userPayload = getUserFromCookie(Astro.request.headers.get('cookie'));
+
+// Load all guest cards from content
+const guests = await getCollection('guests');
+const totalCards = guests.length;
+
+let unlockedSlugs: string[] = [];
+let isAuthenticated = false;
+
+if (userPayload) {
+  isAuthenticated = true;
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      const MONGODB_URI = import.meta.env.MONGODB_URI;
+      if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
+    }
+
+    // Capture any previously completed episodes
+    await syncAllUserCards(userPayload.userId);
+
+    const user = await User.findById(userPayload.userId);
+    if (user) {
+      const unlocks = await UnlockedCard.find({ userId: user._id });
+      unlockedSlugs = unlocks.map((u: { guestSlug: string }) => u.guestSlug);
+    }
+  } catch (e) {
+    console.error('Error loading cards:', e);
+  }
+}
+
+const unlockedCount = unlockedSlugs.length;
+const progressPct = totalCards > 0 ? Math.round((unlockedCount / totalCards) * 100) : 0;
+
+// Prepare cards data for client
+const cardsData = guests.map(g => ({
+  slug: g.slug,
+  name: g.data.name,
+  role: g.data.role ?? '',
+  description: g.data.description ?? '',
+  image: g.data.image ?? '',
+  unlocked: unlockedSlugs.includes(g.slug),
+}));
+---
+
+<Layout title="Álbum de Cromos — Veredillas FM" description="Colecciona los cromos digitales de los invitados de Veredillas FM escuchando sus entrevistas." robots="index, follow">
+
+  <!-- Ambient BG -->
+  <div class="cromos-bg" aria-hidden="true">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <div class="cromos-page">
+
+    <!-- Hero -->
+    <header class="cromos-hero">
+      <div class="hero-top">
+        <div class="hero-icon-wrap">
+          <span class="hero-icon">✨</span>
+          <div class="hero-ring"></div>
+        </div>
+        <div class="hero-text">
+          <p class="hero-eyebrow">Colección Exclusiva</p>
+          <h1 class="hero-title">Álbum de <span class="grad-text">Cromos</span></h1>
+          <p class="hero-desc">Escucha las entrevistas y desbloquea los cromos digitales de cada invitado.</p>
+        </div>
+        {!isAuthenticated && (
+          <a href="/login" class="hero-login-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Inicia sesión para coleccionar
+          </a>
+        )}
+      </div>
+
+      <!-- Stats bar -->
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-val" id="stat-unlocked">{unlockedCount}</span>
+          <span class="stat-label">Desbloqueados</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <span class="stat-val">{totalCards}</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <span class="stat-val gold" id="stat-pct">{progressPct}%</span>
+          <span class="stat-label">Completado</span>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="hero-progress">
+        <div class="progress-track">
+          <div class="progress-fill" style={`width:${progressPct}%`} id="progress-fill"></div>
+          <div class="progress-glow" style={`left:${progressPct}%`}></div>
+        </div>
+        <p class="progress-hint">
+          {unlockedCount === totalCards
+            ? '🎉 ¡Colección completa! Eres un verdadero fan.'
+            : `Te faltan ${totalCards - unlockedCount} cromos — ¡sigue escuchando!`}
+        </p>
+      </div>
+    </header>
+
+    <!-- Back link -->
+    <a href="/dashboard" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver al Dashboard
+    </a>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all" id="btn-all">Todos ({totalCards})</button>
+      <button class="filter-btn" data-filter="unlocked" id="btn-unlocked">Desbloqueados ({unlockedCount})</button>
+      <button class="filter-btn" data-filter="locked" id="btn-locked">Por desbloquear ({totalCards - unlockedCount})</button>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="cards-grid" id="cards-grid">
+      {cardsData.map((card) => (
+        <div
+          class={`cromo-card ${card.unlocked ? 'unlocked' : 'locked'}`}
+          data-slug={card.slug}
+          data-unlocked={card.unlocked ? 'true' : 'false'}
+          tabindex="0"
+          role="button"
+          aria-label={card.unlocked ? `Cromo de ${card.name}` : 'Cromo bloqueado'}
+        >
+          <!-- Card inner (3D flip) -->
+          <div class="card-inner">
+
+            <!-- FRONT -->
+            <div class="card-front">
+              {card.unlocked ? (
+                <>
+                  <!-- Holographic shimmer -->
+                  <div class="card-holo"></div>
+                  <!-- Corner stars -->
+                  <div class="card-star star-tl">⭐</div>
+                  <div class="card-star star-tr">⭐</div>
+
+                  <div class="card-img-wrap">
+                    <img
+                      src={card.image || '/placeholder-guest.jpg'}
+                      alt={card.name}
+                      class="card-img"
+                      loading="lazy"
+                    />
+                    <div class="card-img-shine"></div>
+                  </div>
+
+                  <div class="card-body">
+                    <div class="card-badge">Invitado</div>
+                    <h3 class="card-name">{card.name}</h3>
+                    <p class="card-role">{card.role}</p>
+                    <p class="card-desc">{card.description}</p>
+                  </div>
+
+                  <div class="card-footer">
+                    <span class="card-num">#{String(cardsData.indexOf(card) + 1).padStart(2, '0')}</span>
+                    <span class="card-series">Veredillas FM</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div class="locked-pattern"></div>
+                  <div class="locked-content">
+                    <div class="lock-icon">
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <p class="locked-label">Cromo Bloqueado</p>
+                    <p class="locked-hint">Escucha la entrevista para desbloquear</p>
+                  </div>
+                  <div class="card-footer locked-footer">
+                    <span class="card-num">#{String(cardsData.indexOf(card) + 1).padStart(2, '0')}</span>
+                    <span class="card-series">Veredillas FM</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <!-- BACK (only for unlocked) -->
+            {card.unlocked && (
+              <div class="card-back">
+                <div class="back-holo"></div>
+                <div class="back-logo">🎙️</div>
+                <h3 class="back-name">{card.name}</h3>
+                <p class="back-role">{card.role}</p>
+                <p class="back-desc">{card.description}</p>
+                <div class="back-footer">
+                  <span>Veredillas FM</span>
+                  <span>#{String(cardsData.indexOf(card) + 1).padStart(2, '0')}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state" style="display:none">
+      <div class="empty-icon">🃏</div>
+      <h3>No hay cromos aquí</h3>
+      <p>Prueba con otro filtro.</p>
+    </div>
+
+  </div>
+
+  <!-- Unlock toast notification -->
+  <div class="unlock-toast" id="unlock-toast" aria-live="polite">
+    <div class="toast-inner">
+      <span class="toast-icon">✨</span>
+      <div class="toast-text">
+        <strong id="toast-title">¡Nuevo cromo!</strong>
+        <span id="toast-desc">Has desbloqueado un cromo</span>
+      </div>
+    </div>
+  </div>
+
+</Layout>
+
+<script define:vars={{ cardsData, isAuthenticated }}>
+  // ── 3D card tilt effect ──────────────────────────────────────────────
+  document.querySelectorAll('.cromo-card.unlocked').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const rotX = ((y - cy) / cy) * -12;
+      const rotY = ((x - cx) / cx) * 12;
+      card.style.setProperty('--rx', `${rotX}deg`);
+      card.style.setProperty('--ry', `${rotY}deg`);
+
+      // Update holo position
+      const holo = card.querySelector('.card-holo');
+      if (holo) {
+        holo.style.setProperty('--mx', `${(x / rect.width) * 100}%`);
+        holo.style.setProperty('--my', `${(y / rect.height) * 100}%`);
+      }
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.setProperty('--rx', '0deg');
+      card.style.setProperty('--ry', '0deg');
+    });
+
+    // Flip on click
+    card.addEventListener('click', () => {
+      card.classList.toggle('flipped');
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        card.classList.toggle('flipped');
+      }
+    });
+  });
+
+  // ── Filter buttons ───────────────────────────────────────────────────
+  const allCards = document.querySelectorAll('.cromo-card');
+  const emptyState = document.getElementById('empty-state');
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      let visible = 0;
+      allCards.forEach(card => {
+        const unlocked = card.dataset.unlocked === 'true';
+        let show = filter === 'all' ||
+          (filter === 'unlocked' && unlocked) ||
+          (filter === 'locked' && !unlocked);
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      if (emptyState) emptyState.style.display = visible === 0 ? 'flex' : 'none';
+    });
+  });
+
+  // ── Auto-unlock check on page load ──────────────────────────────────
+  // Check localStorage for recently completed episodes and try to unlock cards
+  if (isAuthenticated) {
+    const pendingUnlock = localStorage.getItem('pendingCardUnlock');
+    if (pendingUnlock) {
+      localStorage.removeItem('pendingCardUnlock');
+      fetch('/api/cards/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ episodeSlug: pendingUnlock }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.newlyUnlocked && data.newlyUnlocked.length > 0) {
+          data.newlyUnlocked.forEach(card => showUnlockToast(card.guestName));
+          setTimeout(() => location.reload(), 2000);
+        }
+      }).catch(() => {});
+    }
+  }
+
+  // ── Toast notification ───────────────────────────────────────────────
+  function showUnlockToast(guestName) {
+    const toast = document.getElementById('unlock-toast');
+    const desc = document.getElementById('toast-desc');
+    if (toast && desc) {
+      desc.textContent = `¡Has desbloqueado el cromo de ${guestName}!`;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+  }
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  /* ── Background ── */
+  .cromos-bg {
+    position: fixed; inset: 0;
+    overflow: hidden; pointer-events: none; z-index: 0;
+  }
+  .bg-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.15;
+  }
+  .orb-1 { width: 600px; height: 600px; top: -200px; left: -100px;
+    background: radial-gradient(circle, #7c3aed, transparent 70%);
+    animation: drift 20s ease-in-out infinite alternate; }
+  .orb-2 { width: 500px; height: 500px; bottom: -100px; right: -100px;
+    background: radial-gradient(circle, #ec4899, transparent 70%);
+    animation: drift 26s ease-in-out infinite alternate-reverse; }
+  .orb-3 { width: 300px; height: 300px; top: 40%; left: 50%;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(circle, #f59e0b, transparent 70%);
+    animation: pulse 14s ease-in-out infinite; opacity: 0.08; }
+  @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.1); } }
+  @keyframes pulse { 0%,100%{opacity:.06;transform:translate(-50%,-50%)scale(1);}50%{opacity:.14;transform:translate(-50%,-50%)scale(1.3);} }
+
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ── Page ── */
+  .cromos-page {
+    position: relative; z-index: 1;
+    max-width: 1300px; margin: 0 auto;
+    padding: 2.5rem 1.5rem 6rem;
+  }
+
+  /* ── Hero ── */
+  .cromos-hero {
+    background: rgba(12,12,18,.7);
+    border: 1px solid rgba(255,255,255,.08);
+    backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2.5rem;
+    margin-bottom: 1.5rem;
+    display: flex; flex-direction: column; gap: 1.75rem;
+    overflow: hidden; position: relative;
+    animation: slideIn .7s cubic-bezier(.22,1,.36,1) both;
+  }
+  .cromos-hero::before {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg,rgba(124,58,237,.07),rgba(236,72,153,.04));
+    pointer-events: none;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:translateY(0)} }
+
+  .hero-top { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+
+  .hero-icon-wrap { position:relative; width:80px; height:80px; flex-shrink:0; }
+  .hero-icon {
+    display:flex; align-items:center; justify-content:center;
+    width:80px; height:80px; font-size:2.6rem; border-radius:22px;
+    background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(236,72,153,.2));
+    border:1px solid rgba(124,58,237,.4);
+    position:relative; z-index:1;
+    animation: float 4s ease-in-out infinite;
+  }
+  .hero-ring {
+    position:absolute; inset:-8px; border-radius:28px;
+    border:2px solid rgba(124,58,237,.35);
+    animation: ringPulse 2.5s ease-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)rotate(0)} 33%{transform:translateY(-6px)rotate(-3deg)} 66%{transform:translateY(-3px)rotate(2deg)} }
+  @keyframes ringPulse { 0%{transform:scale(1);opacity:.8} 100%{transform:scale(1.35);opacity:0} }
+
+  .hero-text { flex:1; min-width:200px; }
+  .hero-eyebrow { font-size:.73rem; text-transform:uppercase; letter-spacing:.18em; font-weight:600; color:#a78bfa; margin:0 0 .3rem; }
+  .hero-title { font-size:clamp(2rem,5vw,3rem); font-weight:800; margin:0 0 .4rem; line-height:1.1; letter-spacing:-.02em; }
+  .grad-text {
+    background:linear-gradient(135deg,#c4b5fd,#f472b6 60%,#fb923c);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-desc { font-size:.9rem; color:var(--color-text-muted,#9ca3af); margin:0; max-width:460px; line-height:1.5; }
+
+  .hero-login-btn {
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding:.6rem 1.2rem; border-radius:12px;
+    background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(236,72,153,.2));
+    border:1px solid rgba(124,58,237,.4);
+    color:#c4b5fd; font-size:.85rem; font-weight:600; text-decoration:none;
+    transition:all .2s; white-space:nowrap;
+  }
+  .hero-login-btn:hover { background:linear-gradient(135deg,rgba(124,58,237,.4),rgba(236,72,153,.3)); color:#fff; }
+
+  /* Stats */
+  .hero-stats {
+    display:flex; align-items:center;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:16px; overflow:hidden; width:fit-content;
+  }
+  .stat-item { display:flex; flex-direction:column; align-items:center; padding:.9rem 2rem; gap:.15rem; }
+  .stat-sep { width:1px; height:36px; background:rgba(255,255,255,.08); }
+  .stat-val {
+    font-size:1.7rem; font-weight:800; line-height:1;
+    background:linear-gradient(135deg,#fff,#c4b5fd);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    transition:all .5s;
+  }
+  .stat-val.gold { background:linear-gradient(135deg,#fbbf24,#f59e0b); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat-label { font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--color-text-muted,#9ca3af); font-weight:500; }
+
+  /* Progress */
+  .hero-progress { display:flex; flex-direction:column; gap:.5rem; }
+  .progress-track { position:relative; height:10px; background:rgba(255,255,255,.08); border-radius:10px; overflow:visible; }
+  .progress-fill {
+    height:100%; border-radius:10px;
+    background:linear-gradient(90deg,#7c3aed,#ec4899,#f59e0b);
+    background-size:200% 100%;
+    animation:shimmer 3s linear infinite;
+    transition:width 1s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes shimmer { 0%{background-position:0% 0%} 100%{background-position:200% 0%} }
+  .progress-glow {
+    position:absolute; top:50%; transform:translate(-50%,-50%);
+    width:20px; height:20px; border-radius:50%;
+    background:#f59e0b; filter:blur(8px); opacity:.6; pointer-events:none;
+    transition:left 1s cubic-bezier(.22,1,.36,1);
+  }
+  .progress-hint { font-size:.82rem; color:var(--color-text-muted,#9ca3af); margin:.4rem 0 0; text-align:center; }
+
+  /* Back link */
+  .back-link {
+    display:inline-flex; align-items:center; gap:.4rem;
+    font-size:.85rem; color:var(--color-text-muted,#9ca3af); text-decoration:none;
+    margin-bottom:1.5rem; transition:color .2s,gap .2s;
+  }
+  .back-link:hover { color:#fff; gap:.6rem; }
+
+  /* ── Filter bar ── */
+  .filter-bar { display:flex; gap:.5rem; margin-bottom:2rem; flex-wrap:wrap; }
+  .filter-btn {
+    padding:.45rem 1.1rem; border-radius:10px;
+    border:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.05);
+    color:var(--color-text-muted,#9ca3af);
+    font-size:.82rem; font-weight:500; cursor:pointer;
+    transition:all .2s;
+  }
+  .filter-btn:hover { background:rgba(255,255,255,.1); color:#fff; }
+  .filter-btn.active {
+    background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(236,72,153,.2));
+    border-color:rgba(124,58,237,.5); color:#c4b5fd;
+  }
+
+  /* ── Cards Grid ── */
+  .cards-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap:1.75rem;
+  }
+
+  /* ── Individual Card ── */
+  .cromo-card {
+    perspective:1000px;
+    cursor:pointer;
+    aspect-ratio: 2/3;
+  }
+  .card-inner {
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d;
+    transition:transform .6s cubic-bezier(.22,1,.36,1);
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  }
+  .cromo-card.unlocked .card-inner:hover { transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(8px); }
+  .cromo-card.flipped .card-inner { transform: rotateY(180deg) !important; }
+
+  .card-front, .card-back {
+    position:absolute; inset:0;
+    border-radius:18px; overflow:hidden;
+    backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    display:flex; flex-direction:column;
+  }
+
+  /* Unlocked front */
+  .cromo-card.unlocked .card-front {
+    background:linear-gradient(165deg,#1a1040,#0d0820,#1a0d2e);
+    border:1px solid rgba(196,181,253,.25);
+    box-shadow: 0 8px 32px rgba(124,58,237,.3), 0 2px 8px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .cromo-card.unlocked:hover .card-front {
+    box-shadow: 0 16px 48px rgba(124,58,237,.5), 0 4px 16px rgba(0,0,0,.7), inset 0 0 0 1px rgba(255,255,255,.1);
+    border-color: rgba(196,181,253,.45);
+  }
+
+  /* Locked front */
+  .cromo-card.locked .card-front {
+    background:linear-gradient(165deg,#111118,#0a0a12);
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 4px 16px rgba(0,0,0,.5);
+    cursor:default;
+  }
+
+  /* Back of card */
+  .card-back {
+    background:linear-gradient(165deg,#1a1040,#0d0820);
+    border:1px solid rgba(196,181,253,.25);
+    box-shadow: 0 8px 32px rgba(124,58,237,.3);
+    transform:rotateY(180deg);
+    align-items:center; justify-content:center;
+    padding:1.2rem; text-align:center;
+  }
+
+  /* Holographic shimmer overlay */
+  .card-holo {
+    position:absolute; inset:0; z-index:2; pointer-events:none; border-radius:18px;
+    background: radial-gradient(ellipse at var(--mx,50%) var(--my,50%),
+      rgba(255,255,255,.18) 0%,
+      rgba(196,181,253,.1) 30%,
+      rgba(244,114,182,.06) 60%,
+      transparent 80%);
+    mix-blend-mode: screen;
+    opacity:0; transition:opacity .3s;
+  }
+  .cromo-card.unlocked:hover .card-holo { opacity:1; }
+
+  /* Corner stars */
+  .card-star { position:absolute; font-size:.65rem; z-index:3; animation:starTwinkle 2s ease-in-out infinite; }
+  .star-tl { top:.5rem; left:.55rem; animation-delay:0s; }
+  .star-tr { top:.5rem; right:.55rem; animation-delay:.4s; }
+  @keyframes starTwinkle { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+
+  /* Card image */
+  .card-img-wrap {
+    position:relative; flex-shrink:0;
+    margin:.75rem .75rem 0;
+    border-radius:12px; overflow:hidden;
+    height:55%; background:rgba(0,0,0,.3);
+  }
+  .card-img { width:100%; height:100%; object-fit:cover; display:block; }
+  .card-img-shine {
+    position:absolute; inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 50%,rgba(255,255,255,.05) 100%);
+  }
+
+  /* Card body */
+  .card-body { flex:1; padding:.6rem .8rem .3rem; display:flex; flex-direction:column; gap:.25rem; overflow:hidden; }
+  .card-badge {
+    display:inline-block; font-size:.6rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.12em;
+    background:linear-gradient(90deg,#7c3aed,#ec4899);
+    color:#fff; padding:.15rem .5rem; border-radius:6px;
+    width:fit-content;
+  }
+  .card-name { font-size:.9rem; font-weight:700; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-role { font-size:.68rem; color:#a78bfa; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-desc { font-size:.63rem; color:rgba(255,255,255,.5); margin:0; line-height:1.35; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+
+  /* Card footer */
+  .card-footer {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:.4rem .8rem;
+    background:rgba(0,0,0,.35);
+    border-top:1px solid rgba(255,255,255,.06);
+    flex-shrink:0;
+  }
+  .card-num { font-size:.62rem; font-weight:700; color:#a78bfa; }
+  .card-series { font-size:.6rem; color:rgba(255,255,255,.35); letter-spacing:.08em; }
+
+  /* Locked card internals */
+  .locked-pattern {
+    position:absolute; inset:0;
+    background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 8px);
+  }
+  .locked-content {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:.6rem; padding:1rem; text-align:center;
+    position:relative; z-index:1;
+  }
+  .lock-icon { color:rgba(255,255,255,.2); }
+  .locked-label { font-size:.78rem; font-weight:600; color:rgba(255,255,255,.3); margin:0; }
+  .locked-hint { font-size:.65rem; color:rgba(255,255,255,.18); margin:0; line-height:1.4; }
+  .locked-footer { position:relative; z-index:1; }
+
+  /* Card back content */
+  .back-holo {
+    position:absolute; inset:0; border-radius:18px;
+    background:radial-gradient(ellipse at 50% 50%,rgba(196,181,253,.15),rgba(244,114,182,.08),transparent 70%);
+    animation:backHolo 4s ease-in-out infinite alternate;
+    pointer-events:none;
+  }
+  @keyframes backHolo { from{opacity:.5} to{opacity:1} }
+  .back-logo { font-size:2.5rem; margin-bottom:.5rem; position:relative; z-index:1; }
+  .back-name { font-size:1rem; font-weight:800; color:#fff; margin:0 0 .2rem; position:relative; z-index:1; }
+  .back-role { font-size:.72rem; color:#a78bfa; margin:0 0 .75rem; position:relative; z-index:1; }
+  .back-desc { font-size:.68rem; color:rgba(255,255,255,.6); line-height:1.4; margin:0; position:relative; z-index:1; }
+  .back-footer {
+    display:flex; justify-content:space-between; width:100%;
+    margin-top:auto; padding-top:.6rem;
+    font-size:.6rem; color:rgba(255,255,255,.3); position:relative; z-index:1;
+  }
+
+  /* ── Entry animation ── */
+  .cromo-card {
+    animation: cardReveal .5s cubic-bezier(.22,1,.36,1) both;
+  }
+  .cromo-card:nth-child(1){animation-delay:.05s}
+  .cromo-card:nth-child(2){animation-delay:.1s}
+  .cromo-card:nth-child(3){animation-delay:.15s}
+  .cromo-card:nth-child(4){animation-delay:.2s}
+  .cromo-card:nth-child(5){animation-delay:.25s}
+  .cromo-card:nth-child(6){animation-delay:.3s}
+  .cromo-card:nth-child(7){animation-delay:.35s}
+  .cromo-card:nth-child(8){animation-delay:.4s}
+  .cromo-card:nth-child(n+9){animation-delay:.45s}
+  @keyframes cardReveal { from{opacity:0;transform:translateY(28px)scale(.95)} to{opacity:1;transform:translateY(0)scale(1)} }
+
+  /* Unlocked card glow pulse */
+  .cromo-card.unlocked { animation: cardReveal .5s cubic-bezier(.22,1,.36,1) both, goldGlow 4s ease-in-out 1.5s infinite; }
+  @keyframes goldGlow {
+    0%,100%{ box-shadow: none; }
+    50%{ box-shadow: 0 0 20px rgba(124,58,237,.25); }
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    flex-direction:column; align-items:center; gap:1rem;
+    padding:4rem 2rem; text-align:center; color:var(--color-text-muted,#9ca3af);
+  }
+  .empty-icon { font-size:3rem; }
+
+  /* ── Toast ── */
+  .unlock-toast {
+    position:fixed; bottom:2rem; right:2rem; z-index:9999;
+    background:linear-gradient(135deg,rgba(124,58,237,.9),rgba(236,72,153,.8));
+    backdrop-filter:blur(20px); border-radius:16px;
+    border:1px solid rgba(196,181,253,.3);
+    padding:1rem 1.25rem;
+    transform:translateY(120px); opacity:0;
+    transition:all .5s cubic-bezier(.22,1,.36,1);
+    pointer-events:none; min-width:280px;
+    box-shadow:0 8px 32px rgba(124,58,237,.4);
+  }
+  .unlock-toast.show { transform:translateY(0); opacity:1; }
+  .toast-inner { display:flex; align-items:center; gap:.75rem; }
+  .toast-icon { font-size:1.75rem; flex-shrink:0; }
+  .toast-text { display:flex; flex-direction:column; gap:.15rem; }
+  .toast-text strong { font-size:.9rem; color:#fff; }
+  .toast-text span { font-size:.78rem; color:rgba(255,255,255,.8); }
+
+  /* ── Responsive ── */
+  @media (max-width:768px) {
+    .cromos-page { padding:1.5rem 1rem 4rem; }
+    .cromos-hero { padding:1.5rem; }
+    .hero-top { gap:1rem; }
+    .hero-stats { width:100%; }
+    .stat-item { flex:1; padding:.7rem 1rem; }
+    .cards-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:1.2rem; }
+    .unlock-toast { left:1rem; right:1rem; bottom:1rem; min-width:unset; }
+  }
+  @media (max-width:480px) {
+    .cards-grid { grid-template-columns:repeat(2,1fr); gap:1rem; }
+    .hero-icon-wrap { width:60px; height:60px; }
+    .hero-icon { width:60px; height:60px; font-size:2rem; border-radius:16px; }
+  }
+</style>
