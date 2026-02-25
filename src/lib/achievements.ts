@@ -36,7 +36,8 @@ export interface AchievementStats {
   daysSinceJoin: number;
   favoritedSeasonsCount: number;   // distinct seasons favorited
   totalSeasonsCount: number;
-  loginStreakDays: number;         // consecutive login days
+  loginStreakDays: number;         // current consecutive login days
+  maxStreakDays: number;           // all-time record
   hasProfilePicture: boolean;
   hasBio: boolean;
   joinedYear: number;
@@ -260,8 +261,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'racha_semanal',
-    name: 'Constancia',
-    description: 'Inicia sesión 7 días seguidos.',
+    name: 'Racha Semanal',
+    description: 'Conéctate durante 7 días seguidos.',
     icon: '🔥',
     rarity: 'uncommon',
     category: 'fidelidad',
@@ -271,14 +272,26 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'racha_mensual',
-    name: 'Imparable',
-    description: 'Inicia sesión 30 días seguidos.',
+    name: 'Imparable Diarios',
+    description: 'Conéctate durante 30 días seguidos.',
     icon: '💎',
     rarity: 'epic',
     category: 'fidelidad',
     points: 250,
     check: s => s.loginStreakDays >= 30,
     progress: s => ({ current: Math.min(s.loginStreakDays, 30), max: 30, unit: 'días seguidos' }),
+  },
+  {
+    id: 'racha_oro',
+    name: 'Racha de Oro',
+    description: 'Consigue tu mejor marca personal de 50 días seguidos.',
+    icon: '🏆',
+    rarity: 'legendary',
+    category: 'fidelidad',
+    points: 1000,
+    check: s => s.maxStreakDays >= 50,
+    progress: s => ({ current: Math.min(s.maxStreakDays, 50), max: 50, unit: 'días (récord)' }),
+    secret: true,
   },
   {
     id: 'og_member',
