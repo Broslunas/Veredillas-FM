@@ -236,10 +236,10 @@ const ogDescription = user.bio
         ) : (
           <div class="achievements-grid">
             {unlockedAchievements.map((ach) => (
-              <div
+              <button
                 class="ach-chip"
                 style={`--ach-color: ${ach.rarityColor}`}
-                title={`${ach.name}: ${ach.description}`}
+                data-ach={JSON.stringify(ach)}
               >
                 <span class="ach-icon">{ach.icon}</span>
                 <div class="ach-text">
@@ -247,7 +247,7 @@ const ogDescription = user.bio
                   <span class="ach-rarity" style={`color:${ach.rarityColor}`}>{ach.rarityLabel}</span>
                 </div>
                 {ach.points > 0 && <span class="ach-pts">+{ach.points}</span>}
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -415,7 +415,7 @@ const ogDescription = user.bio
       )}
 
     </div><!-- /.content-grid -->
-
+ 
     <!-- Back nav -->
     <div class="back-nav">
       <a href="/ep" class="back-link">
@@ -428,6 +428,108 @@ const ogDescription = user.bio
     </div>
 
   </div>
+
+  <!-- Achievement Modal -->
+  <div id="ach-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content-container">
+      <div class="glass-modal">
+        <button id="close-modal" class="modal-close" aria-label="Cerrar modal">&times;</button>
+        <div class="modal-body">
+          <div id="modal-icon" class="modal-ach-icon"></div>
+          <h3 id="modal-name" class="modal-ach-name"></h3>
+          <div id="modal-rarity" class="modal-ach-rarity"></div>
+          <p id="modal-desc" class="modal-ach-desc"></p>
+          <div class="modal-ach-meta">
+            <div class="meta-item">
+              <span class="meta-label">Puntos</span>
+              <span id="modal-pts" class="meta-value pts-value"></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Categoría</span>
+              <span id="modal-category" class="meta-value"></span>
+            </div>
+            <div id="modal-date-wrapper" class="meta-item">
+              <span class="meta-label">Desbloqueado</span>
+              <span id="modal-unlocked" class="meta-value"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    function initAchModal() {
+      const modal = document.getElementById('ach-modal');
+      const closeBtn = document.getElementById('close-modal');
+      const achChips = document.querySelectorAll('.ach-chip');
+
+      if (!modal || !closeBtn) return;
+
+      const openModal = (chip) => {
+        try {
+          const ach = JSON.parse(chip.dataset.ach);
+          
+          document.getElementById('modal-icon').textContent = ach.icon || '🏅';
+          document.getElementById('modal-name').textContent = ach.name || 'Logro';
+          
+          const rarityEl = document.getElementById('modal-rarity');
+          rarityEl.textContent = ach.rarityLabel || 'Desconocido';
+          rarityEl.style.color = ach.rarityColor || 'inherit';
+          
+          document.getElementById('modal-desc').textContent = ach.description || '';
+          document.getElementById('modal-pts').textContent = ach.points > 0 ? `+${ach.points}` : '0';
+          document.getElementById('modal-category').textContent = ach.categoryLabel || 'General';
+          
+          const dateWrapper = document.getElementById('modal-date-wrapper');
+          if (ach.unlockedAt) {
+            const date = new Date(ach.unlockedAt);
+            document.getElementById('modal-unlocked').textContent = date.toLocaleDateString('es-ES', { 
+              day: 'numeric', 
+              month: 'long', 
+              year: 'numeric' 
+            });
+            dateWrapper.style.display = 'flex';
+          } else {
+            dateWrapper.style.display = 'none';
+          }
+
+          modal.classList.add('is-open');
+          modal.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        } catch (e) {
+          console.error('Error parsing achievement data', e);
+        }
+      };
+
+      const closeModal = () => {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      };
+
+      achChips.forEach(chip => {
+        chip.addEventListener('click', () => openModal(chip));
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target.id === 'ach-modal' || e.target.classList.contains('modal-content-container')) {
+          closeModal();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+          closeModal();
+        }
+      });
+    }
+
+    // Initialize on page load and view transitions
+    document.addEventListener('DOMContentLoaded', initAchModal);
+    document.addEventListener('astro:page-load', initAchModal);
+  </script>
 </Layout>
 
 <style>
@@ -821,7 +923,7 @@ const ogDescription = user.bio
     border-radius: 12px;
     padding: 0.75rem 1rem;
     transition: all 0.2s;
-    cursor: default;
+    cursor: pointer;
   }
   .ach-chip:hover {
     background: rgba(255,255,255,0.07);
@@ -1110,5 +1212,159 @@ const ogDescription = user.bio
     .hero-stats-bar { flex-wrap: wrap; width: 100%; }
     .qs-sep { display: none; }
     .qs { flex: 1; min-width: 80px; }
+  }
+
+  /* ── Achievement Modal Styles ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .modal-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-content-container {
+    width: 100%;
+    max-width: 480px;
+    pointer-events: none;
+  }
+  .modal-overlay.is-open .modal-content-container {
+    pointer-events: auto;
+  }
+  .glass-modal {
+    background: rgba(15, 15, 25, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 32px;
+    padding: 3rem 2.5rem;
+    position: relative;
+    transform: translateY(30px) scale(0.95);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.6);
+    text-align: center;
+  }
+  .modal-overlay.is-open .glass-modal {
+    transform: translateY(0) scale(1);
+  }
+  .modal-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-muted);
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
+    transform: rotate(90deg);
+  }
+
+  .modal-ach-icon {
+    font-size: 4.5rem;
+    margin-bottom: 1.25rem;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
+    animation: floatAch 4s ease-in-out infinite;
+  }
+  @keyframes floatAch {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+  .modal-ach-name {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem;
+    background: linear-gradient(135deg, #fff, #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .modal-ach-rarity {
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    padding: 0.25rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 100px;
+  }
+  .modal-ach-desc {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin: 0 0 2.5rem;
+  }
+
+  .modal-ach-meta {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .meta-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-dim, #6b7280);
+    font-weight: 600;
+  }
+  .meta-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+  .pts-value {
+    color: #f59e0b;
+  }
+
+  /* Override button defaults for achievement chip */
+  button.ach-chip {
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+  }
+  button.ach-chip:focus-visible {
+    outline: 2px solid var(--ach-color);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 480px) {
+    .glass-modal {
+      padding: 2.5rem 1.5rem;
+    }
+    .modal-ach-name { font-size: 1.75rem; }
+    .modal-ach-desc { font-size: 1rem; }
+    .modal-ach-meta { gap: 1rem; }
   }
 </style>
