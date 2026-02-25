@@ -60,6 +60,9 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
     // Buscar o crear usuario en la base de datos
     let user = await User.findOne({ googleId: googleUser.id });
 
+    const now = new Date();
+    const getDayStr = (d: Date) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+
     if (!user) {
       // Crear nuevo usuario
       user = await User.create({
@@ -67,27 +70,49 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         email: googleUser.email,
         name: googleUser.name,
         picture: userPicture,
-        lastLogin: new Date()
+        lastLogin: now,
+        lastActiveAt: now,
+        currentStreak: 1,
+        maxStreak: 1
       });
-
+      
       // Notificar registro a n8n
       try {
         await fetch('https://n8n.broslunas.com/webhook/veredillasfm-new-user', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: user.name,
-            email: user.email,
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: user.name, email: user.email }),
         });
       } catch (webhookError) {
         console.error('Error sending webhook notification:', webhookError);
       }
     } else {
-      // Actualizar fecha de último login y foto
-      user.lastLogin = new Date();
+      // --- STREAK LOGIC FOR LOGIN EVENT ---
+      const todayStr = getDayStr(now);
+      const lastActiveStr = user.lastActiveAt ? getDayStr(new Date(user.lastActiveAt)) : null;
+
+      if (!lastActiveStr) {
+        user.currentStreak = 1;
+        user.maxStreak = Math.max(user.maxStreak || 0, 1);
+      } else if (todayStr !== lastActiveStr) {
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        if (lastActiveStr === getDayStr(yesterday)) {
+          user.currentStreak = (user.currentStreak || 0) + 1;
+        } else {
+          user.currentStreak = 1;
+        }
+        if (user.currentStreak > (user.maxStreak || 0)) {
+          user.maxStreak = user.currentStreak;
+        }
+      } else if (!user.currentStreak || user.currentStreak === 0) {
+        // Active today but streak wasn't tracked yet
+        user.currentStreak = 1;
+        user.maxStreak = Math.max(user.maxStreak || 0, 1);
+      }
+
+      user.lastLogin = now;
+      user.lastActiveAt = now;
       if (userPicture) {
         user.picture = userPicture;
       }

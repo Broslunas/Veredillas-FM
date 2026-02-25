@@ -28,7 +28,7 @@ try {
   }
 
   user = await User.findById(id).select(
-    'name picture bio favorites likedClips listeningTime completedEpisodes createdAt role'
+    'name picture bio favorites likedClips listeningTime completedEpisodes createdAt role currentStreak maxStreak'
   );
 
   if (user) {
@@ -185,9 +185,9 @@ const ogDescription = user.bio
           <span class="qs-label">Puntos ⭐</span>
         </div>
         <div class="qs-sep"></div>
-        <div class="qs">
-          <span class="qs-value">{daysSinceJoin}</span>
-          <span class="qs-label">Días</span>
+        <div class="qs" title={`Récord histórico: ${user.maxStreak || 0} días`}>
+          <span class="qs-value streak-val">🔥 {user.currentStreak || 0}</span>
+          <span class="qs-label">Racha</span>
         </div>
       </div>
 
@@ -373,6 +373,16 @@ const ogDescription = user.bio
             <div class="stat-row-icon">⭐</div>
             <div class="stat-row-label">Puntos totales</div>
             <div class="stat-row-value stat-gold">{totalPoints}</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row-icon">🔥</div>
+            <div class="stat-row-label">Racha actual</div>
+            <div class="stat-row-value">{user.currentStreak || 0} días</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row-icon">🏆</div>
+            <div class="stat-row-label">Mejor racha</div>
+            <div class="stat-row-value">{user.maxStreak || 0} días</div>
           </div>
           <div class="stat-row">
             <div class="stat-row-icon">📅</div>
@@ -759,6 +769,12 @@ const ogDescription = user.bio
     background-clip: text;
     font-family: var(--font-display, inherit);
     line-height: 1;
+  }
+  .streak-val {
+    background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.3));
   }
   .qs-gold {
     background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
