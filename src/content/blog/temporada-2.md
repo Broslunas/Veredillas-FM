@@ -41,7 +41,7 @@ Gracias. Gracias de corazón a todos los que habéis estado ahí desde el primer
 
 ¿Eres de los que se acaba de unir a la familia o simplemente quieres refrescar la memoria antes de escuchar a Dulce? Tienes tiempo de sobra para disfrutar del camino recorrido hasta ahora.
 
-👉 Escucha ahora la primera temporada completa aquí: 🔗 https://www.veredillasfm.es/ep/
+👉 Escucha ahora la primera temporada completa [🔗 AQUÍ 🔗](https://www.veredillasfm.es/ep/)
 
 El martes volvemos a hacer historia. ¿Te lo vas a perder?
 
