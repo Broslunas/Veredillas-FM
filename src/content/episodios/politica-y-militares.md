@@ -17,7 +17,7 @@ participants:
   - Elio
   - Gustavo
 season: 2
-episode: 5
+episode: 2
 duration: ¿?
 pubDate: '2026-03-04T17:00:00.000Z'
 ---
