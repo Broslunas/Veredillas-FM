@@ -18,7 +18,7 @@ image: 'https://cdn.veredillasfm.es/images/548fa07a-f539-4bde-9a00-1be893d27eca.
 participants:
   - Samuel Machín
 season: 2
-episode: 4
+episode: 3
 duration: ¿?
 pubDate: '2026-03-06T17:00:00.000Z'
 ---
