@@ -13,6 +13,10 @@ export async function GET() {
       type: 'Episodio',
       date: episode.data.pubDate,
       image: episode.data.image,
+      tags: episode.data.tags || [],
+      participants: episode.data.participants || [],
+      transcription: episode.data.transcription ? episode.data.transcription.map(t => ({ text: t.text, time: t.time })) : undefined,
+      transcriptionText: episode.data.transcription ? episode.data.transcription.map(t => t.text).join(' ') : '',
     })),
     ...posts.map((post) => ({
       title: post.data.title,
@@ -21,6 +25,7 @@ export async function GET() {
       type: 'Artículo',
       date: post.data.pubDate,
       image: post.data.image,
+      tags: post.data.tags || [],
     })),
     // Integrantes del Equipo
     ...teamMembers.map((member) => {

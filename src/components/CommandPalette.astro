@@ -274,6 +274,24 @@
     font-weight: 700;
   }
 
+  :global(.cmd-quote) {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--color-text-dim);
+    margin-top: 0.35rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+    display: block;
+    line-height: 1.3;
+  }
+  
+  :global(.cmd-quote span) {
+    color: var(--color-primary);
+    font-weight: 500;
+    font-style: normal;
+    font-size: 0.75rem;
+  }
+
   :global(.cmd-enter) {
     opacity: 0;
     transform: translateX(-5px);
@@ -369,6 +387,10 @@
     slug: string;
     image?: string;
     date: string;
+    tags?: string[];
+    transcriptionText?: string;
+    participants?: string[];
+    transcription?: { text: string; time: string }[];
   }
 
   let fuseInstance: Fuse<SearchItem> | undefined;
@@ -397,11 +419,15 @@
           fuseInstance = new Fuse(searchData, {
             keys: [
                 { name: 'title', weight: 0.7 },
+                { name: 'tags', weight: 0.6 },
+                { name: 'participants', weight: 0.5 },
                 { name: 'description', weight: 0.3 },
+                { name: 'transcription.text', weight: 0.2 },
                 { name: 'type', weight: 0.2 }
             ],
             threshold: 0.3,
             ignoreLocation: true,
+            includeMatches: true,
           });
         } catch (e) {
           console.error('Error loading search data', e);
@@ -510,21 +536,34 @@
         }
 
         const results = fuseInstance.search(query);
-        renderResults(results.map(r => r.item));
+        renderResults(results);
       }
 
-      function renderResults(items: SearchItem[]) {
+      function renderResults(results: Fuse.FuseResult<SearchItem>[]) {
         if (!resultsContainer) return;
         
-        if(countEl) countEl.innerText = `${items.length} resultados`;
+        if(countEl) countEl.innerText = `${results.length} resultados`;
 
-        if (items.length === 0) {
+        if (results.length === 0) {
             resultsContainer.innerHTML = `<div class="empty-state">No se encontraron resultados.</div>`;
             return;
         }
 
-        resultsContainer.innerHTML = items.map((item, index) => {
+        resultsContainer.innerHTML = results.map((result, index) => {
+             const item = result.item;
              const isImage = item.image && item.image.startsWith('http') || item.image?.startsWith('/');
+             
+             let quoteHtml = '';
+             const txtMatch = result.matches?.find(m => m.key === 'transcription.text');
+             if (txtMatch && txtMatch.refIndex !== undefined) {
+                 const tEntry = item.transcription?.[txtMatch.refIndex];
+                 if (tEntry) {
+                     const val = txtMatch.value || '';
+                     const snippet = val.length > 80 ? val.substring(0, 80) + '...' : val;
+                     quoteHtml = `<div class="cmd-quote">"${snippet}" <span>(${tEntry.time})</span></div>`;
+                 }
+             }
+
              return `
           <a href="${item.slug}" class="cmd-item ${index === 0 ? 'selected' : ''}" data-index="${index}">
             ${isImage 
@@ -537,6 +576,7 @@
                 <span class="cmd-tag">${item.type}</span>
                 <span>${item.description ? item.description.substring(0, 40) + '...' : ''}</span>
               </div>
+              ${quoteHtml}
             </div>
             <div class="cmd-enter">↵</div>
           </a>
