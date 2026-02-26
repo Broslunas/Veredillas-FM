@@ -181,7 +181,7 @@ const ogDescription = user.bio
         </div>
         <div class="qs-sep"></div>
         <div class="qs">
-          <span class="qs-value qs-gold">{totalPoints}</span>
+          <span class="qs-value">{totalPoints}</span>
           <span class="qs-label">Puntos ⭐</span>
         </div>
         <div class="qs-sep"></div>
@@ -225,7 +225,7 @@ const ogDescription = user.bio
             <span class="card-icon">🏅</span>
             <h2>Logros</h2>
           </div>
-          <div class="card-badge">{unlockedAchievements.length} / {ACHIEVEMENTS.filter(a => !a.secret).length + unlockedAchievements.filter(a => a.secret).length}</div>
+          <div class="card-badge">{unlockedAchievements.length} / {ACHIEVEMENTS.length}</div>
         </div>
 
         {unlockedAchievements.length === 0 ? (
