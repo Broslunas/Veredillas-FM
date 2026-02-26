@@ -1,5 +1,5 @@
 ---
-title: Un Análisis Crítico sobre los Therians ft. Samuel Machín
+title: Un Análisis Crítico sobre los Therians ft. Samuel Machín & Hugo Calero
 tags:
   - therian
   - identidad
@@ -17,6 +17,7 @@ isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/548fa07a-f539-4bde-9a00-1be893d27eca.png'
 participants:
   - Samuel Machín
+  - Hugo Calero
 season: 2
 episode: 3
 duration: ¿?
