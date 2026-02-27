@@ -440,14 +440,18 @@ const latestEpisodes = allEpisodes
             if (statusText) statusText.textContent = "Error de autenticación.";
         }
 
-      } catch (e) {
+      } catch (e: any) {
         console.error("Error inicializando SDK de Discord:", e);
-        if (statusText) statusText.textContent = "Error al conectar con Discord.";
+        if (statusText) statusText.textContent = `Error: ${e?.message || String(e)}`;
         
         // Enable UI anyway for fallback/testing if not in Discord
         if (!isDiscord && mainContent) {
              mainContent.classList.add('ready');
-             if (statusText) statusText.textContent = "Modo de prueba (Fuera de Discord)";
+             const errMsg = document.createElement('p');
+             errMsg.style.color = 'salmon';
+             errMsg.style.fontSize = '12px';
+             errMsg.textContent = `Modo Prueba. Motivo del fallo local: ${e?.message || String(e)}`;
+             statusText.appendChild(errMsg);
              setupPlayer();
         }
       }
