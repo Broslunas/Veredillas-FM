@@ -2,6 +2,15 @@
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
+const isDiscordRequest = Astro.url.searchParams.has('frame_id') || 
+  (Astro.request.headers.get('referer') || '').includes('discord.com') || 
+  (Astro.request.headers.get('user-agent') || '').includes('Discord');
+
+// If NOT accessed from inside Discord, redirect immediately to home
+if (!isDiscordRequest) {
+  return Astro.redirect('/');
+}
+
 // Fetch latest episodes to display in the Discord Activity
 const allEpisodes = await getCollection('episodios');
 const latestEpisodes = allEpisodes
@@ -359,12 +368,6 @@ const latestEpisodes = allEpisodes
     import { setupDiscordSdk, discordSdk, isDiscord } from '../../lib/discord';
 
     async function init() {
-      // REDIRECT IF ACCESSED OUTSIDE OF DISCORD
-      if (!isDiscord) {
-        window.location.href = '/';
-        return;
-      }
-
       const statusText = document.getElementById('status-text');
       const mainContent = document.getElementById('main-content');
       const userProfile = document.getElementById('user-profile');
