@@ -191,9 +191,10 @@
         const isAlreadyDiscordPage = window.location.pathname.startsWith('/discord');
         
         // Have we asked already? (sessionStorage clears when tab closes)
-        const hasAsked = sessionStorage.getItem('discord_activity_prompted');
+        // COMENTADO TEMPORALMENTE para que puedas ver y probar la modal libremente cuantas veces quieras: 
+        // const hasAsked = sessionStorage.getItem('discord_activity_prompted');
                                
-        if (isDiscordEmbed && !isAlreadyDiscordPage && !hasAsked) {
+        if (isDiscordEmbed && !isAlreadyDiscordPage /* && !hasAsked */) {
             // Show modal
             setTimeout(() => {
                 modal.classList.remove('discord-hidden');
