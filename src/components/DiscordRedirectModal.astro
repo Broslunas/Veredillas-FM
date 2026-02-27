@@ -1,10 +1,10 @@
 ---
 ---
 
-<div id="discord-redirect-modal" class="discord-modal-overlay hidden">
+<div id="discord-redirect-modal" class="discord-modal-overlay discord-hidden">
     <div class="discord-modal-bg" id="discord-modal-bg"></div>
     
-    <div class="discord-modal-content scale-95" id="discord-modal-content">
+    <div class="discord-modal-content discord-scale-95" id="discord-modal-content">
         <div class="discord-modal-header-line"></div>
         
         <div class="discord-modal-body">
@@ -52,16 +52,16 @@
         display: flex; /* Ensures flex takes effect when not hidden */
     }
 
-    .discord-modal-overlay.hidden {
+    .discord-hidden {
         display: none;
     }
 
-    .opacity-100 {
+    .discord-opacity-100 {
         opacity: 1 !important;
         pointer-events: auto !important;
     }
     
-    .opacity-0 {
+    .discord-opacity-0 {
         opacity: 0 !important;
         pointer-events: none !important;
     }
@@ -88,11 +88,11 @@
         transition: transform 0.3s ease;
     }
 
-    .scale-100 {
+    .discord-scale-100 {
         transform: scale(1) !important;
     }
     
-    .scale-95 {
+    .discord-scale-95 {
         transform: scale(0.95) !important;
     }
 
@@ -196,14 +196,14 @@
         if (isDiscordEmbed && !isAlreadyDiscordPage && !hasAsked) {
             // Show modal
             setTimeout(() => {
-                modal.classList.remove('hidden');
+                modal.classList.remove('discord-hidden');
                 
                 // Allow CSS display to apply before fading in
                 requestAnimationFrame(() => {
-                    modal.classList.remove('opacity-0');
-                    modal.classList.add('opacity-100');
-                    modalContent.classList.remove('scale-95');
-                    modalContent.classList.add('scale-100');
+                    modal.classList.remove('discord-opacity-0');
+                    modal.classList.add('discord-opacity-100');
+                    modalContent.classList.remove('discord-scale-95');
+                    modalContent.classList.add('discord-scale-100');
                 });
                 
                 sessionStorage.setItem('discord_activity_prompted', 'true');
@@ -217,13 +217,13 @@
         });
         
         closeBtn.addEventListener('click', () => {
-            modal.classList.remove('opacity-100');
-            modal.classList.add('opacity-0');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-95');
+            modal.classList.remove('discord-opacity-100');
+            modal.classList.add('discord-opacity-0');
+            modalContent.classList.remove('discord-scale-100');
+            modalContent.classList.add('discord-scale-95');
             
             setTimeout(() => {
-                modal.classList.add('hidden');
+                modal.classList.add('discord-hidden');
             }, 300);
         });
     });
