@@ -1,0 +1,225 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+// Fetch latest episodes to display in the Discord Activity
+const allEpisodes = await getCollection('episodios');
+const latestEpisodes = allEpisodes
+  .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf())
+  .slice(0, 5);
+---
+
+<Layout title="Veredillas FM - Discord Activity">
+  <main class="min-h-screen bg-discord-dark text-white p-4">
+    <div id="app-container" class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <header class="flex items-center justify-between mb-8 bg-[#2b2d31] p-4 rounded-xl border border-[#1e1f22]">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold">Veredillas FM</h1>
+            <p id="status-text" class="text-sm text-gray-400">Cargando SDK...</p>
+          </div>
+        </div>
+        
+        <div id="user-profile" class="hidden items-center gap-3 bg-[#1e1f22] py-2 px-3 rounded-lg">
+          <img id="user-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full" />
+          <span id="user-name" class="font-medium text-sm"></span>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div id="main-content" class="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-50 pointer-events-none transition-opacity duration-300">
+        
+        <!-- Left Column: Episodes List -->
+        <div class="md:col-span-2 space-y-4">
+          <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+            Últimos Episodios
+          </h2>
+          
+          <div class="space-y-3">
+            {latestEpisodes.map((ep) => (
+              <div class="episode-card bg-[#2b2d31] hover:bg-[#313338] p-3 rounded-xl border border-[#1e1f22] flex items-center gap-4 transition-colors cursor-pointer group" data-audio={ep.data.audioUrl} data-title={ep.data.title}>
+                <img src={ep.data.image || '/images/default-cover.jpg'} alt={ep.data.title} class="w-16 h-16 rounded-lg object-cover" />
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-bold text-sm truncate group-hover:text-primary transition-colors">{ep.data.title}</h3>
+                  <p class="text-xs text-gray-400 mt-1 line-clamp-1">{ep.data.description}</p>
+                </div>
+                <button class="play-btn w-10 h-10 rounded-full bg-[#1e1f22] flex items-center justify-center group-hover:bg-primary text-white transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Right Column: Player & Chat integration demo -->
+        <div class="space-y-4">
+          <div class="bg-[#2b2d31] p-5 rounded-xl border border-[#1e1f22] sticky top-4">
+             <h3 class="font-bold text-sm mb-4 uppercase text-gray-400 tracking-wider">Reproductor</h3>
+             
+             <div id="now-playing" class="text-center">
+                <div class="w-full aspect-square bg-[#1e1f22] rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                  <svg id="default-cover" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                  <img id="np-cover" src="" class="hidden w-full h-full object-cover" />
+                </div>
+                <h4 id="np-title" class="font-bold text-sm mb-1 line-clamp-2">Ningún episodio seleccionado</h4>
+                <p class="text-xs text-gray-400 mb-6">Selecciona un episodio para escuchar con tus amigos</p>
+                
+                <audio id="audio-player" class="w-full h-10 hidden" controls></audio>
+             </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .bg-discord-dark {
+      background-color: #313338;
+    }
+  </style>
+
+  <script>
+    import { setupDiscordSdk, discordSdk, isDiscord } from '../../lib/discord';
+
+    async function init() {
+      const statusText = document.getElementById('status-text');
+      const mainContent = document.getElementById('main-content');
+      const userProfile = document.getElementById('user-profile');
+      
+      try {
+        if (statusText) statusText.textContent = "Conectando al SDK...";
+        
+        await setupDiscordSdk();
+        
+        if (statusText) statusText.textContent = "Autenticando...";
+        
+        // Authorize with Discord Client
+        const { code } = await discordSdk.commands.authorize({
+          client_id: import.meta.env.PUBLIC_DISCORD_CLIENT_ID,
+          response_type: "code",
+          state: "",
+          prompt: "none",
+          scope: [
+            "identify",
+            "guilds",
+          ],
+        });
+
+        if (statusText) statusText.textContent = "Obteniendo datos...";
+
+        let access_token = "mock_token";
+
+        if (isDiscord) {
+            // Obtain token from our own server
+            const response = await fetch('/api/discord/token', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ code }),
+            });
+
+            if (!response.ok) {
+              throw new Error('No se pudo obtener el token de acceso');
+            }
+
+            const data = await response.json();
+            access_token = data.access_token;
+        }
+        
+        try {
+            const result = await discordSdk.commands.authenticate({
+                access_token,
+            });
+            
+            const user = result.user;
+            
+            // UI Updates
+            if (statusText) statusText.textContent = "Conectado";
+            if (mainContent) {
+                mainContent.classList.remove('opacity-50', 'pointer-events-none');
+            }
+            if (userProfile) {
+                userProfile.classList.remove('hidden');
+                userProfile.classList.add('flex');
+                
+                const avatar = document.getElementById('user-avatar') as HTMLImageElement;
+                const name = document.getElementById('user-name');
+                
+                if (user.avatar) {
+                    avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+                } else {
+                    const defaultAvatarIndex = Math.abs(Number(user.id) >> 22) % 6;
+                    avatar.src = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
+                }
+                
+                if (name) name.textContent = user.username;
+            }
+
+            // Set up player logic
+            setupPlayer();
+            
+        } catch (authErr) {
+            console.error(authErr);
+            if (statusText) statusText.textContent = "Error de autenticación.";
+        }
+
+      } catch (e) {
+        console.error("Error inicializando SDK de Discord:", e);
+        if (statusText) statusText.textContent = "Error al conectar con Discord.";
+        
+        // Enable UI anyway for fallback/testing if not in Discord
+        if (!isDiscord && mainContent) {
+             mainContent.classList.remove('opacity-50', 'pointer-events-none');
+             if (statusText) statusText.textContent = "Modo de prueba (Fuera de Discord)";
+             setupPlayer();
+        }
+      }
+    }
+
+    function setupPlayer() {
+        const cards = document.querySelectorAll('.episode-card');
+        const audioPlayer = document.getElementById('audio-player') as HTMLAudioElement;
+        const npTitle = document.getElementById('np-title');
+        const npCover = document.getElementById('np-cover') as HTMLImageElement;
+        const defaultCover = document.getElementById('default-cover');
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const audioUrl = card.getAttribute('data-audio');
+                const title = card.getAttribute('data-title');
+                const img = card.querySelector('img')?.src;
+
+                if (audioUrl && audioPlayer) {
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.classList.remove('hidden');
+                    audioPlayer.play();
+                    
+                    if (npTitle) npTitle.textContent = title || 'Reproduciendo...';
+                    
+                    if (npCover && img && defaultCover) {
+                        npCover.src = img;
+                        npCover.classList.remove('hidden');
+                        defaultCover.classList.add('hidden');
+                    }
+                }
+            });
+        });
+    }
+
+    // Initialize only in client
+    if (typeof window !== 'undefined') {
+      init();
+    }
+  </script>
+</Layout>
