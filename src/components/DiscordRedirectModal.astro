@@ -1,0 +1,85 @@
+---
+---
+
+<div id="discord-redirect-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300 pointer-events-none">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" id="discord-modal-bg"></div>
+    
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl relative z-10 transform scale-95 transition-transform duration-300" id="discord-modal-content">
+        <div class="h-2 w-full bg-[#5865F2]"></div>
+        
+        <div class="p-6 text-center">
+            <div class="w-20 h-20 bg-[#5865F2]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#5865F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-white mb-2">Parece que vienes de Discord</h2>
+            <p class="text-gray-400 mb-8">
+                ¿Quieres abrir la versión nativa (Activity) para escuchar los episodios con tus amigos en el canal de voz?
+            </p>
+            
+            <div class="flex flex-col gap-3">
+                <a href="/discord" class="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    Abrir Actividad de Discord
+                </a>
+                
+                <button id="discord-modal-close" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-xl transition-colors">
+                    Continuar en la web normal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('discord-redirect-modal');
+        const modalContent = document.getElementById('discord-modal-content');
+        const closeBtn = document.getElementById('discord-modal-close');
+        
+        if (!modal || !modalContent || !closeBtn) return;
+        
+        // Check if we are in Discord App (via URL params, referrer or userAgent)
+        const isDiscordEmbed = new URLSearchParams(window.location.search).has('frame_id') || 
+                               document.referrer.includes('discord.com') ||
+                               navigator.userAgent.includes('Discord');
+                               
+        // Only show if not already on the /discord page
+        const isAlreadyDiscordPage = window.location.pathname.startsWith('/discord');
+        
+        // Have we asked already? (sessionStorage clears when tab closes)
+        const hasAsked = sessionStorage.getItem('discord_activity_prompted');
+                               
+        if (isDiscordEmbed && !isAlreadyDiscordPage && !hasAsked) {
+            // Show modal
+            setTimeout(() => {
+                modal.classList.remove('hidden');
+                
+                // Allow CSS display to apply before fading in
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    modal.classList.add('opacity-100');
+                    modalContent.classList.remove('scale-95');
+                    modalContent.classList.add('scale-100');
+                });
+                
+                sessionStorage.setItem('discord_activity_prompted', 'true');
+            }, 1500); // Small delay so it's not jarring on load
+        }
+        
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        });
+    });
+</script>

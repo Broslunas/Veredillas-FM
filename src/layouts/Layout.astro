@@ -11,6 +11,7 @@ import KonamiCode from '../components/KonamiCode.astro';
 import LivePopupPlayer from '../components/LivePopupPlayer.astro';
 import ClipModalWrapper from '../components/player/ClipModalWrapper';
 import AchievementToaster from '../components/AchievementToaster.astro';
+import DiscordRedirectModal from '../components/DiscordRedirectModal.astro';
 
 
 interface Props {
@@ -209,6 +210,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         <ClipModalWrapper client:idle />
         <KonamiCode />
         <AchievementToaster />
+        <DiscordRedirectModal />
 	</body>
 </html>
 
