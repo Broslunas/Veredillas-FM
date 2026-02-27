@@ -22,10 +22,10 @@
             </p>
             
             <div class="discord-modal-actions">
-                <a href="/discord" class="discord-btn discord-btn-primary">
+                <button id="discord-modal-accept" class="discord-btn discord-btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                     Abrir Actividad de Discord
-                </a>
+                </button>
                 
                 <button id="discord-modal-close" class="discord-btn discord-btn-secondary">
                     Continuar en la web normal
@@ -178,8 +178,9 @@
         const modal = document.getElementById('discord-redirect-modal');
         const modalContent = document.getElementById('discord-modal-content');
         const closeBtn = document.getElementById('discord-modal-close');
+        const acceptBtn = document.getElementById('discord-modal-accept');
         
-        if (!modal || !modalContent || !closeBtn) return;
+        if (!modal || !modalContent || !closeBtn || !acceptBtn) return;
         
         // Check if we are in Discord App (via URL params, referrer or userAgent)
         const isDiscordEmbed = new URLSearchParams(window.location.search).has('frame_id') || 
@@ -208,6 +209,12 @@
                 sessionStorage.setItem('discord_activity_prompted', 'true');
             }, 1500); // Small delay so it's not jarring on load
         }
+        
+        acceptBtn.addEventListener('click', () => {
+            // Navegar manualmente manteniendo el ?frame_id= de la URL o cualquier otro parámetro 
+            // que necesita el SDK de Discord para inicializarse correctamente
+            window.location.assign('/discord' + window.location.search);
+        });
         
         closeBtn.addEventListener('click', () => {
             modal.classList.remove('opacity-100');
