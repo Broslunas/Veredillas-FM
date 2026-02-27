@@ -16,7 +16,7 @@ if (isDiscord) {
   const mockGuildId = "876543210987654321";
   const mockChannelId = "112233445566778899";
 
-  discordSdk = new DiscordSDKMock(clientId, mockGuildId, mockChannelId);
+  discordSdk = new DiscordSDKMock(clientId, mockGuildId, mockChannelId, null);
   const discriminator = String(mockUserId).padStart(4, '0');
 
   // Optional: setup mock data
