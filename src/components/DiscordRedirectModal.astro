@@ -48,12 +48,12 @@
         pointer-events: none;
     }
     
-    .discord-modal-overlay:not(.hidden) {
+    .discord-modal-overlay:not(.discord-hidden) {
         display: flex; /* Ensures flex takes effect when not hidden */
     }
 
     .discord-hidden {
-        display: none;
+        display: none !important;
     }
 
     .discord-opacity-100 {
