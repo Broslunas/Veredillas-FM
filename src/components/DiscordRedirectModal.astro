@@ -1,14 +1,14 @@
 ---
 ---
 
-<div id="discord-redirect-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300 pointer-events-none">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" id="discord-modal-bg"></div>
+<div id="discord-redirect-modal" class="discord-modal-overlay hidden">
+    <div class="discord-modal-bg" id="discord-modal-bg"></div>
     
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl relative z-10 transform scale-95 transition-transform duration-300" id="discord-modal-content">
-        <div class="h-2 w-full bg-[#5865F2]"></div>
+    <div class="discord-modal-content scale-95" id="discord-modal-content">
+        <div class="discord-modal-header-line"></div>
         
-        <div class="p-6 text-center">
-            <div class="w-20 h-20 bg-[#5865F2]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div class="discord-modal-body">
+            <div class="discord-modal-icon-wrapper">
                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#5865F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 18V5l12-2v13"></path>
                     <circle cx="6" cy="18" r="3"></circle>
@@ -16,24 +16,162 @@
                 </svg>
             </div>
             
-            <h2 class="text-2xl font-bold text-white mb-2">Parece que vienes de Discord</h2>
-            <p class="text-gray-400 mb-8">
+            <h2 class="discord-modal-title">Parece que vienes de Discord</h2>
+            <p class="discord-modal-text">
                 ¿Quieres abrir la versión nativa (Activity) para escuchar los episodios con tus amigos en el canal de voz?
             </p>
             
-            <div class="flex flex-col gap-3">
-                <a href="/discord" class="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+            <div class="discord-modal-actions">
+                <a href="/discord" class="discord-btn discord-btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                     Abrir Actividad de Discord
                 </a>
                 
-                <button id="discord-modal-close" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-xl transition-colors">
+                <button id="discord-modal-close" class="discord-btn discord-btn-secondary">
                     Continuar en la web normal
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .discord-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .discord-modal-overlay:not(.hidden) {
+        display: flex; /* Ensures flex takes effect when not hidden */
+    }
+
+    .discord-modal-overlay.hidden {
+        display: none;
+    }
+
+    .opacity-100 {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    
+    .opacity-0 {
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    .discord-modal-bg {
+        position: absolute;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+    }
+
+    .discord-modal-content {
+        background-color: #111827; /* gray-900 */
+        border: 1px solid #1f2937; /* gray-800 */
+        border-radius: 1rem;
+        max-width: 28rem;
+        width: 100%;
+        margin: 0 1rem;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        position: relative;
+        z-index: 10;
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+    }
+
+    .scale-100 {
+        transform: scale(1) !important;
+    }
+    
+    .scale-95 {
+        transform: scale(0.95) !important;
+    }
+
+    .discord-modal-header-line {
+        height: 0.5rem;
+        width: 100%;
+        background-color: #5865F2; /* Discord blurple */
+    }
+
+    .discord-modal-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .discord-modal-icon-wrapper {
+        width: 5rem;
+        height: 5rem;
+        background-color: rgba(88, 101, 242, 0.2);
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 1.5rem;
+    }
+
+    .discord-modal-title {
+        font-size: 1.5rem;
+        line-height: 2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+
+    .discord-modal-text {
+        color: #9ca3af; /* gray-400 */
+        margin-bottom: 2rem;
+    }
+
+    .discord-modal-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .discord-btn {
+        width: 100%;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        transition: background-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        text-decoration: none;
+        border: none;
+    }
+
+    .discord-btn-primary {
+        background-color: #5865F2;
+        color: #ffffff;
+    }
+
+    .discord-btn-primary:hover {
+        background-color: #4752C4;
+    }
+
+    .discord-btn-secondary {
+        background-color: #1f2937; /* gray-800 */
+        color: #ffffff;
+    }
+
+    .discord-btn-secondary:hover {
+        background-color: #374151; /* gray-700 */
+    }
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -61,7 +199,7 @@
                 
                 // Allow CSS display to apply before fading in
                 requestAnimationFrame(() => {
-                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    modal.classList.remove('opacity-0');
                     modal.classList.add('opacity-100');
                     modalContent.classList.remove('scale-95');
                     modalContent.classList.add('scale-100');
@@ -73,7 +211,7 @@
         
         closeBtn.addEventListener('click', () => {
             modal.classList.remove('opacity-100');
-            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-0');
             modalContent.classList.remove('scale-100');
             modalContent.classList.add('scale-95');
             
