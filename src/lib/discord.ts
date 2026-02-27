@@ -4,17 +4,19 @@ const clientId = import.meta.env.PUBLIC_DISCORD_CLIENT_ID || "no-defined";
 
 let discordSdk: DiscordSDK | DiscordSDKMock;
 
-// Detect if we are running inside Discord
-const isDiscord = new URLSearchParams(window.location.search).has('frame_id') || 
-                  document.referrer.includes('discord.com');
+// Detect if we are running strictly inside a Discord Activity IFrame
+// We MUST NOT rely on referrer, because normal link clicks from Discord chat also have referrer 'discord.com'
+const isDiscord = typeof window !== 'undefined' && 
+                  (new URLSearchParams(window.location.search).has('frame_id') || 
+                  (window.parent !== window && document.referrer.includes('discord.com')));
 
 if (isDiscord) {
   discordSdk = new DiscordSDK(clientId);
 } else {
   // Use a mock for local development outside of Discord
-  const mockUserId = "123456789012345678";
-  const mockGuildId = "876543210987654321";
-  const mockChannelId = "112233445566778899";
+  const mockUserId = "787989194919772170";
+  const mockGuildId = "1145445059643326536";
+  const mockChannelId = "1148149335545098280";
 
   discordSdk = new DiscordSDKMock(clientId, mockGuildId, mockChannelId, null);
   const discriminator = String(mockUserId).padStart(4, '0');

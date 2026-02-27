@@ -182,10 +182,8 @@
         
         if (!modal || !modalContent || !closeBtn || !acceptBtn) return;
         
-        // Check if we are in Discord App (via URL params, referrer or userAgent)
-        const isDiscordEmbed = new URLSearchParams(window.location.search).has('frame_id') || 
-                               document.referrer.includes('discord.com') ||
-                               navigator.userAgent.includes('Discord');
+        // Check if we are truly inside a Discord Activity IFrame
+        const isDiscordEmbed = new URLSearchParams(window.location.search).has('frame_id') && window.parent !== window;
                                
         // Only show if not already on the /discord page
         const isAlreadyDiscordPage = window.location.pathname.startsWith('/discord');

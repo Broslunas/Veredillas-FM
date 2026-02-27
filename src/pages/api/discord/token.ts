@@ -12,10 +12,11 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const clientId = import.meta.env.PUBLIC_DISCORD_CLIENT_ID;
-    const clientSecret = process.env.DISCORD_CLIENT_SECRET; // ADD THIS TO .env
+    const clientSecret = import.meta.env.DISCORD_CLIENT_SECRET || process.env.DISCORD_CLIENT_SECRET; // Soporta ambos entornos
 
-    if (!clientId || !clientSecret) {
-      return new Response(JSON.stringify({ error: 'Missing Discord credentials in server' }), {
+    if (!clientId || !clientSecret || clientSecret === "your_discord_client_secret_here") {
+      console.error("Faltan variables de entorno: ", { clientId: !!clientId, clientSecret: !!clientSecret });
+      return new Response(JSON.stringify({ error: 'Faltan credenciales de Discord en el servidor o no se ha configurado el secret real.' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
