@@ -24,14 +24,30 @@ if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner
 
 const users = await User.find({}).sort({ createdAt: -1 });
 
-// Fetch Episodes for Client-side enrichment (Images, Titles)
+// Fetch Episodes & Clips for Client-side enrichment
 const allEpisodes = await getCollection('episodios');
 const episodesData: Record<string, { title: string, image: string }> = {};
+const clipsData: Record<string, { title: string, episodeSlug: string, image: string }> = {};
+
 allEpisodes.forEach(e => {
+    const epImage = typeof e.data.image === 'string' ? e.data.image : (e.data.image as any)?.src || '';
     episodesData[e.slug] = {
         title: e.data.title,
-        image: e.data.image || ''
+        image: epImage
     };
+    if (e.data.clips) {
+        e.data.clips.forEach((clip: any) => {
+             const match = clip.url.match(/(?:youtube\.com\/shorts\/|youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^?&]+)/);
+             const videoId = match ? match[1] : null;
+             if (videoId) {
+                 clipsData[videoId] = {
+                     title: clip.title,
+                     episodeSlug: e.slug,
+                     image: epImage
+                 };
+             }
+        });
+    }
 });
 
 function formatTime(seconds: number) {
@@ -48,7 +64,7 @@ function formatTime(seconds: number) {
         <div class="grid-overlay"></div>
     </div>
 
-    <div class="admin-container fade-in-up" id="adminContainer" data-episodes={JSON.stringify(episodesData)}>
+    <div class="admin-container fade-in-up" id="adminContainer" data-episodes={JSON.stringify(episodesData)} data-clips={JSON.stringify(clipsData)}>
         <div class="admin-header">
             <div class="header-content">
                 <h1>Usuarios</h1>
@@ -180,46 +196,78 @@ function formatTime(seconds: number) {
         </div>
     </div>
 
-    <!-- View User Details Modal -->
+    <!-- View User Details Dashboard Modal -->
     <div id="viewUserModal" class="modal-backdrop hidden">
-        <div class="modal-content glass-panel wide-modal">
+        <div class="modal-content glass-panel super-wide-modal">
             <div class="modal-header">
-                <h3>Detalles del Usuario</h3>
+                <h3>Dashboard del Usuario</h3>
                 <button id="closeViewModal" class="close-btn">&times;</button>
             </div>
             
-            <div id="viewUserDetails" class="user-details-content">
-                <!-- Populated via JS -->
-                <div class="detail-header">
-                    <img id="viewAvatar" src="" alt="" class="large-avatar" />
-                    <div>
-                        <h2 id="viewName"></h2>
-                        <p id="viewEmail" class="text-muted"></p>
+            <div id="viewUserDetails" class="user-dashboard-scrollable">
+                <div class="dashboard-hero">
+                    <img id="viewAvatar" src="" alt="" class="dashboard-avatar" />
+                    <div class="hero-info">
+                        <div class="hero-title-row">
+                            <h2 id="viewName"></h2>
+                            <span id="viewRoleBadge" class="role-badge"></span>
+                            <span id="viewNewsletterBadge" class="status-badge"></span>
+                        </div>
+                        <p id="viewEmail" class="hero-email"></p>
+                        <p class="hero-meta">Miembro desde: <span id="viewJoined"></span> <span class="dot-sep">&bull;</span> Último activo: <span id="viewLastActive"></span></p>
                     </div>
                 </div>
 
-                <div class="details-grid">
-                     <div class="detail-card">
-                        <h4>Estadísticas</h4>
-                        <div class="stat-row">
-                            <span>Tiempo Escuchado:</span>
-                            <span id="viewListeningTime" class="font-mono"></span>
-                        </div>
-                         <div class="stat-row">
-                            <span>Último Acceso:</span>
-                            <span id="viewLastLogin"></span>
+                <div class="stats-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon time-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                        <div class="stat-data">
+                            <h4>Tiempo Escuchado</h4>
+                            <span id="viewListeningTime" class="stat-value font-mono"></span>
                         </div>
                     </div>
-
-                    <div class="detail-card">
-                        <h4>Favoritos (<span id="viewFavCount">0</span>)</h4>
-                        <ul id="viewFavoritesList" class="simple-list"></ul>
+                    <div class="stat-card">
+                        <div class="stat-icon ep-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div>
+                        <div class="stat-data">
+                            <h4>Episodios Completados</h4>
+                            <span id="viewCompletedCount" class="stat-value"></span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon streak-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
+                        <div class="stat-data">
+                            <h4>Racha (Actual/Max)</h4>
+                            <span id="viewStreak" class="stat-value"></span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="detail-full">
-                    <h4>Historial Reciente</h4>
-                    <ul id="viewHistoryList" class="simple-list history-list"></ul>
+                <div class="dashboard-columns">
+                    <div class="dash-col dash-main">
+                        <div class="dash-section">
+                            <div class="section-header-row">
+                                <h4 class="section-title">Historial de Reproducción</h4>
+                            </div>
+                            <div class="history-list-wrapper">
+                                <ul id="viewHistoryList" class="rich-list history-list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dash-col dash-side">
+                        <div class="dash-section">
+                            <div class="section-header-row">
+                                <h4 class="section-title">Episodios Favoritos (<span id="viewFavCount">0</span>)</h4>
+                            </div>
+                            <ul id="viewFavoritesList" class="rich-list mini-list"></ul>
+                        </div>
+                        <div class="dash-section mt-4">
+                             <div class="section-header-row">
+                                <h4 class="section-title">Clips Guardados (<span id="viewClipsCount">0</span>)</h4>
+                            </div>
+                            <ul id="viewClipsList" class="rich-list mini-list"></ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -354,17 +402,44 @@ function formatTime(seconds: number) {
                     const avatar = document.getElementById('viewAvatar') as HTMLImageElement;
                     const name = document.getElementById('viewName');
                     const email = document.getElementById('viewEmail');
+                    const roleBadge = document.getElementById('viewRoleBadge');
+                    const newsletterBadge = document.getElementById('viewNewsletterBadge');
+                    const joined = document.getElementById('viewJoined');
+                    const lastActive = document.getElementById('viewLastActive');
+
                     const time = document.getElementById('viewListeningTime');
-                    const lastLogin = document.getElementById('viewLastLogin');
+                    const completed = document.getElementById('viewCompletedCount');
+                    const streak = document.getElementById('viewStreak');
+
                     const favList = document.getElementById('viewFavoritesList');
                     const favCount = document.getElementById('viewFavCount');
+                    const clipsList = document.getElementById('viewClipsList');
+                    const clipsCount = document.getElementById('viewClipsCount');
                     const historyList = document.getElementById('viewHistoryList');
+
+                    const container = document.getElementById('adminContainer');
+                    const episodesData = container ? JSON.parse(container.dataset.episodes || '{}') : {};
+                    const clipsData = container ? JSON.parse(container.dataset.clips || '{}') : {};
 
                     if(avatar) avatar.src = userData.picture || `https://ui-avatars.com/api/?name=${userData.name}`;
                     if(name) name.textContent = userData.name;
                     if(email) email.textContent = userData.email;
+                    
+                    if(roleBadge) {
+                        roleBadge.className = `role-badge ${userData.role || 'user'}`;
+                        roleBadge.textContent = userData.role || 'user';
+                    }
+                    if(newsletterBadge) {
+                        newsletterBadge.className = `status-badge ${userData.newsletter ? 'active' : 'inactive'}`;
+                        newsletterBadge.textContent = userData.newsletter ? 'Suscrito' : 'Inactivo';
+                    }
+
+                    if(joined) joined.textContent = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A';
+                    if(lastActive) lastActive.textContent = userData.lastActiveAt ? new Date(userData.lastActiveAt).toLocaleString() : (userData.lastLogin ? new Date(userData.lastLogin).toLocaleString() : 'N/A');
+
                     if(time) time.textContent = userData.listeningTime ? `${Math.floor(userData.listeningTime/3600)}h ${Math.floor((userData.listeningTime%3600)/60)}m` : '0h 0m';
-                    if(lastLogin) lastLogin.textContent = userData.lastLogin ? new Date(userData.lastLogin).toLocaleDateString() : 'Nunca';
+                    if(completed) completed.textContent = (userData.completedEpisodes || []).length.toString();
+                    if(streak) streak.textContent = `${userData.currentStreak || 0} / ${userData.maxStreak || 0}`;
 
                     // Favorites
                     if(favList && favCount) {
@@ -372,47 +447,97 @@ function formatTime(seconds: number) {
                         const favs = userData.favorites || [];
                         favCount.textContent = favs.length;
                         if(favs.length === 0) {
-                            favList.innerHTML = '<li class="text-sm text-muted">Sin favoritos</li>';
+                            favList.innerHTML = '<li class="empty-state">Sin favoritos</li>';
                         } else {
                             favs.forEach((slug: string) => {
+                                const epData = episodesData[slug];
+                                const title = epData ? epData.title : slug;
+                                const image = epData ? epData.image : 'https://placehold.co/100x100?text=?';
                                 const li = document.createElement('li');
-                                li.textContent = slug; // Ideally fetch title, but slug works for now as requested
+                                li.className = 'mini-item';
+                                li.innerHTML = `
+                                    <img src="${image}" alt="${title}" class="mini-thumb" />
+                                    <div class="mini-info">
+                                        <span class="mini-title" title="${title}">${title}</span>
+                                    </div>
+                                `;
                                 favList.appendChild(li);
                             });
                         }
+                    }
+
+                    // Liked Clips
+                    if(clipsList && clipsCount) {
+                        clipsList.innerHTML = '';
+                        const clips = userData.likedClips || [];
+                        clipsCount.textContent = clips.length;
+                        if(clips.length === 0) {
+                            clipsList.innerHTML = '<li class="empty-state">Sin clips guardados</li>';
+                        } else {
+                            clips.forEach((id: string) => {
+                                const clipData = clipsData[id];
+                                const title = clipData ? clipData.title : id;
+                                const image = clipData ? clipData.image : 'https://placehold.co/100x100?text=?';
+                                const li = document.createElement('li');
+                                li.className = 'mini-item';
+                                li.innerHTML = `
+                                    <img src="${image}" alt="${title}" class="mini-thumb clip-thumb" />
+                                    <div class="mini-info">
+                                        <span class="mini-title" title="${title}">${title}</span>
+                                        ${clipData ? `<span class="mini-meta">Ep: ${clipData.episodeSlug}</span>` : ''}
+                                    </div>
+                                `;
+                                clipsList.appendChild(li);
+                            });
+                        }
+                    }
+
+                    function formatTimeJS(seconds: number) {
+                        if (!seconds) return '0m';
+                        const h = Math.floor(seconds / 3600);
+                        const m = Math.floor((seconds % 3600) / 60);
+                        if (h > 0) return `${h}h ${m}m`;
+                        return `${m}m`;
                     }
 
                     // History
                     if(historyList) {
                         historyList.innerHTML = '';
                         const history = userData.playbackHistory || [];
-                        const container = document.getElementById('adminContainer');
-                        const episodesData = container ? JSON.parse(container.dataset.episodes || '{}') : {};
+                        // Sort history by listenedAt desc
+                        history.sort((a: any, b: any) => new Date(b.listenedAt).getTime() - new Date(a.listenedAt).getTime());
 
                         if(history.length === 0) {
-                             historyList.innerHTML = '<li class="text-sm text-muted">Sin historial reciente</li>';
+                             historyList.innerHTML = '<li class="empty-state">Sin historial de reproducción</li>';
                         } else {
-                            // Show last 5
-                             history.slice(0, 5).forEach((h: any) => {
+                             history.forEach((h: any) => {
                                 const epData = episodesData[h.episodeSlug];
                                 const title = epData ? epData.title : h.episodeSlug;
                                 const image = epData ? epData.image : 'https://placehold.co/100x100?text=?';
                                 
-                                // Mock progress calculation for visual (randomish or based on 'completed')
-                                const progress = h.completed ? 100 : Math.floor(Math.random() * 80) + 10; 
+                                // Real progress calculation
+                                let progressPercent = 0;
+                                if (h.duration > 0) {
+                                    progressPercent = Math.min(100, Math.round((h.progress / h.duration) * 100));
+                                } else if (h.completed) {
+                                    progressPercent = 100;
+                                }
 
                                 const li = document.createElement('li');
                                 li.className = 'history-item-rich';
                                 li.innerHTML = `
                                     <img src="${image}" alt="${title}" class="history-thumb" />
                                     <div class="history-info">
-                                        <span class="history-title">${title}</span>
-                                        <div class="history-meta">
-                                            <span class="history-date">${new Date(h.listenedAt).toLocaleDateString()}</span>
-                                            ${h.completed ? '<span class="badge-completed">Completado</span>' : ''}
+                                        <div class="history-title-row">
+                                            <span class="history-title" title="${title}">${title}</span>
+                                            <span class="history-date">${new Date(h.listenedAt).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}</span>
                                         </div>
-                                        <div class="progress-track-mini">
-                                            <div class="progress-fill-mini" style="width: ${progress}%"></div>
+                                        <div class="history-meta mt-1">
+                                            <span class="progress-text">${formatTimeJS(h.progress)} / ${formatTimeJS(h.duration)}</span>
+                                            ${h.completed ? '<span class="badge-completed">✓ Completado</span>' : ''}
+                                        </div>
+                                        <div class="progress-track-mini mt-2">
+                                            <div class="progress-fill-mini" style="width: ${progressPercent}%"></div>
                                         </div>
                                     </div>
                                 `;
@@ -869,43 +994,98 @@ function formatTime(seconds: number) {
   }
   .label-text { font-weight: 500; font-size: 0.95rem; }
 
-  /* User Details Responsive */
-  .detail-header {
-      display: flex; align-items: center; gap: 2rem; padding-bottom: 2rem;
-      border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem;
-  }
-  .large-avatar { width: 100px; height: 100px; border-radius: 2rem; border: 4px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  /* Dashboard User Details Responsive */
+  .modal-content.super-wide-modal { max-width: 900px; padding: 0; }
+  .modal-header { padding: 2rem 2rem 1.5rem; margin-bottom: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
   
-  .details-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+  .user-dashboard-scrollable { padding: 2rem; max-height: calc(90vh - 85px); overflow-y: auto; }
+  
+  /* Hero */
+  .dashboard-hero {
+      display: flex; align-items: flex-start; gap: 2rem; padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 2rem;
   }
+  .dashboard-avatar { width: 110px; height: 110px; border-radius: 2rem; object-fit: cover; border: 4px solid rgba(167, 139, 250, 0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+  
+  .hero-info { flex: 1; }
+  .hero-title-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .hero-title-row h2 { font-size: 2rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.02em; }
+  .hero-email { color: var(--color-text-dim); font-size: 1.05rem; margin-bottom: 1rem; }
+  .hero-meta { color: var(--color-text-muted); font-size: 0.9rem; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 0.5rem; }
+  .dot-sep { opacity: 0.5; font-size: 1.2rem; line-height: 0; }
 
-  .detail-card { background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 1.5rem; border: 1px solid rgba(255,255,255,0.05); }
-  .detail-card h4, .detail-full h4 { color: #a78bfa; margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+  /* Stat Cards */
+  .stats-cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;
+  }
+  .stat-card {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.5rem;
+      padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem; transition: all 0.3s;
+  }
+  .stat-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.05); border-color: rgba(167, 139, 250, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+  .stat-icon { width: 50px; height: 50px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; }
+  .time-icon { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
+  .ep-icon { background: rgba(52, 211, 153, 0.15); color: #6ee7b7; }
+  .streak-icon { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+  
+  .stat-data h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dim); margin-bottom: 0.25rem; }
+  .stat-value { font-size: 1.5rem; font-weight: 700; color: #fff; }
 
-  /* History Items */
-  .history-list { max-height: 400px; display: flex; flex-direction: column; gap: 1rem; }
+  /* Columns */
+  .dashboard-columns { display: grid; grid-template-columns: 1.6fr 1fr; gap: 2rem; }
+  .section-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.75rem; }
+  .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #a78bfa; margin: 0; }
+
+  .rich-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem; }
+  .empty-state { padding: 2rem; text-align: center; color: var(--color-text-dim); background: rgba(255,255,255,0.02); border-radius: 1rem; border: 1px dashed rgba(255,255,255,0.1); font-size: 0.9rem; }
+
+  /* History Rich Items */
+  .history-list-wrapper { max-height: 500px; overflow-y: auto; padding-right: 0.5rem; }
+  .history-list-wrapper::-webkit-scrollbar { width: 6px; }
+  .history-list-wrapper::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.3); border-radius: 10px; }
+  
   .history-item-rich {
-      display: flex; gap: 1.25rem; align-items: center; padding: 1rem;
-      background: rgba(255,255,255,0.03); border-radius: 1rem;
-      border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s;
+      display: flex; gap: 1.25rem; padding: 1.25rem;
+      background: rgba(0,0,0,0.3); border-radius: 1rem;
+      border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;
   }
-  .history-item-rich:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); border-color: rgba(255,255,255,0.1); }
-  .history-thumb { width: 60px; height: 60px; border-radius: 0.75rem; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+  .history-item-rich:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+  .history-thumb { width: 70px; height: 70px; border-radius: 0.75rem; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.4); flex-shrink: 0; }
   
-  .history-info { flex: 1; min-width: 0; }
-  .history-title { font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .history-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); }
+  .history-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .history-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+  .history-title { font-weight: 700; font-size: 1.05rem; color: #fff; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .history-date { font-size: 0.75rem; color: var(--color-text-dim); white-space: nowrap; font-family: monospace; }
   
-  .progress-track-mini { height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; margin-top: 0.5rem; overflow: hidden; }
+  .history-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+  .progress-text { font-family: 'JetBrains Mono', monospace; color: #a78bfa; font-weight: 600; }
+  .badge-completed { font-size: 0.7rem; font-weight: 800; background: rgba(52, 211, 153, 0.15); color: #34d399; padding: 0.2rem 0.6rem; border-radius: 99px; }
+  
+  .progress-track-mini { height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; }
   .progress-fill-mini { height: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); border-radius: 99px; }
 
+  /* Side Lists (Mini) */
+  .mini-list { max-height: 250px; overflow-y: auto; padding-right: 0.5rem; }
+  .mini-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 0.75rem; transition: background 0.2s; border: 1px solid transparent; }
+  .mini-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); }
+  .mini-thumb { width: 44px; height: 44px; border-radius: 0.5rem; object-fit: cover; }
+  .clip-thumb { aspect-ratio: 9/16; width: 34px; height: 60px; }
+  .mini-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .mini-title { font-weight: 600; font-size: 0.9rem; color: #e5e7eb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini-meta { font-size: 0.75rem; color: var(--color-text-dim); margin-top: 0.2rem; }
+
+  .mt-1 { margin-top: 0.25rem; }
+  .mt-2 { margin-top: 0.75rem; }
+  .mt-4 { margin-top: 2rem; }
+
   /* Responsive Adjustments */
-  @media (max-width: 768px) {
-      .details-grid { grid-template-columns: 1fr; gap: 1rem; }
-      .detail-header { flex-direction: column; text-align: center; gap: 1rem; }
-      .admin-header h1 { font-size: 2.5rem; }
-      .modal-content { padding: 1.5rem; }
+  @media (max-width: 900px) {
+      .dashboard-columns { grid-template-columns: 1fr; }
+      .dashboard-hero { flex-direction: column; align-items: center; text-align: center; }
+      .hero-title-row { justify-content: center; }
+      .hero-meta { justify-content: center; flex-wrap: wrap; }
+      .stats-cards-grid { grid-template-columns: 1fr; }
+      .user-dashboard-scrollable { padding: 1.5rem; }
   }
 
   /* Blobs */

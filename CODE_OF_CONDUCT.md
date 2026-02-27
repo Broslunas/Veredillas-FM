@@ -122,8 +122,7 @@ Para respuestas a preguntas comunes sobre este código de conducta, consulta las
 
 Si tienes preguntas sobre este Código de Conducta, contacta:
 
-📧 **Email**: contacto@veredillasfm.es  
-🐦 **Twitter**: [@VeredillasFM](https://twitter.com/VeredillasFM)  
+📧 **Email**: contacto@veredillasfm.es
 💬 **GitHub Discussions**: [Abrir una discusión](https://github.com/Broslunas/veredillas-fm/discussions)
 
 ---
