@@ -72,7 +72,7 @@ export const PUT: APIRoute = async ({ request }) => {
 
     // 2. Parse Body
     const body = await request.json();
-    const { userId, name, role, bio, newsletter } = body;
+    const { userId, name, email, role, bio, newsletter, listeningTime, currentStreak, maxStreak, favorites } = body;
 
     if (!userId) {
       return new Response(JSON.stringify({ error: 'Missing userId' }), { status: 400 });
@@ -95,9 +95,14 @@ export const PUT: APIRoute = async ({ request }) => {
     // 3. Update User
     const updateData: any = {};
     if (name) updateData.name = name;
+    if (email) updateData.email = email;
     if (role) updateData.role = role; 
     if (bio !== undefined) updateData.bio = bio;
     if (newsletter !== undefined) updateData.newsletter = newsletter;
+    if (listeningTime !== undefined) updateData.listeningTime = listeningTime;
+    if (currentStreak !== undefined) updateData.currentStreak = currentStreak;
+    if (maxStreak !== undefined) updateData.maxStreak = maxStreak;
+    if (favorites && Array.isArray(favorites)) updateData.favorites = favorites;
 
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-__v');
 
