@@ -1,0 +1,288 @@
+---
+// PushNotifier.astro
+// Este componente registra el service worker y pide permisos para enviar notificaciones push de forma amigable
+const publicKey = import.meta.env.PUBLIC_VAPID_KEY;
+---
+
+<div id="custom-push-modal" class="push-modal-overlay">
+  <div class="push-modal">
+    <div class="push-icon">🔔</div>
+    <h3>¡No te pierdas de nada!</h3>
+    <p>¿Quieres recibir una notificación cuando Veredillas FM suba un nuevo episodio o blog?</p>
+    <div class="push-actions">
+      <button id="btn-push-no" class="btn-push-secondary">Ahora no</button>
+      <button id="btn-push-yes" class="btn-push-primary">¡Sí, avisadme!</button>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ publicKey }}>
+  async function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  async function saveSubscription(subscription) {
+    await fetch('/api/push/subscribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(subscription)
+    });
+  }
+
+  async function registerAndSubscribe(registration) {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.log('Permiso denegado para notificaciones.');
+        return;
+      }
+
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        // Enviar para asegurarse que esté guardado
+        await saveSubscription(existingSubscription);
+        return;
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: await urlBase64ToUint8Array(publicKey)
+      });
+
+      console.log('Suscrito a Push:', subscription);
+      await saveSubscription(subscription);
+    } catch (error) {
+      console.error('Error al suscribir a notificaciones push:', error);
+    }
+  }
+
+  async function initWebPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('Web Push no es soportado por este navegador.');
+      return;
+    }
+
+    if (!publicKey) {
+      console.error('VAPID public key no definida.');
+      return;
+    }
+
+    try {
+      // 1. Registra el Service Worker
+      const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      console.log('Service Worker registrado correctamente.');
+
+      await navigator.serviceWorker.ready;
+
+      // Verificar autenticación
+      const response = await fetch('/api/auth/me');
+      const isLoggedIn = response.ok;
+
+      if (Notification.permission === 'granted') {
+        // Ya está concedido, asegurar la suscripción sin modal
+        await registerAndSubscribe(registration);
+      } else if (Notification.permission === 'default' && localStorage.getItem('pushPrompted') !== 'true') {
+        // Mostrar modal personalizado primero
+        const modal = document.getElementById('custom-push-modal');
+        const btnYes = document.getElementById('btn-push-yes');
+        const btnNo = document.getElementById('btn-push-no');
+
+        if (modal && btnYes && btnNo) {
+          if (!isLoggedIn) {
+            modal.classList.add('floating-mode');
+          }
+          modal.classList.add('active');
+
+          btnYes.onclick = async () => {
+            localStorage.setItem('pushPrompted', 'true');
+            modal.classList.remove('active');
+            await registerAndSubscribe(registration);
+          };
+
+          btnNo.onclick = () => {
+            localStorage.setItem('pushPrompted', 'true');
+            modal.classList.remove('active');
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error inicializando Web Push:', error);
+    }
+  }
+
+  // Ejecutar script asegurándonos de que ya cargó la página para ViewTransitions
+  window.addEventListener('load', initWebPush);
+  document.addEventListener('astro:after-swap', initWebPush);
+</script>
+
+<style>
+  .push-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .push-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Floating mode para usuarios invitados */
+  .push-modal-overlay.floating-mode {
+    background: transparent;
+    backdrop-filter: none;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 1.5rem;
+    pointer-events: none; /* Deja hacer click detrás */
+  }
+
+  .push-modal {
+    background: var(--color-bg);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: auto; /* Reactiva clicks en el propio modal */
+  }
+
+  .push-modal-overlay.active .push-modal {
+    transform: translateY(0);
+  }
+
+  .push-icon {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+    animation: shake 2s infinite ease-in-out;
+  }
+
+  .push-modal h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .push-modal p {
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    font-size: 1.05rem;
+  }
+
+  .push-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Estilos específicos de Floating Mode */
+  .push-modal-overlay.floating-mode .push-modal {
+    max-width: 340px;
+    padding: 1.5rem;
+    text-align: left;
+  }
+
+  .push-modal-overlay.floating-mode .push-icon {
+    font-size: 2rem;
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: var(--color-bg);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    margin: 0;
+  }
+
+  .push-modal-overlay.floating-mode h3 {
+    font-size: 1.1rem;
+  }
+
+  .push-modal-overlay.floating-mode p {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .push-modal-overlay.floating-mode .push-actions {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .push-modal-overlay.floating-mode .btn-push-primary, 
+  .push-modal-overlay.floating-mode .btn-push-secondary {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    min-width: unset;
+    flex: unset;
+  }
+
+  .btn-push-primary, .btn-push-secondary {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    transition: all 0.2s;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .btn-push-primary {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .btn-push-primary:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+
+  .btn-push-secondary {
+    background: rgba(255,255,255,0.05);
+    color: var(--color-text);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .btn-push-secondary:hover {
+    background: rgba(255,255,255,0.15);
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    10% { transform: rotate(10deg); }
+    20% { transform: rotate(-10deg); }
+    30% { transform: rotate(5deg); }
+    40% { transform: rotate(-5deg); }
+    50% { transform: rotate(0deg); }
+  }
+</style>

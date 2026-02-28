@@ -26,6 +26,13 @@ export interface IUser extends mongoose.Document {
   role: 'user' | 'admin' | 'owner';
   newsletter: boolean;
   likedClips: string[];
+  pushSubscriptions: {
+    endpoint: string;
+    keys: {
+      p256dh: string;
+      auth: string;
+    };
+  }[];
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -99,6 +106,16 @@ const userSchema = new mongoose.Schema<IUser>({
   },
   completedEpisodes: {
     type: [String],
+    default: []
+  },
+  pushSubscriptions: {
+    type: [{
+      endpoint: String,
+      keys: {
+        p256dh: String,
+        auth: String
+      }
+    }],
     default: []
   },
 }, {

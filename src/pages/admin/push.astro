@@ -1,0 +1,255 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getUserFromCookie } from '../../lib/auth';
+import User from '../../models/User';
+import dbConnect from '../../lib/mongodb';
+import { getCollection } from 'astro:content';
+
+export const prerender = false;
+
+const episodios = await getCollection('episodios');
+const blogs = await getCollection('blog');
+
+const contentOptions = [
+  ...episodios.map(ep => ({
+    type: 'episode',
+    title: ep.data.title,
+    description: ep.data.description,
+    url: `https://veredillasfm.es/ep/${ep.slug}`,
+    pubDate: new Date(ep.data.pubDate)
+  })),
+  ...blogs.map(b => ({
+    type: 'blog',
+    title: b.data.title,
+    description: b.data.description,
+    url: `https://veredillasfm.es/blog/${b.slug}`,
+    pubDate: new Date(b.data.pubDate)
+  }))
+].sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
+
+// Check authentication and admin role
+const userPayload = getUserFromCookie(Astro.request.headers.get('cookie'));
+if (!userPayload) {
+  return Astro.redirect('/');
+}
+
+await dbConnect();
+const user = await User.findById(userPayload.userId);
+
+if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
+  return Astro.redirect('/');
+}
+---
+
+<Layout title="Enviar Push - Admin">
+  <div class="admin-container glass-panel">
+    <h1>Enviar Notificación Push</h1>
+    <p>Avisa a tus oyentes sobre un nuevo episodio o entrada de blog.</p>
+
+    <form id="push-form" class="push-form">
+      <div class="form-group">
+        <label for="content-select">Autocompletar con contenido</label>
+        <select id="content-select" class="content-select">
+          <option value="">Selecciona un episodio o post (Opcional)</option>
+          {contentOptions.map(option => (
+            <option 
+              value={JSON.stringify({ 
+                title: option.type === 'episode' ? `¡Nuevo Episodio: ${option.title}!` : `Nuevo Artículo: ${option.title}`, 
+                message: option.description, 
+                url: option.url 
+              })}
+            >
+              {option.type === 'episode' ? '🎙️' : '📝'} {option.title}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="title">Título de la Notificación</label>
+        <input type="text" id="title" name="title" required placeholder="Ej: ¡Nuevo Episodio Disponible!" />
+      </div>
+
+      <div class="form-group">
+        <label for="message">Mensaje</label>
+        <textarea id="message" name="message" required placeholder="Ej: Ya puedes escuchar la entrevista con..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="url">URL Destino</label>
+        <input type="url" id="url" name="url" required placeholder="Ej: https://veredillasfm.es/ep/entrevista" value="https://veredillasfm.es" />
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submit-btn">Enviar Notificación a Todos</button>
+      <div id="status-message"></div>
+    </form>
+  </div>
+</Layout>
+
+<script>
+  const form = document.getElementById('push-form');
+  const statusMsg = document.getElementById('status-message');
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const contentSelect = document.getElementById('content-select') as HTMLSelectElement;
+
+  if (contentSelect) {
+    contentSelect.addEventListener('change', (e) => {
+      const val = (e.target as HTMLSelectElement).value;
+      if (val) {
+        try {
+          const data = JSON.parse(val);
+          (document.getElementById('title') as HTMLInputElement).value = data.title;
+          (document.getElementById('message') as HTMLInputElement).value = data.message;
+          (document.getElementById('url') as HTMLInputElement).value = data.url;
+        } catch(err) {}
+      }
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const title = (document.getElementById('title') as HTMLInputElement).value;
+      const message = (document.getElementById('message') as HTMLInputElement).value;
+      const url = (document.getElementById('url') as HTMLInputElement).value;
+
+      if (!title || !message) {
+        if(statusMsg) {
+          statusMsg.textContent = 'Falta título o mensaje.';
+          statusMsg.className = 'error';
+        }
+        return;
+      }
+
+      if(submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+      }
+
+      try {
+        const response = await fetch('/api/push/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ title, message, url })
+        });
+
+        const data = await response.json();
+
+        if (statusMsg) {
+          if (response.ok) {
+            statusMsg.textContent = `¡Notificación enviada con éxito a ${data.count} dispositivos!`;
+            statusMsg.className = 'success';
+            (form as HTMLFormElement).reset();
+          } else {
+            statusMsg.textContent = data.error || 'Error enviando notificación.';
+            statusMsg.className = 'error';
+          }
+        }
+      } catch (err) {
+        if (statusMsg) {
+          statusMsg.textContent = 'Error de red.';
+          statusMsg.className = 'error';
+        }
+      } finally {
+        if(submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar Notificación a Todos';
+        }
+      }
+    });
+  }
+</script>
+
+<style>
+  .admin-container {
+    max-width: 600px;
+    margin: 4rem auto;
+    padding: 2rem;
+    border-radius: 12px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .push-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  label {
+    font-weight: 600;
+  }
+
+  input, textarea, select {
+    padding: 0.8rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.2);
+    color: white;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  
+  select option {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  button {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    background: var(--color-primary);
+    color: white;
+    transition: opacity 0.2s;
+  }
+
+  button:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  #status-message {
+    margin-top: 1rem;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .success {
+    color: #4ade80;
+  }
+
+  .error {
+    color: #f87171;
+  }
+</style>
