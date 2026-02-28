@@ -54,7 +54,7 @@ const sortedPublished = allEpisodes
                 <div class="episodes-grid" id="episodes-grid">
                     {sortedPublished.map(post => (
                         <div class="episode-item" data-title={post.data.title.toLowerCase()} data-description={post.data.description.toLowerCase()}>
-                            <EpisodeCard post={post} />
+                            <EpisodeCard post={post} urlPrefix="/discord/" />
                         </div>
                     ))}
                 </div>

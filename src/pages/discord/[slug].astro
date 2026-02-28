@@ -1,0 +1,356 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+    const episodios = await getCollection('episodios');
+    return episodios.map(ep => ({
+        params: { slug: ep.slug },
+    }));
+}
+
+const { slug } = Astro.params;
+const entry = await getEntry('episodios', slug);
+
+if (!entry || !entry.data.audioUrl) {
+    return Astro.redirect('/discord');
+}
+
+const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+});
+---
+
+<Layout 
+  title={`${entry.data.title} - Actividad Discord`}
+  description={`Escuchando ${entry.data.title} con amigos`}
+>
+    <div class="discord-player-page">
+        <div class="container player-container">
+            <header class="player-header">
+                <a href="/discord" class="back-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    Volver
+                </a>
+                <div id="role-badge" class="role-badge">Conectando...</div>
+            </header>
+
+            <div class="track-info">
+                {entry.data.image && (
+                    <img 
+                        src={entry.data.image} 
+                        alt={entry.data.title} 
+                        class="track-image" 
+                    />
+                )}
+                <div class="track-details">
+                    <span class="track-meta">{formattedDate} • {entry.data.author}</span>
+                    <h1 class="track-title">{entry.data.title}</h1>
+                    <p class="track-desc">{entry.data.description}</p>
+                </div>
+            </div>
+
+            <div class="audio-player-wrapper">
+                <audio id="sync-audio" controls src={entry.data.audioUrl} preload="auto" crossorigin="anonymous" style="width: 100%;"></audio>
+                <div class="sync-status" id="sync-status">Sincronizando...</div>
+            </div>
+            
+            <div id="participants-list" class="participants-box" style="display: none;">
+                <h3>Audiencia: <span id="guest-count">0</span></h3>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { setupDiscordSdk, isDiscord, discordSdk } from '../../lib/discord';
+    import { Peer } from 'peerjs';
+
+    async function initSyncPlayer() {
+        const roleBadge = document.getElementById('role-badge');
+        const syncStatus = document.getElementById('sync-status');
+        const audioEl = document.getElementById('sync-audio') as HTMLAudioElement;
+        const participantsBox = document.getElementById('participants-list');
+        const guestCountEl = document.getElementById('guest-count');
+        
+        if (!audioEl) return;
+
+        try {
+            await setupDiscordSdk();
+            const instanceId = isDiscord ? discordSdk.instanceId : 'local-test-room';
+            const hostId = `vf-${instanceId}-host`;
+            
+            let peer = new Peer();
+            
+            peer.on('open', (id) => {
+                console.log("My peer ID is: " + id);
+                if(syncStatus) syncStatus.innerText = "Conectando a la sala...";
+                
+                const conn = peer.connect(hostId, { reliable: true });
+                
+                conn.on('open', () => {
+                    console.log("Connected to host!");
+                    if(syncStatus) syncStatus.innerText = "Escuchando con amigos 🎧";
+                    setupGuest(conn);
+                });
+                
+                peer.on('error', (err) => {
+                    if (err.type === 'peer-unavailable') {
+                        console.log("Host not found, I am the host!");
+                        peer.destroy(); // Destroy guest peer
+                        
+                        const hostPeer = new Peer(hostId);
+                        hostPeer.on('open', () => {
+                            console.log("Host peer created: " + hostId);
+                            if(syncStatus) syncStatus.innerText = "Tú controlas la reproducción 👑";
+                            if(participantsBox) participantsBox.style.display = 'block';
+                            setupHost(hostPeer);
+                        });
+                    }
+                });
+            });
+
+            function setupHost(hostPeer: any) {
+                const connections: any[] = [];
+                if(roleBadge) roleBadge.innerHTML = '👑 Host';
+                
+                hostPeer.on('connection', (conn: any) => {
+                    connections.push(conn);
+                    if(guestCountEl) guestCountEl.innerText = connections.length.toString();
+                    
+                    // Sync current state to the new guest
+                    conn.on('open', () => {
+                        conn.send({
+                            type: 'sync',
+                            currentTime: audioEl.currentTime,
+                            paused: audioEl.paused
+                        });
+                    });
+                    
+                    conn.on('data', (data: any) => {
+                        // Guest requested action
+                        if (data.type === 'play') {
+                            audioEl.play().catch(e=>console.log(e));
+                        } else if (data.type === 'pause') {
+                            audioEl.pause();
+                        } else if (data.type === 'seek') {
+                            audioEl.currentTime = data.currentTime;
+                        }
+                    });
+                    
+                    conn.on('close', () => {
+                        const index = connections.indexOf(conn);
+                        if (index > -1) connections.splice(index, 1);
+                        if(guestCountEl) guestCountEl.innerText = connections.length.toString();
+                    });
+                });
+                
+                let isBroadcasting = false;
+                
+                function broadcast(data: any) {
+                    if (isBroadcasting) return;
+                    isBroadcasting = true;
+                    connections.forEach(c => {
+                        if (c.open) c.send(data);
+                    });
+                    setTimeout(() => isBroadcasting = false, 50);
+                }
+                
+                audioEl.addEventListener('play', () => broadcast({ type: 'play' }));
+                audioEl.addEventListener('pause', () => broadcast({ type: 'pause' }));
+                audioEl.addEventListener('seeked', () => broadcast({ type: 'seek', currentTime: audioEl.currentTime }));
+                
+                setInterval(() => {
+                    if (!audioEl.paused) {
+                        broadcast({ type: 'sync', currentTime: audioEl.currentTime, paused: audioEl.paused });
+                    }
+                }, 5000);
+            }
+
+            function setupGuest(conn: any) {
+                if(roleBadge) roleBadge.innerHTML = '🎧 Invitado';
+                let ignoreNextEvent = false;
+                
+                conn.on('data', (data: any) => {
+                    ignoreNextEvent = true;
+                    
+                    if (data.type === 'play') {
+                        audioEl.play().catch(e => console.error("Error auto-playing (user interaction needed): ", e));
+                    } else if (data.type === 'pause') {
+                        audioEl.pause();
+                    } else if (data.type === 'seek') {
+                        if (Math.abs(audioEl.currentTime - data.currentTime) > 0.5) {
+                            audioEl.currentTime = data.currentTime;
+                        }
+                    } else if (data.type === 'sync') {
+                        if (Math.abs(audioEl.currentTime - data.currentTime) > 1.5) {
+                            audioEl.currentTime = data.currentTime;
+                        }
+                        if (data.paused && !audioEl.paused) audioEl.pause();
+                        if (!data.paused && audioEl.paused) audioEl.play().catch(e=>e);
+                    }
+                    
+                    setTimeout(() => ignoreNextEvent = false, 100);
+                });
+                
+                audioEl.addEventListener('play', () => {
+                    if (!ignoreNextEvent) conn.send({ type: 'play' });
+                });
+                audioEl.addEventListener('pause', () => {
+                     if (!ignoreNextEvent) conn.send({ type: 'pause' });
+                });
+                audioEl.addEventListener('seeked', () => {
+                     if (!ignoreNextEvent) conn.send({ type: 'seek', currentTime: audioEl.currentTime });
+                });
+            }
+
+        } catch (error) {
+            console.error("Error initializing sync player:", error);
+            if(syncStatus) syncStatus.innerText = "Error de conexión";
+        }
+    }
+
+    // Run this when DOM is ready or after swap
+    document.addEventListener('DOMContentLoaded', initSyncPlayer);
+    document.addEventListener('astro:after-swap', initSyncPlayer);
+</script>
+
+<style>
+    .discord-player-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, rgba(88, 101, 242, 0.1) 0%, rgba(0,0,0,1) 100%);
+        padding: 2rem 0;
+    }
+
+    .player-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .player-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding-bottom: 1rem;
+    }
+
+    .back-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--color-primary);
+    }
+
+    .role-badge {
+        background: rgba(88, 101, 242, 0.2);
+        color: #5865F2;
+        padding: 0.5rem 1rem;
+        border-radius: 100px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid rgba(88, 101, 242, 0.3);
+    }
+
+    .track-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 2rem;
+        gap: 1.5rem;
+    }
+    
+    @media (min-width: 640px) {
+        .track-info {
+            flex-direction: row;
+            text-align: left;
+        }
+    }
+
+    .track-image {
+        width: 200px;
+        height: 200px;
+        border-radius: var(--radius-md);
+        object-fit: cover;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .track-details {
+        flex: 1;
+    }
+
+    .track-meta {
+        color: var(--color-primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .track-title {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .track-desc {
+        color: var(--color-text-muted);
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .audio-player-wrapper {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: rgba(0,0,0,0.3);
+        border-radius: var(--radius-md);
+    }
+
+    audio {
+        outline: none;
+        border-radius: 100px;
+    }
+    
+    audio::-webkit-media-controls-panel {
+        background-color: #2b2d31;
+    }
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display {
+        color: #fff;
+    }
+
+    .sync-status {
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+    }
+
+    .participants-box {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        text-align: center;
+        color: var(--color-text-muted);
+    }
+</style>

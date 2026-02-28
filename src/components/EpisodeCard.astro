@@ -4,9 +4,10 @@ import type { CollectionEntry } from 'astro:content';
 interface Props {
 	post: CollectionEntry<'episodios'>;
     disableTransition?: boolean;
+    urlPrefix?: string;
 }
 
-const { post, disableTransition = false } = Astro.props;
+const { post, disableTransition = false, urlPrefix = '/ep/' } = Astro.props;
 
 // Format date
 const formattedDate = post.data.pubDate.toLocaleDateString('es-ES', {
@@ -90,7 +91,7 @@ const isAboutToPremiere = isUpcoming && diffInHours <= 2;
             </div>
 		</div>
 	</div>
-    <a href={`/ep/${post.slug}`} class="full-card-link" aria-label={`Escuchar ${post.data.title}`}></a>
+    <a href={`${urlPrefix}${post.slug}`} class="full-card-link" aria-label={`Escuchar ${post.data.title}`}></a>
 </article>
 
 <style>
