@@ -4,6 +4,7 @@ import { getUserFromCookie } from '../../../lib/auth';
 import dbConnect from '../../../lib/mongodb';
 import User from '../../../models/User';
 import GuestSubscription from '../../../models/GuestSubscription';
+import { getCollection } from 'astro:content';
 
 export const prerender = false;
 
@@ -34,7 +35,29 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const body = await request.json();
-    const { title, message, url } = body;
+    let { title, message, url, path } = body;
+
+    if (path && (!title || !message || !url)) {
+      if (path.startsWith('/ep/')) {
+        const slug = path.replace('/ep/', '').replace(/\/$/, '');
+        const episodios = await getCollection('episodios');
+        const ep = episodios.find((e: any) => e.slug === slug);
+        if (ep) {
+          title = title || `¡Nuevo Episodio: ${ep.data.title}!`;
+          message = message || ep.data.description;
+          url = url || `https://veredillasfm.es${path}`;
+        }
+      } else if (path.startsWith('/blog/')) {
+        const slug = path.replace('/blog/', '').replace(/\/$/, '');
+        const blogs = await getCollection('blog');
+        const blog = blogs.find((b: any) => b.slug === slug);
+        if (blog) {
+          title = title || `Nuevo Artículo: ${blog.data.title}`;
+          message = message || blog.data.description;
+          url = url || `https://veredillasfm.es${path}`;
+        }
+      }
+    }
 
     if (!title || !message) {
       return new Response(JSON.stringify({ error: 'Título y mensaje son requeridos' }), { status: 400 });
