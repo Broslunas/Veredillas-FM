@@ -1,0 +1,337 @@
+---
+import Layout from '../layouts/Layout.astro';
+import EpisodeCard from '../components/EpisodeCard.astro';
+import { getCollection } from 'astro:content';
+
+const allEpisodes = await getCollection('episodios');
+const now = new Date();
+
+// Only show published episodes
+const sortedPublished = allEpisodes
+    .filter(ep => ep.data.pubDate <= now)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+---
+
+<Layout 
+	title="Discord Activity - Veredillas FM"
+	description="Escucha los episodios de Veredillas FM con tus amigos directamente en Discord."
+>
+    <div class="discord-activity-page">
+        <header class="activity-header">
+            <div class="user-info gs-reveal" id="discord-user-info" style="display: none;">
+                <img src="/logo.png" alt="User Avatar" id="discord-avatar" class="avatar" />
+                <div class="user-details">
+                    <h2>Bienvenido, <span id="discord-username">Oyente</span></h2>
+                    <p>Estás en Veredillas FM con tus amigos.</p>
+                </div>
+            </div>
+            
+            <button id="invite-btn" class="btn btn-primary btn-lg gs-reveal tooltip-btn" style="display: none;" title="Invita a otros al canal a unirse a la actividad">
+                <span class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                </span>
+                Invitar Amigos
+            </button>
+        </header>
+
+        <section class="episodes-section">
+            <div class="container">
+                <div class="section-header gs-fade-up">
+                    <div>
+                        <h2 class="section-title">Episodios Disponibles</h2>
+                        <p class="section-subtitle">Selecciona un episodio para escuchar con tus amigos</p>
+                    </div>
+                </div>
+
+                <div class="search-container gs-fade-up">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="text" id="episode-search" placeholder="Busca un episodio para escuchar..." autocomplete="off" />
+                    </div>
+                </div>
+
+                <div class="episodes-grid" id="episodes-grid">
+                    {sortedPublished.map(post => (
+                        <div class="episode-item" data-title={post.data.title.toLowerCase()} data-description={post.data.description.toLowerCase()}>
+                            <EpisodeCard post={post} />
+                        </div>
+                    ))}
+                </div>
+                
+                <div id="no-results" class="no-results" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v2"/><path d="M11 14h.01"/></svg>
+                    <h3>No se encontraron episodios</h3>
+                    <p>Prueba con otra búsqueda.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</Layout>
+
+<script>
+    import { setupDiscordSdk, isDiscord, discordSdk } from '../lib/discord';
+    import { gsap } from "gsap";
+    import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    async function initDiscordActivity() {
+        try {
+            await setupDiscordSdk();
+            
+            const userInfoEl = document.getElementById('discord-user-info');
+            const usernameEl = document.getElementById('discord-username');
+            const avatarEl = document.getElementById('discord-avatar') as HTMLImageElement;
+            const inviteBtn = document.getElementById('invite-btn');
+
+            if (isDiscord) {
+                // If running inside Discord Activity, try to get user info if authenticated
+                // We'd need an access token. For simplicity, we just show the invite button
+                // as the authorization flow requires setting up the OAuth2 redirect correctly.
+                
+                // Show invite button
+                if (inviteBtn) {
+                    inviteBtn.style.display = 'flex';
+                    inviteBtn.addEventListener('click', () => {
+                        discordSdk.commands.openInviteDialog();
+                    });
+                }
+            } else {
+                console.log("Not running inside Discord Activity. Emulating...");
+                // Just for testing/UI purposes
+                if (inviteBtn) {
+                    inviteBtn.style.display = 'flex';
+                    inviteBtn.addEventListener('click', () => {
+                        alert("Emulando abrir el diálogo de invitación de Discord.");
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Error initializing Discord SDK:", error);
+        }
+    }
+
+    function initPage() {
+        // Search Functionality
+        const searchInput = document.getElementById('episode-search') as HTMLInputElement;
+        const episodesGrid = document.getElementById('episodes-grid');
+        const episodeItems = document.querySelectorAll('.episode-item');
+        const noResults = document.getElementById('no-results');
+
+        if (searchInput && episodesGrid && noResults) {
+            searchInput.addEventListener('input', (e) => {
+                const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+                let hasResults = false;
+
+                episodeItems.forEach((item: any) => {
+                    const title = item.dataset.title || '';
+                    const description = item.dataset.description || '';
+                    
+                    if (title.includes(query) || description.includes(query)) {
+                        item.style.display = 'block';
+                        hasResults = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                if (hasResults) {
+                    episodesGrid.style.display = 'grid';
+                    noResults.style.display = 'none';
+                } else {
+                    episodesGrid.style.display = 'none';
+                    noResults.style.display = 'flex';
+                }
+            });
+        }
+
+        // Animations
+        if (document.querySelector(".gs-reveal")) {
+            gsap.from(".gs-reveal", {
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power3.out"
+            });
+        }
+        
+        gsap.utils.toArray('.gs-fade-up').forEach((elem: any) => {
+            gsap.from(elem, {
+                scrollTrigger: {
+                    trigger: elem,
+                    start: "top 85%",
+                },
+                y: 40,
+                opacity: 0,
+                duration: 0.6,
+                ease: "power2.out"
+            });
+        });
+        
+        initDiscordActivity();
+    }
+
+    document.addEventListener('DOMContentLoaded', initPage);
+    document.addEventListener('astro:after-swap', initPage);
+</script>
+
+<style>
+    .discord-activity-page {
+        padding-top: 2rem;
+        min-height: 100vh;
+        background: linear-gradient(to bottom, rgba(88, 101, 242, 0.1) 0%, transparent 100%);
+    }
+
+    .activity-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        text-align: center;
+        gap: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    @media (min-width: 768px) {
+        .activity-header {
+            flex-direction: row;
+            justify-content: space-between;
+            text-align: left;
+            padding: 4rem;
+        }
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 2px solid #5865F2; /* Discord Blurple */
+        object-fit: cover;
+        box-shadow: 0 0 20px rgba(88, 101, 242, 0.3);
+    }
+
+    .user-details h2 {
+        font-size: 2rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .user-details span {
+        color: #5865F2;
+    }
+
+    .user-details p {
+        color: var(--color-text-muted);
+        font-size: 1.1rem;
+    }
+
+    .btn-primary {
+        background-color: #5865F2; /* Discord Blurple */
+        border-color: #5865F2;
+    }
+    
+    .btn-primary:hover {
+        background-color: #4752C4;
+        border-color: #4752C4;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(88, 101, 242, 0.4);
+    }
+
+    /* Episodes Section */
+    .episodes-section {
+        padding: 4rem 0;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-subtitle {
+        color: var(--color-text-muted);
+        font-size: 1.1rem;
+    }
+
+    .section-header {
+        margin-bottom: 3rem;
+    }
+
+    .search-container {
+        margin-bottom: 3rem;
+        max-width: 600px;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        color: var(--color-text-muted);
+    }
+
+    #episode-search {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border-radius: var(--radius-full);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-text-main);
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    #episode-search:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #5865F2;
+        box-shadow: 0 0 0 4px rgba(88, 101, 242, 0.2);
+    }
+    
+    [data-theme="light"] #episode-search {
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] #episode-search:focus {
+        background: white;
+    }
+
+    .episodes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .no-results {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 6rem 0;
+        text-align: center;
+        color: var(--color-text-muted);
+    }
+
+    .no-results svg {
+        opacity: 0.5;
+        margin-bottom: 1rem;
+    }
+
+    .no-results h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--color-text-main);
+    }
+</style>
