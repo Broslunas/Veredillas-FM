@@ -1,8 +1,9 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { getUserFromCookie } from '../../lib/auth';
-import User from '../../models/User';
-import dbConnect from '../../lib/mongodb';
+import Layout from '../../../layouts/Layout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import dbConnect from '../../../lib/mongodb';
 import { getCollection } from 'astro:content';
 
 export const prerender = false;
@@ -41,48 +42,56 @@ if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
 }
 ---
 
-<Layout title="Enviar Push - Admin">
-  <div class="admin-container glass-panel">
-    <h1>Enviar Notificación Push</h1>
-    <p>Avisa a tus oyentes sobre un nuevo episodio o entrada de blog.</p>
-
-    <form id="push-form" class="push-form">
-      <div class="form-group">
-        <label for="content-select">Autocompletar con contenido</label>
-        <select id="content-select" class="content-select">
-          <option value="">Selecciona un episodio o post (Opcional)</option>
-          {contentOptions.map(option => (
-            <option 
-              value={JSON.stringify({ 
-                title: option.type === 'episode' ? `¡Nuevo Episodio: ${option.title}!` : `Nuevo Artículo: ${option.title}`, 
-                message: option.description, 
-                url: option.url 
-              })}
-            >
-              {option.type === 'episode' ? '🎙️' : '📝'} {option.title}
-            </option>
-          ))}
-        </select>
+<Layout title="Enviar Push - Panel de Administración">
+  <div class="admin-container fade-in-up">
+    <div class="admin-header">
+      <div class="header-content">
+        <h1>Centro de Notificaciones</h1>
+        <p>Avisa a tus oyentes sobre un nuevo episodio o entrada de blog.</p>
       </div>
+    </div>
+    
+    <AdminNav />
 
-      <div class="form-group">
-        <label for="title">Título de la Notificación</label>
-        <input type="text" id="title" name="title" required placeholder="Ej: ¡Nuevo Episodio Disponible!" />
-      </div>
+    <div class="section-container glass-panel">
+      <form id="push-form" class="push-form">
+        <div class="form-group">
+          <label for="content-select">Autocompletar con contenido</label>
+          <select id="content-select" class="content-select">
+            <option value="">Selecciona un episodio o post (Opcional)</option>
+            {contentOptions.map(option => (
+              <option 
+                value={JSON.stringify({ 
+                  title: option.type === 'episode' ? `¡Nuevo Episodio: ${option.title}!` : `Nuevo Artículo: ${option.title}`, 
+                  message: option.description, 
+                  url: option.url 
+                })}
+              >
+                {option.type === 'episode' ? '🎙️' : '📝'} {option.title}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="message">Mensaje</label>
-        <textarea id="message" name="message" required placeholder="Ej: Ya puedes escuchar la entrevista con..."></textarea>
-      </div>
+        <div class="form-group">
+          <label for="title">Título de la Notificación</label>
+          <input type="text" id="title" name="title" required placeholder="Ej: ¡Nuevo Episodio Disponible!" />
+        </div>
 
-      <div class="form-group">
-        <label for="url">URL Destino</label>
-        <input type="url" id="url" name="url" required placeholder="Ej: https://veredillasfm.es/ep/entrevista" value="https://veredillasfm.es" />
-      </div>
+        <div class="form-group">
+          <label for="message">Mensaje</label>
+          <textarea id="message" name="message" required placeholder="Ej: Ya puedes escuchar la entrevista con..."></textarea>
+        </div>
 
-      <button type="submit" class="btn btn-primary" id="submit-btn">Enviar Notificación a Todos</button>
-      <div id="status-message"></div>
-    </form>
+        <div class="form-group">
+          <label for="url">URL Destino</label>
+          <input type="url" id="url" name="url" required placeholder="Ej: https://veredillasfm.es/ep/entrevista" value="https://veredillasfm.es" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submit-btn">Enviar Notificación a Todos</button>
+        <div id="status-message"></div>
+      </form>
+    </div>
   </div>
 </Layout>
 
@@ -165,26 +174,47 @@ if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
 
 <style>
   .admin-container {
-    max-width: 600px;
-    margin: 4rem auto;
+    max-width: 1400px;
+    margin: 0 auto;
     padding: 2rem;
-    border-radius: 12px;
-  }
-  
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  p {
-    color: var(--color-text-muted);
-    margin-bottom: 2rem;
+    color: var(--color-text-main);
+    animation: fadeInUp 0.8s ease-out;
   }
 
+  /* Header */
+  .admin-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .admin-header h1 {
+    font-size: 3rem;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(to right, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  .admin-header p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+  }
+
+  .section-container {
+    padding: 2rem;
+    border-radius: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
   .push-form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    max-width: 600px;
   }
 
   .form-group {
@@ -251,5 +281,11 @@ if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
 
   .error {
     color: #f87171;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>

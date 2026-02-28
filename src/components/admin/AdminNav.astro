@@ -22,6 +22,9 @@ const currentPath = Astro.url.pathname;
     <a href="/dashboard/admin/interviews" class={currentPath.startsWith('/dashboard/admin/interviews') ? 'active' : ''}>
       📅 Entrevistas
     </a>
+    <a href="/dashboard/admin/push" class={currentPath.startsWith('/dashboard/admin/push') ? 'active' : ''}>
+      🔔 Push
+    </a>
     <a href="/studio/remote" class={currentPath.startsWith('/studio/remote') ? 'active' : ''}>
       🎙️ Studio Remoto
     </a>
