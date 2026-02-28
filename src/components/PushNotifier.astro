@@ -97,9 +97,6 @@ const publicKey = import.meta.env.PUBLIC_VAPID_KEY;
         const btnNo = document.getElementById('btn-push-no');
 
         if (modal && btnYes && btnNo) {
-          if (!isLoggedIn) {
-            modal.classList.add('floating-mode');
-          }
           modal.classList.add('active');
 
           btnYes.onclick = async () => {
@@ -128,24 +125,11 @@ const publicKey = import.meta.env.PUBLIC_VAPID_KEY;
   .push-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
     z-index: 999999;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-  }
-
-  .push-modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  /* Floating mode para usuarios invitados */
-  .push-modal-overlay.floating-mode {
     background: transparent;
     backdrop-filter: none;
     align-items: flex-end;
@@ -154,18 +138,25 @@ const publicKey = import.meta.env.PUBLIC_VAPID_KEY;
     pointer-events: none; /* Deja hacer click detrás */
   }
 
+  .push-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
   .push-modal {
     background: var(--color-bg);
     border: 1px solid rgba(255,255,255,0.1);
-    padding: 2rem;
     border-radius: 16px;
-    max-width: 420px;
-    width: 90%;
-    text-align: center;
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     transform: translateY(20px);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: auto; /* Reactiva clicks en el propio modal */
+    
+    /* Floating styles */
+    max-width: 340px;
+    padding: 1.5rem;
+    text-align: left;
+    width: 90%;
   }
 
   .push-modal-overlay.active .push-modal {
@@ -173,39 +164,6 @@ const publicKey = import.meta.env.PUBLIC_VAPID_KEY;
   }
 
   .push-icon {
-    font-size: 3.5rem;
-    margin-bottom: 0.5rem;
-    animation: shake 2s infinite ease-in-out;
-  }
-
-  .push-modal h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
-
-  .push-modal p {
-    color: var(--color-text-muted);
-    margin-bottom: 1.5rem;
-    line-height: 1.5;
-    font-size: 1.05rem;
-  }
-
-  .push-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  /* Estilos específicos de Floating Mode */
-  .push-modal-overlay.floating-mode .push-modal {
-    max-width: 340px;
-    padding: 1.5rem;
-    text-align: left;
-  }
-
-  .push-modal-overlay.floating-mode .push-icon {
     font-size: 2rem;
     position: absolute;
     top: -15px;
@@ -220,41 +178,40 @@ const publicKey = import.meta.env.PUBLIC_VAPID_KEY;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     margin: 0;
+    animation: shake 2s infinite ease-in-out;
   }
 
-  .push-modal-overlay.floating-mode h3 {
+  .push-modal h3 {
+    margin: 0 0 0.5rem;
     font-size: 1.1rem;
+    font-weight: 700;
   }
 
-  .push-modal-overlay.floating-mode p {
-    font-size: 0.9rem;
+  .push-modal p {
+    color: var(--color-text-muted);
     margin-bottom: 1rem;
+    line-height: 1.5;
+    font-size: 0.9rem;
   }
 
-  .push-modal-overlay.floating-mode .push-actions {
+  .push-actions {
+    display: flex;
     justify-content: flex-start;
     gap: 0.5rem;
     margin-top: 1rem;
+    flex-wrap: wrap;
   }
 
-  .push-modal-overlay.floating-mode .btn-push-primary, 
-  .push-modal-overlay.floating-mode .btn-push-secondary {
+  .btn-push-primary, .btn-push-secondary {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
     min-width: unset;
     flex: unset;
-  }
-
-  .btn-push-primary, .btn-push-secondary {
-    padding: 0.75rem 1.5rem;
     border-radius: 8px;
     font-weight: 700;
     cursor: pointer;
     border: none;
-    font-size: 1rem;
     transition: all 0.2s;
-    flex: 1;
-    min-width: 120px;
   }
 
   .btn-push-primary {
