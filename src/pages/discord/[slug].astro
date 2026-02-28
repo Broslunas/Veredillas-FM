@@ -66,7 +66,6 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
 
 <script>
     import { setupDiscordSdk, isDiscord, discordSdk } from '../../lib/discord';
-    import { Peer } from 'peerjs';
 
     async function initSyncPlayer() {
         const roleBadge = document.getElementById('role-badge');
@@ -82,9 +81,25 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
             const instanceId = isDiscord ? discordSdk.instanceId : 'local-test-room';
             const hostId = `vf-${instanceId}-host`;
             
-            let peer = new Peer();
+            let peerModule;
+            let PeerClass;
+            try {
+                peerModule = await import('peerjs');
+                PeerClass = peerModule.default || peerModule.Peer || peerModule;
+            } catch (e) {
+                console.error("Failed to load PeerJS module:", e);
+                if(syncStatus) syncStatus.innerText = "Error cargando PeerJS";
+                return;
+            }
             
-            peer.on('open', (id) => {
+            if (!PeerClass) {
+                console.error("PeerClass is undefined. module:", peerModule);
+                return;
+            }
+
+            let peer = new PeerClass();
+            
+            peer.on('open', (id: string) => {
                 console.log("My peer ID is: " + id);
                 if(syncStatus) syncStatus.innerText = "Conectando a la sala...";
                 
@@ -101,7 +116,7 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
                         console.log("Host not found, I am the host!");
                         peer.destroy(); // Destroy guest peer
                         
-                        const hostPeer = new Peer(hostId);
+                        const hostPeer = new PeerClass(hostId);
                         hostPeer.on('open', () => {
                             console.log("Host peer created: " + hostId);
                             if(syncStatus) syncStatus.innerText = "Tú controlas la reproducción 👑";
