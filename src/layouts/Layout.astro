@@ -12,7 +12,7 @@ import LivePopupPlayer from '../components/LivePopupPlayer.astro';
 import ClipModalWrapper from '../components/player/ClipModalWrapper';
 import AchievementToaster from '../components/AchievementToaster.astro';
 import PushNotifier from '../components/PushNotifier.astro';
-
+import Analytics from '@vercel/analytics/astro';
 
 interface Props {
 	title: string;
@@ -211,6 +211,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         <KonamiCode />
         <AchievementToaster />
         <PushNotifier />
+        <Analytics />
 	</body>
 </html>
 
