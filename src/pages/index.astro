@@ -481,9 +481,13 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
         });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+        });
+    } else {
         initPage();
-    });
+    }
     
     // Cleanup for Astro view transitions if used later
     document.addEventListener('astro:after-swap', initPage);

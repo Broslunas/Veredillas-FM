@@ -24,7 +24,6 @@ const featuredEpisodes = allEpisodes
                         <div class="glass-overlay">
                             <h3 class="slide-title">{post.data.title}</h3>
                             <p class="slide-desc">{post.data.description ? post.data.description.slice(0, 100) + '...' : ''}</p>
-                            <div class="custom-pagination"></div>
                         </div>
                         <a href={`/ep/${post.slug}`} class="full-link"><span class="sr-only"></span></a>
                     </div>
@@ -39,6 +38,10 @@ const featuredEpisodes = allEpisodes
         <button class="nav-btn next-btn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
         </button>
+        
+        <div class="custom-pagination-container">
+            <div class="custom-pagination"></div>
+        </div>
     </div>
 </div>
 
@@ -79,7 +82,11 @@ const featuredEpisodes = allEpisodes
     };
 
     // Run on initial load and after every navigation
-    document.addEventListener('DOMContentLoaded', initSwiper);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSwiper);
+    } else {
+        initSwiper();
+    }
 </script>
 
 <style>
@@ -188,6 +195,16 @@ const featuredEpisodes = allEpisodes
     }
 
     /* Custom Pagination */
+    .custom-pagination-container {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        z-index: 20;
+    }
+
     :global(.custom-pagination) {
         display: flex;
         justify-content: center;
