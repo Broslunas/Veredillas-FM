@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 export interface IUser extends mongoose.Document {
   _id: mongoose.Types.ObjectId;
-  googleId: string;
+  googleId?: string;
   email: string;
   name: string;
   picture?: string;
@@ -38,7 +38,7 @@ export interface IUser extends mongoose.Document {
 const userSchema = new mongoose.Schema<IUser>({
   googleId: {
     type: String,
-    required: true,
+    sparse: true,
     unique: true,
     index: true
   },

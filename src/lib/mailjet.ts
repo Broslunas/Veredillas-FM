@@ -10,9 +10,11 @@ export interface SendEmailOptions {
   toName: string;
   subject: string;
   htmlContent: string;
+  fromEmail?: string;
+  fromName?: string;
 }
 
-export async function sendEmail({ to, toName, subject, htmlContent }: SendEmailOptions) {
+export async function sendEmail({ to, toName, subject, htmlContent, fromEmail = "newsletter@veredillasfm.es", fromName = "Veredillas FM" }: SendEmailOptions) {
   try {
     const result = await mailjet
       .post('send', { version: 'v3.1' })
@@ -20,8 +22,8 @@ export async function sendEmail({ to, toName, subject, htmlContent }: SendEmailO
         Messages: [
           {
             From: {
-              Email: "newsletter@veredillasfm.es",
-              Name: "Veredillas FM"
+              Email: fromEmail,
+              Name: fromName
             },
             To: [
               {
