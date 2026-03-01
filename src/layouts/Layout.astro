@@ -13,6 +13,7 @@ import ClipModalWrapper from '../components/player/ClipModalWrapper';
 import AchievementToaster from '../components/AchievementToaster.astro';
 import PushNotifier from '../components/PushNotifier.astro';
 import Analytics from '@vercel/analytics/astro';
+import SpeedInsights from '@vercel/speed-insights/astro';
 
 interface Props {
 	title: string;
@@ -212,6 +213,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         <AchievementToaster />
         <PushNotifier />
         <Analytics />
+        <SpeedInsights />
 	</body>
 </html>
 
@@ -295,5 +297,3 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         }
     });
 </script>
-
-
