@@ -713,6 +713,55 @@ sections:
     title: Consejos para los que cumplen 18
   - time: '34:33'
     title: Despedida y agradecimiento
+clips:
+  - title: ¿Hemos Aprendido Algo  La Triste Realidad
+    url: 'https://youtu.be/sEuvGUgJP2E'
+  - title: El Bullying Digital  El Peligro Que Crece
+    url: 'https://youtu.be/EbQGNjC6m-o'
+  - title: De Archivos a Docencia  Mi Inesperado Camino
+    url: 'https://youtu.be/6WstZQxSu80'
+  - title: Historia Contemporánea  Conecta los Hilos del Pasado
+    url: 'https://youtu.be/53rYMHJa-CA'
+  - title: Exámenes  ¿Reflejo Real de Tu Conocimiento
+    url: 'https://youtu.be/CjrPSFfIzzY'
+  - title: ¡Basta de Bullying! Historias Reales y Cómo Enfrentarlo
+    url: 'https://youtu.be/wo4uraHDaVA'
+  - title: Profesora y Vicedirectora  ¡Gestión Extrema Revelada!
+    url: 'https://youtu.be/BH4VSe00F58'
+  - title: De Letras a Arte  Mi Viaje Académico Revelado
+    url: 'https://youtu.be/gPKWe3CvW1w'
+  - title: Bullying Escolar  Historias que Marcan y Cómo Combatirlo
+    url: 'https://youtu.be/6BriEx7lbCw'
+  - title: 'Playa, Notas y Nostalgia  ¿Éramos Más Felices'
+    url: 'https://youtu.be/swW2Z8qzOBw'
+  - title: Bullying Impacto  De lo Personal a lo Familiar
+    url: 'https://youtu.be/nsVrpWN3uqw'
+  - title: Entrevista en Radio Veredilla  Dulce Comparte Experiencia
+    url: 'https://youtu.be/f9D_Gk7PMlw'
+  - title: Superando el Bullying Escolar  De la Burlas a la Amistad
+    url: 'https://youtu.be/f9duAFLsSYM'
+  - title: Mis 18 Años  ¿Independencia o Madurez Real
+    url: 'https://youtu.be/r5GDhp3Y5nU'
+  - title: Anécdotas de Vice Dirección  Decisiones Difíciles
+    url: 'https://youtu.be/QhdOF8P0Bwc'
+  - title: Vuelta a Clases  Momentos Complicados y Semipresencial
+    url: 'https://youtu.be/IBFAOGCAa48'
+  - title: Mi Nuevo Trabajo Estable  ¡Un Cambio Radical!
+    url: 'https://youtu.be/ARaaDhLZ-JY'
+  - title: Aprende a Montar Clases Online y Actividades Telemáticas
+    url: 'https://youtu.be/74pmb1WOFcM'
+  - title: Exámenes PAU  ¿Reflejan tu conocimiento real o tu suerte
+    url: 'https://youtu.be/eBJg4aX46z4'
+  - title: Situaciones Complicadas  Cómo Responder a Contagios Familiares
+    url: 'https://youtu.be/AGdqrclGwQg'
+  - title: La Historia se Repite  ¿Hemos Aprendido Algo
+    url: 'https://youtu.be/JwqK9ILao0Y'
+  - title: Pasión por Enseñar  La Magia de Transmitir Conocimiento
+    url: 'https://youtu.be/C3rY54kz2t4'
+  - title: Historia y Filosofía en Bachillerato  ¿Por Qué las Estudiamos
+    url: 'https://youtu.be/dhYhf4gty_o'
+  - title: Mi Viaje Inesperado al Mundo de la Enseñanza
+    url: 'https://youtu.be/imUlLnqPjvc'
 ---
 ¿Alguna vez te has preguntado qué sucede realmente detrás de las puertas de un aula? Más allá de los libros y las pizarras, existen historias que transforman vidas.
 
