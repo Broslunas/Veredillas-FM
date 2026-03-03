@@ -66,10 +66,15 @@ Una plataforma de radio estudiantil moderna, hecha por alumnos, para alumnos.
 - ✨ **Animaciones GSAP**: Transiciones suaves y profesionales
 - 🎠 **Carruseles Swiper**: Navegación intuitiva de episodios
 
+### 🔐 Usuarios y Comunidad
+- 👤 **Perfiles de Usuario**: Área personal con estadísticas detalladas de escucha
+- 🔑 **Autenticación Multi-método**: Acceso seguro mediante Google OAuth o Magic Link (Email)
+- 🔔 **Notificaciones Push**: Alertas en tiempo real sobre nuevos episodios y anuncios
+
 ### 🔧 Características Técnicas
 - 🔍 **SEO Optimizado**: OpenGraph, Twitter Cards, Schema.org
-- 📊 **Sitemap & RSS**: Indexación automática y feeds
-- 🤖 **Robots.txt**: Optimizado para crawlers
+- 📊 **Métricas Integradas**: Monitoreo de tráfico en tiempo real con Vercel Analytics
+- 🤖 **Robots.txt & Sitemap**: Configuración completa para crawlers
 - 🍪 **Gestión de Cookies**: Banner de consentimiento GDPR compliant
 - 📄 **Páginas Legales**: Política de privacidad, términos, cookies
 - 🔐 **TypeScript**: Type-safety en todo el proyecto
@@ -166,10 +171,13 @@ veredillas-fm/
 │   ├── layouts/             # Layouts de página
 │   │   └── Layout.astro
 │   ├── pages/               # Rutas del sitio
+│   │   ├── api/             # Endpoints (Auth, Push, etc.)
+│   │   ├── dashboard/       # Panel de administración
 │   │   ├── index.astro
 │   │   ├── about.astro
 │   │   ├── blog/
 │   │   ├── ep/
+│   │   ├── perfil.astro     # Perfil de usuario y estadísticas
 │   │   ├── contacto.astro
 │   │   ├── calendario.astro
 │   │   └── rss.xml.js
@@ -193,7 +201,7 @@ veredillas-fm/
 ---
 title: "Título del Episodio"
 description: "Descripción breve"
-pubDate: 2026-01-13
+pubDate: 2026-03-03
 author: "Nombre del Autor"
 image: "URL de la imagen"
 spotifyUrl: "URL del episodio en Spotify"
@@ -215,7 +223,7 @@ Contenido del episodio...
 ---
 title: "Título del Artículo"
 description: "Descripción breve"
-pubDate: 2026-01-13
+pubDate: 2026-03-03
 author: "Nombre del Autor"
 image: "URL de la imagen"
 tags: ["tag1", "tag2"]

@@ -213,7 +213,7 @@ const { title, description = "Default" } = Astro.props;
 ---
 title: "Título del Artículo"
 description: "Descripción breve y concisa"
-pubDate: 2026-01-13
+pubDate: 2026-03-03
 author: "Nombre del Autor"
 image: "/path/to/image.jpg"
 tags: ["tag1", "tag2"]

@@ -23,7 +23,7 @@ Antes de empezar, estos son los tipos de dato que encontrarás en los formulario
 | 🔤 | **Texto** | Un campo de texto libre | `Amor Sin Filtros` |
 | 🔢 | **Número** | Un valor numérico entero | `5` |
 | ✅ | **Sí/No** | Un interruptor (activado o desactivado) | Activado / Desactivado |
-| 📅 | **Fecha** | Selector de fecha y hora | `11 de febrero de 2026, 17:00` |
+| 📅 | **Fecha** | Selector de fecha y hora | `3 de marzo de 2026, 17:00` |
 | 🏷️ | **Lista de textos** | Varios valores de texto | `amor`, `relaciones`, `pareja` |
 | 📋 | **Lista de elementos** | Varios elementos con sus propios campos | Ver secciones o transcripción |
 

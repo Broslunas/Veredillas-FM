@@ -127,7 +127,7 @@ Si tienes preguntas sobre este Código de Conducta, contacta:
 
 ---
 
-**Versión**: 1.0  
-**Última actualización**: 13 de enero de 2026
+**Versión**: 1.1  
+**Última actualización**: 3 de marzo de 2026
 
 *Este Código de Conducta puede ser actualizado ocasionalmente. Se notificará a la comunidad de cambios significativos.*

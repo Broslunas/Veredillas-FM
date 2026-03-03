@@ -4,11 +4,11 @@ Este documento explica cómo configurar y usar el sistema de autenticación de u
 
 ## 📋 Características
 
-- ✅ Autenticación con Google OAuth 2.0
-- ✅ Gestión de sesiones con JWT
-- ✅ Perfiles de usuario editables
-- ✅ Almacenamiento en MongoDB
-- ✅ Diseño responsive y premium
+- ✅ **Autenticación Multi-método**: Google OAuth 2.0 y Magic Link (Email)
+- ✅ Gestión de sesiones seguras con JWT
+- ✅ Perfiles de usuario expansibles y analíticas de escucha
+- ✅ Almacenamiento ágil en MongoDB
+- ✅ Diseño responsive y premium acorde a la marca
 
 ## 🚀 Configuración
 
@@ -21,7 +21,7 @@ Este documento explica cómo configurar y usar el sistema de autenticación de u
 5. Selecciona **Web application**
 6. Configura los **Authorized redirect URIs**:
    - Desarrollo: `http://localhost:4321/api/auth/google/callback`
-   - Producción: `https://veredillasfm.es/api/auth/google/callback`
+   - Producción: `https://www.veredillasfm.es/api/auth/google/callback`
 7. Copia el **Client ID** y **Client Secret**
 
 ### 2. Configurar variables de entorno
@@ -42,7 +42,17 @@ JWT_SECRET="tu-clave-secreta-muy-segura-y-aleatoria"
 > node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 > ```
 
-### 3. Verificar MongoDB
+### 3. Configurar Email (Magic Link)
+
+Asegúrate de configurar las credenciales de correo electrónico, habitualmente Mailjet (YA CREADO) o SMTP:
+
+```bash
+# Envío de correos para Magic Link
+MAILJET_PUBLIC_KEY="tu-public-key"
+MAILJET_PRIVATE_KEY="tu-private-key"
+```
+
+### 4. Verificar MongoDB
 
 Asegúrate de que tu variable `MONGODB_URI` esté configurada correctamente en el `.env`.
 
@@ -61,25 +71,33 @@ src/
 │   │       ├── google/
 │   │       │   ├── login.ts      # Inicia OAuth flow
 │   │       │   └── callback.ts   # Maneja callback de Google
+│   │       ├── email/
+│   │       │   ├── send-magic-link.ts # Envía email con token
+│   │       │   └── verify.ts          # Verifica el token de email
 │   │       ├── logout.ts         # Cierra sesión
 │   │       ├── me.ts             # Obtiene usuario actual
 │   │       └── update-profile.ts # Actualiza perfil
-│   └── perfil.astro         # Página de perfil de usuario
+│   └── perfil.astro         # Página de perfil y estadísticas de escucha
 └── components/
-    └── AuthButton.astro     # Botón de login/perfil en header
+    └── AuthButton.astro     # Botón interactivo de login/perfil en header
 ```
 
 ## 🔄 Flujo de Autenticación
 
-1. **Login**:
-   - Usuario hace clic en "Iniciar Sesión"
-   - Se redirige a Google OAuth
-   - Usuario autoriza la aplicación
-   - Google redirige a `/api/auth/google/callback`
-   - Se crea o actualiza el usuario en MongoDB
-   - Se genera un JWT token
-   - Se establece una cookie con el token
-   - Se redirige a `/perfil`
+### Método 1: Google OAuth
+1. Usuario hace clic en "Entrar con Google"
+2. Se redirige a Google OAuth
+3. Usuario autoriza la aplicación
+4. Google redirige a `/api/auth/google/callback`
+5. Se crea o actualiza el usuario en MongoDB
+6. Se establece la sesión con JWT vía cookie y redirige a `/perfil`
+
+### Método 2: Magic Link (Email)
+1. Usuario introduce su dirección de Email y hace clic en "Entrar con Email"
+2. Se genera un Magic Link transitorio y se envía a su bandeja de entrada
+3. El usuario hace clic en el enlace adjunto en su correo
+4. Es redirigido a `/api/auth/email/verify?token=...`
+5. Al validarse, se crea/actualiza en MongoDB, se establece el JWT y redirige a `/perfil`
 
 2. **Sesión persistente**:
    - El JWT token se almacena en una cookie HTTP-only
@@ -99,9 +117,10 @@ Componente dinámico que muestra:
 
 ### Página de Perfil
 Permite al usuario:
-- Ver su información de Google (nombre, email, foto)
-- Editar su nombre
-- Agregar/editar biografía (máx. 500 caracteres)
+- Ver su información básica (nombre, email, foto vinculada a Google o autogenerada)
+- Editar su nombre y nombre de usuario único
+- Manejar su biografía personal
+- **Ver panel de estadísticas de escucha minuciosas** de episodios
 - Ver fecha de registro
 - Cerrar sesión
 
@@ -124,6 +143,12 @@ Callback de Google OAuth. Crea/actualiza usuario y establece sesión.
 **Query params**:
 - `code`: Authorization code de Google
 - `error`: Error si el usuario rechazó
+
+### `GET /api/auth/email/verify`
+Valida un Magic Link proporcionado a través de correo electrónico y autoriza la sesión del usuario.
+
+**Query params**:
+- `token`: JWT seguro que fue enviado al E-Mail
 
 ### `GET /api/auth/me`
 Obtiene el usuario actual autenticado.

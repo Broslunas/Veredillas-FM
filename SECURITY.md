@@ -52,9 +52,9 @@ Las siguientes áreas están en el alcance del programa de seguridad:
 - Exposición de datos sensibles
 
 ✅ **Autenticación & Autorización**
-- Bypass de autenticación
+- Bypass de autenticación en Google OAuth y Magic Link
 - Escalación de privilegios
-- Gestión de sesiones
+- Gestión de sesiones y seguridad de JWTs
 
 ✅ **Manejo de Datos**
 - Validación de entrada
@@ -148,7 +148,7 @@ Para otros asuntos:
 
 ---
 
-**Última actualización**: 13 de enero de 2026  
-**Versión de la política**: 1.0
+**Última actualización**: 3 de marzo de 2026  
+**Versión de la política**: 1.1
 
 *Esta política de seguridad puede ser actualizada ocasionalmente. Los cambios significativos serán comunicados a través de nuestros canales oficiales.*
