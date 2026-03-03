@@ -15,7 +15,7 @@ description: >-
   Descubre la sabiduría de la Prof. Carmen: cómo las matemáticas iluminan las
   decisiones y el crecimiento personal. ¡Aprende de décadas de experiencia en la
   educación!
-pubDate: '2026-02-10T17:00:00.000Z'
+pubDate: '2026-03-10T17:00:00.000Z'
 duration: ¿?
 isPremiere: true
 season: 2
