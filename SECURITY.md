@@ -138,7 +138,7 @@ Para asuntos de seguridad:
 
 Para otros asuntos:
 - 📧 Email general: contacto@veredillasfm.es
-- 🐦 Twitter: [@VeredillasFM](https://twitter.com/VeredillasFM)
+- 🐦 Instagram: [@VeredillasFM.es](https://www.instagram.com/veredillasfm.es/)
 
 ## 📚 Recursos Adicionales
 
