@@ -1,5 +1,5 @@
 ---
-title: 'El Mercadillo ft. Carlos, Anaysa y Gisselle'
+title: 'El Mercadillo ft. Carlos, Anaysa & Gisselle'
 tags:
   - Eventos
 transcription:
