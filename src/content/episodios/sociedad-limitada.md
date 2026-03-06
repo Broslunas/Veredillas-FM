@@ -28,7 +28,7 @@ videoUrl: 'https://www.youtube.com/embed/hfrcqYBr_g0'
 warningMessage: >-
   Este contenido es 100% para fines de entretenimiento y comedia. Las opiniones
   aquí vertidas no representan necesariamente la realidad y solo buscan sacar
-  una sonrisa al espectador.
+  una sonrisa al espectador. #humor
 ---
 En este episodio de Sociedad Limitada, nos sentamos a la mesa con tres invitados que no dejan indiferente a nadie: Samuel Machín, Hugo Calero y Carlos Ramos. Lo que empezó como una charla sobre la gestión del éxito y el peso de las estructuras actuales, terminó siendo un análisis crudo y sin filtros sobre la realidad social y económica que nos rodea.
 
