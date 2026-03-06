@@ -25,6 +25,10 @@ episode: 3
 duration: 38 min
 pubDate: '2026-03-06T17:00:00.000Z'
 videoUrl: 'https://www.youtube.com/embed/hfrcqYBr_g0'
+warningMessage: >-
+  Este contenido es 100% para fines de entretenimiento y comedia. Las opiniones
+  aquí vertidas no representan necesariamente la realidad y solo buscan sacar
+  una sonrisa al espectador.
 ---
 En este episodio de Sociedad Limitada, nos sentamos a la mesa con tres invitados que no dejan indiferente a nadie: Samuel Machín, Hugo Calero y Carlos Ramos. Lo que empezó como una charla sobre la gestión del éxito y el peso de las estructuras actuales, terminó siendo un análisis crudo y sin filtros sobre la realidad social y económica que nos rodea.
 
