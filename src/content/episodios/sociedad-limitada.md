@@ -845,6 +845,26 @@ clips:
     url: 'https://youtu.be/Kj4PIaHh__w'
   - title: Impuestos Autónomos  Ventajas Clave Reveladas
     url: 'https://youtu.be/bJ_soLDxC5I'
+  - title: 'Trump, Groenlandia, Israel  ¿Qué Piensas?'
+    url: 'https://youtu.be/VWU4sIWRvbw'
+  - title: Migración  Mi Experiencia REAL sobre Paguitas
+    url: 'https://youtu.be/0cvD4xHc6Us'
+  - title: Migración  ¿Quiénes Entran y Por Qué
+    url: 'https://youtu.be/N2-8KNf3M5o'
+  - title: Las Redes Sociales  ¿Verdad o Desinformación
+    url: 'https://youtu.be/0iIC68ykMJE'
+  - title: 'Inmigración  Control, No Odio, Con Reglas Claras'
+    url: 'https://youtu.be/tz6FX25kfRk'
+  - title: Inmigración  ¿Por Qué Debemos Abrir Nuestras Puertas
+    url: 'https://youtu.be/WiUYZakNBSU'
+  - title: Sociedad  ¿Hacia Dónde Vamos  Reflexión Profunda
+    url: 'https://youtu.be/qM3_QZKlp7U'
+  - title: Sociedad  ¿Avanzamos o Retrocedemos
+    url: 'https://youtu.be/BCj9THv60Q8'
+  - title: Sociedad Cambiante  Redes Sociales y Desinformación
+    url: 'https://youtu.be/BxEwYROfUUo'
+  - title: Rufián  ¿Políticos por Contactos o por Méritos
+    url: 'https://youtu.be/xwmKGQWyi6I'
 ---
 En este episodio de Sociedad Limitada, nos sentamos a la mesa con tres invitados que no dejan indiferente a nadie: Samuel Machín, Hugo Calero y Carlos Ramos. Lo que empezó como una charla sobre la gestión del éxito y el peso de las estructuras actuales, terminó siendo un análisis crudo y sin filtros sobre la realidad social y económica que nos rodea.
 
