@@ -1,5 +1,5 @@
 ---
-title: Charlas del día a día ft. Carlos y Gustavo
+title: Charlas del día a día ft. Carlos & Gustavo
 tags:
   - Experiencias
   - Vida Diaria
