@@ -705,6 +705,69 @@ sections:
     title: 'África: El Continente Olvidado'
   - time: '33:15'
     title: Despedida y Reflexiones Finales
+clips:
+  - title: ¿Guerra Nuclear Iraní  Intereses Políticos y Recursos Revelados
+    url: 'https://youtu.be/xLVOQvlpczw'
+  - title: Armas Nucleares  ¿El Poder Real o la Destrucción Masiva
+    url: 'https://youtu.be/nY8bifrWBHU'
+  - title: Armas Nucleares  ¿Necesarias o Peligro Mundial
+    url: 'https://youtu.be/BScW5GHU3sI'
+  - title: Biología y Genética Humana  ¿Somos Animales que Racionalizan
+    url: 'https://youtu.be/dMZmFO0pOmg'
+  - title: Bulo Iraní  ¿Bombardeo o Falso Ataque
+    url: 'https://youtu.be/al0NAvaXfm4'
+  - title: Cárteles y Ejecuciones  La Verdad Cruda en 2026
+    url: 'https://youtu.be/LAAc8d04sNA'
+  - title: Corea del Norte  ¿Un Campo de Concentración Siglo XXI
+    url: 'https://youtu.be/cLUb9DJVRZM'
+  - title: Einstein  La Guerra que Destruirá el Mundo
+    url: 'https://youtu.be/rHzLXA6O1qw'
+  - title: Einstein's Warning  Nuclear War & Society's Lessons
+    url: 'https://youtu.be/xqzXapzlTew'
+  - title: El Salvador Transformado  Mano Dura Contra Crimen
+    url: 'https://youtu.be/unRHUs33xuY'
+  - title: Guerra Civil China  El Origen de la Tensión en Taiwán
+    url: 'https://youtu.be/nJmFhhMkJKk'
+  - title: Guerra y Paz  ¿Por Qué la Humanidad Se Autodestruye
+    url: 'https://youtu.be/80y7Jg1WKjk'
+  - title: Guerras Actuales  Más que en Todo el Siglo XX
+    url: 'https://youtu.be/QMX5Oe9qoN4'
+  - title: Horrores en Nigeria  Cristianos Asesinados en 2026
+    url: 'https://youtu.be/Jz2DJXmGh-s'
+  - title: Humanidad  ¿Por qué nos destruimos a nosotros mismos
+    url: 'https://youtu.be/yyJktMaoX-Y'
+  - title: Argentina UE  El Acuerdo Comercial Histórico
+    url: 'https://youtu.be/FYco8Zh9Xcg'
+  - title: Irán y armas nucleares  ¿Guerra o negocio
+    url: 'https://youtu.be/FKtHEUREpzw'
+  - title: Latinoamérica  ¿Por Qué el Mundo Nos Ignora
+    url: 'https://youtu.be/p0_-4pW8zSE'
+  - title: Latinoamérica  ¿Un Futuro Unido o un Caos Continuo
+    url: 'https://youtu.be/9ceUPBZ8Ask'
+  - title: Liderazgo Nuclear  ¿Apretar el Botón  Reflexión Profunda
+    url: 'https://youtu.be/Z1pYY8-5EeQ'
+  - title: Líderes bajo presión  ¿Usarías armas nucleares
+    url: 'https://youtu.be/oSnKTrmMRDY'
+  - title: Líderes Corruptos  Beneficio Propio vs  Bienestar Nacional
+    url: 'https://youtu.be/dVca2AN8FXY'
+  - title: México Invadido  Narcos con Fuerzas Militares de Élite
+    url: 'https://youtu.be/NV25WCa4VVA'
+  - title: México  ¿Estado Fallido  Narcotráfico y Poder Militar
+    url: 'https://youtu.be/steuNc-NU5I'
+  - title: Migración  El Verdadero Problema No Son Los Migrantes
+    url: 'https://youtu.be/IKTNhnzLj44'
+  - title: 'Naciones Fallidas  Miseria, Corrupción y Violencia Explicadas'
+    url: 'https://youtu.be/zOoEqbgdlCc'
+  - title: ONGs y ONU  ¿Dónde están las soluciones
+    url: 'https://youtu.be/zhc3TadmUh4'
+  - title: Presidenta de México  ¿Palabras Vacías o Potencial Perdido
+    url: 'https://youtu.be/M0kXZBoaFGM'
+  - title: Segunda Guerra Mundial  ¿Justificada para Salvar Europa
+    url: 'https://youtu.be/po259uqeBws'
+  - title: Tragedia en Irán  Atacada Escuela de Niñas
+    url: 'https://youtu.be/3OxyFTFhKS8'
+  - title: Interés Mercantil vs  Vidas Humanas  ¿Qué Importa Más
+    url: 'https://youtu.be/f-ETzug-lKQ'
 ---
 ¿Cómo se entrelazan las decisiones de Estado con el poder estratégico de las fuerzas armadas? En un mundo en constante cambio, entender la relación entre el poder político y la seguridad nacional es más crucial que nunca.
 
