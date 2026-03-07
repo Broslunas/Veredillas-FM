@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
+export const prerender = true
+
 // 1. Fetch Data
 const allGuests = await getCollection('guests');
 const allEpisodes = await getCollection('episodios');
@@ -133,9 +135,6 @@ function formatTime(minutes: number) {
 }
 
 const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: 'numeric' });
-
-// Cache this page for 1 hour in the CDN
-Astro.response.headers.set('Cache-Control', 's-maxage=3600, stale-while-revalidate=1800');
 ---
 
 <Layout 
