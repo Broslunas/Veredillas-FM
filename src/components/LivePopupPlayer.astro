@@ -238,7 +238,8 @@
         }
         
         checkStream();
-        setInterval(checkStream, POLL_INTERVAL);
+        // Removed polling to save CPU/Network: only check once on load
+        // setInterval(checkStream, POLL_INTERVAL);
     });
 </script>
 

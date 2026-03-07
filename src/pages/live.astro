@@ -352,8 +352,8 @@ export const prerender = false;
             isPolling = true;
             updateDebug("Iniciando búsqueda de señal...");
             
-            // Poll every 10 seconds
-            pollInterval = setInterval(checkStreamHealth, 10000);
+            // Removed polling to save CPU: only check once on load
+            // pollInterval = setInterval(checkStreamHealth, 10000);
         }
 
         function stopPolling() {

@@ -123,7 +123,7 @@ import './player/SharedPlayerStyles.css';
             onYouTubeIframeAPIReady: () => void;
             playerResizeObserver: ResizeObserver | null;
             currentYTPlayer: any;
-            showToast: (message: string, type?: string) => void;
+            showToast: (message: string, type?: "info" | "success" | "error") => void;
         }
     }
 
@@ -178,38 +178,37 @@ import './player/SharedPlayerStyles.css';
 
     // ---- SHARED SYNC FUNCTIONS ----
 
-    const syncListeningTime = async (seconds: number) => {
-        if (seconds <= 0.1) return; // Ignore neg or tiny
+    // UNIFIED SYNC FUNCTION
+    const syncPlaybackData = async ({ 
+        slug, 
+        increment = 0, 
+        progress = 0, 
+        duration = 0, 
+        completed = false 
+    }: { 
+        slug?: string | null, 
+        increment?: number, 
+        progress?: number, 
+        duration?: number, 
+        completed?: boolean 
+    }) => {
         try {
-            // Fire and forget, don't await blocking UI
-            fetch('/api/user/stats', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ increment: seconds })
-            });
-        } catch(e) {
-            console.error("Stats sync error", e);
-        }
-    };
+            const body: any = { increment };
+            if (slug) {
+                body.episodeSlug = slug;
+                body.progress = progress;
+                body.duration = isFinite(duration) ? duration : 0;
+                body.completed = completed;
+            }
 
-    // SYNC PLAYBACK HISTORY
-    const syncPlaybackHistory = async (slug: string, currentTime: number, duration: number, completed: boolean = false) => {
-        if(!slug) return;
-        
-        try {
             const response = await fetch('/api/history/update', {
                 method: 'POST',
-                credentials: 'include', // Ensure cookies are sent (localhost/cors safety)
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    episodeSlug: slug,
-                    progress: currentTime,
-                    duration: isFinite(duration) ? duration : 0,
-                    completed
-                })
+                body: JSON.stringify(body)
             });
 
-            if (response.ok) {
+            if (response.ok && slug) {
                 const data = await response.json();
                 if (data.newlyUnlockedCards && data.newlyUnlockedCards.length > 0) {
                     data.newlyUnlockedCards.forEach((guestName: string) => {
@@ -220,7 +219,7 @@ import './player/SharedPlayerStyles.css';
                 }
             }
         } catch(e) {
-            console.error("History sync error", e);
+            console.error("Playback sync error", e);
         }
     };
 
@@ -439,14 +438,15 @@ import './player/SharedPlayerStyles.css';
                            syncPlaybackHistory(window.playerSlug, current, dur, true);
                        }
 
-                       if (sessionAccumulator >= SESSION_SYNC_THRESHOLD) {
-                           syncListeningTime(sessionAccumulator);
-                           // Sync history every 10s (without overriding completion flag)
-                           if (window.playerSlug && !hasFiredCompletion) {
-                               syncPlaybackHistory(window.playerSlug, current, dur);
-                           }
-                           sessionAccumulator = 0;
-                       }
+                        if (sessionAccumulator >= SESSION_SYNC_THRESHOLD) {
+                            syncPlaybackData({
+                                slug: window.playerSlug,
+                                increment: sessionAccumulator,
+                                progress: current,
+                                duration: dur
+                            });
+                            sessionAccumulator = 0;
+                        }
                    }
                    lastTrackedTime = current;
                    
@@ -512,13 +512,22 @@ import './player/SharedPlayerStyles.css';
              };
              audioElement.onpause = () => {
                  updateIcons();
-                 // Flush pending time
-                 if(sessionAccumulator > 0.5) {
-                     syncListeningTime(sessionAccumulator);
-                     sessionAccumulator = 0;
-                 }
-                 // Flush history on pause
-                 if(window.playerSlug) syncPlaybackHistory(window.playerSlug, audioElement.currentTime, audioElement.duration);
+                  // Flush pending time
+                  if(sessionAccumulator > 0.5) {
+                      syncPlaybackData({
+                          slug: window.playerSlug,
+                          increment: sessionAccumulator,
+                          progress: audioElement.currentTime,
+                          duration: audioElement.duration
+                      });
+                      sessionAccumulator = 0;
+                  } else if(window.playerSlug) {
+                      syncPlaybackData({
+                          slug: window.playerSlug,
+                          progress: audioElement.currentTime,
+                          duration: audioElement.duration
+                      });
+                  }
              };
              
              // Error Handling 
@@ -534,10 +543,15 @@ import './player/SharedPlayerStyles.css';
              };
 
              audioElement.onended = () => {
-                 if (window.playerSlug && !hasFiredCompletion) {
-                     hasFiredCompletion = true;
-                     syncPlaybackHistory(window.playerSlug, audioElement.duration, audioElement.duration, true);
-                 }
+                  if (window.playerSlug && !hasFiredCompletion) {
+                      hasFiredCompletion = true;
+                      syncPlaybackData({
+                          slug: window.playerSlug,
+                          progress: audioElement.duration,
+                          duration: audioElement.duration,
+                          completed: true
+                      });
+                  }
              };
              
              // Visualizer & Auto-Loudness Normalization (Always Active)

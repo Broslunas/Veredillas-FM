@@ -169,8 +169,8 @@ const { onlyCurrentPath = false } = Astro.props;
     if (pill) {
         setTimeout(() => {
             updateHeartbeat();
-            // Poll every 45 seconds
-            setInterval(updateHeartbeat, 45000);
+            // Poll every 1 minute
+            setInterval(updateHeartbeat, 60000);
         }, 1000);
     }
 

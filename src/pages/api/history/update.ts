@@ -38,13 +38,24 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    let { episodeSlug, progress, duration, completed } = body;
+    let { episodeSlug, progress, duration, completed, increment } = body;
 
-    if (!episodeSlug || typeof episodeSlug !== 'string') {
-      return new Response(JSON.stringify({ error: 'episodeSlug is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
+    // Use explicit increment if provided, or fallback to 0
+    const listenIncrement = typeof increment === 'number' && isFinite(increment) && increment > 0 ? Math.min(increment, 300) : 0;
+
+    // Basic user update (always update listeningTime if increment > 0)
+    if (listenIncrement > 0) {
+      await User.findByIdAndUpdate(userPayload.userId, {
+        $inc: { listeningTime: listenIncrement }
       });
+    }
+
+    // If no episodeSlug, we just return here (only updated general listeningTime)
+    if (!episodeSlug || typeof episodeSlug !== 'string') {
+        return new Response(JSON.stringify({ success: true, listeningTimeUpdated: listenIncrement > 0 }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 
     // Sanitize numbers
@@ -62,12 +73,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     // ── Retrieve previous entry for this episode ─────────────────────────────
     const existingIdx = user.playbackHistory?.findIndex(h => h.episodeSlug === episodeSlug) ?? -1;
-    let previousProgress = 0;
     let previousDuration  = 0;
     let wasAlreadyCompleted = false;
 
     if (existingIdx !== -1) {
-      previousProgress     = user.playbackHistory[existingIdx].progress  ?? 0;
       previousDuration     = user.playbackHistory[existingIdx].duration  ?? 0;
       wasAlreadyCompleted  = user.playbackHistory[existingIdx].completed ?? false;
       user.playbackHistory.splice(existingIdx, 1); // Remove (we'll re-add at top)
@@ -77,24 +86,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const finalDuration = duration > 0 ? duration : (previousDuration > 0 ? previousDuration : 0);
 
     // ── Determine if completed ────────────────────────────────────────────────
-    // Three conditions mark an episode as complete:
-    //   1. The client explicitly sends completed=true (onended)
-    //   2. Progress ≥ 90% of the known duration
-    //   3. It was already marked completed before (never regress a completed episode)
     const completedByThreshold =
       finalDuration > 0 && progress >= finalDuration * 0.90;
 
     const isNowCompleted = completed || completedByThreshold || wasAlreadyCompleted;
 
-    // ── Accumulate listeningTime delta ────────────────────────────────────────
-    // Only add the *new* seconds listened (progress - previousProgress).
-    // This prevents double-counting when the same progress is re-sent.
-    // Cap at 5 min per update to prevent abuse or seek-to-end tricks.
-    const MAX_DELTA_SECONDS = 300;
-    const delta = Math.min(Math.max(progress - previousProgress, 0), MAX_DELTA_SECONDS);
-
     // ── Persist completed episode slug permanently ────────────────────────────
-    // completedEpisodes is a permanent Set-like array, never truncated.
     if (isNowCompleted && !(user.completedEpisodes ?? []).includes(episodeSlug)) {
       user.completedEpisodes = [...(user.completedEpisodes ?? []), episodeSlug];
     }
@@ -112,18 +109,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       user.playbackHistory = user.playbackHistory.slice(0, 100);
     }
 
-    // ── Atomically increment listeningTime if delta > 0 ─────────────────────
-    // Using $inc via findByIdAndUpdate after the history save to avoid race conditions.
     await user.save();
 
-    if (delta > 0) {
-      await User.findByIdAndUpdate(userPayload.userId, {
-        $inc: { listeningTime: delta }
-      });
-    }
-
     // ── Check for Guest Card Unlocks ──────────────────────────────────────────
-    // If the episode was just newly marked as completed, try to unlock guest cards.
     let newlyUnlockedCards: string[] = [];
     if (isNowCompleted && !wasAlreadyCompleted) {
       newlyUnlockedCards = await checkAndUnlockCards(userPayload.userId, episodeSlug);

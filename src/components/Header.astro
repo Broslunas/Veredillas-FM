@@ -1218,6 +1218,6 @@ const isDropdownActive = (items: any[]) => {
   updateBanner(); // Run once immediately too (for premieres)
   
   // Poll
-  setInterval(checkStreamStatus, 15000); // Check stream every 15s
-  setInterval(updateBanner, 60000); // Check premieres every 1m
+  // setInterval(checkStreamStatus, 15000); // Removed polling to save CPU/Network: check once on load
+  setInterval(updateBanner, 60000); // Check premieres every 1m (local calculation)
 </script>
