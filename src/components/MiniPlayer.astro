@@ -400,7 +400,7 @@ import './player/SharedPlayerStyles.css';
              
              let lastTrackedTime = audioElement.currentTime;
              let sessionAccumulator = 0;
-             const SESSION_SYNC_THRESHOLD = 10;
+              const SESSION_SYNC_THRESHOLD = 20;
              
              // Listen Tracking
              let totalListenedForEpisode = 0;
@@ -435,7 +435,12 @@ import './player/SharedPlayerStyles.css';
                          current >= dur * 0.90
                        ) {
                            hasFiredCompletion = true;
-                           syncPlaybackHistory(window.playerSlug, current, dur, true);
+                            syncPlaybackData({
+                                slug: window.playerSlug,
+                                progress: current,
+                                duration: dur,
+                                completed: true
+                            });
                        }
 
                         if (sessionAccumulator >= SESSION_SYNC_THRESHOLD) {
@@ -1156,9 +1161,13 @@ import './player/SharedPlayerStyles.css';
                                          const delta = curr - ytLastTime;
                                          if (delta > 0 && delta < 5) {
                                              ytAccumulator += delta;
-                                             if (ytAccumulator >= 10) {
-                                                 syncListeningTime(ytAccumulator);
-                                                 if (window.playerSlug) syncPlaybackHistory(window.playerSlug, curr, dur);
+                                             if (ytAccumulator >= 20) {
+                                                 syncPlaybackData({
+                                                     slug: window.playerSlug,
+                                                     increment: ytAccumulator,
+                                                     progress: curr,
+                                                     duration: dur
+                                                 });
                                                  ytAccumulator = 0;
                                              }
                                          }
@@ -1175,16 +1184,21 @@ import './player/SharedPlayerStyles.css';
                                          ytTimer = null;
                                      }
                                      if (ytAccumulator > 0.5) {
-                                         syncListeningTime(ytAccumulator);
+                                         syncPlaybackData({
+                                             slug: window.playerSlug,
+                                             increment: ytAccumulator,
+                                             progress: player.getCurrentTime(),
+                                             duration: player.getDuration(),
+                                             completed: state === 0
+                                         });
                                          ytAccumulator = 0;
-                                     }
-                                     if (window.playerSlug && (state === 2 || state === 0)) {
-                                         syncPlaybackHistory(
-                                             window.playerSlug, 
-                                             player.getCurrentTime(), 
-                                             player.getDuration(), 
-                                             state === 0
-                                         );
+                                     } else if (window.playerSlug) {
+                                         syncPlaybackData({
+                                             slug: window.playerSlug,
+                                             progress: player.getCurrentTime(),
+                                             duration: player.getDuration(),
+                                             completed: state === 0
+                                         });
                                      }
                                  }
                              };
