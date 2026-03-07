@@ -58,6 +58,9 @@ export default defineConfig({
   site: SITE_URL,
   output: 'server',
   adapter: vercel(),
+  security: {
+    checkOrigin: false
+  },
 
   integrations: [
     react(),
