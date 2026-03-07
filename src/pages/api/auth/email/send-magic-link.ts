@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     const magicToken = jwt.sign({ email, type: 'magic_link' }, JWT_SECRET, { expiresIn: '15m' });
 
     // Construir la URL de verificación
-    const verifyUrl = `${url.origin}/api/auth/email/verify?token=${magicToken}`;
+    const verifyUrl = `https://veredillasfm.es/api/auth/email/verify?token=${magicToken}`;
 
     // Preparar el HTML del correo (Plantilla premium)
     const siteUrl = "https://veredillasfm.es";
