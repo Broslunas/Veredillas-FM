@@ -37,6 +37,9 @@ const totalRawMinutes = publishedEpisodes.reduce((acc, ep) => {
 }, 0);
 
 const siteUrl = Astro.site?.href || 'https://veredillasfm.es';
+
+// Cache for 30 minutes in CDN
+Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalidate=900');
 ---
 
 <Layout

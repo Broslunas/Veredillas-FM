@@ -57,6 +57,9 @@ if (watchId) {
         clips.unshift(selectedClip);
     }
 }
+
+// Cache for 30 minutes. The shuffle will be the same for all users during the cache lifetime.
+Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalidate=900');
 ---
 
 <Layout title="Clips" description="Los mejores momentos de Veredillas FM en formato corto." showFooter={false}>

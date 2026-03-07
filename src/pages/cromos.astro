@@ -42,7 +42,6 @@ if (userPayload) {
 const unlockedCount = unlockedSlugs.length;
 const progressPct = totalCards > 0 ? Math.round((unlockedCount / totalCards) * 100) : 0;
 
-// Prepare cards data for client
 const cardsData = guests.map(g => ({
   slug: g.slug,
   name: g.data.name,
@@ -51,6 +50,14 @@ const cardsData = guests.map(g => ({
   image: g.data.image ?? '',
   unlocked: unlockedSlugs.includes(g.slug),
 }));
+
+// If guest, cache for 15 minutes. If authenticated, no cache.
+if (!isAuthenticated) {
+  Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidate=450');
+} else {
+  Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
+  Astro.response.headers.set('Vary', 'Cookie');
+}
 ---
 
 <Layout title="Álbum de Cromos — Veredillas FM" description="Colecciona los cromos digitales de los invitados de Veredillas FM escuchando sus entrevistas." robots="index, follow">

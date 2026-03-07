@@ -132,8 +132,10 @@ function formatTime(minutes: number) {
     return `${h}h ${m}m`;
 }
 
-// Date formatter
 const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: 'numeric' });
+
+// Cache this page for 1 hour in the CDN
+Astro.response.headers.set('Cache-Control', 's-maxage=3600, stale-while-revalidate=1800');
 ---
 
 <Layout 
