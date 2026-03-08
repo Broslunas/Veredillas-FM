@@ -98,7 +98,7 @@ import './player/SharedPlayerStyles.css';
          </div>
       </div>
       <!-- Core Audio Element -->
-      <audio id="audioElement" preload="metadata" crossorigin="anonymous"></audio>
+      <audio id="audioElement" preload="metadata"></audio>
   </div>
 </template>
 
@@ -110,8 +110,9 @@ import './player/SharedPlayerStyles.css';
 <!-- Controller Logic -->
 <script>
     import { FastAverageColor } from 'fast-average-color';
-    // @ts-ignore
-
+    import { AudioEngine } from '../services/player/audioEngine';
+    import { syncPlaybackData, recordListen } from '../services/player/playbackSync';
+    
     declare global {
         interface Window {
             hasGlobalPlayerListener: boolean;
@@ -133,118 +134,24 @@ import './player/SharedPlayerStyles.css';
          window.playerSlug = null;
     }
         
-    if (!window.playerCurrentUrl) {
-         window.playerCurrentUrl = null;
-         window.playerMeta = null;
-         window.playerSlug = null;
-    }
-        
     const fac = new FastAverageColor();
-
-    // Shared AudioContext to prevent "Max AudioContexts" error
-    let globalAudioCtx: AudioContext | null = null;
-    
-    // ---- AUTO-LOUDNESS NORMALIZATION CONFIG ----
-    // Target RMS level in linear scale (approx -14 LUFS for podcast standard)
-    const AUTO_LOUDNESS_TARGET_RMS = 0.20; // Target level (~-14 dBFS RMS / -12 LUFS approx)
-    const AUTO_LOUDNESS_MIN_GAIN = 0.5;    // Never attenuate below 50%
-    const AUTO_LOUDNESS_MAX_GAIN = 10.0;   // Increased max gain boost to 10x (~+20dB) for extreme cases
-    const AUTO_LOUDNESS_SMOOTHING = 0.04;  // Smoothing factor
-    const AUTO_LOUDNESS_ANALYSIS_INTERVAL = 150; // Faster analysis for better response
 
     // ---- Ambient Mode Logic ----
     const updateAmbientTheme = async (imageUrl: string) => {
         try {
             const color = await fac.getColorAsync(imageUrl);
-            // Update global vars for immersive
             document.documentElement.style.setProperty('--color-primary-glow', color.rgba);
             
-            // Also update the local inline player glow if present
             const localGlow = document.getElementById('playerBgGlow');
-            if(localGlow) {
-                // Use a mix for better visual
-                localGlow.style.background = `radial-gradient(circle at center, ${color.rgba}, transparent 70%)`;
-            }
+            if(localGlow) localGlow.style.background = `radial-gradient(circle at center, ${color.rgba}, transparent 70%)`;
 
-            // Update immersive glow
             const glow = document.querySelector('.background-glow') as HTMLElement;
-            if (glow) {
-                glow.style.background = `radial-gradient(circle at center, ${color.rgba}, transparent 70%)`;
-            }
+            if (glow) glow.style.background = `radial-gradient(circle at center, ${color.rgba}, transparent 70%)`;
         } catch (e) {
             console.log("Ambient color check failed", e);
         }
     };
 
-    // ---- SHARED SYNC FUNCTIONS ----
-
-    // UNIFIED SYNC FUNCTION
-    const syncPlaybackData = async ({ 
-        slug, 
-        increment = 0, 
-        progress = 0, 
-        duration = 0, 
-        completed = false 
-    }: { 
-        slug?: string | null, 
-        increment?: number, 
-        progress?: number, 
-        duration?: number, 
-        completed?: boolean 
-    }) => {
-        try {
-            const body: any = { increment };
-            if (slug) {
-                body.episodeSlug = slug;
-                body.progress = progress;
-                body.duration = isFinite(duration) ? duration : 0;
-                body.completed = completed;
-            }
-
-            const response = await fetch('/api/history/update', {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-
-            if (response.ok && slug) {
-                const data = await response.json();
-                
-                // Trigger achievement check (Toaster will handle throttling)
-                document.dispatchEvent(new CustomEvent('check-achievements'));
-
-                if (data.newlyUnlockedCards && data.newlyUnlockedCards.length > 0) {
-                    data.newlyUnlockedCards.forEach((guestName: string) => {
-                        if (window.showToast) {
-                            window.showToast(`¡Cromo desbloqueado: ${guestName}! ✨`, 'success');
-                        }
-                    });
-                }
-            }
-        } catch(e) {
-            console.error("Playback sync error", e);
-        }
-    };
-
-    const recordListen = async (slug: string) => {
-        if (!slug) return;
-        // Check session storage to avoid double counting on refresh
-        const storageKey = `recorded-listen-${slug}`;
-        if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(storageKey)) return;
-
-        try {
-            await fetch('/api/episodes/record-listen', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ episodeSlug: slug })
-            });
-            if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(storageKey, 'true');
-            // console.log("Listen recorded for", slug);
-        } catch(e) {
-            console.error("Error recording listen", e);
-        }
-    };
 
     const setupCustomPlayer = (container: HTMLElement, url: string, title: string, cover: string, author: string, transcription: any[] | null = null, startTime: number = 0, isPremiere: boolean = false, premiereDate: number = 0) => {
              // 1. CLONE TEMPLATE
@@ -261,16 +168,8 @@ import './player/SharedPlayerStyles.css';
              // 2. Populate Data
              const audioElement = container.querySelector('#audioElement') as HTMLAudioElement;
              
-             // --- PROXY EXTERNAL AUDIO FOR CORS ---
-             // This ensures Web Audio API can process the stream (Auto-Loudness Normalization)
-             let processedUrl = url;
-             if (url && url.startsWith('http')) {
-                 // Check if it's already proxied to avoid double proxying
-                 if (!url.includes('/api/proxy-audio')) {
-                     processedUrl = `/api/proxy-audio?url=${encodeURIComponent(url)}`;
-                 }
-             }
-             audioElement.src = processedUrl;
+             // --- AUDIO SOURCE ---
+             audioElement.src = url;
              
              if (startTime > 0) {
                  audioElement.currentTime = startTime;
@@ -518,6 +417,7 @@ import './player/SharedPlayerStyles.css';
              audioElement.onplay = () => {
                  lastTrackedTime = audioElement.currentTime; // Reset tracking base
                  updateIcons();
+                 if (engineInstance) engineInstance.resumeVisualizer();
              };
              audioElement.onpause = () => {
                  updateIcons();
@@ -563,246 +463,19 @@ import './player/SharedPlayerStyles.css';
                   }
              };
              
-             // Visualizer & Auto-Loudness Normalization (Always Active)
-              let analyser: AnalyserNode;
-              let source: MediaElementAudioSourceNode;
-              let compressor: DynamicsCompressorNode;
-              let gainNode: GainNode;
-              let limiterNode: DynamicsCompressorNode; // Safety limiter to prevent clipping
-              let canvas = container.querySelector('#audioVisualizer') as HTMLCanvasElement;
-              let autoLoudnessTimer: ReturnType<typeof setInterval> | null = null;
-              let currentAutoGain = 1.0;
-              
-               const initVisualizer = () => {
-                  // Removed strict crossOrigin guard to allow processing attempts 
-                  // (Proxying external audio should provide necessary CORS headers)
-
-                  if(!globalAudioCtx) {
-                       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-                       globalAudioCtx = new AudioContext();
-                  }
-
-                  if (globalAudioCtx.state === 'suspended') {
-                      globalAudioCtx.resume();
-                  }
-
-                  if (!analyser) {
-                       try {
-                           source = globalAudioCtx.createMediaElementSource(audioElement);
-                           compressor = globalAudioCtx.createDynamicsCompressor();
-                           gainNode = globalAudioCtx.createGain();
-                           limiterNode = globalAudioCtx.createDynamicsCompressor();
-                           analyser = globalAudioCtx.createAnalyser();
-
-                           analyser.fftSize = 2048;
-                           analyser.smoothingTimeConstant = 0.85;
-                           
-                           // Audio Graph:
-                           // Source -> Compressor -> Gain -> Analyser -> Limiter -> Destination
-                           source.connect(compressor);
-                           compressor.connect(gainNode);
-                           gainNode.connect(analyser); 
-                           analyser.connect(limiterNode);
-                           limiterNode.connect(globalAudioCtx.destination);
-                           
-                           // ALWAYS-ON PODCAST COMPRESSION
-                           compressor.threshold.value = -30;
-                           compressor.knee.value = 20;
-                           compressor.ratio.value = 4;
-                           compressor.attack.value = 0.005;
-                           compressor.release.value = 0.15;
-                           
-                           // SAFETY LIMITER (prevents clipping after gain boost)
-                           limiterNode.threshold.value = -1;
-                           limiterNode.knee.value = 0;
-                           limiterNode.ratio.value = 20;
-                           limiterNode.attack.value = 0.001;
-                           limiterNode.release.value = 0.05;
-                           
-                           gainNode.gain.value = 1.0;
-                           currentAutoGain = 1.0;
-                           
-                           draw();
-                           startAutoLoudness();
-
-                       } catch(e) {
-                           console.log("Audio Context Error (CORS?):", e);
-                       }
-                  }
-              };
-
-              // --- AUTO-LOUDNESS NORMALIZATION ---
-              const startAutoLoudness = () => {
-                  if (autoLoudnessTimer) return;
-                  
-                  const rmsBuffer = new Float32Array(analyser.fftSize);
-                  
-                  autoLoudnessTimer = setInterval(() => {
-                      if (audioElement.paused || !analyser || !gainNode) return;
-                      
-                      analyser.getFloatTimeDomainData(rmsBuffer);
-                      
-                      let sumSquares = 0;
-                      for (let i = 0; i < rmsBuffer.length; i++) {
-                          sumSquares += rmsBuffer[i] * rmsBuffer[i];
-                      }
-                      const rms = Math.sqrt(sumSquares / rmsBuffer.length);
-                      
-                      if (rms < 0.002) return; // Skip only true silence/white noise
-                      
-                      let desiredGain = AUTO_LOUDNESS_TARGET_RMS / rms;
-                      desiredGain = Math.max(AUTO_LOUDNESS_MIN_GAIN, Math.min(AUTO_LOUDNESS_MAX_GAIN, desiredGain));
-                      
-                      currentAutoGain = currentAutoGain + (desiredGain - currentAutoGain) * AUTO_LOUDNESS_SMOOTHING;
-                      
-                      gainNode.gain.setTargetAtTime(
-                          currentAutoGain,
-                          globalAudioCtx!.currentTime,
-                          0.1
-                      );
-                      
-                      updateAutoLoudnessIndicator(currentAutoGain);
-                      
-                  }, AUTO_LOUDNESS_ANALYSIS_INTERVAL);
-              };
-              
-              const stopAutoLoudness = () => {
-                  if (autoLoudnessTimer) {
-                      clearInterval(autoLoudnessTimer);
-                      autoLoudnessTimer = null;
-                  }
-              };
-              
-              const updateAutoLoudnessIndicator = (gain: number) => {
-                  const indicator = container.querySelector('#autoLoudnessIndicator') as HTMLElement;
-                  if (!indicator) return;
-                  
-                  const gainDb = Math.round(20 * Math.log10(gain));
-                  indicator.title = `Normalización automática: ${gainDb > 0 ? '+' : ''}${gainDb} dB`;
-                  
-                  const correctionAmount = Math.abs(gain - 1.0);
-                  const intensity = Math.min(1, correctionAmount / 1.5);
-                  
-                  if (gain > 1.3) {
-                      indicator.style.color = `hsl(160, ${60 + intensity * 40}%, ${50 + intensity * 20}%)`;
-                      indicator.style.opacity = `${0.6 + intensity * 0.4}`;
-                  } else if (gain < 0.8) {
-                      indicator.style.color = `hsl(35, ${60 + intensity * 40}%, ${50 + intensity * 20}%)`;
-                      indicator.style.opacity = `${0.6 + intensity * 0.4}`;
-                  } else {
-                      indicator.style.color = 'var(--color-text-muted, #888)';
-                      indicator.style.opacity = '0.5';
-                  }
-              };
+             // Visualizer & Auto-Loudness Normalization
+             const canvas = container.querySelector('#audioVisualizer') as HTMLCanvasElement;
+             const autoLoudnessIndicator = container.querySelector('#autoLoudnessIndicator') as HTMLElement;
              
-             const draw = () => {
-                 if(!canvas || !analyser) return;
-                 const ctx = canvas.getContext('2d');
-                 if(!ctx) return;
-                 
-                 const bufferLength = analyser.frequencyBinCount;
-                 const dataArray = new Uint8Array(bufferLength);
-                 
-                 const renderFrame = () => {
-                     if(audioElement.paused) return; 
-                     requestAnimationFrame(renderFrame);
-                     
-                     ctx.clearRect(0,0, canvas.width, canvas.height);
-                     
-                     analyser.getByteFrequencyData(dataArray);
-
-                     // Dynamic Color based on Ambient Theme
-                     const glowColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary-glow').trim() || 'rgba(139, 92, 246, 0.8)';
-                     // If the glow is too transparent, make it more solid for the bars
-                     ctx.fillStyle = glowColor.replace('0.2', '0.8').replace('0.5', '0.9');
-
-                     // Settings for bars
-                     const barCount = 40; 
-                     // Focus on the sub-50% frequencies (most musical content)
-                     const usefulBinCount = Math.floor(bufferLength * 0.6); 
-                     const step = usefulBinCount / barCount;
-                     
-                     const barWidth = canvas.width / barCount;
-                     const gap = 2;
-                     
-                     for(let i=0; i<barCount; i++) {
-                         // Logarithmic-ish or simple averaging
-                         const start = Math.floor(i * step);
-                         const end = Math.floor((i + 1) * step);
-                         let sum = 0;
-                         let count = 0;
-                         for(let j=start; j<end; j++) {
-                             sum += dataArray[j];
-                             count++;
-                         }
-                         const val = count > 0 ? sum / count : 0;
-                         
-                         // Non-linear height for punchier look
-                         // (val / 255)^1.2 allows peaks to stand out more vs noise
-                         const percent = Math.pow(val / 255, 1.2); 
-                         
-                         let h = percent * canvas.height;
-                         if (h < 2 && val > 0) h = 2; // Min height if sound exists
-                         
-                         const x = i * barWidth;
-                         const y = canvas.height - h;
-                         
-                         // Rounded Top Bars
-                         if(h > 0) {
-                             ctx.beginPath();
-                             if(ctx.roundRect) {
-                                 ctx.roundRect(x + gap/2, y, barWidth - gap, h, [4, 4, 0, 0]);
-                             } else {
-                                 ctx.rect(x + gap/2, y, barWidth - gap, h);
-                             }
-                             ctx.fill();
-                         }
-                     }
-                      
-                     // Also handle Immersive Visualizer (Global)
-                     // Re-use logic for immersive if open
-                     const immCanvas = document.getElementById('audio-visualizer') as HTMLCanvasElement;
-                     const immersiveEl = document.getElementById('immersive-player');
-                     // Check if visible (not hidden)
-                     if(immCanvas && immersiveEl && !immersiveEl.classList.contains('hidden')) {
-                         // Basic mirror of the logic for the big player
-                         // ideally this should be a separate drawer but let's do a simple pass
-                         const immCtx = immCanvas.getContext('2d');
-                         if(immCtx) {
-                             immCtx.clearRect(0,0, immCanvas.width, immCanvas.height);
-                             immCtx.fillStyle = ctx.fillStyle; // Same color
-                             
-                             // Adjust dimensions if needed (canvas might differ in size from CSS)
-                             // Usually we should relying on width/height attributes or resize observer, 
-                             // but assuming it's substantial (e.g. 300px default or sized by CSS w/ resize)
-                             // For now assuming the canvas element generic sizing.
-                             // Ideally we should set immCanvas.width = immCanvas.offsetWidth... but let's skip expensive resize in loop.
-                             
-                             const immBarWidth = immCanvas.width / barCount;
-                             
-                             for(let i=0; i<barCount; i++) {
-                                 const start = Math.floor(i * step);
-                                 const end = Math.floor((i + 1) * step);
-                                 let sum = 0, count=0;
-                                 for(let j=start; j<end; j++) { sum+=dataArray[j]; count++; }
-                                 const val = count>0 ? sum/count : 0;
-                                 const percent = Math.pow(val/255, 1.2);
-                                 const h = percent * immCanvas.height * 0.6; // Scale down a bit?
-                                 
-                                 const x = i * immBarWidth;
-                                 // Let's do Center for immersive
-                                 const cy = immCanvas.height / 2;
-                                 
-                                 immCtx.beginPath();
-                                 if(immCtx.roundRect) immCtx.roundRect(x+gap, cy - h/2, immBarWidth-gap*2, h, [4]);
-                                 else immCtx.rect(x+gap, cy - h/2, immBarWidth-gap*2, h);
-                                 immCtx.fill();
-                             }
-                         }
-                     }
-                 };
-                 renderFrame();
+             let engineInstance: AudioEngine | null = null;
+             
+             const initVisualizer = () => {
+                 if (!engineInstance) {
+                     engineInstance = new AudioEngine(audioElement, canvas, autoLoudnessIndicator);
+                 }
+                 engineInstance.init();
              };
+
 
              // Initial Ambient
              if(cover) updateAmbientTheme(cover);

@@ -122,7 +122,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         success: true,
         completed: isNowCompleted,
         completedByThreshold,
-        delta,
+        delta: listenIncrement,
         newlyUnlockedCards, // Pass this to the client so it can show a notification
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
