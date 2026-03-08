@@ -1,184 +1,55 @@
 ---
+import mongoose from 'mongoose';
+import User from '../models/User';
+
 interface Props {
   episodeSlug: string;
   className?: string;
 }
 
 const { episodeSlug, className = '' } = Astro.props;
+
+let initialCount = 0;
+try {
+  if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = import.meta.env.MONGODB_URI;
+    if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
+  }
+  initialCount = await User.countDocuments({ favorites: episodeSlug });
+} catch (e) {
+  // fail silently
+}
 ---
 
 <button 
-  class={`favorite-premium-btn ${className}`}
+  class:list={[
+    "favorite-premium-btn group relative inline-flex items-center gap-3 px-5 py-[0.625rem] max-sm:px-[0.875rem] bg-transparent border-none cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] min-h-[48px] group-[.loading]:opacity-60 group-[.loading]:pointer-events-none [-webkit-tap-highlight-color:transparent]",
+    className
+  ]}
   data-episode-slug={episodeSlug}
   aria-label="Agregar a favoritos"
   title="Agregar a favoritos"
 >
-  <div class="btn-background"></div>
-  <div class="btn-glow"></div>
+  <div class="btn-background absolute inset-0 bg-white/4 [data-theme=light]_&:bg-black/3 backdrop-blur-xl border border-white/8 [data-theme=light]_&:border-black/7 rounded-2xl z-[1] transition-all duration-400 group-hover:bg-white/8 group-hover:border-white/15 group-hover:-translate-y-[1px] group-[.favorited]:bg-red-500/10 group-[.favorited]:border-red-500/30 shadow-sm"></div>
+  <div class="btn-glow absolute -inset-[2px] bg-gradient-to-br from-pink-500 to-red-500 rounded-[18px] opacity-0 blur-lg z-0 transition-opacity duration-400 group-[.favorited]:group-hover:opacity-20"></div>
   
-  <span class="icon-wrapper">
-    <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <span class="icon-wrapper relative z-[2] flex items-center justify-center w-6 h-6">
+    <svg class="heart-icon w-5 h-5 text-white/40 [data-theme=light]_&:text-black/20 transition-all duration-400 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] group-[.favorited]:text-red-500 group-[.favorited]:fill-red-500 group-[.favorited]:scale-110 group-[.favorited]:drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
     </svg>
-    <div class="pulse-ring"></div>
+    <div class="pulse-ring absolute w-full h-full rounded-full border-2 border-red-500 opacity-0 pointer-events-none group-[.favorited]:animate-[pulse-ring_0.6s_cubic-bezier(0.215,0.61,0.355,1)]"></div>
   </span>
 
-  <span class="btn-labels">
-    <span class="label-main">Favorito</span>
-    <span class="label-count" data-count="0">0</span>
+  <span class="btn-labels relative z-[2] flex items-center gap-2">
+    <span class="label-main max-sm:hidden text-[0.95rem] font-bold text-white [data-theme=light]_&:text-[#1a1a2e] tracking-tight">Favorito</span>
+    <span class="label-count text-[0.75rem] font-extrabold text-white/40 [data-theme=light]_&:text-black/40 bg-white/5 [data-theme=light]_&:bg-black/3 px-1.5 py-0.5 rounded-md min-w-[1.5rem] text-center transition-all duration-300 group-[.favorited]:bg-red-500/15 group-[.favorited]:text-red-500" data-count={initialCount}>{initialCount}</span>
   </span>
 </button>
 
 <style is:global>
-  .favorite-premium-btn {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 1.25rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-    -webkit-tap-highlight-color: transparent;
-    min-height: 48px;
-  }
-
-  .btn-background {
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    z-index: 1;
-    transition: all 0.4s ease;
-  }
-
-  .btn-glow {
-    position: absolute;
-    inset: -2px;
-    background: linear-gradient(135deg, #ec4899, #ef4444);
-    border-radius: 18px;
-    opacity: 0;
-    filter: blur(10px);
-    z-index: 0;
-    transition: opacity 0.4s ease;
-  }
-
-  .favorite-premium-btn:hover .btn-background {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-1px);
-  }
-
-  .favorite-premium-btn.favorited .btn-background {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.3);
-  }
-
-  .favorite-premium-btn.favorited:hover .btn-glow {
-    opacity: 0.2;
-  }
-
-  /* Icon System */
-  .icon-wrapper {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-  }
-
-  .heart-icon {
-    width: 20px;
-    height: 20px;
-    color: rgba(255, 255, 255, 0.4);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-
-  .favorite-premium-btn.favorited .heart-icon {
-    color: #ef4444;
-    fill: #ef4444;
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.4));
-  }
-
-  .pulse-ring {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid #ef4444;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .favorite-premium-btn.favorited .pulse-ring {
-    animation: pulse-ring 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
-  }
-
   @keyframes pulse-ring {
     0% { transform: scale(0.5); opacity: 1; }
     100% { transform: scale(3); opacity: 0; }
-  }
-
-  /* Labels */
-  .btn-labels {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .label-main {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: white;
-    letter-spacing: -0.01em;
-  }
-
-  .label-count {
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2px 6px;
-    border-radius: 6px;
-    min-width: 1.5rem;
-    text-align: center;
-    transition: all 0.3s ease;
-  }
-
-  .favorite-premium-btn.favorited .label-count {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
-  }
-
-  /* Loading State */
-  .favorite-premium-btn.loading {
-    opacity: 0.6;
-    pointer-events: none;
-  }
-
-  @media (max-width: 640px) {
-    .label-main { display: none; }
-    .favorite-premium-btn { padding: 0.625rem 0.875rem; }
-  }
-
-  [data-theme="light"] .btn-background {
-    background: rgba(0, 0, 0, 0.03);
-    border-color: rgba(0, 0, 0, 0.07);
-  }
-  
-  [data-theme="light"] .label-main { color: #1a1a2e; }
-  [data-theme="light"] .heart-icon { color: rgba(0, 0, 0, 0.2); }
-  [data-theme="light"] .label-count {
-    background: rgba(0, 0, 0, 0.03);
-    color: rgba(0, 0, 0, 0.4);
   }
 </style>
 
