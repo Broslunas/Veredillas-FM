@@ -10,7 +10,13 @@ import dbConnect from '../lib/mongodb';
 import User from '../models/User';
 
 // Safe serializable user object for the client
-let currentUserSafe: { name: string; role: string; picture?: string } | null = null;
+interface SafeUser {
+    name: string;
+    role: string;
+    picture?: string;
+}
+
+let currentUserSafe: SafeUser | null = null;
 try {
     const token = Astro.cookies.get('auth-token')?.value;
     if (token) {
@@ -22,7 +28,7 @@ try {
                  currentUserSafe = {
                      name: dbUser.name,
                      role: dbUser.role as string,
-                     picture: dbUser.picture
+                     picture: dbUser.picture as string | undefined
                  };
              }
         }
@@ -35,500 +41,112 @@ try {
 const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JSON.stringify(currentUserSafe)))) : '';
 ---
 
-<div class="live-chat-container" id="live-chat-widget" data-slug={slug} data-current-user={currentUserEncoded}>
-    <div class="chat-header">
-        <div class="live-indicator">
-            <span class="dot"></span> EN DIRECTO
+<div 
+    class="flex flex-col h-[500px] bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden relative shadow-2xl" 
+    id="live-chat-widget" 
+    data-slug={slug} 
+    data-current-user={currentUserEncoded}
+>
+    <!-- Overlay de Carga -->
+    <div id="chat-load-overlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center z-[100] p-6 text-center transition-all duration-500">
+        <div class="max-width-[260px] animate-fade-in-up">
+            <div class="text-5xl mb-4 filter drop-shadow-[0_0_15px_rgba(139,92,246,0.5)] animate-bounce">💬</div>
+            <p class="text-white text-lg font-medium mb-6 leading-relaxed">Únete a la conversación en directo.</p>
+            <button id="load-chat-btn" class="bg-primary hover:bg-primary/90 text-white py-3 px-10 rounded-full font-bold transition-all duration-300 shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 uppercase tracking-widest text-xs">
+                Cargar Chat
+            </button>
         </div>
-        <h3>Chat de Estreno</h3>
     </div>
     
-    <div class="messages-area" id="chat-messages">
-        <div id="pinned-message-container" style="display: none;"></div>
-        <div class="system-message">Bienvenido al chat en directo. Sé respetuoso.</div>
-        <!-- Messages injected here -->
+    <!-- Header -->
+    <div class="p-3 px-5 bg-black/40 border-b border-white/5 flex justify-between items-center backdrop-blur-md">
+        <div class="flex items-center gap-2.5 text-[0.65rem] font-bold text-red-500 bg-red-500/10 px-3 py-1 rounded-full uppercase tracking-widest">
+            <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
+            EN DIRECTO
+        </div>
+        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-tighter">Chat de Estreno</h3>
+    </div>
+    
+    <!-- Área de Mensajes -->
+    <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 scroll-smooth custom-scrollbar" id="chat-messages">
+        <div id="pinned-message-container" class="hidden"></div>
+        <div class="text-center text-[0.75rem] text-slate-500 opacity-60 mb-2 italic">Bienvenido al chat en directo. Sé respetuoso.</div>
+        <!-- Mensajes inyectados aquí -->
     </div>
 
-    <div class="input-area">
+    <!-- Área de Input -->
+    <div class="p-4 bg-black/40 border-t border-white/5 backdrop-blur-xl">
         {(!currentUserSafe) && (
-            <input type="text" id="guest-name-input" placeholder="Tu nombre..." class="guest-input" autocomplete="off" />
+            <input 
+                type="text" 
+                id="guest-name-input" 
+                placeholder="Tu nombre para chatear..." 
+                class="w-full mb-3 p-2.5 px-4 rounded-xl border border-white/10 bg-black/20 text-white text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all" 
+                autocomplete="off" 
+            />
         )}
-        <div class="input-row">
-            <input type="text" id="chat-input" placeholder={currentUserSafe ? `Escribe como ${currentUserSafe.name}...` : "Escribe un mensaje..."} autocomplete="off" />
-            <button id="send-btn" type="button" aria-label="Enviar">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="flex gap-2.5">
+            <input 
+                type="text" 
+                id="chat-input" 
+                placeholder={currentUserSafe ? `Escribe como ${currentUserSafe.name}...` : "Escribe un mensaje..."} 
+                class="flex-1 p-2.5 px-5 rounded-full border border-white/10 bg-black/20 text-white text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                autocomplete="off" 
+            />
+            <button 
+                id="send-btn" 
+                type="button" 
+                aria-label="Enviar"
+                class="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg shadow-primary/20"
+            >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
                     <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
                 </svg>
             </button>
         </div>
-        <div class="reactions-bar">
-            <button class="reaction-btn" data-type="heart">❤️</button>
-            <button class="reaction-btn" data-type="fire">🔥</button>
-            <button class="reaction-btn" data-type="clap">👏</button>
-            <button class="reaction-btn" data-type="100">💯</button>
+        
+        <!-- Reacciones -->
+        <div class="flex justify-center gap-4 mt-4">
+            <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="heart">❤️</button>
+            <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="fire">🔥</button>
+            <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="clap">👏</button>
+            <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="100">💯</button>
         </div>
         
-        <div id="reactions-container"></div>
-        <div id="live-chat-toast" class="toast hidden"></div>
-        <div id="live-chat-confirm" class="confirm-modal hidden">
-             <div class="confirm-content">
-                 <p id="confirm-text"></p>
-                 <div class="confirm-actions">
-                     <button id="confirm-cancel" class="btn-cancel">Cancelar</button>
-                     <button id="confirm-ok" class="btn-ok">Confirmar</button>
+        <div id="reactions-container" class="fixed inset-0 pointer-events-none overflow-hidden z-[9999]"></div>
+        <div id="live-chat-toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white p-3 px-6 rounded-xl text-sm z-[1000] shadow-2xl border border-white/10 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none"></div>
+        
+        <div id="live-chat-confirm" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[2000] p-4">
+             <div class="bg-slate-900 p-6 rounded-2xl border border-white/10 w-full max-w-[320px] shadow-2xl text-center animate-fade-in-up">
+                 <p id="confirm-text" class="mb-6 text-white font-medium leading-relaxed"></p>
+                 <div class="flex gap-3 justify-center">
+                     <button id="confirm-cancel" class="flex-1 p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-white/10 transition-all text-sm font-semibold">Cancelar</button>
+                     <button id="confirm-ok" class="flex-1 p-2.5 rounded-xl bg-primary text-white hover:bg-primary/90 transition-all text-sm font-semibold">Confirmar</button>
                  </div>
              </div>
         </div>
     </div>
 </div>
 
-<style>
-    .live-chat-container {
-        display: flex;
-        flex-direction: column;
-        height: 500px;
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-    }
-
-    .chat-header {
-        padding: var(--spacing-sm) var(--spacing-md);
-        background: rgba(0,0,0,0.2);
-        border-bottom: 1px solid var(--color-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .live-indicator {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.7rem;
-        font-weight: bold;
-        color: #ef4444;
-        background: rgba(239, 68, 68, 0.1);
-        padding: 2px 8px;
-        border-radius: 12px;
-    }
-
-    .dot {
-        width: 6px;
-        height: 6px;
-        background: #ef4444;
-        border-radius: 50%;
-        animation: pulse-red 1.5s infinite;
-    }
-
-    .chat-header h3 {
-        font-size: 0.9rem;
-        margin: 0;
-        color: var(--color-text-muted);
-    }
-
-    .messages-area {
-        flex: 1;
-        overflow-y: auto;
-        padding: var(--spacing-md);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        scroll-behavior: smooth;
-    }
-
-    .system-message {
-        text-align: center;
-        font-size: 0.8rem;
-        color: var(--color-text-muted);
-        opacity: 0.7;
-        margin-bottom: 10px;
-    }
-
-    .input-area {
-        padding: var(--spacing-md);
-        background: rgba(0,0,0,0.2);
-        border-top: 1px solid var(--color-border);
-    }
-
-    .guest-input {
-        width: 100%;
-        margin-bottom: 8px;
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid var(--color-border);
-        background: rgba(0,0,0,0.2);
-        color: var(--color-text-main);
-        font-size: 0.9rem;
-    }
-
-    .input-row {
-        display: flex;
-        gap: 8px;
-    }
-
-    #chat-input {
-        flex: 1;
-        padding: 8px 12px;
-        border-radius: 20px;
-        border: 1px solid var(--color-border);
-        background: rgba(0,0,0,0.2);
-        color: var(--color-text-main);
-        font-size: 0.9rem;
-    }
-    
-    #chat-input:focus, .guest-input:focus {
-        border-color: var(--color-primary);
-        outline: none;
-    }
-
-    #send-btn {
-        background: var(--color-primary);
-        color: white;
-        border: none;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-
-    #send-btn:hover {
-        transform: scale(1.1);
-    }
-    
-    .reactions-bar {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        padding: 5px 0;
-        margin-top: 10px;
-    }
-    
-    .reaction-btn {
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 20px;
-        width: 36px;
-        height: 36px;
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: transform 0.1s, background 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-    }
-    :global(.admin-actions) {
-        margin-left: auto;
-        display: flex;
-        gap: 6px;
-    }
-    
-    :global(.ban-btn) {
-        background: rgba(234, 179, 8, 0.2);
-        border: 1px solid rgba(234, 179, 8, 0.5);
-        color: #eab308; /* Yellow-500 */
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 4px;
-        transition: all 0.2s ease;
-        opacity: 1;
-    }
-    
-    :global(.ban-btn:hover) {
-        background: #eab308;
-        color: white;
-        border-color: #eab308;
-        transform: scale(1.1);
-    }
-    :global(.ban-btn svg) {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
-    
-    :global(.delete-btn) {
-        background: rgba(239, 68, 68, 0.2);
-        border: 1px solid rgba(239, 68, 68, 0.5);
-        color: #ef4444;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 4px;
-        /* Removed margin-left auto as it is now in flex container */
-        transition: all 0.2s ease;
-        opacity: 1;
-    }
-    :global(.delete-btn:hover) {
-        background: #ef4444;
-        color: white;
-        border-color: #ef4444;
-        transform: scale(1.1);
-    }
-    :global(.delete-btn svg) {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
-    
-    .reaction-btn:hover {
-        background: rgba(255,255,255,0.2);
-        transform: scale(1.1);
-    }
-    
-    .reaction-btn:active {
-        transform: scale(0.9);
-    }
-
-    #reactions-container {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        overflow: hidden;
-        z-index: 9999; /* Top level */
-    }
-
-    /* TOAST STYLES */
-    .toast {
-        position: fixed;
-        bottom: 40px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(30, 41, 59, 0.95);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        z-index: 1000;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-        opacity: 0;
-        pointer-events: none;
-    }
-    
-    .toast.visible {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateX(-50%) translateY(0);
-    }
-    
-    .toast.error {
-        border-left: 3px solid #ef4444;
-    }
-    .toast.success {
-        border-left: 3px solid #10b981;
-    }
-    
-    .hidden {
-        display: none !important;
-    }
-
-    /* CONFIRM MODAL STYLES */
-    :global(.confirm-modal) {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2000;
-        backdrop-filter: blur(2px);
-    }
-    
-    :global(.confirm-content) {
-        background: var(--color-surface);
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid var(--color-border);
-        width: 80%;
-        max-width: 300px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-        text-align: center;
-    }
-    
-    :global(#confirm-text) {
-        margin-bottom: 20px;
-        font-size: 0.95rem;
-        color: var(--color-text-main);
-    }
-    
-    :global(.confirm-actions) {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-    }
-    
-    :global(.btn-cancel), :global(.btn-ok) {
-        padding: 6px 16px;
-        border-radius: 6px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        border: none;
-        font-weight: 500;
-    }
-    
-    :global(.btn-cancel) {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--color-text-main);
-    }
-    
-    :global(.btn-ok) {
-        background: var(--color-primary);
-        color: white;
-    }
-    
-    :global(.btn-cancel:hover) {
-        background: rgba(255, 255, 255, 0.2);
-    }
-    
-    :global(.btn-ok:hover) {
-        opacity: 0.9;
-    }
-
-    :global(.pinned-message) {
-        background: rgba(var(--color-primary-rgb), 0.1);
-        border-left: 3px solid var(--color-primary);
-        padding: 8px 12px;
-        margin-bottom: 10px;
-        border-radius: 4px;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        backdrop-filter: blur(5px);
-    }
-    
-    :global(.pinned-icon) {
-        color: var(--color-primary);
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    :global(.pinned-content) {
-        flex: 1;
-    }
-    
-    :global(.pinned-author) {
-        font-weight: bold;
-        font-size: 0.8rem;
-        color: var(--color-primary);
-        margin-bottom: 2px;
-    }
-    
-    :global(.pinned-text) {
-        color: var(--color-text-main);
-        font-size: 0.85rem;
-    }
-
-    :global(.pin-btn) {
-        background: rgba(59, 130, 246, 0.2);
-        border: 1px solid rgba(59, 130, 246, 0.5);
-        color: #3b82f6;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 4px;
-        transition: all 0.2s ease;
-        opacity: 1;
-    }
-    
-    :global(.pin-btn:hover) {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-        transform: scale(1.1);
-    }
-    
-    :global(.pin-btn svg) {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
-
-    /* Message Styles (injected via JS) */
-    :global(.chat-msg) {
-        display: flex;
-        gap: 10px;
-        animation: fadeIn 0.3s ease;
-    }
-    
-    :global(.chat-avatar) {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #333;
-    }
-
-    :global(.msg-content) {
-        flex: 1;
-    }
-
-    :global(.msg-header) {
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-        margin-bottom: 2px;
-    }
-
-    :global(.msg-author) {
-        font-size: 0.85rem;
-        font-weight: bold;
-        color: var(--color-text-muted);
-    }
-    
-    :global(.msg-author.verified) {
-        color: var(--color-primary);
-    }
-
-    :global(.msg-text) {
-        font-size: 0.9rem;
-        line-height: 1.4;
-        word-break: break-word;
-    }
-
-    @keyframes pulse-red {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-</style>
-<!-- Define global keyframes just in case -->
 <style is:global>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
     @keyframes floatUp {
         0% { transform: translateY(0) scale(1); opacity: 1; }
-        100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+        100% { transform: translateY(-30vh) scale(1.5) rotate(15deg); opacity: 0; }
     }
     .floating-emoji {
         position: absolute;
         font-size: 24px;
-        animation: floatUp 2s ease-out forwards;
+        animation: floatUp 2s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
         bottom: 0;
         pointer-events: none;
     }
@@ -550,10 +168,16 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
         isPinned?: boolean;
     }
 
+    interface SafeUser {
+        name: string;
+        role: string;
+        picture?: string;
+    }
+
     class LiveChat {
         el: HTMLElement;
         slug: string;
-        currentUser: any;
+        currentUser: SafeUser | null;
         msgArea: HTMLElement;
         input: HTMLInputElement;
         guestInput: HTMLInputElement | null;
@@ -561,15 +185,18 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
         lastPollTime: number = 0;
         polling: number | undefined;
         reactionsContainer: HTMLElement | null;
-        pinnedContainer: HTMLElement | null = null;
+        pinnedContainer: HTMLElement | null;
         toastEl: HTMLElement | null;
         confirmEl: HTMLElement | null;
         confirmCallback: (() => void) | null = null;
+        isLoaded: boolean = false;
+        overlay: HTMLElement | null;
+        loadBtn: HTMLElement | null;
     
         // POLLING CONFIG
-        baseInterval = 20000;  // 20s
-        idleInterval = 60000;  // 60s
-        idleThreshold = 120000; // 2 minutes
+        baseInterval = 20000;
+        idleInterval = 60000;
+        idleThreshold = 120000;
         currentInterval = 20000;
         lastInteractionTime = Date.now();
         isTabVisible = true;
@@ -589,26 +216,22 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
             this.guestInput = el.querySelector('#guest-name-input') as HTMLInputElement | null;
             this.sendBtn = el.querySelector('#send-btn') as HTMLElement;
             this.reactionsContainer = el.querySelector('#reactions-container');
-            this.pinnedContainer = el.querySelector('#pinned-message-container') as HTMLElement;
+            this.pinnedContainer = el.querySelector('#pinned-message-container');
             this.toastEl = el.querySelector('#live-chat-toast');
             this.confirmEl = el.querySelector('#live-chat-confirm');
+            this.overlay = el.querySelector('#chat-load-overlay');
+            this.loadBtn = el.querySelector('#load-chat-btn');
             
             this.init();
         }
 
         init() {
-            this.fetchMessages(); // Initial load
-            this.startPolling();
-            
-            this.sendBtn.addEventListener('click', () => {
-                this.recordInteraction();
-                this.sendMessage();
-            });
-            this.input.addEventListener('keypress', (e) => {
-                this.recordInteraction();
-                if(e.key === 'Enter') this.sendMessage();
-            });
-            
+            if (this.loadBtn) {
+                this.loadBtn.addEventListener('click', () => {
+                    this.enableChat();
+                });
+            }
+
             // Interaction tracking
             const track = () => this.recordInteraction();
             this.el.addEventListener('mousemove', track);
@@ -618,9 +241,9 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
             // Visibility detection
             document.addEventListener('visibilitychange', () => {
                 this.isTabVisible = document.visibilityState === 'visible';
-                if (this.isTabVisible) {
+                if (this.isTabVisible && this.isLoaded) {
                     this.resetInterval();
-                    this.fetchMessages(); // Immediate refresh
+                    this.fetchMessages();
                 } else {
                     this.stopPolling();
                 }
@@ -638,20 +261,41 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
             
             // Modal Events
             this.el.querySelector('#confirm-cancel')?.addEventListener('click', () => {
-                if(this.confirmEl) this.confirmEl.classList.add('hidden');
+                if(this.confirmEl) this.confirmEl.style.display = 'none';
             });
             
             this.el.querySelector('#confirm-ok')?.addEventListener('click', () => {
                 if(this.confirmCallback) this.confirmCallback();
-                if(this.confirmEl) this.confirmEl.classList.add('hidden');
+                if(this.confirmEl) this.confirmEl.style.display = 'none';
             });
         }
 
         recordInteraction() {
+            if (!this.isLoaded) return;
             this.lastInteractionTime = Date.now();
             if (this.currentInterval !== this.baseInterval && this.isTabVisible) {
                 this.resetInterval();
             }
+        }
+
+        enableChat() {
+            this.isLoaded = true;
+            if (this.overlay) {
+                this.overlay.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => this.overlay?.remove(), 500);
+            }
+            
+            this.sendBtn.addEventListener('click', () => {
+                this.recordInteraction();
+                this.sendMessage();
+            });
+            this.input.addEventListener('keypress', (e) => {
+                this.recordInteraction();
+                if(e.key === 'Enter') this.sendMessage();
+            });
+
+            this.fetchMessages();
+            this.startPolling();
         }
 
         resetInterval() {
@@ -661,7 +305,7 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
 
         startPolling() {
             this.stopPolling();
-            if (!this.isTabVisible) return;
+            if (!this.isTabVisible || !this.isLoaded) return;
             this.polling = window.setInterval(() => {
                 const idleTime = Date.now() - this.lastInteractionTime;
                 if (idleTime > this.idleThreshold) {
@@ -680,10 +324,9 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
         }
 
         animateMessageDelete(id: string) {
-            const el = this.msgArea.querySelector(`.chat-msg[data-id="${id}"]`) as HTMLElement;
-            if (el && el.style.opacity !== '0') {
-                el.style.opacity = '0';
-                el.style.transform = 'translateX(20px)';
+            const el = this.msgArea.querySelector(`[data-id="${id}"]`) as HTMLElement;
+            if (el) {
+                el.classList.add('opacity-0', 'translate-x-10');
                 setTimeout(() => el.remove(), 300);
             }
         }
@@ -691,13 +334,15 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
         showToast(msg: string, type: 'success' | 'error' = 'success') {
             if(!this.toastEl) return;
             this.toastEl.textContent = msg;
-            this.toastEl.className = `toast visible ${type}`;
-            this.toastEl.style.display = 'block';
+            this.toastEl.classList.remove('opacity-0', 'translate-y-4');
+            this.toastEl.classList.add('opacity-100', 'translate-y-0');
+            if (type === 'error') this.toastEl.classList.add('border-red-500/50');
+            else this.toastEl.classList.add('border-emerald-500/50');
             
             setTimeout(() => {
                 if(this.toastEl) {
-                   this.toastEl.classList.remove('visible');
-                   setTimeout(() => { if(this.toastEl) this.toastEl.style.display = 'none'; }, 300);
+                   this.toastEl.classList.add('opacity-0', 'translate-y-4');
+                   this.toastEl.classList.remove('opacity-100', 'translate-y-0', 'border-red-500/50', 'border-emerald-500/50');
                 }
             }, 3000);
         }
@@ -707,7 +352,7 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
             const txt = this.confirmEl.querySelector('#confirm-text');
             if(txt) txt.textContent = msg;
             this.confirmCallback = onConfirm;
-            this.confirmEl.classList.remove('hidden');
+            this.confirmEl.style.display = 'flex';
         }
         
         async sendReaction(type: string) {
@@ -725,44 +370,29 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
         
         spawnFloatingEmoji(type: string) {
             if(!this.reactionsContainer) return;
-            
-            const emojiMap: Record<string, string> = {
-                'heart': '❤️',
-                'fire': '🔥',
-                'clap': '👏',
-                '100': '💯' 
-            };
-            
+            const emojiMap: Record<string, string> = { 'heart': '❤️', 'fire': '🔥', 'clap': '👏', '100': '💯' };
             const el = document.createElement('div');
             el.className = 'floating-emoji';
             el.textContent = emojiMap[type] || '❤️';
-            el.style.left = `${Math.random() * 100}vw`;
-            el.style.bottom = '-50px';
-            el.style.animationDuration = `${2 + Math.random() * 2}s`;
-            
+            el.style.left = `${Math.random() * 80 + 10}%`;
+            el.style.animationDuration = `${1.5 + Math.random()}s`;
             this.reactionsContainer.appendChild(el);
-            setTimeout(() => el.remove(), 4000);
+            setTimeout(() => el.remove(), 2500);
         }
 
         async fetchMessages() {
-            if (!this.isTabVisible) return;
+            if (!this.isTabVisible || !this.isLoaded) return;
             try {
                 let url = `/api/live-chat/${this.slug}`;
-                if (this.lastPollTime > 0) {
-                    url += `?since=${this.lastPollTime}`;
-                }
+                if (this.lastPollTime > 0) url += `?since=${this.lastPollTime}`;
                 
                 const res = await fetch(url);
                 const data = await res.json();
                 
                 if(data.success) {
                     if (data.timestamp) this.lastPollTime = data.timestamp;
-
                     this.renderPinnedMessage(data.pinnedMessage || null);
-                    
-                    if (data.messages && Array.isArray(data.messages)) {
-                         this.renderMessages(data.messages);
-                    }
+                    if (data.messages && Array.isArray(data.messages)) this.renderMessages(data.messages);
                     
                     if (data.deletedIds && Array.isArray(data.deletedIds)) {
                         data.deletedIds.forEach((id: string) => this.animateMessageDelete(id));
@@ -770,9 +400,9 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
 
                     if (data.reactions && Object.keys(data.reactions).length > 0) {
                         Object.keys(data.reactions).forEach(type => {
-                            const count = Math.min(data.reactions[type], 10);
+                            const count = Math.min(data.reactions[type], 5);
                             for(let i=0; i<count; i++) {
-                                setTimeout(() => this.spawnFloatingEmoji(type), Math.random() * 3000);
+                                setTimeout(() => this.spawnFloatingEmoji(type), Math.random() * 2000);
                             }
                         });
                     }
@@ -791,7 +421,7 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
                 if(this.guestInput) {
                     guestName = this.guestInput.value.trim();
                     if(!guestName) {
-                        this.showToast("Por favor, introduce tu nombre.", "error");
+                        this.showToast("Introduce tu nombre.", "error");
                         this.guestInput.focus();
                         return;
                     }
@@ -805,19 +435,14 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
                 const res = await fetch(`/api/live-chat/${this.slug}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: text,
-                        guestName
-                    })
+                    body: JSON.stringify({ message: text, guestName })
                 });
-                
                 const data = await res.json();
-
                 if(data.success && data.message) {
                     this.renderMessages([data.message]);
                 } else {
                     this.input.value = originalValue;
-                    this.showToast(data.error || "Error enviando mensaje", "error");
+                    this.showToast(data.error || "Error enviando", "error");
                 }
             } catch(e) {
                 this.input.value = originalValue;
@@ -838,102 +463,72 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
 
         renderPinnedMessage(msg: ChatMessage | null) {
             if (!this.pinnedContainer) return;
-            
             if (!msg) {
-                this.pinnedContainer.style.display = 'none';
+                this.pinnedContainer.classList.add('hidden');
                 this.pinnedContainer.innerHTML = '';
                 return;
             }
             
-            this.pinnedContainer.style.display = 'flex';
-            this.pinnedContainer.className = 'pinned-message';
+            this.pinnedContainer.classList.remove('hidden');
+            this.pinnedContainer.className = 'flex items-start gap-3 bg-primary/10 border-l-4 border-primary p-3 rounded-lg sticky top-0 z-10 backdrop-blur-md mb-4 animate-fade-in-up';
             this.pinnedContainer.innerHTML = `
-                <div class="pinned-icon">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                        <path d="M16 2a2 2 0 0 1 2 2v6h2a1 1 0 0 1 1 1v2H3v-2a1 1 0 0 1 1-1h2V4a2 2 0 0 1 2-2h8zM6 14v-2h12v2H6zm0 2h12v2a1 1 0 0 1-1 1h-4v4h-2v-4H7a1 1 0 0 1-1-1v-2z"/>
-                    </svg>
+                <div class="text-primary mt-1">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 2a2 2 0 0 1 2 2v6h2a1 1 0 0 1 1 1v2H3v-2a1 1 0 0 1 1-1h2V4a2 2 0 0 1 2-2h8zM6 14v-2h12v2H6zm0 2h12v2a1 1 0 0 1-1 1h-4v4h-2v-4H7a1 1 0 0 1-1-1v-2z"/></svg>
                 </div>
-                <div class="pinned-content">
-                    <div class="pinned-author">${this.escapeHtml(msg.user.name)}</div>
-                    <div class="pinned-text">${this.escapeHtml(msg.content)}</div>
+                <div class="flex-1">
+                    <div class="text-[0.7rem] font-bold text-primary uppercase tracking-wider">${this.escapeHtml(msg.user.name)}</div>
+                    <div class="text-xs text-white leading-tight">${this.escapeHtml(msg.content)}</div>
                 </div>
                 ${this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'owner') ? `
-                <button class="delete-btn" title="Desfijar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                <button class="unpin-btn text-white/40 hover:text-white transition-colors">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
                 ` : ''}
             `;
             
-            const unpinBtn = this.pinnedContainer.querySelector('.delete-btn');
-            if(unpinBtn) {
-                unpinBtn.addEventListener('click', () => {
-                   this.togglePin(msg._id, false);
-                });
-            }
+            this.pinnedContainer.querySelector('.unpin-btn')?.addEventListener('click', () => {
+                this.togglePin(msg._id, false);
+            });
         }
 
         createMessageElement(msg: ChatMessage) {
             const div = document.createElement('div');
-            div.className = 'chat-msg';
+            div.className = 'flex gap-3 animate-fade-in-up transition-all duration-300';
             div.dataset.id = msg._id;
             
             const isAdmin = this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'owner');
             
             div.innerHTML = `
-                <img src="${this.escapeHtml(msg.user.avatar)}" alt="${this.escapeHtml(msg.user.name)}" class="chat-avatar">
-                <div class="msg-content">
-                    <div class="msg-header">
-                        <span class="msg-author ${msg.user.isVerified ? 'verified' : ''}">
+                <img src="${this.escapeHtml(msg.user.avatar)}" alt="${this.escapeHtml(msg.user.name)}" class="w-8 h-8 rounded-full bg-slate-800 shadow-md">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-baseline gap-2 mb-0.5">
+                        <span class="text-xs font-bold ${msg.user.isVerified ? 'text-primary' : 'text-slate-400'} truncate">
                             ${this.escapeHtml(msg.user.name)}
                             ${msg.user.isVerified ? '✓' : ''}
                         </span>
                         ${isAdmin ? `
-                        <div class="admin-actions">
-                            <button class="pin-btn" title="Fijar mensaje">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                                </svg>
+                        <div class="ml-auto flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button class="pin-msg-btn p-1 rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all" title="Fijar">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
                             </button>
-                            <button class="ban-btn" title="Bloquear usuario">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-                                </svg>
+                            <button class="ban-user-btn p-1 rounded-full bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-white transition-all" title="Bloquear">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
                             </button>
-                            <button class="delete-btn" title="Borrar mensaje">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                                </svg>
+                            <button class="del-msg-btn p-1 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all" title="Borrar">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             </button>
                         </div>` : ''}
                     </div>
-                    <div class="msg-text">${this.escapeHtml(msg.content)}</div>
+                    <div class="text-[0.85rem] text-slate-200 leading-relaxed break-words">${this.escapeHtml(msg.content)}</div>
                 </div>
             `;
             
             if(isAdmin) {
-                div.querySelector('.delete-btn')?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.deleteMessage(msg._id, div);
-                });
-                
-                div.querySelector('.ban-btn')?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.banUser(msg._id, msg.user.name);
-                });
-                
-                div.querySelector('.pin-btn')?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.togglePin(msg._id, true);
-                });
+                div.classList.add('group');
+                div.querySelector('.del-msg-btn')?.addEventListener('click', () => this.deleteMessage(msg._id, div));
+                div.querySelector('.ban-user-btn')?.addEventListener('click', () => this.banUser(msg._id, msg.user.name));
+                div.querySelector('.pin-msg-btn')?.addEventListener('click', () => this.togglePin(msg._id, true));
             }
-            
             return div;
         }
         
@@ -946,16 +541,9 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
                         body: JSON.stringify({ messageId })
                     });
                     const data = await res.json();
-                    
-                    if(data.success) {
-                        this.showToast(`Usuario ${userName} bloqueado.`, "success");
-                    } else {
-                        this.showToast('Error al bloquear: ' + data.error, "error");
-                    }
-                } catch(e) {
-                    console.error(e);
-                    this.showToast('Error de conexión', "error");
-                }
+                    if(data.success) this.showToast(`Usuario bloqueado.`, "success");
+                    else this.showToast('Error: ' + data.error, "error");
+                } catch(e) { this.showToast('Error de conexión', "error"); }
             });
         }
         
@@ -967,42 +555,27 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
                     body: JSON.stringify({ isPinned })
                 });
                 const data = await res.json();
-                
                 if(data.success) {
-                    // BROADCAST to peers
-                    this.broadcast({ type: 'pin', pinnedMessage: isPinned ? data.message : null });
                     this.renderPinnedMessage(isPinned ? data.message : null);
-                    this.showToast(isPinned ? "Mensaje fijado" : "Mensaje desfijado", "success");
-                } else {
-                    this.showToast(data.error || "Error al fijar", "error");
-                }
-            } catch(e) {
-                console.error(e);
-                this.showToast("Connection error", "error");
-            }
+                    this.showToast(isPinned ? "Fijado" : "Desfijado", "success");
+                } else this.showToast(data.error || "Error", "error");
+            } catch(e) { this.showToast("Error de conexión", "error"); }
         }
 
         async deleteMessage(id: string, el: HTMLElement) {
             el.style.opacity = '0.3';
-            el.style.pointerEvents = 'none';
-            
             try {
                 const res = await fetch(`/api/live-chat/message/${id}`, { method: 'DELETE' });
                 const data = await res.json();
-                
                 if(data.success) {
-                    this.broadcast({ type: 'delete', messageId: id });
                     this.animateMessageDelete(id);
-                    this.showToast("Mensaje eliminado", "success");
+                    this.showToast("Eliminado", "success");
                 } else {
                     el.style.opacity = '1';
-                    el.style.pointerEvents = 'auto';
-                    this.showToast(data.error || "Error al borrar", "error");
+                    this.showToast(data.error || "Error", "error");
                 }
             } catch(e) {
-                console.error(e);
                 el.style.opacity = '1';
-                el.style.pointerEvents = 'auto';
                 this.showToast("Error de conexión", "error");
             }
         }
@@ -1014,31 +587,20 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
         }
 
         destroy() {
-             if (this.peer) this.peer.destroy();
+             this.stopPolling();
         }
     }
 
-    // Clean up old instances to prevent dual polling on navigation
     let activeChat: LiveChat | null = null;
-
-    // Initialize logic
     const initChat = () => {
-        // Cleanup existing
         if(activeChat) {
             activeChat.destroy();
             activeChat = null;
         }
-        
         const el = document.getElementById('live-chat-widget');
-        if(el) {
-            console.log("Initializing LiveChat widget...");
-            activeChat = new LiveChat(el);
-        } else {
-            console.warn("LiveChat widget element not found");
-        }
+        if(el) activeChat = new LiveChat(el);
     };
 
-    // Support both standard page loads and View Transitions
     document.addEventListener('DOMContentLoaded', initChat);
     document.addEventListener('astro:page-load', initChat);
 </script>
