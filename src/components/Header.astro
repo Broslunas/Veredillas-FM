@@ -59,17 +59,26 @@ const isDropdownActive = (items: any[]) => {
 ---
 
 <header class="header-wrapper">
-  <!-- Dynamic Premiere Banner -->
-  <a id="premiere-banner" class="premiere-banner hidden" href="#">
-      <span class="banner-status">
-        <span class="live-dot"></span>
-        <span id="banner-label">EN DIRECTO</span>
-      </span>
-      <span id="banner-title" class="banner-title">Título del Episodio</span>
-      <span class="banner-cta">Unirse →</span>
-  </a>
+  <!-- System Messages Band -->
+  <div class="system-messages-band">
+    <!-- Fixed Message -->
+    <div class="message-item">
+      <span>Estamos optimizando el sitio web. Si encuentras algún error, <a href="/contacto" class="contact-link">ponte en contacto</a>.</span>
+    </div>
 
-  <div class="header-inner">
+    <!-- Dynamic Premiere Banner -->
+    <a id="premiere-banner" class="premiere-banner hidden" href="#">
+        <span class="banner-status">
+          <span class="live-dot"></span>
+          <span id="banner-label">EN DIRECTO</span>
+        </span>
+        <span id="banner-title" class="banner-title">Título del Episodio</span>
+        <span class="banner-cta">Unirse →</span>
+    </a>
+  </div>
+
+  <div class="header-inner-container">
+    <div class="header-inner">
     <!-- Left Pill: Logo -->
     <a href="/" class="pill logo-pill">
       <div class="logo-icon-wrapper">
@@ -148,6 +157,7 @@ const isDropdownActive = (items: any[]) => {
     </div>
   </button>
   </div>
+  </div>
   </header>
   
   <style>
@@ -156,50 +166,91 @@ const isDropdownActive = (items: any[]) => {
     top: 0;
     left: 0;
     right: 0;
-    width: auto;
+    width: 100%;
     z-index: 9000;
-    padding: var(--spacing-md);
     pointer-events: none; /* Let clicks pass through empty space */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+  }
+
+  .header-inner-container {
+    width: 100%;
+    padding: var(--spacing-md);
+    padding-top: 10px; /* spacing below the band */
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
   }
   
-  /* PREMIERE BANNER */
+  /* SYSTEM MESSAGES BAND */
+  .system-messages-band {
+    width: 100%;
+    background: rgba(45, 20, 75, 0.75); /* Tono morado transparentoso */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center; /* Modificado para centrar el contenido */
+    gap: 1rem;
+    padding: 0.4rem 1.5rem;
+    margin: 0;
+    pointer-events: auto;
+    letter-spacing: 0.05em;
+  }
+
+  :global([data-theme="light"]) .system-messages-band {
+    background: rgba(243, 232, 255, 0.75); /* Light transparent purple */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    color: #4c1d95;
+  }
+
+  .message-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .message-item a.contact-link {
+    text-decoration: underline;
+    font-weight: 700;
+    color: #c4b5fd;
+    transition: color 0.2s;
+  }
+
+  .message-item a.contact-link:hover {
+    color: #ffffff;
+  }
+
+  :global([data-theme="light"]) .message-item a.contact-link {
+    color: #6d28d9;
+  }
+  :global([data-theme="light"]) .message-item a.contact-link:hover {
+    color: #4c1d95;
+  }
+
+  /* PREMIERE BANNER OVERRIDES FOR BAND */
   .premiere-banner {
-      background: rgba(10, 10, 11, 0.8);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(220, 38, 38, 0.4);
-      padding: 0.5rem 1.25rem;
-      border-radius: 9999px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       pointer-events: auto;
       text-decoration: none;
-      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.2);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      transform-origin: top center;
-      margin-bottom: 5px;
-      max-width: 90%;
+      transition: all 0.3s ease;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.25rem 0.8rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255,255,255,0.1);
   }
   
   .premiere-banner:hover {
-      background: rgba(10, 10, 11, 0.95);
-      border-color: rgba(220, 38, 38, 0.8);
-      transform: translateY(2px) scale(1.02);
-      box-shadow: 0 8px 30px rgba(220, 38, 38, 0.3);
-  }
-  
-  .premiere-banner.coming-soon {
-       border-color: rgba(59, 130, 246, 0.4); /* Blue */
-       box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
-  }
-  
-  .premiere-banner.coming-soon:hover {
-      border-color: rgba(59, 130, 246, 0.8);
-      box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+      background: rgba(0, 0, 0, 0.4);
+      transform: translateY(-1px);
   }
   
   .banner-status {
@@ -207,13 +258,13 @@ const isDropdownActive = (items: any[]) => {
       align-items: center;
       gap: 6px;
       font-weight: 700;
-      font-size: 0.8rem;
-      color: #ef4444; /* Red */
+      font-size: 0.75rem;
+      color: #fca5a5; /* Light red */
       letter-spacing: 0.05em;
   }
   
   .coming-soon .banner-status {
-      color: #3b82f6; /* Blue */
+      color: #93c5fd; /* Light blue */
   }
   
   .coming-soon .live-dot {
@@ -239,20 +290,20 @@ const isDropdownActive = (items: any[]) => {
   }
   
   .banner-title {
-      color: var(--color-text-main);
+      color: #ffffff;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 300px;
+      max-width: 250px;
   }
   
   .banner-cta {
-      color: var(--color-text-muted);
-      font-size: 0.8rem;
-      font-weight: 500;
-      margin-left: auto;
+      color: #ddd6fe;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 4px;
   }
   
   .premiere-banner.hidden {
@@ -876,7 +927,7 @@ const isDropdownActive = (items: any[]) => {
   }
 
   @media (max-width: 1024px) {
-      .header-wrapper {
+      .header-inner-container {
           padding: 0.75rem 1rem;
       }
       

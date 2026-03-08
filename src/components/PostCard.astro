@@ -15,189 +15,47 @@ const formatDate = (date: Date) => {
 };
 ---
 
-<article class="blog-card glass-panel post-item">
-    <div class="card-image-container">
+
+<article class="relative flex flex-col h-full bg-white/3 backdrop-blur-[10px] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:border-primary hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] group">
+    <div class="w-full h-[200px] relative overflow-hidden bg-zinc-900">
         {post.data.image ? (
             <img 
                 src={post.data.image} 
                 alt={post.data.title} 
-                class="card-image" 
+                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                 loading="lazy" 
             />
         ) : (
-            <div class="image-placeholder">
-                <span class="placeholder-icon">📰</span>
+            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-white/2">
+                <span class="text-5xl opacity-30">📰</span>
             </div>
         )}
-        <div class="card-overlay"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
     </div>
 
-    <div class="card-content">
-        <div class="meta">
-            <time class="pub-date">{formatDate(post.data.pubDate)}</time>
+    <div class="p-6 flex flex-col flex-grow">
+        <div class="flex justify-between items-start mb-4 text-[0.85rem]">
+            <time class="text-zinc-400 font-display">{formatDate(post.data.pubDate)}</time>
             {post.data.tags && (
-                <div class="tags">
+                <div class="flex flex-wrap gap-2 justify-end">
                     {post.data.tags.slice(0, 2).map((tag: string) => (
-                        <span class="tag">#{tag}</span>
+                        <span class="text-secondary text-[0.75rem] font-medium bg-secondary/10 px-1.5 py-0.5 rounded">#{tag}</span>
                     ))}
                 </div>
             )}
         </div>
         
-        <h3 class="title">
-            <a href={`/blog/${post.slug}`} class="title-link">
+        <h3 class="text-xl font-bold mb-3 leading-tight group-hover:text-primary transition-colors">
+            <a href={`/blog/${post.slug}`} class="text-white hover:text-primary transition-colors">
                 {post.data.title}
             </a>
         </h3>
         
-        <p class="description">{post.data.description}</p>
+        <p class="text-zinc-400 text-[0.95rem] leading-relaxed mb-6 line-clamp-3">{post.data.description}</p>
         
-        <a href={`/blog/${post.slug}`} class="read-more">
+        <a href={`/blog/${post.slug}`} class="mt-auto inline-flex items-center gap-2 text-primary font-semibold text-[0.9rem] transition-all hover:gap-3 hover:text-accent">
             Leer más 
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </a>
     </div>
 </article>
-
-<style>
-    .blog-card {
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-    }
-
-    .blog-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--color-primary);
-        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-    }
-
-    .card-image-container {
-        width: 100%;
-        height: 200px; /* Fixed height for consistency */
-        position: relative;
-        overflow: hidden;
-        background: #111;
-    }
-    
-    .card-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s ease;
-    }
-    
-    .blog-card:hover .card-image {
-        transform: scale(1.05);
-    }
-    
-    .image-placeholder {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-    }
-    
-    .placeholder-icon {
-        font-size: 3rem;
-        opacity: 0.3;
-    }
-    
-    .card-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%);
-        opacity: 0.6;
-    }
-
-    .card-content {
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-
-    .meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-        font-size: 0.85rem;
-    }
-
-    .pub-date {
-        color: var(--color-text-muted);
-        font-family: var(--font-display);
-    }
-
-    .tags {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-    }
-
-    .tag {
-        color: var(--color-secondary);
-        font-size: 0.75rem;
-        font-weight: 500;
-        background: rgba(14, 165, 233, 0.1); /* secondary/10 */
-        padding: 0.1rem 0.4rem;
-        border-radius: 4px;
-    }
-
-    .title {
-        font-size: 1.25rem;
-        line-height: 1.3;
-        margin-bottom: 0.75rem;
-        font-weight: 700;
-    }
-    
-    .title-link {
-        color: var(--color-text-main);
-        text-decoration: none;
-        background: linear-gradient(to right, var(--color-text-main), var(--color-text-main));
-        background-size: 0% 1px;
-        background-position: left bottom;
-        background-repeat: no-repeat;
-        transition: background-size 0.3s ease, color 0.3s ease;
-    }
-    
-    .blog-card:hover .title-link {
-        color: var(--color-primary);
-    }
-
-    .description {
-        color: var(--color-text-muted);
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin-bottom: 1.5rem;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .read-more {
-        margin-top: auto;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--color-primary);
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: gap 0.3s ease;
-    }
-
-    .read-more:hover {
-        gap: 0.75rem;
-        color: var(--color-accent);
-    }
-</style>

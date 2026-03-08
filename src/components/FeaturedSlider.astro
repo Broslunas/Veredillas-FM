@@ -10,40 +10,58 @@ const featuredEpisodes = allEpisodes
     .slice(0, 5);
 ---
 
-<div class="featured-widget">
-    <div class="swiper featured-swiper">
+
+<div class="w-full max-w-[1000px] mx-auto rounded-[24px] overflow-hidden relative shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)]">
+    <div class="swiper featured-swiper w-full h-[500px] md:h-[500px]">
         <div class="swiper-wrapper">
             {featuredEpisodes.map((post) => (
-                <div class="swiper-slide">
-                    <div class="slide-content">
+                <div class="swiper-slide w-full h-full [&:not(.swiper-slide-active)]:pointer-events-none">
+                    <div class="relative w-full h-full">
                         {post.data.image ? (
-                            <img src={post.data.image} alt={post.data.title} class="slide-image" />
+                            <img src={post.data.image} alt={post.data.title} class="w-full h-full object-cover" />
                         ) : (
-                            <div class="image-placeholder"></div>
+                            <div class="w-full h-full bg-gradient-to-br from-zinc-900 to-zinc-800"></div>
                         )}
-                        <div class="glass-overlay">
-                            <h3 class="slide-title">{post.data.title}</h3>
-                            <p class="slide-desc">{post.data.description ? post.data.description.slice(0, 100) + '...' : ''}</p>
+                        <div class="absolute bottom-[30px] left-1/2 -translate-x-1/2 w-[85%] md:w-[85%] bg-black/60 backdrop-blur-xl p-8 rounded-[20px] text-center text-white z-10 border border-white/10 flex flex-col items-center gap-2">
+                            <h3 class="font-display text-xl md:text-[1.75rem] font-bold mb-1 leading-tight">{post.data.title}</h3>
+                            <p class="text-[0.85rem] md:text-[0.95rem] text-white/80 max-w-[600px] mx-auto mb-6 leading-relaxed line-clamp-2">{post.data.description}</p>
                         </div>
-                        <a href={`/ep/${post.slug}`} class="full-link"><span class="sr-only"></span></a>
+                        <a href={`/ep/${post.slug}`} class="absolute inset-0 z-[5]"><span class="sr-only">Ver episodio</span></a>
                     </div>
                 </div>
             ))}
         </div>
         
         <!-- Navigation Arrows -->
-        <button class="nav-btn prev-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <button class="prev-btn absolute top-1/2 -translate-y-1/2 left-4 z-20 bg-transparent border-none text-white p-4 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+            <svg class="w-8 h-8 drop-shadow-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
-        <button class="nav-btn next-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <button class="next-btn absolute top-1/2 -translate-y-1/2 right-4 z-20 bg-transparent border-none text-white p-4 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+            <svg class="w-8 h-8 drop-shadow-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
         </button>
         
-        <div class="custom-pagination-container">
-            <div class="custom-pagination"></div>
+        <div class="absolute bottom-[10px] left-0 w-full flex justify-center z-20">
+            <div class="custom-pagination flex justify-center gap-2 mt-[5px]"></div>
         </div>
     </div>
 </div>
+
+<style is:global>
+    .featured-swiper .swiper-pagination-bullet {
+        width: 30px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        transition: all 0.3s ease;
+        opacity: 1;
+        cursor: pointer;
+    }
+
+    .featured-swiper .swiper-pagination-bullet-active {
+        background: white;
+        width: 45px;
+    }
+</style>
 
 <script>
     import Swiper from 'swiper';
@@ -87,178 +105,5 @@ const featuredEpisodes = allEpisodes
     } else {
         initSwiper();
     }
+    document.addEventListener('astro:page-load', initSwiper);
 </script>
-
-<style>
-    .featured-widget {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-        border-radius: 24px;
-        overflow: hidden;
-        position: relative;
-        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
-    }
-
-    .featured-swiper {
-        width: 100%;
-        height: 500px; /* Adjust height as needed */
-    }
-
-    .swiper-slide {
-        width: 100%;
-        height: 100%;
-    }
-
-    .slide-content {
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
-
-    .slide-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .image-placeholder {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
-    }
-
-    /* Glass Overlay */
-    .glass-overlay {
-        position: absolute;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 85%;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        padding: 2rem;
-        border-radius: 20px;
-        text-align: center;
-        color: white;
-        z-index: 10;
-        border: 1px solid rgba(255,255,255,0.1);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .slide-title {
-        font-family: var(--font-display);
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-        line-height: 1.2;
-    }
-
-    .slide-desc {
-        font-size: 0.95rem;
-        color: rgba(255, 255, 255, 0.8);
-        max-width: 600px;
-        margin: 0 auto 1.5rem;
-        line-height: 1.5;
-    }
-
-    /* Navigation Buttons */
-    .nav-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 20;
-        background: transparent;
-        border: none;
-        color: white;
-        cursor: pointer;
-        padding: 1rem;
-        opacity: 0.5;
-        transition: opacity 0.3s ease;
-    }
-    
-    .nav-btn:hover {
-        opacity: 1;
-    }
-
-    .prev-btn { left: 1rem; }
-    .next-btn { right: 1rem; }
-
-    .nav-btn svg {
-        width: 32px;
-        height: 32px;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-    }
-
-    /* Custom Pagination */
-    .custom-pagination-container {
-        position: absolute;
-        bottom: 10px;
-        left: 0;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        z-index: 20;
-    }
-
-    :global(.custom-pagination) {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 5px;
-    }
-
-    :global(.swiper-pagination-bullet) {
-        width: 30px;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 2px;
-        transition: all 0.3s ease;
-        opacity: 1;
-        cursor: pointer;
-    }
-
-    :global(.swiper-pagination-bullet-active) {
-        background: white;
-        width: 45px;
-    }
-
-    .full-link {
-        position: absolute;
-        inset: 0;
-        z-index: 5;
-    }
-
-    /* Inactive fade slides must not block clicks outside the slider */
-    :global(.featured-swiper .swiper-slide:not(.swiper-slide-active)) {
-        pointer-events: none;
-    }
-
-    @media (max-width: 768px) {
-        .featured-swiper {
-            height: 450px;
-        }
-
-        .glass-overlay {
-            width: 90%;
-            bottom: 20px;
-            padding: 1.5rem;
-        }
-
-        .slide-title {
-            font-size: 1.25rem;
-        }
-
-        .slide-desc {
-            font-size: 0.85rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-    }
-</style>

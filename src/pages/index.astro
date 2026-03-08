@@ -45,66 +45,76 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
 >
     <!-- Background Decor -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="grid-overlay"></div>
+        <div class="blob blob-1 absolute w-[600px] h-[600px] rounded-full blur-[80px] opacity-40 top-[-100px] left-[-100px] bg-[radial-gradient(circle,theme(colors.primary),transparent)] animate-blob-float"></div>
+        <div class="blob blob-2 absolute w-[600px] h-[600px] rounded-full blur-[80px] opacity-40 bottom-[-100px] right-[-100px] bg-[radial-gradient(circle,theme(colors.secondary),transparent)] animate-blob-float-reverse"></div>
+        <div class="grid-overlay absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:50px_50px] [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]"></div>
     </div>
 
     <!-- Hero Section -->
-    <section class="hero-section">
+    <section class="pt-4 pb-16 relative overflow-hidden md:py-16">
         <div class="container relative z-10">
-            <div class="hero-grid">
+            <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 lg:gap-16 items-center text-center lg:text-left">
                 <div class="hero-content">
-                    <div class="hero-badge gs-reveal">
-                        <span class="live-dot"></span>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8 text-sm font-semibold text-primary gs-reveal">
+                        <span class="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_0_0_rgba(239,68,68,0.7)] animate-pulse"></span>
                         <span>En vivo desde el instituto</span>
                     </div>
                     
-                    <h1 class="hero-title gs-reveal">
+                    <h1 class="text-[clamp(2.5rem,8vw,5.5rem)] leading-[1.1] font-extrabold mb-6 tracking-tight gs-reveal">
                         <span class="block">Bienvenidos,</span>
                         <span class="block">a Veredillas FM</span>
                     </h1>
                     
-                    <p class="hero-desc gs-reveal">
+                    <p class="text-lg md:text-xl text-zinc-400 max-w-[500px] mb-10 leading-relaxed mx-auto lg:mx-0 gs-reveal">
                         Donde te mantenemos al pendiente de los temas más candentes.
                     </p>
                     
-                    <div class="hero-actions gs-reveal">
-                        <a href="#latest-episodes" class="btn btn-primary btn-lg shine-effect">
+
+                    <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mb-12 flex-wrap gs-reveal">
+                        <a href="#latest-episodes" class="px-8 py-4 text-lg btn btn-primary rounded-full shine-effect">
                             <span class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                             </span> Escuchar Ahora
                         </a>
-                        <a href="/about" class="btn btn-outline btn-lg">
+                        <a href="/about" class="px-8 py-4 text-lg btn btn-outline rounded-full">
                             Conocer Más
                         </a>
                     </div>
                 </div>
 
-                <div class="hero-visual gs-visual">
+                <div class="flex justify-center items-center [perspective:1000px] w-full py-8 hero-visual">
                     {latestPublishedEpisode ? (
-                        <a href={`/ep/${latestPublishedEpisode.slug}`} class="vinyl-container" aria-label={`Escuchar ${latestPublishedEpisode.data.title}`}>
-                            <div class="vinyl-record">
-                                <div class="vinyl-label">
-                                    <img src="/logo.webp" alt="VFM" class="vinyl-logo-img" />
+                        <a href={`/ep/${latestPublishedEpisode.slug}`} class="relative block w-full max-w-[400px] aspect-square mx-auto cursor-pointer decoration-0 group" aria-label={`Escuchar ${latestPublishedEpisode.data.title}`}>
+                            <div class="absolute inset-[5%] bg-[#111] rounded-full bg-[repeating-radial-gradient(#111_0,#111_2px,#222_3px,#222_4px)] shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[1] flex items-center justify-center vinyl-record">
+                                <div class="w-[35%] h-[35%] bg-black rounded-full flex items-center justify-center border-2 border-white overflow-hidden">
+                                    <img src="/logo.webp" alt="VFM" class="w-full h-full object-cover" />
                                 </div>
                             </div>
-                            <div class="vinyl-cover">
+                            <div class="absolute inset-0 bg-gradient-to-br from-[#0e0e11] to-black rounded-lg border border-white/10 z-[2] shadow-[0_20px_50px_rgba(0,0,0,0.5)] -rotate-3 overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:rotate-[-5deg] lg:group-hover:-translate-x-[40%]">
                                 <img 
                                     src={latestPublishedEpisode.data.image} 
                                     alt={latestPublishedEpisode.data.title}
+                                    class="w-full h-full object-cover absolute inset-0 z-[1]"
                                     transition:name={`cover-${latestPublishedEpisode.slug}`}
                                 />
-                                <div class="spectrum-overlay">
-                                    <div class="vinyl-meta-top">
-                                        <h3 class="vinyl-title">{latestPublishedEpisode.data.title}</h3>
+                                <div class="absolute inset-0 z-10 bg-black/40 flex flex-col justify-between items-center p-6">
+                                    <div class="w-full text-center">
+                                        <h3 class="font-display text-lg font-extrabold text-white uppercase leading-tight [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">{latestPublishedEpisode.data.title}</h3>
                                     </div>
-                                    <div class="spectrum-bars">
-                                        <span></span><span></span><span></span><span></span><span></span>
-                                        <span></span><span></span><span></span><span></span><span></span>
+                                    <div class="flex gap-[3px] items-center h-[15%]">
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:0.8s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.2s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:0.9s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.1s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.3s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:0.7s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.4s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:0.85s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.15s]"></span>
                                     </div>
-                                    <div class="vinyl-meta-bottom">
-                                        <time class="vinyl-date">
+                                    <div class="w-full text-center">
+                                        <time class="text-xs font-semibold text-white/90 tracking-wider uppercase bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
                                             {latestPublishedEpisode.data.pubDate.toLocaleDateString('es-ES', { 
                                                 year: 'numeric', 
                                                 month: 'long', 
@@ -116,17 +126,25 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
                             </div>
                         </a>
                     ) : (
-                        <div class="vinyl-container">
-                            <div class="vinyl-record">
-                                <div class="vinyl-label">
-                                    <img src="/logo.webp" alt="VFM" class="vinyl-logo-img" />
+                        <div class="relative block w-full max-w-[400px] aspect-square mx-auto">
+                            <div class="absolute inset-[5%] bg-[#111] rounded-full bg-[repeating-radial-gradient(#111_0,#111_2px,#222_3px,#222_4px)] shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[1] flex items-center justify-center vinyl-record">
+                                <div class="w-[35%] h-[35%] bg-black rounded-full flex items-center justify-center border-2 border-white overflow-hidden">
+                                    <img src="/logo.webp" alt="VFM" class="w-full h-full object-cover" />
                                 </div>
                             </div>
-                            <div class="vinyl-cover">
-                                <div class="cover-art">
-                                    <div class="spectrum-bars">
-                                        <span></span><span></span><span></span><span></span><span></span>
-                                        <span></span><span></span><span></span><span></span><span></span>
+                            <div class="absolute inset-0 bg-gradient-to-br from-[#0e0e11] to-black rounded-lg border border-white/10 z-[2] shadow-[0_20px_50px_rgba(0,0,0,0.5)] -rotate-3 overflow-hidden flex items-center justify-center transition-transform duration-500">
+                                <div class="w-full h-full bg-gradient-to-br from-primary to-secondary opacity-20 flex items-center justify-center">
+                                    <div class="flex gap-[3px] items-center h-[15%]">
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:0.8s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.2s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:0.9s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.1s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.3s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:0.7s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.4s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:0.85s]"></span>
+                                        <span class="w-1.5 h-full bg-white rounded-full animate-spectrum opacity-50 [animation-duration:1.15s]"></span>
                                     </div>
                                 </div>
                             </div>
@@ -138,12 +156,12 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
     </section>
 
     <!-- Featured Section with Grid -->
-    <section class="container gs-fade-up featured-section-wrapper">
-        <div class="featured-grid">
-            <div class="featured-main">
+    <section class="container gs-fade-up -mt-16 mb-24 relative z-20">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8 items-stretch">
+            <div class="min-w-0">
                 <FeaturedSlider />
             </div>
-            <div class="featured-side">
+            <div class="h-full relative z-10">
                 <TopListenersWidget />
             </div>
         </div>
@@ -153,16 +171,16 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
     <TopClipsWidget />
 
     <!-- Latest Episodes Slider -->
-    <section id="latest-episodes" class="episodes-section">
+    <section id="latest-episodes" class="py-16 md:py-24 overflow-hidden">
         <div class="container">
-            <div class="section-header gs-fade-up">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gs-fade-up">
                 <div>
-                    <h2 class="section-title">Nuevos Lanzamientos</h2>
-                    <p class="section-subtitle">Lo último que está sonando en los pasillos</p>
+                    <h2 class="text-4xl mb-2">Nuevos Lanzamientos</h2>
+                    <p class="text-zinc-400 text-lg">Lo último que está sonando en los pasillos</p>
                 </div>
-                <div class="slider-nav">
-                    <button class="swiper-button-prev-custom" aria-label="Previous slide">←</button>
-                    <button class="swiper-button-next-custom" aria-label="Next slide">→</button>
+                <div class="hidden sm:flex gap-4">
+                    <button class="w-[50px] h-[50px] rounded-full border border-zinc-800 bg-[#0e0e11] text-white flex items-center justify-center cursor-pointer transition-all duration-300 text-xl hover:bg-primary hover:border-primary swiper-button-prev-custom" aria-label="Previous slide">←</button>
+                    <button class="w-[50px] h-[50px] rounded-full border border-zinc-800 bg-[#0e0e11] text-white flex items-center justify-center cursor-pointer transition-all duration-300 text-xl hover:bg-primary hover:border-primary swiper-button-next-custom" aria-label="Next slide">→</button>
                 </div>
             </div>
 
@@ -177,18 +195,18 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
                 <div class="swiper-pagination"></div>
             </div>
             
-            <div class="center-action gs-fade-up">
-                <a href="/ep" class="btn btn-outline">Ver todos los episodios</a>
+            <div class="text-center mt-12 gs-fade-up">
+                <a href="/ep" class="btn btn-outline rounded-full">Ver todos los episodios</a>
             </div>
         </div>
     </section>
 
     <!-- Upcoming Episodes Slider (Conditional) -->
     {upcomingEpisodes.length > 0 && (
-        <section id="upcoming-episodes" class="episodes-section relative bg-purple-900/10">
+        <section id="upcoming-episodes" class="py-16 md:py-24 overflow-hidden relative bg-purple-900/10">
             <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none"></div>
             <div class="container relative z-10">
-                <div class="section-header gs-fade-up">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gs-fade-up">
                     <div>
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
                              <span class="relative flex h-2 w-2">
@@ -197,12 +215,12 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
                             </span>
                             Próximamente
                         </div>
-                        <h2 class="section-title">Próximos Estrenos</h2>
-                        <p class="section-subtitle">Lo que está por llegar a Veredillas FM</p>
+                        <h2 class="text-4xl mb-2">Próximos Estrenos</h2>
+                        <p class="text-zinc-400 text-lg">Lo que está por llegar a Veredillas FM</p>
                     </div>
-                    <div class="slider-nav">
-                        <button class="swiper-button-prev-custom" aria-label="Previous slide">←</button>
-                        <button class="swiper-button-next-custom" aria-label="Next slide">→</button>
+                    <div class="hidden sm:flex gap-4">
+                        <button class="w-[50px] h-[50px] rounded-full border border-zinc-800 bg-[#0e0e11] text-white flex items-center justify-center cursor-pointer transition-all duration-300 text-xl hover:bg-primary hover:border-primary swiper-button-prev-custom" aria-label="Previous slide">←</button>
+                        <button class="w-[50px] h-[50px] rounded-full border border-zinc-800 bg-[#0e0e11] text-white flex items-center justify-center cursor-pointer transition-all duration-300 text-xl hover:bg-primary hover:border-primary swiper-button-next-custom" aria-label="Next slide">→</button>
                     </div>
                 </div>
 
@@ -224,27 +242,27 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
     <TrendingEpisodes />
 
     <!-- Marquee Text -->
-    <div class="marquee-container">
-        <div class="marquee-content">
-            <span>• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
-            <span>• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
+    <div class="py-8 bg-primary overflow-hidden -rotate-2 scale-105 my-16">
+        <div class="whitespace-nowrap flex animate-marquee">
+            <span class="text-2xl md:text-4xl font-black text-black pr-8 uppercase font-display">• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
+            <span class="text-2xl md:text-4xl font-black text-black pr-8 uppercase font-display">• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
         </div>
     </div>
 
     <!-- Recent Posts Section -->
-    <section class="blog-section">
+    <section class="py-16 md:py-24 bg-white/[0.02]">
         <div class="container">
-             <div class="section-header gs-fade-up">
+             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gs-fade-up">
                  <div>
-                    <h2 class="section-title">Actualidad</h2>
-                    <p class="section-subtitle">Lo último que pasa en el Veredillas</p>
+                    <h2 class="text-4xl mb-2">Actualidad</h2>
+                    <p class="text-zinc-400 text-lg">Lo último que pasa en el Veredillas</p>
                 </div>
-                <div class="header-action">
+                <div class="mt-4 md:mt-0">
                      <a href="/blog" class="btn btn-outline">Leer el blog</a>
                 </div>
             </div>
 
-            <div class="blog-grid gs-fade-up">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gs-fade-up">
                 {recentPosts.map(post => (
                     <PostCard post={post} />
                 ))}
@@ -253,36 +271,36 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
     </section>
 
     <!-- About Feature -->
-    <section class="info-section">
+    <section class="py-16 md:py-24">
         <div class="container">
-            <div class="info-grid">
-                <div class="info-card glass-panel gs-scroll-left">
-                    <span class="info-icon">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="p-8 md:p-10 rounded-2xl text-left transition-transform duration-300 hover:-translate-y-2.5 glass-panel gs-scroll-left">
+                    <span class="text-5xl block mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </span>
-                    <h3>Hecho por alumnos</h3>
-                    <p>Todo el contenido es producido, grabado y editado por nosotros. Aprendemos haciendo.</p>
+                    <h3 class="text-xl md:text-2xl mb-4 font-bold">Hecho por alumnos</h3>
+                    <p class="text-zinc-400 leading-relaxed">Todo el contenido es producido, grabado y editado por nosotros. Aprendemos haciendo.</p>
                 </div>
-                <div class="info-card glass-panel gs-scroll-up">
-                    <span class="info-icon">
+                <div class="p-8 md:p-10 rounded-2xl text-left transition-transform duration-300 hover:-translate-y-2.5 glass-panel gs-scroll-up">
+                    <span class="text-5xl block mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     </span>
-                    <h3>Cromos Digitales</h3>
-                    <p>¡Colecciona cromos exclusivos de nuestros invitados escuchando las entrevistas!</p>
+                    <h3 class="text-xl md:text-2xl mb-4 font-bold">Cromos Digitales</h3>
+                    <p class="text-zinc-400 leading-relaxed">¡Colecciona cromos exclusivos de nuestros invitados escuchando las entrevistas!</p>
                 </div>
-                <div class="info-card glass-panel gs-scroll-up">
-                    <span class="info-icon">
+                <div class="p-8 md:p-10 rounded-2xl text-left transition-transform duration-300 hover:-translate-y-2.5 glass-panel gs-scroll-up">
+                    <span class="text-5xl block mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     </span>
-                    <h3>Tecnología Punta</h3>
-                    <p>Utilizamos las últimas herramientas para llevar la radio escolar al siglo XXI.</p>
+                    <h3 class="text-xl md:text-2xl mb-4 font-bold">Tecnología Punta</h3>
+                    <p class="text-zinc-400 leading-relaxed">Utilizamos las últimas herramientas para llevar la radio escolar al siglo XXI.</p>
                 </div>
-                <div class="info-card glass-panel gs-scroll-right">
-                    <span class="info-icon">
+                <div class="p-8 md:p-10 rounded-2xl text-left transition-transform duration-300 hover:-translate-y-2.5 glass-panel gs-scroll-right">
+                    <span class="text-5xl block mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
                     </span>
-                    <h3>Sin Fronteras</h3>
-                    <p>Llevamos la voz del Veredillas a todo el mundo a través del streaming digital.</p>
+                    <h3 class="text-xl md:text-2xl mb-4 font-bold">Sin Fronteras</h3>
+                    <p class="text-zinc-400 leading-relaxed">Llevamos la voz del Veredillas a todo el mundo a través del streaming digital.</p>
                 </div>
             </div>
         </div>
@@ -292,13 +310,13 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
     <Newsletter />
 
     <!-- CTA Final -->
-    <section class="final-cta">
+    <section class="py-24 md:py-32 text-center bg-gradient-to-t from-primary/10 to-transparent final-cta">
         <div class="container">
-            <div class="cta-inner gs-scale-up">
-                <h2>¿Tienes algo que contar?</h2>
-                <p>El micrófono está abierto para ti. Únete al equipo de Veredillas FM o ven a contar tu historia.</p>
-                <div class="cta-actions">
-                    <a href="/solicitar-entrevista" class="btn btn-primary btn-xl">Solicitar Entrevista</a>
+            <div class="gs-scale-up cta-inner">
+                <h2 class="text-3xl md:text-6xl mb-4 font-bold">¿Tienes algo que contar?</h2>
+                <p class="text-lg md:text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">El micrófono está abierto para ti. Únete al equipo de Veredillas FM o ven a contar tu historia.</p>
+                <div class="flex justify-center gap-4">
+                    <a href="/solicitar-entrevista" class="px-12 py-5 text-xl btn btn-primary rounded-full">Solicitar Entrevista</a>
                 </div>
             </div>
         </div>
@@ -496,721 +514,4 @@ Astro.response.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidat
     document.addEventListener('astro:after-swap', initPage);
 </script>
 
-<style>
-    /* Section Layouts */
-    .hero-section {
-        padding: 1rem 0 4rem;
-        position: relative;
-        overflow: hidden;
-    }
 
-    .hero-grid {
-        display: grid;
-        grid-template-columns: 1.2fr 1fr;
-        gap: 4rem;
-        align-items: center;
-    }
-
-    /* Background blobs */
-    .blob {
-        position: absolute;
-        width: 600px;
-        height: 600px;
-        border-radius: 50%;
-        filter: blur(80px);
-        opacity: 0.4;
-    }
-    
-    .blob-1 {
-        top: -100px;
-        left: -100px;
-        background: radial-gradient(circle, var(--color-primary), transparent);
-        animation: blob-float 10s infinite alternate;
-    }
-    
-    .blob-2 {
-        bottom: -100px;
-        right: -100px;
-        background: radial-gradient(circle, var(--color-secondary), transparent);
-        animation: blob-float 12s infinite alternate-reverse;
-    }
-
-    .grid-overlay {
-        position: absolute;
-        inset: 0;
-        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-        background-size: 50px 50px;
-        mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-    }
-
-    @keyframes blob-float {
-        0% { transform: translate(0, 0); }
-        100% { transform: translate(50px, 50px); }
-    }
-
-    /* Hero Content */
-    .hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 100px;
-        margin-bottom: 2rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--color-primary);
-    }
-
-    .live-dot {
-        width: 8px;
-        height: 8px;
-        background: #ef4444;
-        border-radius: 50%;
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-        animation: pulse-red 2s infinite;
-    }
-
-    @keyframes pulse-red {
-        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
-
-    .hero-title {
-        font-size: clamp(2.5rem, 8vw, 5.5rem);
-        line-height: 1.1;
-        font-weight: 800;
-        margin-bottom: 1.5rem;
-        letter-spacing: -0.04em;
-    }
-
-    .hero-desc {
-        font-size: 1.25rem;
-        color: var(--color-text-muted);
-        max-width: 500px;
-        margin-bottom: 2.5rem;
-        line-height: 1.6;
-    }
-
-    .hero-actions {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 3rem;
-        flex-wrap: wrap;
-    }
-
-    .btn-lg {
-        padding: 1rem 2rem;
-        font-size: 1.125rem;
-        white-space: nowrap;
-    }
-
-    .hero-stats {
-        display: flex;
-        align-items: center;
-        gap: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .stat {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.2;
-    }
-
-    .stat-num {
-        font-size: 2rem;
-        font-weight: 700;
-        font-family: var(--font-display);
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--color-text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .stat-divider {
-        width: 1px;
-        height: 40px;
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    /* Vinyl Visual - Responsive Rewrite */
-    .hero-visual {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        perspective: 1000px;
-        width: 100%;
-        padding: 2rem 0;
-    }
-
-    .vinyl-container {
-        position: relative;
-        width: 100%;
-        max-width: 400px; /* Default desktop size */
-        aspect-ratio: 1 / 1;
-        margin: 0 auto;
-    }
-
-    .vinyl-record {
-        position: absolute;
-        inset: 5%; /* 5% margin from edges = 90% size */
-        background: #111;
-        border-radius: 50%;
-        background: repeating-radial-gradient(
-          #111 0, 
-          #111 2px, 
-          #222 3px, 
-          #222 4px
-        );
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        z-index: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .vinyl-label {
-        width: 35%;
-        height: 35%;
-        background: black;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid #fff;
-        overflow: hidden;
-    }
-
-    .vinyl-logo-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .vinyl-cover {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, var(--color-surface), #000);
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        z-index: 2;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        transform: rotate(-5deg);
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.5s ease;
-    }
-    
-    /* Desktop Hover */
-    @media (min-width: 960px) {
-        .vinyl-container:hover .vinyl-cover {
-            transform: rotate(-5deg) translateX(-40%);
-        }
-    }
-    
-    /* Mobile Touch (Peek) */
-    @media (max-width: 960px) {
-        .vinyl-container:active .vinyl-cover {
-            transform: rotate(-5deg) translateX(-20%);
-        }
-    }
-
-    .cover-art {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
-        opacity: 0.2;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .spectrum-bars {
-        display: flex;
-        gap: 3px;
-        align-items: center;
-        height: 15%; /* Relative height */
-    }
-
-    .spectrum-bars span {
-        width: 6px;
-        height: 100%;
-        background: white;
-        border-radius: 20px;
-        animation: spectrum 1s infinite ease-in-out;
-    }
-
-    .spectrum-bars span:nth-child(odd) { animation-duration: 0.8s; }
-    .spectrum-bars span:nth-child(even) { animation-duration: 1.2s; }
-    
-    @keyframes spectrum {
-        0%, 100% { height: 10px; opacity: 0.5; }
-        50% { height: 60px; opacity: 1; }
-    }
-
-    /* Episodes Section */
-    .episodes-section {
-        padding: 6rem 0;
-        overflow: hidden;
-    }
-
-    .section-title {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .section-subtitle {
-        color: var(--color-text-muted);
-        font-size: 1.1rem;
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 3rem;
-    }
-
-    .slider-nav {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .swiper-button-prev-custom,
-    .swiper-button-next-custom {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        border: 1px solid var(--color-border);
-        background: var(--color-surface);
-        color: var(--color-text-main);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 1.2rem;
-    }
-
-    .swiper-button-prev-custom:hover,
-    .swiper-button-next-custom:hover {
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
-    }
-
-    .center-action {
-        text-align: center;
-        margin-top: 3rem;
-    }
-
-    /* Info Grid */
-    .info-section {
-        padding: 6rem 0;
-    }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-    }
-
-    .info-card {
-        padding: 2.5rem;
-        border-radius: var(--radius-lg);
-        text-align: left;
-        transition: transform 0.3s ease;
-    }
-
-    .info-card:hover {
-        transform: translateY(-10px);
-    }
-
-    .info-icon {
-        font-size: 3rem;
-        display: block;
-        margin-bottom: 1.5rem;
-    }
-
-    .info-card h3 {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .info-card p {
-        color: var(--color-text-muted);
-        line-height: 1.6;
-    }
-
-    /* Blog Section */
-    .blog-section {
-        padding: 6rem 0;
-        background: rgba(255, 255, 255, 0.02);
-    }
-
-    .blog-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-    }
-
-    /* Marquee */
-    .marquee-container {
-        padding: 2rem 0;
-        background: var(--color-primary);
-        overflow: hidden;
-        transform: rotate(-2deg) scale(1.05);
-        margin: 4rem 0;
-    }
-
-    .marquee-content {
-        white-space: nowrap;
-        display: flex;
-        animation: marquee 20s linear infinite;
-    }
-
-    .marquee-content span {
-        font-size: 2rem;
-        font-weight: 900;
-        color: black;
-        padding-right: 2rem;
-        text-transform: uppercase;
-        font-family: var(--font-display);
-    }
-
-    @keyframes marquee {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-    }
-
-    /* Final CTA */
-    .final-cta {
-        padding: 8rem 0;
-        text-align: center;
-        background: linear-gradient(to top, rgba(139, 92, 246, 0.1), transparent);
-    }
-
-    .cta-inner h2 {
-        font-size: 3.5rem;
-        margin-bottom: 1rem;
-    }
-    
-    .cta-inner p {
-        font-size: 1.25rem;
-        color: var(--color-text-muted);
-        margin-bottom: 2rem;
-    }
-    
-    .btn-xl {
-        padding: 1.25rem 3rem;
-        font-size: 1.25rem;
-    }
-
-    /* Vinyl New Styles */
-    a.vinyl-container {
-        display: block;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .vinyl-cover img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 1;
-    }
-
-    /* Featured Grid Layout */
-    .featured-section-wrapper {
-        margin-top: -4rem;
-        margin-bottom: 6rem;
-        position: relative;
-        z-index: 20;
-    }
-
-    .featured-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    @media (min-width: 1024px) {
-        .featured-grid {
-            grid-template-columns: 1fr 350px;
-            align-items: stretch;
-        }
-    }
-
-    .featured-main {
-        min-width: 0; /* Prevents grid blowout */
-    }
-    
-    /* Override FeaturedSlider max-width when in grid */
-    .featured-main :global(.featured-widget) {
-        max-width: 100%; 
-        height: 100%;
-    }
-
-    .featured-side {
-        height: 100%;
-        position: relative;
-        z-index: 10;
-    }
-
-    .featured-side :global(.top-listeners) {
-        height: 100%;
-        min-height: 400px;
-        position: relative;
-        z-index: 10;
-    }
-
-    .spectrum-overlay {
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        background: rgba(0, 0, 0, 0.4);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.5rem;
-    }
-
-    .vinyl-meta-top {
-        width: 100%;
-        text-align: center;
-    }
-
-    .vinyl-title {
-        font-family: var(--font-display);
-        font-size: 1.2rem;
-        font-weight: 800;
-        color: white;
-        text-transform: uppercase;
-        line-height: 1.2;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    .vinyl-meta-bottom {
-        width: 100%;
-        text-align: center;
-    }
-
-    .vinyl-date {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        background: rgba(0,0,0,0.3);
-        padding: 0.25rem 0.75rem;
-        border-radius: 100px;
-        backdrop-filter: blur(4px);
-    }
-
-    /* MEDIA QUERIES */
-
-    @media (max-width: 768px) {
-        .hero-visual {
-            display: none !important;
-        }
-    }
-
-    @media (max-width: 960px) {
-        .hero-grid {
-            grid-template-columns: 1fr;
-            text-align: center;
-            gap: 2rem;
-        }
-
-        .hero-content {
-            margin-bottom: 2rem;
-        }
-
-        .hero-actions, .hero-stats {
-            justify-content: center;
-        }
-
-        .hero-visual {
-            transform: scale(0.9);
-            min-height: 350px;
-        }
-
-        .vinyl-container:hover .vinyl-cover {
-            transform: rotate(-5deg) translateX(-50px) translateY(50px);
-        }
-        
-        .section-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .hero-section {
-            padding-top: 2rem;
-            padding-bottom: 4rem;
-        }
-        
-        .hero-title {
-            font-size: clamp(2.5rem, 10vw, 3.5rem);
-            margin-bottom: 1rem;
-        }
-
-        .hero-desc {
-            font-size: 1.1rem;
-            padding: 0 1rem; /* Prevent text touching edges */
-        }
-
-        .hero-actions {
-            flex-direction: column;
-            width: 100%;
-            gap: 1rem;
-            align-items: center; /* Center buttons */
-        }
-
-        .btn-lg {
-            width: 100%;
-            max-width: 320px; /* Prevent looking like a brick */
-            justify-content: center;
-        }
-
-        .hero-visual {
-            transform: scale(0.75);
-            margin-top: -3rem;
-            min-height: 320px;
-        }
-
-        .episodes-section, 
-        .info-section, 
-        .blog-section {
-            padding: 4rem 0;
-        }
-        
-        .cta-inner h2 {
-            font-size: 2rem;
-        }
-        
-        .cta-inner p {
-            font-size: 1rem;
-        }
-
-        .marquee-content span {
-            font-size: 1.5rem;
-        }
-        
-        .blob {
-            opacity: 0.3;
-        }
-    }
-
-    /* Small Mobile Design (<500px) */
-    @media (max-width: 500px) {
-        .hero-title {
-            font-size: 2.5rem; /* Force smaller title */
-        }
-        
-        .hero-desc {
-            font-size: 1rem;
-            padding: 0;
-        }
-
-        .hero-visual {
-            transform: scale(0.55);
-            margin-top: -6rem; /* Pull it up significantly */
-            margin-bottom: -4rem;
-            min-height: 250px;
-        }
-        
-        .section-title {
-            font-size: 1.75rem;
-        }
-        
-        .section-subtitle {
-            font-size: 0.95rem;
-        }
-        
-        .info-grid, .blog-grid {
-            grid-template-columns: 1fr; /* Force single column */
-            gap: 1.5rem;
-        }
-        
-        .slider-nav {
-            display: none; /* Hide arrows on small screens, users swipe */
-        }
-        
-        .episodes-swiper {
-            padding-bottom: 3rem; /* Space for pagination */
-        }
-        
-        .vinyl-title {
-            font-size: 1rem;
-        }
-        
-        .vinyl-date {
-            font-size: 0.75rem;
-        }
-    }
-    /* Extra Small Screen Optimization (<400px) */
-    @media (max-width: 400px) {
-        .hero-section {
-            padding-top: 1rem;
-            padding-bottom: 3rem;
-        }
-
-        .hero-title {
-            font-size: 2rem !important; /* Force readable size */
-            margin-bottom: 0.75rem;
-        }
-
-        .hero-desc {
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .hero-actions {
-            width: 100%;
-            padding: 0;
-            gap: 0.75rem;
-        }
-
-        .btn-lg {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            font-size: 1rem;
-        }
-
-        /* Further shrink visual */
-        .vinyl-container {
-            max-width: 260px;
-        }
-        
-        .hero-visual {
-            margin-top: -1rem;
-            padding: 1rem 0;
-        }
-        
-        /* Adjust cards */
-        .info-card, .blog-card, .episode-card {
-            padding: 1.5rem;
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-        }
-    }
-</style>

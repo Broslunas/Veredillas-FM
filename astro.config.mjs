@@ -8,7 +8,7 @@ import path from 'path';
 
 import fs from 'fs';
 
-import tailwindcss from '@tailwindcss/vite';
+import tailwind from '@astrojs/tailwind';
 
 const SITE_URL = 'https://www.veredillasfm.es';
 
@@ -64,6 +64,7 @@ export default defineConfig({
 
   integrations: [
     react(),
+    tailwind(),
     sitemap({
       customPages: getCustomPages(),
       filter: (page) => 
@@ -130,10 +131,10 @@ export default defineConfig({
   ],
 
   vite: {
-    plugins: [tailwindcss()],
     ssr: {
         noExternal: ['satori']
     },
+
     optimizeDeps: {
         exclude: ['@resvg/resvg-js'] 
     }

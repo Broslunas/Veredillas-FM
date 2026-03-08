@@ -2,24 +2,25 @@
 // src/components/TopListenersWidget.astro
 ---
 
-<div class="top-listeners glass-panel gs-fade-up top-listeners-widget">
-    <div class="widget-header">
-        <div class="title-group">
-            <span class="pulse-dot"></span>
-            <h3>Top Oyentes</h3>
+
+<div class="p-6 flex flex-col bg-white/3 backdrop-blur-[10px] border border-white/10 rounded-2xl shadow-xl gs-fade-up top-listeners-widget">
+    <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/5">
+        <div class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_0_rgba(16,185,129,0.4)] animate-pulse"></span>
+            <h3 class="m-0 text-xl font-bold text-white">Top Oyentes</h3>
         </div>
-        <span class="badge">
+        <span class="text-[0.7rem] px-2.5 py-0.5 bg-white/10 rounded-full text-zinc-400">
             All Days
         </span>
     </div>
 
-    <div id="leaderboard-list" class="leaderboard-list">
+    <div id="leaderboard-list" class="flex flex-col gap-3">
         <!-- Loading Skeleton -->
         {[1, 2, 3, 4, 5].map((i) => (
-            <div class="listener-row skeleton">
-                <div class="rank-skeleton"></div>
-                <div class="avatar-skeleton"></div>
-                <div class="info-skeleton"></div>
+            <div class="grid grid-cols-[24px_44px_1fr_60px] items-center gap-3 p-3 rounded-xl bg-white/2 border border-transparent">
+                <div class="w-full h-5 bg-white/5 rounded"></div>
+                <div class="w-full h-11 bg-white/5 rounded-full"></div>
+                <div class="w-[70%] h-4 bg-white/5 rounded"></div>
             </div>
         ))}
     </div>
@@ -54,9 +55,9 @@
             
             if (listeners.length === 0) {
                 listContainer.innerHTML = `
-                    <div class="empty-state">
+                    <div class="p-8 text-center text-zinc-500">
                         <p>Sé el primero en aparecer aquí.</p>
-                        <a href="/ep" class="btn-link">Empieza a escuchar</a>
+                        <a href="/ep" class="text-primary underline cursor-pointer">Empieza a escuchar</a>
                     </div>
                 `;
                 return;
@@ -66,7 +67,6 @@
                 const rank = index + 1;
                 const isTop3 = rank <= 3;
                 
-                // Deterministic color for placeholder based on name
                 const getGradient = (name: string) => {
                     const colors = [
                         'linear-gradient(135deg, #FF6B6B, #EE5D5D)',
@@ -80,36 +80,49 @@
                 };
 
                 const level = getLevel(listener.listeningTime);
-
                 const profileUrl = listener._id ? `/perfil/${listener._id}` : null;
-                const tag = profileUrl ? 'a' : 'div';
+                
+                const rankColors = {
+                    1: 'text-amber-400 text-lg',
+                    2: 'text-zinc-300 text-lg',
+                    3: 'text-amber-700 text-lg'
+                };
+                
+                const bgColors = {
+                    1: 'bg-gradient-to-r from-amber-400/5 to-transparent',
+                    2: 'bg-gradient-to-r from-zinc-300/5 to-transparent',
+                    3: 'bg-gradient-to-r from-amber-700/5 to-transparent'
+                };
+
+                const rowClasses = `grid grid-cols-[24px_44px_1fr_auto] items-center gap-3 p-3 rounded-xl bg-white/2 border border-transparent transition-all group ${profileUrl ? 'cursor-pointer hover:bg-primary/10 hover:border-primary/20 hover:translate-x-1' : 'hover:bg-white/5 hover:border-white/5'} ${bgColors[rank] || ''}`;
+                
                 const tagOpen = profileUrl
-                    ? `<a href="${profileUrl}" class="listener-row listener-link ${isTop3 ? 'top-rank' : ''} rank-${rank}" title="Ver perfil de ${listener.name}">`
-                    : `<div class="listener-row ${isTop3 ? 'top-rank' : ''} rank-${rank}">`;
+                    ? `<a href="${profileUrl}" class="${rowClasses}" title="Ver perfil de ${listener.name}">`
+                    : `<div class="${rowClasses}">`;
                 const tagClose = profileUrl ? '</a>' : '</div>';
 
                 return `
                     ${tagOpen}
-                        <div class="rank-badge">${rank}</div>
+                        <div class="font-display font-bold text-zinc-500 text-center ${rankColors[rank] || ''}">${rank}</div>
                         
-                        <div class="avatar-wrapper">
+                        <div class="relative w-11 h-11">
                             ${listener.picture 
-                                ? `<img src="${listener.picture}" alt="${listener.name}" loading="lazy" />`
-                                : `<div class="avatar-placeholder" style="background: ${getGradient(listener.name)}">${listener.name.charAt(0)}</div>`
+                                ? `<img src="${listener.picture}" alt="${listener.name}" class="w-full h-full rounded-full object-cover shadow-lg" loading="lazy" />`
+                                : `<div class="w-full h-full rounded-full flex items-center justify-center font-bold text-white shadow-lg" style="background: ${getGradient(listener.name)}">${listener.name.charAt(0)}</div>`
                             }
-                            ${rank === 1 ? '<div class="crown">👑</div>' : ''}
+                            ${rank === 1 ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-base drop-shadow-md animate-bounce-subtle">👑</div>' : ''}
                         </div>
 
-                        <div class="listener-details">
-                            <span class="name">${listener.name}</span>
-                            <span class="category-label" style="color: ${level.color}">
+                        <div class="min-w-0 flex flex-col gap-0.5">
+                            <span class="font-semibold text-white whitespace-nowrap overflow-hidden text-ellipsis text-[0.95rem] leading-tight group-hover:text-primary transition-colors">${listener.name}</span>
+                            <span class="text-[0.7rem] font-medium tracking-wide opacity-90" style="color: ${level.color}">
                                 ${level.name} ${level.icon}
                             </span>
                         </div>
                         
-                        <div class="listener-stat">
-                            <span class="time-value">${formatTime(listener.listeningTime)}</span>
-                            ${profileUrl ? '<svg class="profile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>' : ''}
+                        <div class="text-right flex items-center justify-end gap-1.5">
+                            <span class="inline-block font-display font-bold text-[0.9rem] text-primary bg-primary/10 px-2.5 py-1 rounded-md transition-colors group-hover:bg-primary group-hover:text-white">${formatTime(listener.listeningTime)}</span>
+                            ${profileUrl ? '<svg class="text-primary/50 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>' : ''}
                         </div>
                     ${tagClose}
                 `;
@@ -117,7 +130,7 @@
         } catch (error) {
             console.error(error);
             listContainer.innerHTML = `
-                <div class="error-state">
+                <div class="p-8 text-center text-zinc-500">
                     <p>No se pudieron actualizar los datos.</p>
                 </div>
             `;
@@ -130,242 +143,5 @@
     } else {
         setTimeout(loadLeaderboard, 100);
     }
+    document.addEventListener('astro:page-load', loadLeaderboard);
 </script>
-
-<style is:global>
-    /* 
-     * Using is:global because Astro's scoped styles do not apply to
-     * HTML injected via innerHTML at runtime. We scope them manually
-     * with the parent class .top-listeners-widget to prevent leaks.
-     */
-    
-    .top-listeners-widget.top-listeners {
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), rgba(0, 0, 0, 0.4));
-    }
-
-    .top-listeners-widget .widget-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .top-listeners-widget .title-group {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .top-listeners-widget .widget-header h3 {
-        margin: 0;
-        font-size: 1.25rem;
-    }
-
-    .top-listeners-widget .pulse-dot {
-        width: 8px;
-        height: 8px;
-        background: #10b981;
-        border-radius: 50%;
-        box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-        70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
-
-    .top-listeners-widget .badge {
-        font-size: 0.7rem;
-        padding: 0.2rem 0.6rem;
-        background: rgba(255,255,255,0.1);
-        border-radius: 12px;
-        color: var(--color-text-muted);
-    }
-
-    .top-listeners-widget .leaderboard-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .top-listeners-widget .listener-row {
-        display: grid;
-        grid-template-columns: 24px 44px 1fr auto; /* Fixed columns for stable layout */
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.02);
-        transition: background 0.2s;
-        border: 1px solid transparent;
-    }
-
-    .top-listeners-widget .listener-row:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255,255,255,0.05);
-    }
-
-    /* Link variant */
-    .top-listeners-widget .listener-link {
-        text-decoration: none;
-        color: inherit;
-        cursor: pointer;
-        display: grid;
-    }
-
-    .top-listeners-widget .listener-link:hover {
-        background: rgba(139, 92, 246, 0.08) !important;
-        border-color: rgba(139, 92, 246, 0.25) !important;
-        transform: translateX(3px);
-        transition: background 0.2s, border-color 0.2s, transform 0.2s;
-    }
-
-    .top-listeners-widget .listener-link:hover .name {
-        color: #a78bfa;
-    }
-
-    .top-listeners-widget .profile-arrow {
-        color: rgba(167, 139, 250, 0.5);
-        opacity: 0;
-        transition: opacity 0.2s, transform 0.2s;
-        flex-shrink: 0;
-    }
-
-    .top-listeners-widget .listener-link:hover .profile-arrow {
-        opacity: 1;
-        transform: translateX(3px);
-    }
-    
-    /* Rank Styling */
-    .top-listeners-widget .rank-badge {
-        font-family: var(--font-display);
-        font-weight: 700;
-        color: var(--color-text-dim);
-        font-size: 1rem;
-        text-align: center;
-    }
-
-    /* Top 3 Highlighting */
-    .top-listeners-widget .rank-1 .rank-badge { color: #FFD700; font-size: 1.2rem; }
-    .top-listeners-widget .rank-2 .rank-badge { color: #C0C0C0; font-size: 1.2rem; }
-    .top-listeners-widget .rank-3 .rank-badge { color: #CD7F32; font-size: 1.2rem; }
-    
-    .top-listeners-widget .rank-1 { background: linear-gradient(90deg, rgba(255, 215, 0, 0.05), transparent); }
-    .top-listeners-widget .rank-2 { background: linear-gradient(90deg, rgba(192, 192, 192, 0.05), transparent); }
-    .top-listeners-widget .rank-3 { background: linear-gradient(90deg, rgba(205, 127, 50, 0.05), transparent); }
-
-    /* Avatar */
-    .top-listeners-widget .avatar-wrapper {
-        position: relative;
-        width: 44px;
-        height: 44px;
-    }
-
-    .top-listeners-widget .avatar-wrapper img, 
-    .top-listeners-widget .avatar-placeholder {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-
-    .top-listeners-widget .avatar-placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        color: white;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    }
-
-    .top-listeners-widget .crown {
-        position: absolute;
-        top: -12px;
-        left: 50%;
-        transform: translateX(-50%) rotate(-10deg);
-        font-size: 16px;
-        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
-        animation: float-crown 2s infinite ease-in-out;
-    }
-    
-    @keyframes float-crown {
-        0%, 100% { transform: translateX(-50%) rotate(-10deg) translateY(0); }
-        50% { transform: translateX(-50%) rotate(-10deg) translateY(-3px); }
-    }
-
-    /* Details */
-    .top-listeners-widget .listener-details {
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.1rem;
-    }
-
-    .top-listeners-widget .name {
-        font-weight: 600;
-        color: var(--color-text-main);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 0.95rem;
-        line-height: 1.2;
-    }
-    
-    .top-listeners-widget .category-label {
-        font-size: 0.7rem;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-        opacity: 0.9;
-    }
-
-    /* Stat */
-    .top-listeners-widget .listener-stat {
-        text-align: right;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 0.4rem;
-    }
-
-    .top-listeners-widget .time-value {
-        display: inline-block;
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: var(--color-primary);
-        background: rgba(139, 92, 246, 0.1);
-        padding: 0.2rem 0.6rem;
-        border-radius: 6px;
-    }
-
-    .top-listeners-widget .empty-state, 
-    .top-listeners-widget .error-state {
-        padding: 2rem;
-        text-align: center;
-        color: var(--color-text-muted);
-    }
-
-    .top-listeners-widget .btn-link {
-        color: var(--color-primary);
-        text-decoration: underline;
-        cursor: pointer;
-    }
-
-    /* Skeleton */
-    .top-listeners-widget .skeleton {
-        grid-template-columns: 24px 44px 1fr 60px;
-    }
-    
-    .top-listeners-widget .rank-skeleton { width: 100%; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; }
-    .top-listeners-widget .avatar-skeleton { width: 100%; height: 100%; background: rgba(255,255,255,0.05); border-radius: 50%; }
-    .top-listeners-widget .info-skeleton { width: 70%; height: 16px; background: rgba(255,255,255,0.05); border-radius: 4px; }
-</style>

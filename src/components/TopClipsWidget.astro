@@ -2,319 +2,131 @@
 // src/components/TopClipsWidget.astro
 ---
 
-<section id="top-clips-section" class="top-clips-section hidden">
-    <div class="container">
-        <div class="section-header gs-fade-up">
-            <div>
-                <h2 class="section-title">Top Clips</h2>
-                <p class="section-subtitle">Los momentos favoritos de la comunidad</p>
+<section class="py-16 relative overflow-hidden bg-gradient-to-b from-white/2 to-transparent border-t border-white/5">
+    <div class="w-full max-w-[1280px] mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+            <div class="space-y-2">
+                <div class="flex items-center gap-2 text-primary font-bold tracking-wider uppercase text-xs">
+                    <span class="w-8 h-[2px] bg-primary rounded-full"></span>
+                    Momentos Destacados
+                </div>
+                <h2 class="text-3xl md:text-5xl font-black text-white leading-none">Mejores Clips</h2>
             </div>
-             <div class="slider-nav">
-                <button class="swiper-button-prev-clips" aria-label="Previous slide">←</button>
-                <button class="swiper-button-next-clips" aria-label="Next slide">→</button>
+            
+            <div class="flex items-center gap-4">
+                <button class="clip-prev w-12 h-12 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white transition-all hover:bg-primary hover:border-primary hover:shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)] disabled:opacity-30 disabled:pointer-events-none">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button class="clip-next w-12 h-12 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white transition-all hover:bg-primary hover:border-primary hover:shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)] disabled:opacity-30 disabled:pointer-events-none">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
             </div>
         </div>
 
-        <div class="clips-slider-container gs-fade-up">
-             <!-- Skeleton Loader -->
-             <div id="clips-loading" class="clips-skeleton-row">
-                {[1,2,3,4].map(i => (
-                    <div class="clip-skeleton"></div>
-                ))}
-             </div>
+        <div id="clips-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+                <div class="aspect-video bg-white/5 rounded-2xl border border-white/5 animate-pulse"></div>
+            ))}
+        </div>
 
-             <!-- Swiper -->
-             <div id="clips-swiper" class="swiper clips-swiper hidden">
-                <div class="swiper-wrapper" id="clips-wrapper">
-                    <!-- Content -->
-                </div>
-             </div>
+        <div id="clips-container" class="swiper clips-swiper !overflow-visible hidden">
+            <div class="swiper-wrapper" id="clips-wrapper">
+                <!-- Filled by JS -->
+            </div>
         </div>
     </div>
 </section>
 
-<style>
-    /* Premium Styles */
-    .top-clips-section {
-        padding: 4rem 0;
-        position: relative;
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 3rem;
-    }
-
-    .section-title {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
-        font-weight: 700;
-        line-height: 1.2;
-    }
-
-    .section-subtitle {
-        color: rgba(255, 255, 255, 0.7); /* Equivalent to text-muted often */
-        font-size: 1.1rem;
-    }
-
-    .container {
-        width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1rem;
-        padding-right: 1rem;
-        max-width: 1280px;
-    }
-    
-    .clips-slider-container {
-        position: relative;
-    }
-
-    .clips-skeleton-row {
-        display: flex;
-        gap: 1.5rem;
-        overflow: hidden;
-    }
-    
-    .clip-skeleton {
-        min-width: 250px;
-        height: 440px; /* 9:16 approx */
-        border-radius: 1rem;
-        background: rgba(255,255,255,0.05);
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { opacity: 0.5; }
-        50% { opacity: 0.8; }
-        100% { opacity: 0.5; }
-    }
-    
-    .clips-swiper {
-        overflow: visible; /* Show shadows/glows */
-        padding-bottom: 2rem;
-    }
-
-    .slider-nav {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .swiper-button-prev-clips,
-    .swiper-button-next-clips {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        border: 1px solid var(--color-border);
-        background: var(--color-surface);
-        color: var(--color-text-main);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 1.2rem;
-    }
-
-    .swiper-button-prev-clips:hover,
-    .swiper-button-next-clips:hover {
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
-    }
-    
-    :global(.clip-card) {
-        position: relative;
-        border-radius: 1rem;
-        overflow: hidden;
-        aspect-ratio: 9/16;
-        background: #000;
-        border: 1px solid rgba(255,255,255,0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        cursor: pointer;
-        display: block;
-        text-decoration: none;
-    }
-    
-    :global(.clip-card:hover) {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.3); /* Purple glow */
-        border-color: rgba(139, 92, 246, 0.5);
-    }
-    
-    :global(.clip-thumb) {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    :global(.clip-overlay) {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-    }
-    
-    :global(.clip-title) {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: white;
-        margin-bottom: 0.5rem;
-        line-height: 1.3;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    :global(.text-truncate) {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    :global(.clip-ep) {
-        font-size: 0.85rem;
-        color: rgba(255,255,255,0.7);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        overflow: hidden; /* Ensure truncation works in flex container */
-        min-width: 0;
-    }
-    
-    :global(.clip-likes) {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(4px);
-        padding: 0.25rem 0.75rem;
-        border-radius: 100px;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: white;
-        border: 1px solid rgba(255,255,255,0.1);
-        z-index: 2;
-    }
-    
-    :global(.play-indicator) {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0.8);
-        width: 3rem;
-        height: 3rem;
-        background: rgba(255,255,255,0.2);
-        backdrop-filter: blur(4px);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: all 0.3s ease;
-        z-index: 2;
-        color: white;
-    }
-    
-    :global(.clip-card:hover .play-indicator) {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-    
-    .hidden { display: none !important; }
-</style>
-
 <script>
     import Swiper from 'swiper';
-    import { Navigation, Autoplay } from 'swiper/modules';
-    
-    async function initTopClips() {
-        const section = document.getElementById('top-clips-section');
-        const loading = document.getElementById('clips-loading');
-        const swiperEl = document.getElementById('clips-swiper');
+    import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+    interface Clip {
+        _id: string;
+        title: string;
+        thumbnail: string;
+        videoUrl: string;
+        duration?: string;
+        episodeTitle?: string;
+    }
+
+    async function loadClips() {
         const wrapper = document.getElementById('clips-wrapper');
-        
-        if (!section || !loading || !swiperEl || !wrapper) return;
-        
+        const container = document.getElementById('clips-container');
+        const loading = document.getElementById('clips-loading');
+
+        if (!wrapper || !container || !loading) return;
+
         try {
-            const res = await fetch('/api/clips/top');
+            const response = await fetch('/api/clips/top');
+            if (!response.ok) throw new Error('Failed to fetch clips');
             
-            if (!res.ok) throw new Error('Failed to fetch');
+            const clips: Clip[] = await response.json();
             
-            const clips = await res.json();
-            
-            if (!clips || clips.length === 0) {
-                // Keep hidden
+            if (clips.length === 0) {
+                loading.style.display = 'none';
                 return;
             }
-            
-            // Render
-            wrapper.innerHTML = '';
-            clips.forEach(clip => {
-                const slide = document.createElement('div');
-                slide.className = 'swiper-slide';
-                slide.innerHTML = `
-                    <a href="/clips?watch=${clip.videoId}" class="clip-card">
-                        <img src="${clip.thumbnail}" alt="${clip.title}" class="clip-thumb" loading="lazy">
-                        <div class="play-indicator">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        </div>
-                        ${clip.likes > 0 ? `
-                        <div class="clip-likes">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#ef4444" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                            ${clip.likes}
-                        </div>
-                        ` : ''}
-                        <div class="clip-overlay">
-                            <h3 class="clip-title">${clip.title}</h3>
-                            <div class="clip-ep">
-                                <span class="text-truncate">de ${clip.episodeTitle}</span>
+
+            wrapper.innerHTML = clips.map(clip => `
+                <div class="swiper-slide h-auto">
+                    <div class="relative group h-full flex flex-col bg-white/3 border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)]">
+                        <!-- Thumbnail -->
+                        <div class="relative aspect-video overflow-hidden bg-black">
+                            <img src="${clip.thumbnail}" alt="${clip.title}" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:blur-[2px] opacity-80 group-hover:opacity-100" loading="lazy" />
+                            
+                            <!-- Overlay/Play Button -->
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all duration-300">
+                                <div class="w-14 h-14 rounded-full bg-primary/90 text-white flex items-center justify-center shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all duration-300 transform group-hover:scale-110 group-hover:bg-accent group-active:scale-95">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                </div>
                             </div>
+
+                            ${clip.duration ? `<div class="absolute bottom-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded text-[0.65rem] font-bold text-white tracking-widest border border-white/10 uppercase">${clip.duration}</div>` : ''}
                         </div>
-                    </a>
-                `;
-                wrapper.appendChild(slide);
-            });
-            
-            // Show content
+
+                        <!-- Info -->
+                        <div class="p-4 flex flex-col flex-grow">
+                            ${clip.episodeTitle ? `<div class="text-[0.65rem] font-bold text-primary uppercase tracking-[0.1em] mb-1 line-clamp-1 opacity-80">${clip.episodeTitle}</div>` : ''}
+                            <h3 class="text-sm md:text-base font-bold text-white line-clamp-2 leading-snug group-hover:text-primary transition-colors">${clip.title}</h3>
+                        </div>
+
+                        <a href="/clips/${clip._id || ''}" class="absolute inset-0 z-10" aria-label="Ver clip ${clip.title}"></a>
+                    </div>
+                </div>
+            `).join('');
+
             loading.classList.add('hidden');
-            swiperEl.classList.remove('hidden');
-            section.classList.remove('hidden');
-            
-            // Init Swiper
-            new Swiper(swiperEl, {
-                modules: [Navigation, Autoplay],
+            container.classList.remove('hidden');
+
+            new Swiper('.clips-swiper', {
+                modules: [Navigation, Pagination, Autoplay],
                 slidesPerView: 1.2,
-                spaceBetween: 16,
-                navigation: {
-                    nextEl: '.swiper-button-next-clips',
-                    prevEl: '.swiper-button-prev-clips',
-                },
+                spaceBetween: 20,
+                grabCursor: true,
+                loop: false,
                 autoplay: {
-                    delay: 4000,
-                    disableOnInteraction: false
+                    delay: 5000,
+                    disableOnInteraction: true,
+                },
+                navigation: {
+                    nextEl: '.clip-next',
+                    prevEl: '.clip-prev',
                 },
                 breakpoints: {
-                   640: { slidesPerView: 2.2, spaceBetween: 20 },
-                   768: { slidesPerView: 3.2, spaceBetween: 24 },
-                   1024: { slidesPerView: 4.2, spaceBetween: 24 } 
+                    640: { slidesPerView: 2.2, spaceBetween: 24 },
+                    1024: { slidesPerView: 3.2, spaceBetween: 24 },
+                    1280: { slidesPerView: 4, spaceBetween: 24 }
                 }
             });
-            
-        } catch (e) {
-            console.error(e);
+
+        } catch (error) {
+            console.error('Error loading clips:', error);
+            loading.style.display = 'none';
         }
     }
-    
-    document.addEventListener('DOMContentLoaded', initTopClips);
-    document.addEventListener('astro:page-load', initTopClips);
+
+    // Initialize
+    loadClips();
+    document.addEventListener('astro:page-load', loadClips);
 </script>

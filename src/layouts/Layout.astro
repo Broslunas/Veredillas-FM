@@ -188,17 +188,8 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
 	<body>
 		<Header />
         
-        <!-- Global Loader -->
-        <div id="global-loader" aria-hidden="true">
-            <div class="loader-content">
-                <img src="/logo.webp" alt="Veredillas FM" class="loader-logo" />
-                <div class="loader-spinner"></div>
-            </div>
-        </div>
 
-
-
-		<main>
+		<main class="min-h-screen pt-[100px] md:pt-[80px]">
 			<slot />
 		</main>
 		{showFooter && <Footer />}
@@ -214,77 +205,16 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         <PushNotifier />
         <Analytics />
         <SpeedInsights />
+
+        <!-- Global Loader -->
+        <div id="global-loader" aria-hidden="true" class="fixed inset-0 z-[99999] bg-slate-950 flex items-center justify-center transition-all duration-500 ease-out opacity-100 [&.fade-out]:opacity-0 [&.fade-out]:invisible [&.fade-out]:pointer-events-none">
+            <div class="relative flex items-center justify-center">
+                <img src="/logo.webp" alt="Veredillas FM" class="w-20 h-20 relative z-[2] rounded-full animate-pulse" />
+                <div class="absolute -inset-[15px] border-[3px] border-transparent border-t-primary border-r-accent rounded-full animate-spin"></div>
+            </div>
+        </div>
 	</body>
 </html>
-
-<style>
-	main {
-		min-height: 100vh;
-		padding-top: 100px; /* Increased space for floating header */
-	}
-
-    @media (max-width: 768px) {
-        main {
-            padding-top: 80px; /* Smaller header on mobile */
-        }
-    }
-
-
-    /* Loader Styles */
-    #global-loader {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
-        background: var(--color-bg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 1;
-        transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
-    }
-
-    #global-loader.fade-out {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-    }
-
-    .loader-content {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .loader-logo {
-        width: 80px;
-        height: 80px;
-        position: relative;
-        z-index: 2;
-        border-radius: 50%;
-        animation: pulse 2s infinite ease-in-out;
-    }
-
-    .loader-spinner {
-        position: absolute;
-        inset: -15px;
-        border: 3px solid transparent;
-        border-top-color: var(--color-primary);
-        border-right-color: var(--color-accent, #ec4899);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(0.95); opacity: 0.8; }
-    }
-</style>
 
 <script>
     // Handle Loader
