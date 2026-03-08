@@ -1,231 +1,20 @@
 ---
-// Este componente se renderiza del lado del cliente
+// AuthButton.astro — Client-side auth button with profile dropdown
 ---
 
-<div id="auth-button-wrapper">
+<div id="auth-button-wrapper" class="flex items-center relative">
   <!-- Loading state -->
-  <div class="auth-loading">
-    <div class="spinner"></div>
+  <div class="flex items-center justify-center p-2">
+    <div class="w-5 h-5 border-2 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
   </div>
 </div>
 
 <style is:global>
-  #auth-button-wrapper {
-    display: flex;
-    align-items: center;
-    position: relative; /* Needed for dropdown positioning */
-  }
-
-  .auth-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-  }
-
-  .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(139, 92, 246, 0.2);
-    border-top-color: var(--color-primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  .auth-btn {
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-    padding: 0.5rem 1rem !important;
-    border-radius: 50px !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    border: none;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent, #ec4899)) !important;
-    color: white !important;
-    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25) !important;
-    white-space: nowrap;
-  }
-
-  .auth-btn:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35) !important;
-  }
-
-  .auth-btn svg {
-    width: 16px !important;
-    height: 16px !important;
-  }
-
-  /* Dropdown Styles */
-  .profile-dropdown-container {
-    position: relative;
-    display: inline-block;
-  }
-
-  .profile-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    padding: 0.375rem 0.75rem;
-    border-radius: 50px;
-    background: rgba(139, 92, 246, 0.1);
-    color: var(--color-text);
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  .profile-btn:hover, .profile-dropdown-container:hover .profile-btn {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: rgba(139, 92, 246, 0.4);
-  }
-
-  .profile-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--color-primary);
-  }
-
-  .profile-avatar-placeholder {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent, #ec4899));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 0.75rem;
-  }
-
-  .profile-name {
-    font-weight: 600;
-    font-size: 0.85rem;
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 0.5rem;
-    width: 260px; /* Aumentado de 200px a 260px */
-    background: var(--color-surface);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
-    padding: 0.5rem;
-    overflow: hidden;
-  }
-
+  /* Keep only the complex dropdown transition logic that is harder to do purely with utility classes without extra JS */
   .profile-dropdown-container:hover .dropdown-menu {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-  }
-
-  /* Invisible bridge to prevent menu from closing when moving cursors */
-  .profile-dropdown-container::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    height: 0.5rem;
-  }
-
-  .dropdown-header {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    margin-bottom: 0.5rem;
-  }
-
-  .dropdown-user-name {
-    display: block;
-    font-weight: 600;
-    color: var(--color-text);
-  }
-
-  .dropdown-user-email {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    margin-top: 0.2rem;
-    /* Truncate long emails */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-
-  /* Restoring missing styles */
-  .dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 1rem;
-    color: var(--color-text);
-    text-decoration: none;
-    transition: all 0.2s;
-    border-radius: 8px;
-    font-size: 0.9rem;
-  }
-
-  .dropdown-item:hover {
-    background: rgba(139, 92, 246, 0.1);
-    color: var(--color-primary);
-  }
-
-  .dropdown-item svg {
-    width: 16px;
-    height: 16px;
-    opacity: 0.7;
-  }
-
-  .dropdown-item:hover svg {
-    opacity: 1;
-  }
-
-  .dropdown-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.05);
-    margin: 0.5rem 0;
-  }
-
-  .dropdown-item.logout {
-    color: #ef4444;
-  }
-
-  .dropdown-item.logout:hover {
-    background: rgba(239, 68, 68, 0.1);
-  }
-
-  @media (max-width: 768px) {
-    .profile-name {
-      display: none;
-    }
   }
 </style>
 
@@ -244,64 +33,67 @@
         const initial = data.user.name.charAt(0).toUpperCase();
         
         wrapper.innerHTML = `
-          <div class="profile-dropdown-container">
-            <button class="profile-btn">
+          <div class="profile-dropdown-container relative inline-block group">
+            <button class="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-violet-600/10 text-white transition-all duration-300 border border-violet-600/20 cursor-pointer whitespace-nowrap hover:bg-violet-600/20 hover:border-violet-600/40">
               ${data.user.picture 
-                ? `<img src="${data.user.picture}" alt="${data.user.name}" class="profile-avatar" />`
-                : `<div class="profile-avatar-placeholder">${initial}</div>`
+                ? `<img src="${data.user.picture}" alt="${data.user.name}" class="w-7 h-7 rounded-full object-cover border-2 border-violet-500" />`
+                : `<div class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center font-bold text-white text-[0.75rem] border-2 border-violet-500/50">${initial}</div>`
               }
-              <span class="profile-name">${data.user.name}</span>
+              <span class="font-semibold text-[0.85rem] max-w-[100px] truncate hidden md:block">${data.user.name}</span>
             </button>
             
-            <div class="dropdown-menu">
-              <div class="dropdown-header">
-                <span class="dropdown-user-name">${data.user.name}</span>
-                <span class="dropdown-user-email" title="${data.user.email || ''}">${data.user.email || ''}</span>
+            <div class="dropdown-menu absolute top-full right-0 mt-2 w-[260px] bg-zinc-900/95 border border-violet-500/20 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.4)] backdrop-blur-md opacity-0 invisible -translate-y-[10px] transition-all duration-200 z-[100] p-2 overflow-hidden">
+              <div class="px-4 py-3 border-b border-white/5 mb-2">
+                <span class="block font-semibold text-white truncate">${data.user.name}</span>
+                <span class="block text-[0.75rem] text-zinc-400 mt-0.5 truncate" title="${data.user.email || ''}">${data.user.email || ''}</span>
               </div>
               
-              <a href="/dashboard" class="dropdown-item">
-                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>
+              <a href="/dashboard" class="flex items-center gap-3 px-4 py-2.5 text-zinc-300 hover:bg-violet-600/10 hover:text-violet-400 transition-all rounded-lg text-sm group/item">
+                <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>
                 Mi Dashboard
               </a>
 
               ${data.user.id ? `
-              <a href="/perfil/${data.user.id}" class="dropdown-item">
-                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              <a href="/perfil/${data.user.id}" class="flex items-center gap-3 px-4 py-2.5 text-zinc-300 hover:bg-violet-600/10 hover:text-violet-400 transition-all rounded-lg text-sm group/item">
+                <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                 Mi Perfil Público
               </a>
               ` : ''}
               
-              <a href="/logros" class="dropdown-item">
-                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+              <a href="/logros" class="flex items-center gap-3 px-4 py-2.5 text-zinc-300 hover:bg-violet-600/10 hover:text-violet-400 transition-all rounded-lg text-sm group/item">
+                <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
                 Logros
               </a>
 
               ${data.user.role === 'admin' || data.user.role === 'owner' ? `
-              <a href="/dashboard/admin" class="dropdown-item">
-                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              <a href="/dashboard/admin" class="flex items-center gap-3 px-4 py-2.5 text-zinc-300 hover:bg-violet-600/10 hover:text-violet-400 transition-all rounded-lg text-sm group/item">
+                <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                 Panel Admin
               </a>
               ` : ''}
               
-              <a href="/historial" class="dropdown-item">
-                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm0-13a1 1 0 0 0-1 1v5.59l4.47 2.68a1 1 0 0 0 1.37-.37 1 1 0 0 0-.37-1.37L13 14.16V8a1 1 0 0 0-1-1z"/></svg>
+              <a href="/historial" class="flex items-center gap-3 px-4 py-2.5 text-zinc-300 hover:bg-violet-600/10 hover:text-violet-400 transition-all rounded-lg text-sm group/item">
+                <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm0-13a1 1 0 0 0-1 1v5.59l4.47 2.68a1 1 0 0 0 1.37-.37 1 1 0 0 0-.37-1.37L13 14.16V8a1 1 0 0 0-1-1z"/></svg>
                 Mi Historial
               </a>
               
-              <div class="dropdown-divider"></div>
+              <div class="h-px bg-white/5 my-2"></div>
               
-              <a href="/api/auth/logout" class="dropdown-item logout">
-                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              <a href="/api/auth/logout" class="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-red-500/10 transition-all rounded-lg text-sm group/item">
+                <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Cerrar Sesión
               </a>
             </div>
+            
+            <!-- Invisible bridge to prevent menu from closing when moving cursor -->
+            <div class="absolute top-full left-0 w-full h-2"></div>
           </div>
         `;
       } else {
         // No user - show login button
         wrapper.innerHTML = `
-          <a href="/login" class="auth-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <a href="/login" class="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-[0.85rem] transition-all duration-300 bg-gradient-to-r from-violet-600 to-pink-500 text-white shadow-[0_2px_8px_rgba(139,92,246,0.25)] hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(139,92,246,0.35)] whitespace-nowrap">
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
             </svg>
             <span>Iniciar Sesión</span>
@@ -312,7 +104,7 @@
       console.error('Error loading auth button:', error);
       // Default to login button on error
       wrapper.innerHTML = `
-        <a href="/login" class="auth-btn">
+        <a href="/login" class="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-[0.85rem] transition-all duration-300 bg-gradient-to-r from-violet-600 to-pink-500 text-white shadow-[0_2px_8px_rgba(139,92,246,0.25)] hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(139,92,246,0.35)] whitespace-nowrap">
           <span>Iniciar Sesión</span>
         </a>
       `;
@@ -321,4 +113,7 @@
 
   // Load on DOMContentLoaded
   document.addEventListener('DOMContentLoaded', loadAuthButton);
+  // Also handle Astro page transitions
+  document.addEventListener('astro:page-load', loadAuthButton);
 </script>
+
