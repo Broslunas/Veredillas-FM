@@ -22,83 +22,157 @@ if (episodeGuests.length === 0) {
 }
 ---
 
-<SidebarWidget title="Invitados Especiales" isOpen={false}>
-  <ul class="participants-list">
+<SidebarWidget title="Invitados Especiales" isOpen={true}>
+  <div class="participants-container">
     {episodeGuests.map(guest => (
-      <li>
-        <div class="participant-card">
+      <div class="participant-item group">
+        <div class="participant-avatar-container">
           {guest.data.image ? (
             <img src={guest.data.image} alt={guest.data.name} class="participant-avatar" />
           ) : (
             <div class="participant-avatar-placeholder">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
+              <span class="text-xl font-bold opacity-30">{guest.data.name.charAt(0)}</span>
             </div>
           )}
-          <div class="participant-info">
-            <span class="participant-name">{guest.data.name}</span>
-            {guest.data.role && <span class="participant-role">{guest.data.role}</span>}
-          </div>
+          <div class="avatar-ring"></div>
         </div>
-      </li>
+        
+        <div class="participant-body">
+          <h4 class="participant-name">{guest.data.name}</h4>
+          {guest.data.role && (
+            <div class="participant-role-badge">
+              <span class="role-text">{guest.data.role}</span>
+            </div>
+          )}
+        </div>
+        
+        <a href={`/invitados#${guest.data.name.toLowerCase().replace(/\s+/g, '-')}`} class="absolute inset-0 z-10" aria-label={`Ver perfil de ${guest.data.name}`}></a>
+      </div>
     ))}
-  </ul>
+  </div>
 </SidebarWidget>
 
 <style>
-  .participants-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  .participants-container {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 1.25rem;
   }
 
-  .participant-card {
+  .participant-item {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-xs) 0;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .participant-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--color-primary);
+    transform: translateX(4px);
+    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Avatar System */
+  .participant-avatar-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
   }
 
   .participant-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
     object-fit: cover;
-    border: 2px solid var(--color-primary);
+    z-index: 2;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  .participant-item:hover .participant-avatar {
+    transform: scale(1.05);
   }
 
   .participant-avatar-placeholder {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--color-primary);
-    color: var(--color-text-muted);
+    color: var(--color-primary);
+    z-index: 2;
+    position: relative;
+    border: 1px solid rgba(139, 92, 246, 0.2);
   }
 
-  .participant-info {
+  .avatar-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 17px;
+    border: 2px solid var(--color-primary);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+    z-index: 1;
+  }
+
+  .participant-item:hover .avatar-ring {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  /* Text & Badges */
+  .participant-body {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    gap: 0.25rem;
+    min-width: 0;
   }
 
   .participant-name {
-    font-weight: 600;
+    margin: 0;
     font-size: 1rem;
-    color: var(--color-text-main);
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .participant-role {
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
-    line-height: 1.2;
+  .participant-role-badge {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    padding: 2px 8px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 20px;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+  }
+
+  .role-text {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  [data-theme='light'] .participant-item {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.05);
+  }
+
+  [data-theme='light'] .participant-name {
+    color: #1a1a1a;
   }
 </style>
