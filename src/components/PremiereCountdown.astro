@@ -424,12 +424,16 @@ const isoDate = targetDate.toISOString();
             this.start();
         }
 
-        update() {
+        update(isInitial = false) {
             const now = new Date();
             const diff = this.targetDate.getTime() - now.getTime();
 
             if (diff <= 0) {
-                this.finish();
+                if (isInitial) {
+                    this.instantFinish();
+                } else {
+                    this.finish();
+                }
                 return;
             }
 
@@ -445,8 +449,10 @@ const isoDate = targetDate.toISOString();
         }
 
         start() {
-            this.update();
-            this.interval = window.setInterval(() => this.update(), 1000);
+            this.update(true); // Pass true to indicate initial check
+            if (this.targetDate.getTime() - new Date().getTime() > 0) {
+                this.interval = window.setInterval(() => this.update(false), 1000);
+            }
         }
 
         setupAudio() {
@@ -602,6 +608,27 @@ const isoDate = targetDate.toISOString();
                 }, 100);
             } else {
                  // Fallback if structure missing
+                 window.location.reload();
+            }
+        }
+
+        instantFinish() {
+            // Instantly swap to the player without any animation or confetti
+            if(this.interval) clearInterval(this.interval);
+            
+            const countdownWrapper = document.getElementById('premiere-countdown-wrapper');
+            const playerWrapper = document.getElementById('premiere-player-wrapper');
+
+            if(countdownWrapper && playerWrapper) {
+                countdownWrapper.style.display = 'none';
+                
+                playerWrapper.classList.remove('hidden');
+                playerWrapper.style.display = 'block';
+                playerWrapper.style.opacity = '1';
+                playerWrapper.style.transition = 'none'; // remove transition for instant show
+                
+                document.dispatchEvent(new CustomEvent('premiere-started'));
+            } else {
                  window.location.reload();
             }
         }
