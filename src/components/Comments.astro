@@ -1,47 +1,11 @@
 ---
 import '../styles/global.css';
-import { getUserFromCookie } from '../lib/auth';
-import User from '../models/User';
-import mongoose from 'mongoose';
 
 interface Props {
   slug: string;
 }
 
 const { slug } = Astro.props;
-
-interface CurrentUser {
-  id: string;
-  name: string;
-  email: string;
-  picture?: string;
-}
-
-// Get current user
-const cookieHeader = Astro.request.headers.get('cookie');
-const userPayload = getUserFromCookie(cookieHeader);
-let currentUser: CurrentUser | null = null;
-
-if (userPayload) {
-  try {
-     if (mongoose.connection.readyState !== 1) {
-        const MONGODB_URI = import.meta.env.MONGODB_URI;
-        if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
-     }
-     const userDoc = await User.findById(userPayload.userId);
-     if (userDoc) {
-       currentUser = {
-         id: userDoc._id.toString(),
-         name: userDoc.name,
-         email: userDoc.email,
-         picture: userDoc.picture
-       };
-     }
-  } catch (e) {
-    console.error('Error fetching user for comments:', e);
-  }
-}
-const isLoggedIn = !!currentUser;
 ---
 
 <section id="comments-section" class="max-w-[800px] mx-auto my-16 px-4 font-body text-zinc-100">
@@ -69,39 +33,32 @@ const isLoggedIn = !!currentUser;
     
     <!-- Comment Form Card -->
     <div class="animate-fade-in-up delay-[100ms]">
-      <div class="bg-zinc-900/80 border border-primary/20 rounded-2xl p-8 shadow-2xl relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-gradient-to-r before:from-primary before:to-secondary before:opacity-60">
         <div class="flex items-center gap-4 mb-6">
-          <div class="shrink-0">
-            {isLoggedIn && currentUser?.picture ? (
-              <img src={currentUser.picture} alt={currentUser.name} class="w-12 h-12 rounded-full object-cover border-2 border-primary" />
-            ) : (
-              <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500">
+          <div class="shrink-0" id="user-avatar-container">
+            <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500">
                 <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-            )}
+            </div>
           </div>
           <div>
-            <h4 class="text-lg font-bold m-0 text-white">{isLoggedIn && currentUser ? `Hola, ${currentUser.name}` : 'Únete a la conversación'}</h4>
-            <p class="text-sm text-zinc-400 m-0">{isLoggedIn ? 'Comparte tu opinión sobre este episodio' : 'Inicia sesión o comenta como invitado'}</p>
+            <h4 class="text-lg font-bold m-0 text-white" id="user-greeting-title">Únete a la conversación</h4>
+            <p class="text-sm text-zinc-400 m-0" id="user-greeting-subtitle">Inicia sesión o comenta como invitado</p>
           </div>
         </div>
 
         <form id="comment-form" class="flex flex-col gap-6">
-          {isLoggedIn && currentUser ? (
-            <input type="hidden" name="name" value={currentUser.name} />
-            <input type="hidden" name="email" value={currentUser.email} />
-          ) : (
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="relative">
-                <input type="text" id="name" name="name" placeholder=" " required maxlength="60" class="peer w-full bg-white/5 border border-zinc-700 rounded-lg pt-6 pb-2 px-4 text-zinc-100 transition-all focus:bg-black/20 focus:border-primary outline-none" />
-                <label for="name" class="absolute left-4 top-5 text-zinc-500 pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-primary peer-focus:font-semibold peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-primary peer-[:not(:placeholder-shown)]:font-semibold">Nombre</label>
-              </div>
-              <div class="relative">
-                <input type="email" id="email" name="email" placeholder=" " required class="peer w-full bg-white/5 border border-zinc-700 rounded-lg pt-6 pb-2 px-4 text-zinc-100 transition-all focus:bg-black/20 focus:border-primary outline-none" />
-                <label for="email" class="absolute left-4 top-5 text-zinc-500 pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-primary peer-focus:font-semibold peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-primary peer-[:not(:placeholder-shown)]:font-semibold">Email <span class="text-xs opacity-50 text-zinc-500">(no visible)</span></label>
-              </div>
+          <div id="guest-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="relative">
+              <input type="text" id="name" name="name" placeholder=" " required maxlength="60" class="peer w-full bg-white/5 border border-zinc-700 rounded-lg pt-6 pb-2 px-4 text-zinc-100 transition-all focus:bg-black/20 focus:border-primary outline-none" />
+              <label for="name" class="absolute left-4 top-5 text-zinc-500 pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-primary peer-focus:font-semibold peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-primary peer-[:not(:placeholder-shown)]:font-semibold">Nombre</label>
             </div>
-          )}
+            <div class="relative">
+              <input type="email" id="email" name="email" placeholder=" " required class="peer w-full bg-white/5 border border-zinc-700 rounded-lg pt-6 pb-2 px-4 text-zinc-100 transition-all focus:bg-black/20 focus:border-primary outline-none" />
+              <label for="email" class="absolute left-4 top-5 text-zinc-500 pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-primary peer-focus:font-semibold peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-primary peer-[:not(:placeholder-shown)]:font-semibold">Email <span class="text-xs opacity-50 text-zinc-500">(no visible)</span></label>
+            </div>
+          </div>
+          <div id="user-fields" class="hidden">
+             <!-- Inyectados x JS -->
+          </div>
 
           <div class="relative">
             <textarea id="text" name="text" rows="3" placeholder=" " required maxlength="1000" class="peer w-full bg-white/5 border border-zinc-700 rounded-lg pt-6 pb-2 px-4 text-zinc-100 transition-all focus:bg-black/20 focus:border-primary outline-none resize-none"></textarea>
@@ -156,9 +113,11 @@ const isLoggedIn = !!currentUser;
   // State
   let allComments = [];
   let currentSort = 'newest';
+  let currentUser = null;
 
   // --- INITIALIZATION ---
   document.addEventListener('DOMContentLoaded', () => {
+    fetchUserSession();
     fetchComments();
     
     if (sortSelect) {
@@ -170,6 +129,44 @@ const isLoggedIn = !!currentUser;
   });
 
   // --- API OPERATIONS ---
+  async function fetchUserSession() {
+      try {
+          const res = await fetch('/api/user/episode-state');
+          const data = await res.json();
+
+          if (data.loggedIn && data.user) {
+              currentUser = data.user;
+              
+              // Hydrate UI Form
+              const avatarObj = document.getElementById('user-avatar-container');
+              const titleObj = document.getElementById('user-greeting-title');
+              const subObj = document.getElementById('user-greeting-subtitle');
+              const guestFields = document.getElementById('guest-fields');
+              const userFields = document.getElementById('user-fields');
+              
+              if (currentUser.picture && avatarObj) {
+                  avatarObj.innerHTML = `<img src="${currentUser.picture}" alt="${currentUser.name}" class="w-12 h-12 rounded-full object-cover border-2 border-primary" />`;
+              }
+              if (titleObj) titleObj.innerText = `Hola, ${currentUser.name}`;
+              if (subObj) subObj.innerText = `Comparte tu opinión sobre este episodio`;
+              
+              if (guestFields) {
+                 guestFields.classList.add('hidden');
+                 guestFields.querySelectorAll('input').forEach(inp => inp.disabled = true);
+              }
+              if (userFields) {
+                 userFields.classList.remove('hidden');
+                 userFields.innerHTML = `
+                    <input type="hidden" name="name" value="${currentUser.name}" />
+                    <input type="hidden" name="email" value="${currentUser.email}" />
+                 `;
+              }
+          }
+      } catch (e) {
+          console.error("Comments system could not hydrate user session");
+      }
+  }
+
   async function fetchComments() {
     try {
       if(list) list.innerHTML = getSkeletonHTML();
@@ -234,9 +231,11 @@ const isLoggedIn = !!currentUser;
                   ${c.likesCount > 0 ? `<span class="font-semibold like-count">${c.likesCount}</span>` : ''}
                 </button>
                 <time class="bg-white/5 py-1 px-2 rounded-md" title="${new Date(c.createdAt).toLocaleString()}">${timeAgo(new Date(c.createdAt))}</time>
+                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner')) ? `
                 <button class="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-all focus:outline-none" title="Eliminar" onclick="requestDelete('${c._id}')">
                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
+                ` : ''}
              </div>
           </header>
           <div class="text-zinc-500 leading-relaxed text-[0.95rem] whitespace-pre-wrap break-words pt-1 group-hover:text-zinc-100 transition-colors">

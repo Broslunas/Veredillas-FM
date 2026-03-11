@@ -4,48 +4,12 @@ interface Props {
 }
 
 const { slug } = Astro.props;
-
-import { verifyToken } from '../lib/auth';
-import dbConnect from '../lib/mongodb';
-import User from '../models/User';
-
-// Safe serializable user object for the client
-interface SafeUser {
-    name: string;
-    role: string;
-    picture?: string;
-}
-
-let currentUserSafe: SafeUser | null = null;
-try {
-    const token = Astro.cookies.get('auth-token')?.value;
-    if (token) {
-        const payload = verifyToken(token);
-        if (payload) {
-             await dbConnect();
-             const dbUser = await User.findById(payload.userId).select('name role picture').lean();
-             if (dbUser) {
-                 currentUserSafe = {
-                     name: dbUser.name,
-                     role: dbUser.role as string,
-                     picture: dbUser.picture as string | undefined
-                 };
-             }
-        }
-    }
-} catch(e) {
-    console.error('[LiveChat] Auth helper error', e);
-}
-
-// Encode safely to avoid HTML attribute issues with quotes
-const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JSON.stringify(currentUserSafe)))) : '';
 ---
 
 <div 
     class="flex flex-col h-[500px] bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden relative shadow-2xl" 
     id="live-chat-widget" 
     data-slug={slug} 
-    data-current-user={currentUserEncoded}
 >
     <!-- Overlay de Carga -->
     <div id="chat-load-overlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center z-[100] p-6 text-center transition-all duration-500">
@@ -75,21 +39,20 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
     </div>
 
     <!-- Área de Input -->
-    <div class="p-4 bg-black/40 border-t border-white/5 backdrop-blur-xl">
-        {(!currentUserSafe) && (
-            <input 
-                type="text" 
-                id="guest-name-input" 
-                placeholder="Tu nombre para chatear..." 
-                class="w-full mb-3 p-2.5 px-4 rounded-xl border border-white/10 bg-black/20 text-white text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all" 
-                autocomplete="off" 
-            />
-        )}
+    <div class="p-4 bg-black/40 border-t border-white/5 backdrop-blur-xl" id="chat-input-area">
+        <!-- Input for Guests (hidden by default if logged in) -->
+        <input 
+            type="text" 
+            id="guest-name-input" 
+            placeholder="Tu nombre para chatear..." 
+            class="w-full mb-3 p-2.5 px-4 rounded-xl border border-white/10 bg-black/20 text-white text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all hidden" 
+            autocomplete="off" 
+        />
         <div class="flex gap-2.5">
             <input 
                 type="text" 
                 id="chat-input" 
-                placeholder={currentUserSafe ? `Escribe como ${currentUserSafe.name}...` : "Escribe un mensaje..."} 
+                placeholder="Escribe un mensaje..." 
                 class="flex-1 p-2.5 px-5 rounded-full border border-white/10 bg-black/20 text-white text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
                 autocomplete="off" 
             />
@@ -204,12 +167,7 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
         constructor(el: HTMLElement) {
             this.el = el;
             this.slug = el.dataset.slug || '';
-            const encoded = el.dataset.currentUser || '';
-            try {
-                this.currentUser = encoded ? JSON.parse(decodeURIComponent(escape(atob(encoded)))) : null;
-            } catch(e) {
-                this.currentUser = null;
-            }
+            this.currentUser = null;
             
             this.msgArea = el.querySelector('#chat-messages') as HTMLElement;
             this.input = el.querySelector('#chat-input') as HTMLInputElement;
@@ -223,6 +181,36 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
             this.loadBtn = el.querySelector('#load-chat-btn');
             
             this.init();
+        }
+
+        async fetchUserSession() {
+            try {
+                // Fetch basic session state
+                const res = await fetch('/api/user/episode-state');
+                const data = await res.json();
+                
+                if (data.loggedIn && data.user) {
+                    this.currentUser = {
+                        name: data.user.name,
+                        role: data.user.role,
+                        picture: data.user.picture
+                    };
+                    
+                    if (this.guestInput) {
+                        this.guestInput.classList.add('hidden');
+                    }
+                    if (this.input && this.currentUser) {
+                        this.input.placeholder = `Escribe como ${this.currentUser.name}...`;
+                    }
+                } else {
+                    if (this.guestInput) {
+                        this.guestInput.classList.remove('hidden');
+                    }
+                }
+            } catch(e) {
+                console.error("LiveChat could not fetch user session");
+                if (this.guestInput) this.guestInput.classList.remove('hidden');
+            }
         }
 
         init() {
@@ -284,6 +272,9 @@ const currentUserEncoded = currentUserSafe ? btoa(unescape(encodeURIComponent(JS
                 this.overlay.classList.add('opacity-0', 'pointer-events-none');
                 setTimeout(() => this.overlay?.remove(), 500);
             }
+            
+            // Hydrate user info
+            this.fetchUserSession();
             
             this.sendBtn.addEventListener('click', () => {
                 this.recordInteraction();
