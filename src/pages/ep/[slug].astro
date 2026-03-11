@@ -1,5 +1,5 @@
 ---
-import { getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Comments from '../../components/Comments.astro';
 import SocialShare from '../../components/SocialShare.astro';
@@ -17,15 +17,18 @@ import LiveChat from '../../components/LiveChat.astro';
 import ListenerCount from '../../components/ListenerCount.astro';
 import EpisodeActions from '../../components/EpisodeActions.astro';
 
-export const prerender = false;
+export const prerender = true;
 
-const { slug } = Astro.params;
-
-if (!slug) {
-  return Astro.redirect('/404');
+export async function getStaticPaths() {
+  const episodes = await getCollection('episodios');
+  return episodes.map(entry => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
 }
 
-const entry = await getEntry('episodios', slug);
+const { entry } = Astro.props;
+const { slug } = Astro.params;
 
 if (!entry) {
   return Astro.redirect('/404');
@@ -60,47 +63,10 @@ if (isPremiere && entry.data.duration) {
 }
 
 
-// Playback History for resuming
-import { verifyToken } from '../../lib/auth';
-import User from '../../models/User';
-import mongoose from 'mongoose';
-
+// State definition for static shell
 let savedProgress = 0;
-const cookieHeader = Astro.request.headers.get('cookie'); // or Astro.cookies.get('auth-token')
-
-// Safely attempt to read progress if logged in
 let listenedEpisodes: string[] = [];
 let favoriteEpisodes: string[] = [];
-
-try {
-    const token = Astro.cookies.get('auth-token')?.value;
-    if (token) {
-        const userPayload = verifyToken(token);
-        if (userPayload) {
-             if (mongoose.connection.readyState !== 1) {
-                const MONGODB_URI = import.meta.env.MONGODB_URI;
-                if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
-            }
-            
-            const user = await User.findById(userPayload.userId);
-            if (user) {
-                if (user.playbackHistory) {
-                    const historyItem = user.playbackHistory.find((h: any) => h.episodeSlug === slug);
-                    if (historyItem && !historyItem.completed) {
-                       savedProgress = historyItem.progress || 0;
-                    }
-                    listenedEpisodes = user.playbackHistory.map((h: any) => h.episodeSlug);
-                }
-                
-                if (user.favorites) {
-                    favoriteEpisodes = user.favorites;
-                }
-            }
-        }
-    }
-} catch (e) {
-    console.warn("Failed to fetch playback history for episode", e);
-}
 
 // --- Schema.org data ---
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') ?? 'https://veredillasfm.es';
@@ -156,16 +122,6 @@ const podcastEpisodeSchema = {
     "inLanguage": "es-ES"
 };
 
-// Conditionally cache if NOT logged in
-const token = Astro.cookies.get('auth-token')?.value;
-if (!token) {
-    // 1 hour for guests, with 30 min revalidation
-    Astro.response.headers.set('Cache-Control', 's-maxage=3600, stale-while-revalidate=1800');
-} else {
-    // For logged-in users, don't cache at all to keep progress accurate
-    Astro.response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-    Astro.response.headers.set('Vary', 'Cookie');
-}
 ---
 
 <Layout 
@@ -254,7 +210,7 @@ if (!token) {
                             data-slug={entry.slug}
                             data-is-premiere={isPremiere}
                             data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
-                            data-start-time={savedProgress > 10 ? savedProgress : 0} 
+                            data-start-time="0" 
                             data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
                             data-video-url={entry.data.videoUrl}
                         ></div>
@@ -372,6 +328,43 @@ if (!token) {
             });
         });
 
+        // -----------------------------------------------------
+        // Client-side hydratation of Static Shell 
+        // -----------------------------------------------------
+        const placeholder = document.getElementById('episode-player-placeholder');
+        if (placeholder) {
+            const slug = placeholder.getAttribute('data-slug');
+            if (slug) {
+                fetch(`/api/user/episode-state?slug=${slug}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.loggedIn) {
+                            // Update player start time
+                            if (data.savedProgress && data.savedProgress > 10) {
+                                placeholder.setAttribute('data-start-time', data.savedProgress);
+                            }
+                            
+                            // Let the RelatedEpisodes know there's played content to dim out potentially
+                            if (data.listenedEpisodes && data.listenedEpisodes.length > 0) {
+                                const relatedCards = document.querySelectorAll('.related-card-wrapper');
+                                relatedCards.forEach(card => {
+                                    const link = card.querySelector('a');
+                                    if (link) {
+                                        const cardSlug = link.getAttribute('href')?.split('/').filter(Boolean).pop();
+                                        if (cardSlug && data.listenedEpisodes.includes(cardSlug)) {
+                                            card.innerHTML += `<div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.7); color:white; font-size:12px; font-weight:bold; padding:4px 8px; border-radius:4px; z-index:10; backdrop-filter:blur(4px);">Escuchado</div>`;
+                                            (card.firstElementChild as HTMLElement).style.opacity = '0.7';
+                                        }
+                                    }
+                                });
+                            }
+                            
+                            // Note: FavoriteButton handles its own state client-side already!
+                        }
+                    })
+                    .catch(err => console.error("Error fetching user state:", err));
+            }
+        }
 
     };
 
