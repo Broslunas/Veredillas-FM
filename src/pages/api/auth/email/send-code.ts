@@ -1,10 +1,11 @@
 import type { APIRoute } from 'astro';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../../../../lib/mailjet';
+import { createHash } from 'crypto';
 
 const JWT_SECRET = import.meta.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
 
-export const POST: APIRoute = async ({ request, url }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
     const data = await request.formData();
     const email = data.get('email')?.toString().trim().toLowerCase();
@@ -16,7 +17,6 @@ export const POST: APIRoute = async ({ request, url }) => {
       });
     }
 
-    // validate email regex lightly
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       return new Response(JSON.stringify({ error: 'Email inválido' }), { 
         status: 400,
@@ -24,11 +24,12 @@ export const POST: APIRoute = async ({ request, url }) => {
       });
     }
 
-    // Generar un token temporal válido por 15 minutos
-    const magicToken = jwt.sign({ email, type: 'magic_link' }, JWT_SECRET, { expiresIn: '15m' });
+    // Generar OTP de 6 dígitos
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hash = createHash('sha256').update(otp + JWT_SECRET).digest('hex');
 
-    // Construir la URL de verificación
-    const verifyUrl = `https://veredillasfm.es/api/auth/email/verify?token=${magicToken}`;
+    // Generar un token temporal con el hash válido por 15 minutos
+    const token = jwt.sign({ email, hash, type: 'otp' }, JWT_SECRET, { expiresIn: '15m' });
 
     // Preparar el HTML del correo (Plantilla premium)
     const siteUrl = "https://veredillasfm.es";
@@ -46,12 +47,11 @@ export const POST: APIRoute = async ({ request, url }) => {
     @media (max-width:620px){
       .container { width:100%!important; }
       .p-24 { padding:16px!important; }
-      .btn { display:block!important; width:100%!important; text-align: center; box-sizing: border-box; }
     }
   </style>
 </head>
 <body style="margin:0; padding:0; background:#000000;">
-  <div class="preheader">Inicia sesión en Veredillas FM con tu enlace mágico.</div>
+  <div class="preheader">Tu código de acceso a Veredillas FM.</div>
   
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#000000;">
     <tr>
@@ -65,13 +65,13 @@ export const POST: APIRoute = async ({ request, url }) => {
                 <img src="${siteUrl}/logo.webp" width="90" height="90" alt="Veredillas FM" style="display:block; border:0; border-radius:18px; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);">
               </a>
               <div style="margin:24px 0 0; display:inline-block; background:rgba(139, 92, 246, 0.2); padding:6px 16px; border-radius:24px; border:1px solid #8b5cf6;">
-                <p style="margin:0; font-size:12px; color:#a78bfa; font-weight:800; text-transform:uppercase; letter-spacing:2px;">🔑 ENLACE DE ACCESO</p>
+                <p style="margin:0; font-size:12px; color:#a78bfa; font-weight:800; text-transform:uppercase; letter-spacing:2px;">🔑 CÓDIGO DE ACCESO</p>
               </div>
               <h1 style="margin:20px 0 0; font-size:32px; line-height:1.2; color:#ffffff; font-weight: 800; letter-spacing: -1px;">
-                ¡Hola, futuro <span style="color:#8b5cf6;">Oyente</span>!
+                Tu Código de <span style="color:#8b5cf6;">Acceso</span>
               </h1>
               <p style="margin:12px 0 0; font-size:15px; color:#a1a1aa; font-weight:400; line-height:1.5;">
-                Estás a un paso de continuar con tu experiencia en la plataforma.
+                Introduce el siguiente código de 6 dígitos para iniciar sesión en tu cuenta.
               </p>
             </td>
           </tr>
@@ -83,14 +83,12 @@ export const POST: APIRoute = async ({ request, url }) => {
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#121212; border-radius:20px; border:1px solid #333; overflow:hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
                 <tr>
                   <td style="padding:40px 32px; text-align:center;">
-                    <p style="margin:0 0 32px; font-size:16px; line-height:1.6; color:#a1a1aa;">
-                      Haz clic en el siguiente botón para iniciar sesión automáticamente o registrar tu cuenta. El enlace es seguro y expirará en 15 minutos.
+                    <div style="background:#1a1a24; border:1px solid #8b5cf6; border-radius:16px; padding:24px; font-size:48px; font-weight:900; letter-spacing:12px; margin-left:12px; color:#ffffff; font-family:monospace; display:inline-block; margin-bottom:12px;">
+                      ${otp}
+                    </div>
+                    <p style="margin:0 0 12px; font-size:14px; line-height:1.6; color:#a1a1aa;">
+                      Este código es seguro y expirará en 15 minutos.
                     </p>
-                    
-                    <a href="${verifyUrl}" class="btn" 
-                       style="background:#8b5cf6; color:#ffffff; padding:18px 36px; border-radius:12px; font-weight:700; font-size:16px; display:inline-block; text-align:center; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">
-                      Entrar a Veredillas FM ✨
-                    </a>
                   </td>
                 </tr>
               </table>
@@ -135,7 +133,7 @@ export const POST: APIRoute = async ({ request, url }) => {
       to: email,
       toName: "Oyente",
       fromEmail: "info@veredillasfm.es",
-      subject: "Tu acceso a Veredillas FM 🎙️",
+      subject: "Tu código de acceso a Veredillas FM 🎙️",
       htmlContent
     });
 
@@ -143,12 +141,12 @@ export const POST: APIRoute = async ({ request, url }) => {
       throw new Error('Error al enviar el correo');
     }
 
-    return new Response(JSON.stringify({ success: true }), { 
+    return new Response(JSON.stringify({ success: true, token }), { 
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Magic link error:', error);
+    console.error('Send code error:', error);
     return new Response(JSON.stringify({ error: 'Error del servidor, inténtalo de nuevo.' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

@@ -105,14 +105,29 @@ if (errorParam === 'InvalidToken') {
                         <span>o entra con tu correo</span>
                     </div>
 
-                    <form id="magic-link-form" class="magic-link-form">
-                        <div class="input-group">
-                            <input type="email" id="email-input" name="email" placeholder="tu@correo.com" required />
+                    <form id="auth-form" class="magic-link-form">
+                        <div id="step-email">
+                            <div class="input-group">
+                                <input type="email" id="email-input" name="email" placeholder="tu@correo.com" required />
+                            </div>
+                            <button type="submit" id="send-code-btn" class="btn btn-primary btn-xl magic-submit-btn">
+                                Enviar Código
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 0.5rem;"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg>
+                            </button>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-xl magic-submit-btn">
-                            Enviar Enlace Mágico
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 0.5rem;"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg>
-                        </button>
+
+                        <div id="step-code" style="display: none;">
+                            <p style="color: var(--color-text-dim); margin-bottom: 1rem; font-size: 0.9rem; text-align: left;">Hemos enviado un código a tu correo.</p>
+                            <div class="input-group" style="margin-bottom: 1rem;">
+                                <input type="text" id="code-input" name="code" placeholder="Código de 6 dígitos" maxlength="6" style="text-align: center; font-size: 1.25rem; letter-spacing: 0.25rem; font-weight: bold; font-family: monospace;" />
+                            </div>
+                            <button type="button" id="verify-code-btn" class="btn btn-primary btn-xl magic-submit-btn">
+                                Verificar Código
+                            </button>
+                            <button type="button" id="back-to-email-btn" style="margin-top: 1rem; color: var(--color-primary); background: transparent; border: none; cursor: pointer; text-decoration: underline; width: 100%;">
+                                Cambiar correo
+                            </button>
+                        </div>
                     </form>
                     
                     <div id="magic-link-message" class="magic-link-message" style="display: none;"></div>
@@ -472,12 +487,17 @@ if (errorParam === 'InvalidToken') {
             btn.addEventListener('click', openGoogleLogin);
         }
 
-        const magicForm = document.getElementById('magic-link-form') as HTMLFormElement;
+        const authForm = document.getElementById('auth-form') as HTMLFormElement;
         const magicMessage = document.getElementById('magic-link-message');
-        const submitBtn = magicForm?.querySelector('button[type="submit"]') as HTMLButtonElement;
+        const submitBtn = document.getElementById('send-code-btn') as HTMLButtonElement;
+        const verifyBtn = document.getElementById('verify-code-btn') as HTMLButtonElement;
+        const stepEmail = document.getElementById('step-email');
+        const stepCode = document.getElementById('step-code');
+        const backBtn = document.getElementById('back-to-email-btn');
+        let currentAuthToken = '';
 
-        if (magicForm && magicMessage && submitBtn) {
-            magicForm.addEventListener('submit', async (e) => {
+        if (authForm && magicMessage && submitBtn) {
+            authForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 // Reset state
@@ -487,27 +507,28 @@ if (errorParam === 'InvalidToken') {
                 
                 // Loading state
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = 'Enviando enlace...';
+                submitBtn.innerHTML = 'Enviando código...';
 
                 try {
-                    const formData = new FormData(magicForm);
-                    const response = await fetch('/api/auth/email/send-magic-link', {
+                    const formData = new FormData(authForm);
+                    const response = await fetch('/api/auth/email/send-code', {
                         method: 'POST',
                         body: formData
                     });
 
                     const data = await response.json();
 
-                    magicMessage.style.display = 'block';
                     if (response.ok && data.success) {
-                        magicMessage.classList.add('success');
-                        magicMessage.textContent = '¡Enlace enviado! Revisa tu bandeja de entrada (y la carpeta de spam).';
-                        magicForm.reset();
+                        currentAuthToken = data.token;
+                        if (stepEmail) stepEmail.style.display = 'none';
+                        if (stepCode) stepCode.style.display = 'block';
+                        magicMessage.style.display = 'none';
                     } else {
-                        throw new Error(data.error || 'Error al enviar el enlace');
+                        throw new Error(data.error || 'Error al enviar el código');
                     }
                 } catch (error: any) {
                     magicMessage.style.display = 'block';
+                    magicMessage.classList.remove('success');
                     magicMessage.classList.add('error');
                     magicMessage.textContent = error.message || 'Ha ocurrido un error inesperado.';
                 } finally {
@@ -515,6 +536,60 @@ if (errorParam === 'InvalidToken') {
                     submitBtn.innerHTML = originalBtnText;
                 }
             });
+
+            if (verifyBtn && backBtn) {
+                verifyBtn.addEventListener('click', async () => {
+                    const codeInput = document.getElementById('code-input') as HTMLInputElement;
+                    const code = codeInput?.value;
+                    
+                    magicMessage.classList.remove('success');
+                    magicMessage.classList.remove('error');
+
+                    if (!code || code.length < 6) {
+                        magicMessage.style.display = 'block';
+                        magicMessage.classList.add('error');
+                        magicMessage.textContent = 'Introduce el código completo de 6 dígitos.';
+                        return;
+                    }
+                    
+                    const originalVerifyText = verifyBtn.innerHTML;
+                    verifyBtn.disabled = true;
+                    verifyBtn.innerHTML = 'Verificando...';
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('token', currentAuthToken);
+                        formData.append('code', code);
+
+                        const response = await fetch('/api/auth/email/verify-code', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && data.success) {
+                            window.location.href = '/dashboard';
+                        } else {
+                            throw new Error(data.error || 'Código incorrecto');
+                        }
+                    } catch (error: any) {
+                        magicMessage.style.display = 'block';
+                        magicMessage.classList.add('error');
+                        magicMessage.textContent = error.message || 'Ha ocurrido un error al verificar.';
+                    } finally {
+                        verifyBtn.disabled = false;
+                        verifyBtn.innerHTML = originalVerifyText;
+                    }
+                });
+
+                backBtn.addEventListener('click', () => {
+                    if (stepEmail) stepEmail.style.display = 'block';
+                    if (stepCode) stepCode.style.display = 'none';
+                    magicMessage.style.display = 'none';
+                    currentAuthToken = '';
+                });
+            }
         }
     });
 </script>

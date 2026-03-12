@@ -6,20 +6,35 @@ import User from '../../../../models/User';
 import { createHash } from 'crypto';
 
 const JWT_SECRET = import.meta.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
-export const prerender = false;
 
-export const GET: APIRoute = async ({ url, cookies, redirect }) => {
-  const token = url.searchParams.get('token');
-
-  if (!token) {
-    return redirect('/login?error=InvalidToken');
-  }
-
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as { email: string, type: string };
+    const data = await request.formData();
+    const token = data.get('token')?.toString();
+    const code = data.get('code')?.toString()?.trim();
 
-    if (payload.type !== 'magic_link' || !payload.email) {
-      return redirect('/login?error=InvalidToken');
+    if (!token || !code) {
+      return new Response(JSON.stringify({ error: 'Código y token requeridos' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const payload = jwt.verify(token, JWT_SECRET) as { email: string, hash: string, type: string };
+
+    if (payload.type !== 'otp' || !payload.email || !payload.hash) {
+      return new Response(JSON.stringify({ error: 'Token inválido' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const calculatedHash = createHash('sha256').update(code + JWT_SECRET).digest('hex');
+    if (calculatedHash !== payload.hash) {
+      return new Response(JSON.stringify({ error: 'Código incorrecto' }), { 
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Conectar a MongoDB
@@ -40,8 +55,8 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
       const emailUsername = payload.email.split('@')[0];
       
       // Intentar obtener avatar de Gravatar
-      const hash = createHash('md5').update(payload.email.trim().toLowerCase()).digest('hex');
-      const userPicture = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+      const avatarHash = createHash('md5').update(payload.email.trim().toLowerCase()).digest('hex');
+      const userPicture = `https://www.gravatar.com/avatar/${avatarHash}?d=identicon`;
 
       user = await User.create({
         email: payload.email,
@@ -58,7 +73,7 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
         await fetch('https://n8n.broslunas.com/webhook/veredillasfm-new-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: user.name, email: user.email, via: 'magic_link' }),
+          body: JSON.stringify({ name: user.name, email: user.email, via: 'verification_code' }),
         });
       } catch (webhookError) {
         console.error('Error sending webhook notification:', webhookError);
@@ -113,9 +128,15 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
       path: '/'
     });
 
-    return redirect('/dashboard');
+    return new Response(JSON.stringify({ success: true }), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
-    console.error('Magic link verification error:', error);
-    return redirect('/login?error=ExpiredOrInvalid');
+    console.error('Verification code error:', error);
+    return new Response(JSON.stringify({ error: 'Código expirado o inválido' }), { 
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 };
