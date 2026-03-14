@@ -184,42 +184,11 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
             }
         </script>
 
-        <style is:inline>
-            /* Critical Loader Styles */
-            #global-loader {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
-                background-color: #000000 !important;
-                z-index: 100000 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                overflow: hidden !important;
-                opacity: 1;
-            }
-            #global-loader.fade-out {
-                opacity: 0 !important;
-                pointer-events: none !important;
-            }
-            .intro-logo-global {
-                opacity: 0;
-            }
-        </style>
+
 	</head>
 
 	<body>
-        <!-- Global Cinematic Loader -->
-        <div id="global-loader" class="fixed inset-0 z-[100000] bg-black flex items-center justify-center overflow-hidden transition-opacity duration-500 [&.fade-out]:opacity-0" style="position: fixed; inset: 0; background: black; z-index: 100000; display: flex; align-items: center; justify-content: center;">
-            <div class="relative scale-150 opacity-0 intro-logo-global flex flex-col items-center gap-6 text-center">
-                <h1 class="text-4xl md:text-8xl font-black tracking-tighter text-white italic uppercase">
-                    VEREDILLAS <span class="text-primary italic">FM</span>
-                </h1>
-                <div class="absolute inset-0 bg-primary blur-[120px] opacity-10 -z-10 animate-pulse"></div>
-            </div>
-        </div>
+
 
 		<Header />
         
@@ -244,106 +213,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
 	</body>
 </html>
 
-<script>
-    import { gsap } from "gsap";
 
-    // Handle Loader Animation
-    function playGlobalIntro() {
-        const loader = document.getElementById('global-loader');
-        if (!loader) return;
-
-        const tl = gsap.timeline({
-            onComplete: () => {
-                loader.classList.add('fade-out');
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    // Dispatch custom event so pages can start their own animations
-                    window.dispatchEvent(new CustomEvent('loaderFinished'));
-                }, 500);
-            }
-        });
-
-        tl.to(".intro-logo-global", {
-            opacity: 1,
-            scale: 1,
-            duration: 1,
-            ease: "power4.out"
-        })
-        .to(".intro-logo-global", {
-            opacity: 0,
-            scale: 1.1,
-            duration: 0.6,
-            ease: "power4.in",
-            delay: 0.8
-        })
-        .to(loader, {
-            yPercent: -100,
-            duration: 1,
-            ease: "expo.inOut"
-        }, "-=0.2");
-    }
-
-    // Run on initial load
-    window.addEventListener('load', playGlobalIntro);
-
-    // Show loader on link click for better perceived performance
-    document.addEventListener('click', (e) => {
-        const link = (e.target as HTMLElement).closest('a');
-        if (!link) return;
-        
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-        
-        try {
-            const url = new URL(link.href);
-            const currentUrl = new URL(window.location.href);
-            
-            if (url.origin === currentUrl.origin && 
-                link.target !== '_blank' && 
-                !link.hasAttribute('download') &&
-                (url.pathname !== currentUrl.pathname || url.search !== currentUrl.search)) {
-                
-                const loader = document.getElementById('global-loader');
-                if (loader) {
-                    loader.style.display = 'flex';
-                    loader.style.transform = 'translateY(100%)';
-                    loader.classList.remove('fade-out');
-                    gsap.to(loader, {
-                        yPercent: 0,
-                        duration: 0.6,
-                        ease: "expo.out"
-                    });
-                }
-            }
-        } catch (err) {}
-    });
-
-    // Show loader on form submit
-    document.addEventListener('submit', (e) => {
-        const form = (e.target as HTMLElement).closest('form');
-        if (form && !e.defaultPrevented) {
-             const loader = document.getElementById('global-loader');
-             if (loader) {
-                loader.style.display = 'flex';
-                loader.style.transform = 'translateY(100%)';
-                loader.classList.remove('fade-out');
-                gsap.to(loader, {
-                    yPercent: 0,
-                    duration: 0.6,
-                    ease: "expo.out"
-                });
-             }
-        }
-    });
-
-    // Astro View Transitions support
-    document.addEventListener('astro:after-swap', () => {
-        const loader = document.getElementById('global-loader');
-        if (loader) {
-            loader.style.display = 'none';
-        }
-    });
-</script>
 
 
 
