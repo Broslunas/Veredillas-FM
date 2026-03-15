@@ -738,7 +738,7 @@ warningMessage: >-
   aquí vertidas no representan necesariamente la realidad y solo buscan sacar
   una sonrisa al espectador. #humor
 audioUrl: >-
-  https://cdn.veredillasfm.es/audio/419418145-44100-2-2b24b08756937.mp3
+  https://anchor.fm/s/10ca1a038/podcast/play/116486477/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-6%2F419418145-44100-2-2b24b08756937.mp3
 sections:
   - time: '00:02'
     title: Bienvenida e Introducción al Debate

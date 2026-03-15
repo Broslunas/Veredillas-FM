@@ -112,6 +112,7 @@ import './player/SharedPlayerStyles.css';
     import { FastAverageColor } from 'fast-average-color';
     import { AudioEngine, resumeAudioContext } from '../services/player/audioEngine';
     import { syncPlaybackData, recordListen } from '../services/player/playbackSync';
+    import { getProxiedAudioUrl } from '../utils/audioProxy';
     
     declare global {
         interface Window {
@@ -169,7 +170,7 @@ import './player/SharedPlayerStyles.css';
              const audioElement = container.querySelector('#audioElement') as HTMLAudioElement;
              
              // --- AUDIO SOURCE ---
-             audioElement.src = url;
+             audioElement.src = getProxiedAudioUrl(url);
              
              if (startTime > 0) {
                  audioElement.currentTime = startTime;

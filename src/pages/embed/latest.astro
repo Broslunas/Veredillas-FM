@@ -2,6 +2,7 @@
 export const prerender = true;
 import { getCollection } from 'astro:content';
 import '../../styles/global.css';
+import { getProxiedAudioUrl } from '../../utils/audioProxy';
 
 const allEpisodes = await getCollection('episodios');
 const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
@@ -307,7 +308,7 @@ const episodeUrl = `/ep/${slug}`;
         </div>
     </div>
 
-    <audio id="audio-player" src={audioUrl} preload="metadata"></audio>
+    <audio id="audio-player" src={getProxiedAudioUrl(audioUrl)} preload="metadata"></audio>
 
     <script>
         // Client-side Customization Logic

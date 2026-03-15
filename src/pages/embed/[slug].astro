@@ -2,6 +2,7 @@
 export const prerender = true;
 import { getCollection, getEntry } from 'astro:content';
 import '../../styles/global.css';
+import { getProxiedAudioUrl } from '../../utils/audioProxy';
 
 // Required for dynamic routes in static builds
 export async function getStaticPaths() {
@@ -308,7 +309,7 @@ const episodeUrl = `/ep/${slug}`;
         </div>
     </div>
 
-    <audio id="audio-player" src={audioUrl} preload="metadata"></audio>
+    <audio id="audio-player" src={getProxiedAudioUrl(audioUrl)} preload="metadata"></audio>
 
     <script>
         // Client-side Customization Logic
