@@ -24,6 +24,11 @@ if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner
 const N8N_WEBHOOK_URL = "https://n8n.broslunas.com/webhook/clips-upload-vfm";
 const WEBHOOK_SECRET = import.meta.env.CONTACT_WEBHOOK_SECRET;
 const DRIVE_FOLDER_ID = "1Bbc-VKX-k5ndMGKp2X05wdDQNk5I5LE7";
+
+const N8N_WEBHOOK_URL_PIXELS = "https://n8n.broslunas.com/webhook/clips-upload-pixelsintetico";
+const DRIVE_FOLDER_ID_PIXELS = "1paJgUlopCz5bdEpaR6FxtqooKN0pKZ3q";
+
+const isOwner = currentUser && currentUser.role === 'owner';
 ---
 
 <Layout title="Social Clips Manager" robots="noindex, nofollow">
@@ -49,6 +54,26 @@ const DRIVE_FOLDER_ID = "1Bbc-VKX-k5ndMGKp2X05wdDQNk5I5LE7";
             <span class="text-emerald-400 font-bold text-sm tracking-widest uppercase">Drive Conectado</span>
         </div>
     </header>
+
+    {isOwner && (
+        <div class="mb-10 flex flex-col items-center gap-4 fade-in">
+            <span class="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">Destino de Carga</span>
+            <div class="bg-slate-900/50 backdrop-blur-3xl border border-white/5 p-1.5 rounded-[2rem] flex gap-2 shadow-2xl">
+                <button 
+                    id="dest-vfm" 
+                    class="px-8 py-3 rounded-[1.5rem] text-sm font-black transition-all duration-500 bg-violet-600 text-white shadow-lg shadow-violet-500/20"
+                >
+                    VEREDILLAS FM
+                </button>
+                <button 
+                    id="dest-pixels" 
+                    class="px-8 py-3 rounded-[1.5rem] text-sm font-black transition-all duration-500 text-slate-500 hover:text-white"
+                >
+                    PIXELSINTETICO
+                </button>
+            </div>
+        </div>
+    )}
 
     <main id="main-container" class="min-h-[500px]">
         <!-- Step 1: Initial Multi-Selection -->
@@ -165,9 +190,18 @@ const DRIVE_FOLDER_ID = "1Bbc-VKX-k5ndMGKp2X05wdDQNk5I5LE7";
   </div>
 </Layout>
 
-<script define:vars={{ WEBHOOK_URL: N8N_WEBHOOK_URL, WEBHOOK_SECRET: WEBHOOK_SECRET, FOLDER_ID: DRIVE_FOLDER_ID }}>
+<script define:vars={{ 
+    WEBHOOK_URL: N8N_WEBHOOK_URL, 
+    WEBHOOK_SECRET: WEBHOOK_SECRET, 
+    FOLDER_ID: DRIVE_FOLDER_ID,
+    WEBHOOK_URL_PIXELS: N8N_WEBHOOK_URL_PIXELS,
+    FOLDER_ID_PIXELS: DRIVE_FOLDER_ID_PIXELS,
+    isOwner: isOwner
+}}>
     let queue = [];
     let currentIndex = 0;
+    let currentFolderId = FOLDER_ID;
+    let currentWebhookUrl = WEBHOOK_URL;
 
     // UI Elements
     const dropZone = document.getElementById('drop-zone');
@@ -195,6 +229,32 @@ const DRIVE_FOLDER_ID = "1Bbc-VKX-k5ndMGKp2X05wdDQNk5I5LE7";
     // Initialization
     dropZone.onclick = () => fileInput.click();
     fileInput.onchange = (e) => startWizard(e.target.files);
+
+    if (isOwner) {
+        const destVfm = document.getElementById('dest-vfm');
+        const destPixels = document.getElementById('dest-pixels');
+
+        if (destVfm && destPixels) {
+            destVfm.onclick = () => {
+                currentFolderId = FOLDER_ID;
+                currentWebhookUrl = WEBHOOK_URL;
+                destVfm.classList.add('bg-violet-600', 'text-white', 'shadow-lg', 'shadow-violet-500/20');
+                destVfm.classList.remove('text-slate-500');
+                destPixels.classList.remove('bg-violet-600', 'text-white', 'shadow-lg', 'shadow-violet-500/20');
+                destPixels.classList.add('text-slate-500');
+                addLog('Destino cambiado a: <span class="text-violet-400 font-bold">Veredillas FM</span>');
+            };
+            destPixels.onclick = () => {
+                currentFolderId = FOLDER_ID_PIXELS;
+                currentWebhookUrl = WEBHOOK_URL_PIXELS;
+                destPixels.classList.add('bg-violet-600', 'text-white', 'shadow-lg', 'shadow-violet-500/20');
+                destPixels.classList.remove('text-slate-500');
+                destVfm.classList.remove('bg-violet-600', 'text-white', 'shadow-lg', 'shadow-violet-500/20');
+                destVfm.classList.add('text-slate-500');
+                addLog('Destino cambiado a: <span class="text-emerald-400 font-bold">Pixelsintetico</span>');
+            };
+        }
+    }
 
     function addLog(msg, color = 'text-slate-400') {
         const div = document.createElement('div');
@@ -271,7 +331,7 @@ const DRIVE_FOLDER_ID = "1Bbc-VKX-k5ndMGKp2X05wdDQNk5I5LE7";
             overlayStatus.innerText = 'INICIANDO SESIÓN...';
 
             // 2. Drive Resumable Session
-            const metadata = { name: item.file.name, mimeType: item.file.type, parents: [FOLDER_ID] };
+            const metadata = { name: item.file.name, mimeType: item.file.type, parents: [currentFolderId] };
             const initRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
                 method: 'POST',
                 headers: {
@@ -309,7 +369,7 @@ const DRIVE_FOLDER_ID = "1Bbc-VKX-k5ndMGKp2X05wdDQNk5I5LE7";
             overlayStatus.innerText = 'NOTIFICANDO FLUJO...';
 
             // 4. Notify n8n
-            const n8nRes = await fetch(WEBHOOK_URL, {
+            const n8nRes = await fetch(currentWebhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${WEBHOOK_SECRET}` },
                 body: JSON.stringify({
