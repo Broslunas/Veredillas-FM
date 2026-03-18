@@ -19,7 +19,7 @@ duration: 42 min
 participants:
   - Dylan
   - Eric
-  - Alejandro
+  - Alejandro Verano
   - Joan
 isPremiere: true
 videoUrl: 'https://www.youtube.com/embed/7qAOq11amYU'
