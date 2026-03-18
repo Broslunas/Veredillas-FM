@@ -21,6 +21,7 @@ participants:
   - Eric
   - Alejandro
   - Joan
+isPremiere: true
 ---
 Hoy el estudio se mueve entre nubes de vapor y el sonido de las máquinas. En este episodio de Humo y Tinta, nos sentamos con Dylan, Eric, Alejandro y Joan para hablar de dos mundos que van de la mano: el arte en la piel y la cultura del vapeo.
 
