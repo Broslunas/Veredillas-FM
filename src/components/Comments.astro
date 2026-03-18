@@ -116,25 +116,28 @@ const { slug } = Astro.props;
   let currentUser = null;
 
   // --- INITIALIZATION ---
-  document.addEventListener('DOMContentLoaded', () => {
+  const init = () => {
     fetchUserSession();
     fetchComments();
     
     if (sortSelect) {
-      sortSelect.addEventListener('change', (e) => {
+      sortSelect.onchange = (e) => {
         currentSort = e.target.value;
-        renderComments(); // Re-render with new sort
-      });
+        renderComments();
+      };
     }
-  });
+  };
+
+  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('astro:page-load', init);
 
   // --- API OPERATIONS ---
   async function fetchUserSession() {
       try {
-          const res = await fetch('/api/user/episode-state');
+          const res = await fetch('/api/auth/me');
           const data = await res.json();
 
-          if (data.loggedIn && data.user) {
+          if (data.user) {
               currentUser = data.user;
               
               // Hydrate UI Form
