@@ -12,7 +12,7 @@ description: >-
   conexión. Historias reales, risas y el estilo de vida que los une. ¡Escúchalo
   ahora!
 pubDate: '2026-03-18T17:00:00.000Z'
-image: 'https://cdn.veredillasfm.es/images/e8c6b7b2-5bcb-4791-9e59-7ba68375d2c3.jpeg'
+image: 'https://cdn.veredillasfm.es/images/70f71c65-244b-4c0c-b575-642b8225f051.jpeg'
 season: 2
 episode: 4
 duration: 42 min
