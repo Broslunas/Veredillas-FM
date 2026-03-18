@@ -15,7 +15,7 @@ pubDate: '2026-03-18T17:00:00.000Z'
 image: 'https://cdn.veredillasfm.es/images/ceecad26-0b03-4c79-a605-0325a16fc4c8.webp'
 season: 2
 episode: 4
-duration: 42 min
+duration: 43 min
 participants:
   - Dylan
   - Eric
