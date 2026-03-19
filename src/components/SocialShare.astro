@@ -1,12 +1,15 @@
----
+import { getShortLink } from '../utils/shortLink';
+
 interface Props {
   title: string;
   url?: URL | string;
 }
 
 const { title, url = Astro.url } = Astro.props;
-const shareUrl = encodeURIComponent(url.toString());
+const shortUrl = getShortLink(url);
+const shareUrl = encodeURIComponent(shortUrl);
 const shareTitle = encodeURIComponent(title);
+
 ---
 
 <aside class="social-share-floating">
@@ -111,12 +114,15 @@ const shareTitle = encodeURIComponent(title);
 </div>
 
 <script>
+  import { getShortLink } from '../utils/shortLink';
+
   const setup = () => {
       // Copy Link Logic
       const copyBtn = document.getElementById('copy-link-btn');
       if (copyBtn) {
           copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(window.location.href).then(() => {
+            const shortUrl = getShortLink(window.location.href);
+            navigator.clipboard.writeText(shortUrl).then(() => {
                 const original = copyBtn.innerHTML;
                 copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
                 setTimeout(() => {
