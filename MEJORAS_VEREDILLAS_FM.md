@@ -4,12 +4,8 @@ Este documento detalla una hoja de ruta exhaustiva para transformar **Veredillas
 
 ---
 
-## 🎨 3. Interfaz de Usuario (UI) y Diseño Visual
-26. **Cursor Personalizado:** El puntero del ratón se transforma en iconos temáticos según el contexto.
-27. **Micro-interacciones Avanzadas:** Feedback háptico y visual en cada clic de botón y switch.
 
 ## 🌐 4. Comunidad y Socialización
-31. **Perfiles Públicos:** Ver la actividad reciente de otros alumnos (si habilitan la opción).
 32. **Menciones en directo:** Notificación visual cuando alguien te cita en el chat de un estreno.
 33. **Reacciones Animadas:** Enviar emojis que flotan en pantalla durante el streaming (tipo Twitch).
 34. **Recortes de Clip:** Herramienta para generar un link de compartir a un segundo exacto del audio.

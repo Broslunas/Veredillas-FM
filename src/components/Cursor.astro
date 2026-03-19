@@ -1,0 +1,267 @@
+---
+---
+<div class="custom-cursor-container">
+    <div id="cursor-dot" class="cursor-dot"></div>
+    <div id="cursor-outline" class="cursor-outline"></div>
+    <div id="cursor-icon" class="cursor-icon"></div>
+</div>
+
+<style>
+    .custom-cursor-container {
+        pointer-events: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 99999;
+    }
+
+    .cursor-dot {
+        width: 6px;
+        height: 6px;
+        background-color: var(--color-primary, #8b5cf6);
+        border-radius: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+        z-index: 100000;
+        pointer-events: none;
+    }
+
+    .cursor-outline {
+        width: 40px;
+        height: 40px;
+        border: 2px solid var(--color-primary, #8b5cf6);
+        border-radius: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        transition: all 0.2s cubic-bezier(0.23, 1, 0.320, 1);
+        opacity: 0.5;
+        z-index: 99999;
+        pointer-events: none;
+    }
+
+    .cursor-icon {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        font-size: 1.2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        z-index: 100001;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    /* States */
+    :global(body.cursor-hover) .cursor-outline {
+        width: 60px;
+        height: 60px;
+        background-color: var(--color-primary);
+        opacity: 0.15;
+        border-color: transparent;
+    }
+
+    :global(body.cursor-play) .cursor-outline {
+        width: 70px;
+        height: 70px;
+        background-color: var(--color-secondary);
+        opacity: 0.2;
+        border-color: transparent;
+    }
+
+    :global(body.cursor-play) .cursor-icon::before {
+        content: '▶';
+        color: white;
+    }
+    :global(body.cursor-play) .cursor-icon {
+        opacity: 1;
+    }
+    :global(body.cursor-play) .cursor-dot {
+        opacity: 0;
+    }
+
+    :global(body.cursor-volume) .cursor-outline {
+        width: 50px;
+        height: 50px;
+        border-style: dashed;
+        animation: rotate 4s linear infinite;
+    }
+    :global(body.cursor-volume) .cursor-icon::before {
+        content: '🔊';
+        font-size: 0.8rem;
+    }
+    :global(body.cursor-volume) .cursor-icon {
+        opacity: 1;
+    }
+
+    :global(body.cursor-seek) .cursor-outline {
+        width: 60px;
+        height: 20px;
+        border-radius: 4px;
+    }
+
+    :global(body.cursor-read) .cursor-outline {
+        width: 50px;
+        height: 50px;
+        background-color: var(--color-primary);
+        opacity: 0.1;
+    }
+    :global(body.cursor-read) .cursor-icon::before {
+        content: '📖';
+        font-size: 1rem;
+    }
+    :global(body.cursor-read) .cursor-icon {
+        opacity: 1;
+    }
+
+    @keyframes rotate {
+        from { transform: translate(-50%, -50%) rotate(0deg); }
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    :global(body.cursor-link) .cursor-dot {
+        width: 12px;
+        height: 12px;
+    }
+
+    /* Hide default cursor on desktop ONLY when custom cursor is active */
+    @media (hover: hover) and (pointer: fine) {
+        :global(html.custom-cursor-active), 
+        :global(html.custom-cursor-active body), 
+        :global(html.custom-cursor-active a), 
+        :global(html.custom-cursor-active button), 
+        :global(html.custom-cursor-active input[type="range"]), 
+        :global(html.custom-cursor-active .cursor-pointer) {
+            cursor: none !important;
+        }
+    }
+
+    /* Hide custom cursor on mobile */
+    @media (max-width: 768px) {
+        .custom-cursor-container {
+            display: none !important;
+        }
+    }
+</style>
+
+<script>
+    let dot: HTMLElement | null = null;
+    let outline: HTMLElement | null = null;
+    let icon: HTMLElement | null = null;
+    let body: HTMLElement | null = null;
+
+    let mouseX = -100;
+    let mouseY = -100;
+    let cursorX = -100;
+    let cursorY = -100;
+    let isVisible = false;
+
+    const updatePosition = (e: MouseEvent) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        if (!isVisible) {
+            isVisible = true;
+            document.documentElement.classList.add('custom-cursor-active');
+            if (dot) dot.style.opacity = '1';
+            if (outline) outline.style.opacity = '0.5';
+        }
+
+        if (dot) {
+            dot.style.left = mouseX + 'px';
+            dot.style.top = mouseY + 'px';
+        }
+        if (icon) {
+            icon.style.left = mouseX + 'px';
+            icon.style.top = mouseY + 'px';
+        }
+    };
+
+    const handleMouseOver = (e: MouseEvent) => {
+        body = document.body;
+        if (!body) return;
+        const target = e.target as HTMLElement;
+        if (!target) return;
+
+        const clickable = target.closest('a, button, .hover-3d-card, .btn');
+        const playButton = target.closest('.play-cursor-area, [data-cursor="play"]');
+        const volumeArea = target.closest('.volume-slider, .volume-area, [data-cursor="volume"]');
+        const seekArea = target.closest('.seek-slider-wrapper, .seek-track-bg, #seekBar, [data-cursor="seek"]');
+        const readArea = target.closest('.post-card, [data-cursor="read"]');
+
+        body.classList.remove('cursor-hover', 'cursor-play', 'cursor-volume', 'cursor-seek', 'cursor-read');
+
+        if (playButton) {
+            body.classList.add('cursor-play');
+        } else if (volumeArea) {
+            body.classList.add('cursor-volume');
+        } else if (seekArea) {
+            body.classList.add('cursor-seek');
+        } else if (readArea) {
+            body.classList.add('cursor-read');
+        } else if (clickable) {
+            body.classList.add('cursor-hover');
+        }
+    };
+
+    const handleMouseDown = () => {
+        if (body) body.classList.add('cursor-clicking');
+        if (outline) outline.style.transform = 'translate(-50%, -50%) scale(0.8)';
+    };
+
+    const handleMouseUp = () => {
+        if (body) body.classList.remove('cursor-clicking');
+        if (outline) outline.style.transform = 'translate(-50%, -50%) scale(1)';
+    };
+
+    const animate = () => {
+        if (outline) {
+            const distX = mouseX - cursorX;
+            const distY = mouseY - cursorY;
+
+            cursorX = cursorX + distX * 0.15;
+            cursorY = cursorY + distY * 0.15;
+
+            outline.style.left = cursorX + 'px';
+            outline.style.top = cursorY + 'px';
+        }
+        requestAnimationFrame(animate);
+    };
+
+    const initCursor = () => {
+        // Re-find elements on each call (needed for View Transitions)
+        dot = document.getElementById('cursor-dot');
+        outline = document.getElementById('cursor-outline');
+        icon = document.getElementById('cursor-icon');
+        body = document.body;
+
+        if (dot) dot.style.opacity = '0';
+        if (outline) outline.style.opacity = '0';
+        isVisible = false;
+
+        if (!window.cursorEventsAttached) {
+            window.addEventListener('mousemove', updatePosition);
+            window.addEventListener('mouseover', handleMouseOver);
+            window.addEventListener('mousedown', handleMouseDown);
+            window.addEventListener('mouseup', handleMouseUp);
+            window.cursorEventsAttached = true;
+            animate();
+        }
+    };
+
+    // Use a small delay to ensure DOM is ready during View Transitions
+    document.addEventListener('astro:page-load', () => {
+        setTimeout(initCursor, 50);
+    });
+
+    // Initial run
+    if (document.readyState === 'complete') {
+        initCursor();
+    } else {
+        window.addEventListener('load', initCursor);
+    }
+</script>

@@ -12,6 +12,7 @@ import LivePopupPlayer from '../components/LivePopupPlayer.astro';
 import ClipModalWrapper from '../components/player/ClipModalWrapper';
 import AchievementToaster from '../components/AchievementToaster.astro';
 import PushNotifier from '../components/PushNotifier.astro';
+import Cursor from '../components/Cursor.astro';
 import Analytics from '@vercel/analytics/astro';
 import SpeedInsights from '@vercel/speed-insights/astro';
 
@@ -229,9 +230,8 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
 
 	</head>
 
-	<body>
-
-
+	<body class="selection:bg-primary/30 selection:text-white">
+        <Cursor />
 		<Header />
         
 
