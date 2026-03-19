@@ -178,7 +178,7 @@ const episodesWithMeta = sortedEpisodes.map(post => {
                         data-season={post.data.season || 'unknown'}
                         data-participants={participantsStr}
                         data-tags={tagsStr}
-                        style={`--delay: ${index % 6}`}
+                        style={`--delay: ${index % 6}; view-transition-name: ep-${post.slug};`}
                     >
                          <EpisodeCard post={post} />
                     </div>
@@ -342,61 +342,71 @@ const episodesWithMeta = sortedEpisodes.map(post => {
                 }
             }
 
-            items.forEach((item) => {
-                const itemEl = item as HTMLElement;
-                const pubDateStr = itemEl.getAttribute('data-pub-date');
-                if (!pubDateStr) return;
-                
-                const pubDate = new Date(pubDateStr);
-                const isUpcoming = pubDate > now;
-                const diffInHours = (pubDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-                const isAboutToPremiere = isUpcoming && diffInHours <= 2;
-
-                const searchContent = itemEl.getAttribute('data-search-content') || '';
-                const itemSeason = itemEl.getAttribute('data-season') || '';
-                const participants = itemEl.getAttribute('data-participants') || '';
-                const tags = itemEl.getAttribute('data-tags') || '';
-                
-                const matchesSeason = currentSeason === 'all' || itemSeason === currentSeason;
-                const matchesUpcoming = showUpcoming || !isUpcoming || isAboutToPremiere;
-                const matchesSearch = searchTerm === '' || searchContent.includes(searchTerm);
-                const matchesGuest = selectedGuest === '' || participants.split('|').some(p => p.trim() === selectedGuest);
-                const matchesTag = selectedTag === '' || tags.split('|').some(t => t.trim() === selectedTag);
-
-                if (matchesSeason && matchesUpcoming && matchesSearch && matchesGuest && matchesTag) {
-                    itemEl.classList.remove('hidden-anim');
-                    const badge = itemEl.querySelector('.dynamic-upcoming-badge') as HTMLElement | null;
-                    const badgeText = badge?.querySelector('.badge-text');
+            const updateDisplay = () => {
+                items.forEach((item) => {
+                    const itemEl = item as HTMLElement;
+                    const pubDateStr = itemEl.getAttribute('data-pub-date');
+                    if (!pubDateStr) return;
                     
-                    if (badge) {
-                        if (isUpcoming) {
-                            badge.classList.remove('hidden');
-                            if (isAboutToPremiere && badgeText) {
-                                badgeText.textContent = '¡Falta muy poco!';
-                                badge.classList.remove('bg-primary/90', 'shadow-primary/30');
-                                badge.classList.add('bg-red-600/90', 'shadow-red-600/30');
+                    const pubDate = new Date(pubDateStr);
+                    const isUpcoming = pubDate > now;
+                    const diffInHours = (pubDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+                    const isAboutToPremiere = isUpcoming && diffInHours <= 2;
+
+                    const searchContent = itemEl.getAttribute('data-search-content') || '';
+                    const itemSeason = itemEl.getAttribute('data-season') || '';
+                    const participants = itemEl.getAttribute('data-participants') || '';
+                    const tags = itemEl.getAttribute('data-tags') || '';
+                    
+                    const matchesSeason = currentSeason === 'all' || itemSeason === currentSeason;
+                    const matchesUpcoming = showUpcoming || !isUpcoming || isAboutToPremiere;
+                    const matchesSearch = searchTerm === '' || searchContent.includes(searchTerm);
+                    const matchesGuest = selectedGuest === '' || participants.split('|').some(p => p.trim() === selectedGuest);
+                    const matchesTag = selectedTag === '' || tags.split('|').some(t => t.trim() === selectedTag);
+
+                    if (matchesSeason && matchesUpcoming && matchesSearch && matchesGuest && matchesTag) {
+                        itemEl.classList.remove('hidden-anim');
+                        const badge = itemEl.querySelector('.dynamic-upcoming-badge') as HTMLElement | null;
+                        const badgeText = badge?.querySelector('.badge-text');
+                        
+                        if (badge) {
+                            if (isUpcoming) {
+                                badge.classList.remove('hidden');
+                                if (isAboutToPremiere && badgeText) {
+                                    badgeText.textContent = '¡Falta muy poco!';
+                                    badge.classList.remove('bg-primary/90', 'shadow-primary/30');
+                                    badge.classList.add('bg-red-600/90', 'shadow-red-600/30');
+                                }
+                            } else {
+                                badge.classList.add('hidden');
                             }
-                        } else {
-                            badge.classList.add('hidden');
                         }
+
+                        itemEl.style.display = 'block';
+                        // Add a small delay for staggered appearance if it was hidden
+                        if (itemEl.style.opacity === '0') {
+                            itemEl.style.opacity = '1';
+                        }
+                        visibleCount++;
+                    } else {
+                        itemEl.classList.add('hidden-anim');
+                        itemEl.style.display = 'none';
                     }
+                });
 
-                    itemEl.style.display = 'block';
-                    visibleCount++;
+                if (visibleCount === 0) {
+                    noResults?.classList.remove('hidden');
                 } else {
-                    itemEl.classList.add('hidden-anim');
-                    setTimeout(() => {
-                        if (itemEl.classList.contains('hidden-anim')) {
-                             itemEl.style.display = 'none';
-                        }
-                    }, 400); // Slightly faster
+                    noResults?.classList.add('hidden');
                 }
-            });
+            };
 
-            if (visibleCount === 0) {
-                noResults?.classList.remove('hidden');
+            // @ts-ignore
+            if (document.startViewTransition) {
+                // @ts-ignore
+                document.startViewTransition(() => updateDisplay());
             } else {
-                noResults?.classList.add('hidden');
+                updateDisplay();
             }
         }
 
@@ -996,23 +1006,42 @@ const episodesWithMeta = sortedEpisodes.map(post => {
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 2.5rem;
         margin-bottom: var(--spacing-2xl);
+        min-height: 800px; /* Previene el salto del footer en el primer render */
+        align-items: stretch;
+        isolation: isolate; /* Improve performance for view transitions */
     }
 
     .episode-item {
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        animation: fadeInUp 0.6s ease forwards;
-        animation-delay: calc(var(--delay) * 0.1s);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        animation-delay: calc(var(--delay) * 0.08s);
         opacity: 0;
+        height: 100%;
+        contain: layout;
+        will-change: transform, opacity;
     }
 
     @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { 
+            opacity: 0; 
+            transform: translateY(40px) scale(0.95); 
+            filter: blur(10px);
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+
+    ::view-transition-group(*) {
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .hidden-anim {
-        opacity: 0;
-        transform: scale(0.95);
+        opacity: 0 !important;
+        transform: scale(0.9) translateY(20px) !important;
         pointer-events: none;
     }
 
