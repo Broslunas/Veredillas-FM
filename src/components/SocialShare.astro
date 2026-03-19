@@ -1,3 +1,4 @@
+---
 import { getShortLink } from '../utils/shortLink';
 
 interface Props {
@@ -9,7 +10,6 @@ const { title, url = Astro.url } = Astro.props;
 const shortUrl = getShortLink(url);
 const shareUrl = encodeURIComponent(shortUrl);
 const shareTitle = encodeURIComponent(title);
-
 ---
 
 <aside class="social-share-floating">
