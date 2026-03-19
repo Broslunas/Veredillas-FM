@@ -51,6 +51,7 @@
                         <span id="imm-current-time" class="time-digit">00:00</span>
                         <div class="seek-track">
                             <div class="seek-fill" id="imm-range-fill"></div>
+                            <div class="seek-markers" id="imm-seek-markers"></div>
                             <input type="range" id="imm-seek-bar" value="0" step="0.1">
                         </div>
                         <span id="imm-duration" class="time-digit">00:00</span>
@@ -399,9 +400,47 @@
             seekBar.addEventListener('input', syncFill);
         }
 
+        // Sync chapters
+        let lastSections = null;
+        const renderImmMarkers = () => {
+            const sections = window.playerSections;
+            if (!sections || sections === lastSections) return;
+            lastSections = sections;
+
+            const markersContainer = document.getElementById('imm-seek-markers');
+            const mainSeekBar = document.getElementById('seekBar') as HTMLInputElement; 
+            const total = mainSeekBar ? parseFloat(mainSeekBar.max) : 0;
+
+            if (markersContainer && total > 0) {
+                markersContainer.innerHTML = '';
+                sections.forEach(section => {
+                    const [m, s] = section.time.split(':').map(Number);
+                    const timeS = (m * 60) + (s || 0);
+                    if (timeS <= total) {
+                        const percent = (timeS / total) * 100;
+                        const marker = document.createElement('div');
+                        marker.className = 'chapter-marker';
+                        marker.style.left = `${percent}%`;
+                        marker.style.height = '100%';
+                        marker.innerHTML = `<div class="chapter-tooltip">${section.title}</div>`;
+                        marker.onclick = (e) => {
+                            e.stopPropagation();
+                            const audio = document.getElementById('audioElement') as HTMLAudioElement;
+                            if (audio) {
+                                audio.currentTime = timeS;
+                                if (audio.paused) audio.play();
+                            }
+                        };
+                        markersContainer.appendChild(marker);
+                    }
+                });
+            }
+        };
+
         const updateLoop = () => {
             if (player && !player.classList.contains('hidden')) {
                 syncFill();
+                renderImmMarkers();
             }
             requestAnimationFrame(updateLoop);
         };

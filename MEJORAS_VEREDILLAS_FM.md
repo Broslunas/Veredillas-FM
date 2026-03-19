@@ -5,19 +5,11 @@ Este documento detalla una hoja de ruta exhaustiva para transformar **Veredillas
 ---
 
 ## 🎧 1. Experiencia de Audio y Reproductor
-2. **Capítulos de Episodio:** Marcadores en la barra de progreso con títulos para navegar por secciones.
-3. **Velocidad Ajustable:** Selector de velocidad (0.5x, 1.25x, 1.5x, 2x, 2.5x) para optimizar el tiempo.
-4. **Modo Focus:** Opción para oscurecer el sitio web y centrar toda la atención en el reproductor.
-5. **Transcripciones en Vivo:** Texto resaltado que se desplaza automáticamente según el audio.
-6. **Smart Skip:** Botones de retroceso/adelanto inteligente de 15 segundos con avisos visuales.
+2. **Capítulos de Episodio:** Marcadores en la barra de progreso con títulos para navegar por secciones
 7. **Ecualizador Visual (Presets):** Ajustes de ecualización específicos para voz, música o entrevistas.
 8. **Mini-Player Persistente:** Un reproductor en la parte inferior que no se detiene al cambiar de página.
-9. **Spatial Audio Virtual:** Procesamiento de audio para simular tridimensionalidad en auriculares.
-10. **Sleep Timer:** Programar el apagado del audio para aquellos que se duermen escuchando.
 
 ## 🕹️ 2. Gamificación y Engagement
-11. **Cromos Digitales:** Una carta coleccionable única por cada invitado o tema especial.
-12. **Álbum de Colección:** Espacio privado en el perfil de usuario para organizar sus cromos.
 13. **Sistema de XP (Experiencia):** Puntos acumulables por cada minuto de audio escuchado.
 14. **Logros Ocultos:** Medallas por acciones inesperadas (ej. "Escuchar un podcast a las 3 AM").
 15. **Leaderboard Semanal:** Ranking público de los oyentes más activos de la comunidad.

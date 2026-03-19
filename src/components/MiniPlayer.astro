@@ -15,7 +15,19 @@ import './player/SharedPlayerStyles.css';
          <div class="player-bg-glow" id="playerBgGlow"></div>
 
          <div class="player-grid">
-            <!-- TOP: Metadata (Title Row) -->
+            <!-- FULL WIDTH PROGRESS BAR -->
+            <div class="player-progress">
+               <span class="time-text" id="currentTime">00:00</span>
+               <div class="seek-slider-wrapper" id="seekWrapper">
+                   <div class="seek-track-bg">
+                       <div class="seek-track-fill" id="seekFill"></div>
+                       <div class="seek-markers" id="seekMarkers"></div>
+                   </div>
+                   <input type="range" class="u-hidden-range" id="seekBar" value="0" step="0.1" />
+               </div>
+               <span class="time-text" id="totalTime">00:00</span>
+            </div>
+
             <div class="track-details">
                 <h2 class="track-title" id="playerTitle">Título del Episodio</h2>
                 <p class="track-artist" id="playerAuthor">Veredillas FM</p>
@@ -38,19 +50,6 @@ import './player/SharedPlayerStyles.css';
                 </div>
 
                 <div class="player-controls-container">
-                    <!-- Progress Bar -->
-                     <div class="player-progress">
-                        <span class="time-text" id="currentTime">00:00</span>
-                        <div class="seek-slider-wrapper" id="seekWrapper">
-                            <div class="seek-track-bg">
-                                <div class="seek-track-fill" id="seekFill"></div>
-                            </div>
-                            <!-- Actual input for dragging -->
-                            <input type="range" class="u-hidden-range" id="seekBar" value="0" step="0.1" />
-                        </div>
-                        <span class="time-text" id="totalTime">00:00</span>
-                     </div>
-                    
                     <!-- Main Buttons -->
                     <div class="item-controls">
                         <button class="btn-ctrl secondary-hide" id="backwardBtn" aria-label="Retroceder 15s">
@@ -398,10 +397,39 @@ import './player/SharedPlayerStyles.css';
              audioElement.ontimeupdate = updateSeek;
              
              audioElement.onloadedmetadata = () => {
-                 seekBar.max = audioElement.duration.toString();
-                 if(totTimeEl) totTimeEl.textContent = formatTime(audioElement.duration);
+                 const total = audioElement.duration;
+                 seekBar.max = total.toString();
+                 if(totTimeEl) totTimeEl.textContent = formatTime(total);
                  iconLoading?.classList.add('hidden');
                  updateIcons();
+
+                 // Render Chapters
+                 const sections = window.playerSections as any[];
+                 if (sections && sections.length > 0) {
+                     const markersContainer = document.getElementById('seekMarkers');
+                     if (markersContainer) {
+                         markersContainer.innerHTML = '';
+                         sections.forEach((section: any) => {
+                             const [m, s] = section.time.split(':').map(Number);
+                             const timeS = (m * 60) + (s || 0);
+                             if (timeS <= total) {
+                                 const percent = (timeS / total) * 100;
+                                 const marker = document.createElement('div');
+                                 marker.className = 'chapter-marker';
+                                 marker.style.left = `${percent}%`;
+                                 marker.innerHTML = `<div class="chapter-tooltip">${section.title}</div>`;
+                                 
+                                 // Add click to jump to this chapter
+                                 marker.addEventListener('click', (e) => {
+                                     e.stopPropagation();
+                                     audioElement.currentTime = timeS;
+                                     if (audioElement.paused) audioElement.play();
+                                 });
+                                 markersContainer.appendChild(marker);
+                             }
+                         });
+                     }
+                 }
              };
              
              audioElement.onwaiting = () => {
@@ -601,10 +629,13 @@ import './player/SharedPlayerStyles.css';
                 const image = placeholder.getAttribute('data-image');
                 const author = placeholder.getAttribute('data-author');
                 const slug = placeholder.getAttribute('data-slug');
-
+                const sectionsStr = placeholder.getAttribute('data-sections');
+                const sections = sectionsStr ? JSON.parse(sectionsStr) : null;
+                
                 if (title) {
-                    window.playerMeta = { title, image: image || '/logo.webp', author: author || 'Veredillas FM' };
+                    window.playerMeta = { title, image: image || '/logo.webp', author: author || 'Veredillas FM', sections };
                     if(slug) window.playerSlug = slug;
+                    if(sections) window.playerSections = sections;
                 }
 
                 // Conflict Check

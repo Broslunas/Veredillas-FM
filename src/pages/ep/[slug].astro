@@ -199,6 +199,7 @@ const podcastEpisodeSchema = {
                             data-is-premiere={isPremiere}
                             data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
                             data-video-url={entry.data.videoUrl}
+                            data-sections={entry.data.sections ? JSON.stringify(entry.data.sections) : null}
                         ></div>
                     ) : entry.data.audioUrl ? (
                         <div 
@@ -212,6 +213,7 @@ const podcastEpisodeSchema = {
                             data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
                             data-start-time="0" 
                             data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
+                            data-sections={entry.data.sections ? JSON.stringify(entry.data.sections) : null}
                             data-video-url={entry.data.videoUrl}
                         ></div>
                     ) : null}
