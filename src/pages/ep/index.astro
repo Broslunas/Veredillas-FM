@@ -33,18 +33,51 @@ const uniqueGuests = uniqueGuestNames.map(name => {
     };
 });
 
+const parseDuration = (d: string | undefined): number => {
+    if (!d) return 0;
+    // Handle HH:MM:SS or MM:SS
+    if (d.includes(':')) {
+        const parts = d.split(':').map(Number);
+        if (parts.length === 3) return parts[0] * 60 + parts[1] + parts[2] / 60;
+        if (parts.length === 2) return parts[0] + parts[1] / 60;
+    }
+    const minutes = d.match(/(\d+)\s*min/);
+    const hours = d.match(/(\d+)\s*h/);
+    let total = 0;
+    if (hours) total += parseInt(hours[1]) * 60;
+    if (minutes) total += parseInt(minutes[1]);
+    return total;
+};
+
+const getSchoolYear = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = date.getMonth(); // 0-indexed, 8 is September
+    if (month >= 8) {
+        return `${year.toString().slice(-2)}/${(year + 1).toString().slice(-2)}`;
+    }
+    return `${(year - 1).toString().slice(-2)}/${year.toString().slice(-2)}`;
+};
+
 const episodesWithMeta = sortedEpisodes.map(post => {
     const searchContent = `${post.data.title} ${post.data.description || ''} ${post.data.participants?.join(' ') || ''}`.toLowerCase();
     const participantsStr = (post.data.participants || []).join('|').toLowerCase();
     const tagsStr = (post.data.tags || []).join('|').toLowerCase();
+    const durationMin = parseDuration(post.data.duration);
+    const schoolYear = getSchoolYear(post.data.pubDate);
     
     return {
         post,
         searchContent,
         participantsStr,
-        tagsStr
+        tagsStr,
+        durationMin,
+        schoolYear
     };
 });
+
+// Get unique school years and subjects
+const uniqueSchoolYears = [...new Set(episodesWithMeta.map(e => e.schoolYear))].sort();
+const uniqueSubjects = [...new Set(sortedEpisodes.flatMap(ep => ep.data.tags || []))].sort((a, b) => a.localeCompare(b, 'es'));
 
 const buildNow = new Date();
 ---
@@ -152,6 +185,13 @@ const buildNow = new Date();
                         </div>
                     )}
 
+                    <!-- Advanced Filters Toggle -->
+                    <button id="adv-filters-toggle" class="adv-filters-toggle" aria-expanded="false" aria-label="Mostrar filtros avanzados">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
+                        <span>Filtros</span>
+                        <span class="adv-filters-badge hidden" id="adv-filters-badge">0</span>
+                    </button>
+
                     <!-- Toggle for Upcoming -->
                     <div class="toggle-group">
                         <span class="toggle-label">Próximos</span>
@@ -162,6 +202,46 @@ const buildNow = new Date();
                     </div>
                 </div>
 
+                <!-- Advanced Filters Panel -->
+                <div id="adv-filters-panel" class="adv-filters-panel hidden">
+                    <div class="adv-filters-grid">
+                        <!-- Duration Filter -->
+                        <div class="adv-filter-group">
+                            <label>Duración</label>
+                            <div class="duration-chips">
+                                <button class="duration-chip" data-min="0" data-max="999">Cualquiera</button>
+                                <button class="duration-chip" data-min="0" data-max="15">Corto (<15min)</button>
+                                <button class="duration-chip" data-min="15" data-max="45">Medio (15-45min)</button>
+                                <button class="duration-chip" data-min="45" data-max="999">Largo (>45min)</button>
+                            </div>
+                        </div>
+
+                        <!-- School Year Filter -->
+                        <div class="adv-filter-group">
+                            <label>Año Escolar</label>
+                            <select id="school-year-filter" class="adv-select">
+                                <option value="">Todos los años</option>
+                                {uniqueSchoolYears.map(year => (
+                                    <option value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <!-- Subject/Tag Filter -->
+                        <div class="adv-filter-group">
+                            <label>Asignatura / Tema</label>
+                            <select id="subject-filter" class="adv-select">
+                                <option value="">Todas las asignaturas</option>
+                                {uniqueSubjects.map(subject => (
+                                    <option value={subject.toLowerCase()}>{subject}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls-divider-h"></div>
+
                 <!-- Active Filters Display -->
                 <div id="active-filters-container" class="active-filters hidden">
                     <span class="active-filters-label">Filtrado por:</span>
@@ -171,7 +251,7 @@ const buildNow = new Date();
         </header>
 
         <div class="episodes-grid" id="episodes-grid">
-            {episodesWithMeta.map(({ post, searchContent, participantsStr, tagsStr }, index) => {
+            {episodesWithMeta.map(({ post, searchContent, participantsStr, tagsStr, durationMin, schoolYear }, index) => {
                  const isUpcomingAtBuildTime = post.data.pubDate > buildNow;
                  return (
                     <div 
@@ -181,6 +261,8 @@ const buildNow = new Date();
                         data-season={post.data.season || 'unknown'}
                         data-participants={participantsStr}
                         data-tags={tagsStr}
+                        data-duration-min={durationMin}
+                        data-school-year={schoolYear}
                         style={`--delay: ${index % 6}; view-transition-name: ep-${post.slug};`}
                     >
                          <EpisodeCard post={post} />
@@ -209,7 +291,15 @@ const buildNow = new Date();
         const noResults = document.getElementById('no-results');
         const resetBtn = document.getElementById('reset-filter');
 
-        // Custom dropdown elements
+        // Advanced filter elements
+        const advFiltersToggle = document.getElementById('adv-filters-toggle');
+        const advFiltersPanel = document.getElementById('adv-filters-panel');
+        const advFiltersBadge = document.getElementById('adv-filters-badge');
+        const durationChips = document.querySelectorAll('.duration-chip');
+        const schoolYearFilter = document.getElementById('school-year-filter') as HTMLSelectElement;
+        const subjectFilter = document.getElementById('subject-filter') as HTMLSelectElement;
+
+        // Restore guest dropdown elements
         const guestDropdown = document.getElementById('guest-dropdown');
         const guestTrigger = document.getElementById('guest-trigger');
         const guestPanel = document.getElementById('guest-panel');
@@ -221,14 +311,52 @@ const buildNow = new Date();
 
         let currentSeason = 'all';
         let selectedGuest = '';
+        let selectedGuestName = '';
         let selectedTag = new URLSearchParams(window.location.search).get('tag')?.toLowerCase() || '';
+        let selectedDuration = { min: 0, max: 999 };
+        let selectedDurationLabel = 'Cualquiera';
+        let selectedSchoolYear = '';
+        let selectedSubject = '';
 
         // Initial setup for tag if present
         if (selectedTag) {
-            // We could show a tag chip or just filter, let's just filter for now
-            // and maybe update the search input or show a message
-            console.log("Filtering by tag:", selectedTag);
+            selectedSubject = selectedTag;
+            if (subjectFilter) subjectFilter.value = selectedTag;
         }
+
+        // ── Advanced Filters Toggle ──────────────────────────────────────
+        advFiltersToggle?.addEventListener('click', () => {
+            const isExpanded = advFiltersToggle.getAttribute('aria-expanded') === 'true';
+            advFiltersToggle.setAttribute('aria-expanded', (!isExpanded).toString());
+            advFiltersPanel?.classList.toggle('hidden');
+            advFiltersToggle.classList.toggle('active');
+        });
+
+        durationChips.forEach(chip => {
+            if (chip.getAttribute('data-min') === '0' && chip.getAttribute('data-max') === '999') {
+                chip.classList.add('active');
+            }
+            chip.addEventListener('click', () => {
+                durationChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                selectedDuration = {
+                    min: parseInt(chip.getAttribute('data-min') || '0'),
+                    max: parseInt(chip.getAttribute('data-max') || '999')
+                };
+                selectedDurationLabel = chip.textContent || 'Cualquiera';
+                filterItems();
+            });
+        });
+
+        schoolYearFilter?.addEventListener('change', () => {
+            selectedSchoolYear = schoolYearFilter.value;
+            filterItems();
+        });
+
+        subjectFilter?.addEventListener('change', () => {
+            selectedSubject = subjectFilter.value;
+            filterItems();
+        });
 
         // ── Debounce function ───────────────────────────────────────────
         function debounce(func: Function, wait: number) {
@@ -282,6 +410,7 @@ const buildNow = new Date();
                 const image = (option as HTMLElement).getAttribute('data-image') || '';
 
                 selectedGuest = value;
+                selectedGuestName = name;
 
                 guestOptions.forEach(o => {
                     o.classList.remove('active');
@@ -320,6 +449,20 @@ const buildNow = new Date();
             const showUpcoming = upcomingToggle.checked;
             const searchTerm = searchInput.value.toLowerCase().trim();
             let visibleCount = 0;
+            let activeAdvFilterCount = 0;
+
+            if (selectedDuration.min !== 0 || selectedDuration.max !== 999) activeAdvFilterCount++;
+            if (selectedSchoolYear !== '') activeAdvFilterCount++;
+            if (selectedSubject !== '') activeAdvFilterCount++;
+
+            if (advFiltersBadge) {
+                if (activeAdvFilterCount > 0) {
+                    advFiltersBadge.textContent = activeAdvFilterCount.toString();
+                    advFiltersBadge.classList.remove('hidden');
+                } else {
+                    advFiltersBadge.classList.add('hidden');
+                }
+            }
 
             const activeFiltersContainer = document.getElementById('active-filters-container');
             const activeFiltersList = document.getElementById('active-filters-list');
@@ -327,17 +470,78 @@ const buildNow = new Date();
             // Update active filters UI
             if (activeFiltersList && activeFiltersContainer) {
                 activeFiltersList.innerHTML = '';
-                if (selectedTag) {
-                    activeFiltersContainer.classList.remove('hidden');
+                let hasAnyActive = false;
+
+                if (selectedGuest) {
+                    hasAnyActive = true;
                     activeFiltersList.innerHTML += `
                         <span class="filter-chip">
-                            #${selectedTag}
+                            Invitado: ${selectedGuestName}
+                            <button id="clear-guest-chip" class="clear-chip-btn">&times;</button>
+                        </span>
+                    `;
+                }
+
+                if (selectedSubject || selectedTag) {
+                    hasAnyActive = true;
+                    activeFiltersList.innerHTML += `
+                        <span class="filter-chip">
+                            #${selectedSubject || selectedTag}
                             <button id="clear-tag" class="clear-chip-btn">&times;</button>
                         </span>
                     `;
+                }
+
+                if (selectedSchoolYear) {
+                    hasAnyActive = true;
+                    activeFiltersList.innerHTML += `
+                        <span class="filter-chip">
+                            Año: ${selectedSchoolYear}
+                            <button id="clear-school-year" class="clear-chip-btn">&times;</button>
+                        </span>
+                    `;
+                }
+
+                if (selectedDuration.max !== 999 || selectedDuration.min !== 0) {
+                    hasAnyActive = true;
+                    activeFiltersList.innerHTML += `
+                        <span class="filter-chip">
+                            Duración: ${selectedDurationLabel}
+                            <button id="clear-duration" class="clear-chip-btn">&times;</button>
+                        </span>
+                    `;
+                }
+
+                if (hasAnyActive) {
+                    activeFiltersContainer.classList.remove('hidden');
+                    
+                    // Add listeners for individual clear buttons
                     document.getElementById('clear-tag')?.addEventListener('click', () => {
                         selectedTag = '';
+                        selectedSubject = '';
+                        if (subjectFilter) subjectFilter.value = '';
                         window.history.replaceState({}, '', window.location.pathname);
+                        filterItems();
+                    });
+                    document.getElementById('clear-guest-chip')?.addEventListener('click', () => {
+                        selectedGuest = '';
+                        selectedGuestName = '';
+                        // Reset guest dropdown UI
+                        guestOptions.forEach(o => o.classList.remove('active'));
+                        document.querySelector('.guest-option--all')?.classList.add('active');
+                        if (guestTriggerLabel) guestTriggerLabel.textContent = 'Invitado';
+                        guestTrigger?.classList.remove('has-selection');
+                        filterItems();
+                    });
+                    document.getElementById('clear-school-year')?.addEventListener('click', () => {
+                        selectedSchoolYear = '';
+                        if (schoolYearFilter) schoolYearFilter.value = '';
+                        filterItems();
+                    });
+                    document.getElementById('clear-duration')?.addEventListener('click', () => {
+                        selectedDuration = { min: 0, max: 999 };
+                        durationChips.forEach(c => c.classList.remove('active'));
+                        document.querySelector('.duration-chip[data-min="0"][data-max="999"]')?.classList.add('active');
                         filterItems();
                     });
                 } else {
@@ -360,14 +564,19 @@ const buildNow = new Date();
                     const itemSeason = itemEl.getAttribute('data-season') || '';
                     const participants = itemEl.getAttribute('data-participants') || '';
                     const tags = itemEl.getAttribute('data-tags') || '';
+                    const durationMin = parseInt(itemEl.getAttribute('data-duration-min') || '0');
+                    const itemSchoolYear = itemEl.getAttribute('data-school-year') || '';
                     
                     const matchesSeason = currentSeason === 'all' || itemSeason === currentSeason;
                     const matchesUpcoming = showUpcoming || !isUpcoming || isAboutToPremiere;
                     const matchesSearch = searchTerm === '' || searchContent.includes(searchTerm);
                     const matchesGuest = selectedGuest === '' || participants.split('|').some(p => p.trim() === selectedGuest);
-                    const matchesTag = selectedTag === '' || tags.split('|').some(t => t.trim() === selectedTag);
+                    const matchesTag = (selectedSubject === '' && selectedTag === '') || 
+                                     tags.split('|').some(t => t.trim() === selectedSubject || t.trim() === selectedTag);
+                    const matchesDuration = durationMin >= selectedDuration.min && durationMin <= selectedDuration.max;
+                    const matchesSchoolYear = selectedSchoolYear === '' || itemSchoolYear === selectedSchoolYear;
 
-                    if (matchesSeason && matchesUpcoming && matchesSearch && matchesGuest && matchesTag) {
+                    if (matchesSeason && matchesUpcoming && matchesSearch && matchesGuest && matchesTag && matchesDuration && matchesSchoolYear) {
                         itemEl.classList.remove('hidden-anim');
                         itemEl.classList.remove('is-upcoming-hidden');
                         const badge = itemEl.querySelector('.dynamic-upcoming-badge') as HTMLElement | null;
@@ -438,9 +647,19 @@ const buildNow = new Date();
             searchInput.value = '';
             upcomingToggle.checked = false;
             selectedGuest = '';
+            selectedGuestName = '';
             selectedTag = '';
+            selectedSubject = '';
+            selectedSchoolYear = '';
+            selectedDuration = { min: 0, max: 999 };
             currentSeason = 'all';
             
+            // Clear UI elements
+            if (schoolYearFilter) schoolYearFilter.value = '';
+            if (subjectFilter) subjectFilter.value = '';
+            durationChips.forEach(c => c.classList.remove('active'));
+            document.querySelector('.duration-chip[data-min="0"][data-max="999"]')?.classList.add('active');
+
             // Clear URL search params without reload
             window.history.replaceState({}, '', window.location.pathname);
 
@@ -1002,6 +1221,137 @@ const buildNow = new Date();
 
     .guest-option.active .guest-option-check {
         opacity: 1;
+    }
+
+    /* ── Advanced Filters ─────────────────────────────────────────── */
+    .adv-filters-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.85rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: var(--color-text-muted);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        position: relative;
+    }
+
+    .adv-filters-toggle:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .adv-filters-toggle.active {
+        background: rgba(139, 92, 246, 0.1);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+    }
+
+    .adv-filters-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: var(--color-primary);
+        color: white;
+        font-size: 0.65rem;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-weight: 800;
+        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+        border: 2px solid #0f0f1b;
+    }
+
+    .adv-filters-panel {
+        padding: 1.5rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        animation: expandDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+
+    @keyframes expandDown {
+        from { max-height: 0; opacity: 0; }
+        to { max-height: 300px; opacity: 1; }
+    }
+
+    .adv-filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        text-align: left;
+    }
+
+    .adv-filter-group label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--color-text-muted);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+
+    .duration-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .duration-chip {
+        padding: 0.4rem 0.8rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        color: var(--color-text-muted);
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .duration-chip:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .duration-chip.active {
+        background: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+    }
+
+    .adv-select {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: var(--color-text-main);
+        font-family: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.25s ease;
+    }
+
+    .adv-select:focus {
+        border-color: var(--color-primary);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .adv-select option {
+        background: #1a1a2e;
+        color: white;
     }
 
     /* ── Grid ─────────────────────────────────────────────────────── */

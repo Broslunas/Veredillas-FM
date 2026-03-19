@@ -6,21 +6,10 @@ Este documento detalla una hoja de ruta exhaustiva para transformar **Veredillas
 
 
 ## 🌐 4. Comunidad y Socialización
-32. **Menciones en directo:** Notificación visual cuando alguien te cita en el chat de un estreno.
-33. **Reacciones Animadas:** Enviar emojis que flotan en pantalla durante el streaming (tipo Twitch).
-34. **Recortes de Clip:** Herramienta para generar un link de compartir a un segundo exacto del audio.
-35. **Comentarios por Voz:** Permitir grabar pequeños audios de respuesta a los episodios.
-36. **Muro de la Fama:** Una sección dedicada a las mejores fotos de los alumnos en el estudio.
 37. **Integración con Discord:** Sincronización automática de medallas con el servidor de los alumnos.
-38. **Push Notifier:** Alertas al navegador cuando un podcast esté a punto de comenzar.
-39. **Encuestas de Entrevista:** Formulario en tiempo real para decidir la siguiente pregunta al invitado.
-40. **Buzón de Mensajes:** Espacio para enviar preguntas anónimas que se leerán en el episodio.
 
 ## 🔍 5. Búsqueda y Navegación Inteligente
-41. **Buscador con IA (RAG):** Encuentra respuestas exactas dentro de los episodios (ej. "¿Cuándo se fundó el IES?").
 42. **Filtros Avanzados:** Por duración, invitado, año escolar o asignatura relacionada.
-43. **Enciclopedia de Invitados:** Páginas detalladas con biografía, redes y episodios de cada persona.
-44. **Diccionario Veredillas:** Glosario de términos y anécdotas internas del centro.
 45. **Recomendaciones Basadas en Gustos:** Algoritmo que sugiere contenido según lo escuchado previamente.
 46. **Barra de Progreso en Tarjetas:** Ver visualmente cuánto te falta por terminar de cada episodio.
 47. **Marcado SEO Premium:** Datos estructurados específicos para motores de búsqueda de podcasts.
