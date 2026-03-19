@@ -4,32 +4,9 @@ Este documento detalla una hoja de ruta exhaustiva para transformar **Veredillas
 
 ---
 
-## 🎧 1. Experiencia de Audio y Reproductor
-2. **Capítulos de Episodio:** Marcadores en la barra de progreso con títulos para navegar por secciones
-7. **Ecualizador Visual (Presets):** Ajustes de ecualización específicos para voz, música o entrevistas.
-8. **Mini-Player Persistente:** Un reproductor en la parte inferior que no se detiene al cambiar de página.
-
-## 🕹️ 2. Gamificación y Engagement
-13. **Sistema de XP (Experiencia):** Puntos acumulables por cada minuto de audio escuchado.
-14. **Logros Ocultos:** Medallas por acciones inesperadas (ej. "Escuchar un podcast a las 3 AM").
-15. **Leaderboard Semanal:** Ranking público de los oyentes más activos de la comunidad.
-16. **Niveles de Rango:** Evolución visual del perfil: de "Oyente Novato" a "Leyenda de la Radio".
-17. **Avatares Desbloqueables:** Accesorios estéticos para el avatar del usuario al completar misiones.
-18. **Retos Semanales:** Desafíos tipo "Escucha 3 episodios de la categoría Arte para ganar un cromo raro".
-19. **Ranking por Clases:** Competencia entre los diferentes grupos del IES Veredillas.
-20. **Votos Interactivos:** Moneda interna (tokens) para votar el tema del próximo gran estreno.
-
 ## 🎨 3. Interfaz de Usuario (UI) y Diseño Visual
-21. **Temas Dinámicos:** Los colores de acento de la web cambian según la paleta de la portada del episodio.
-22. **Astro View Transitions:** Transiciones ultra-fluidas que dan sensación de aplicación móvil nativa.
-23. **Efectos de Confeti (Canvas):** Explosiones visuales al desbloquear logros raros o subir de nivel.
-24. **Scroll Suave (GSAP):** Implementación de inercia y efectos de entrada espectaculares en el home.
-25. **Modo Ultra-Oscuro (OLED):** Un tema negro puro para ahorrar batería en dispositivos móviles.
 26. **Cursor Personalizado:** El puntero del ratón se transforma en iconos temáticos según el contexto.
 27. **Micro-interacciones Avanzadas:** Feedback háptico y visual en cada clic de botón y switch.
-28. **Skeleton Loading Artístico:** Pantallas de carga con siluetas que evocan la identidad de la radio.
-29. **Hover 3D en Portadas:** Efecto de profundidad (parallax) al pasar el ratón sobre las tarjetas.
-30. **Nuevos Easter Eggs:** Comandos de teclado que activan modos de visualización secretos.
 
 ## 🌐 4. Comunidad y Socialización
 31. **Perfiles Públicos:** Ver la actividad reciente de otros alumnos (si habilitan la opción).

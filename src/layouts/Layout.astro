@@ -167,6 +167,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
         <!-- Named slot for extra head content (e.g. per-page JSON-LD) -->
         <slot name="head" />
 
+
         <script is:inline>
             // Initialize theme from LocalStorage or Cookies
             const getCookie = (name) => {
@@ -182,6 +183,47 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
             } else {
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
+
+            // 3D Hover Effect using Event Delegation
+            const init3DHover = () => {
+                if (window.hover3DInited) return;
+                window.hover3DInited = true;
+
+                document.addEventListener('mousemove', (e) => {
+                    const card = (e.target).closest('.hover-3d-card');
+                    if (!card) return;
+
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (centerY - y) / 15;
+                    const rotateY = (x - centerX) / 15;
+                    
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    
+                    const xPercent = (x / rect.width) * 100;
+                    const yPercent = (y / rect.height) * 100;
+                    card.style.setProperty('--mouse-x', `${xPercent}%`);
+                    card.style.setProperty('--mouse-y', `${yPercent}%`);
+                });
+
+                document.addEventListener('mouseout', (e) => {
+                    const card = (e.target).closest('.hover-3d-card');
+                    if (!card) return;
+                    
+                    const relatedTarget = e.relatedTarget;
+                    if (!relatedTarget || !card.contains(relatedTarget)) {
+                        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+                    }
+                });
+            };
+
+            init3DHover();
+            document.addEventListener('astro:page-load', init3DHover);
         </script>
 
 

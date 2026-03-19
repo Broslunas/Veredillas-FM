@@ -206,6 +206,7 @@ img {
     background-color: var(--color-secondary); 
 }
 
+
 /* Noise Texture Overlay */
 body::before {
   content: "";
@@ -218,6 +219,38 @@ body::before {
   z-index: 9998;
   opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1' /%3E%3C/svg%3E");
+}
+
+/* Hover 3D Effect */
+.hover-3d-container {
+    perspective: 1000px;
+}
+
+.hover-3d-card {
+    transition: transform 0.1s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.hover-3d-card:hover {
+    transition: transform 0.05s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.hover-3d-card .shine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.hover-3d-card:hover .shine {
+    opacity: 1;
 }
 
 
