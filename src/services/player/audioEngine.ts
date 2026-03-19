@@ -222,6 +222,15 @@ export class AudioEngine {
             // Sync Immersive Visualizer
             const immCanvas = document.getElementById('audio-visualizer') as HTMLCanvasElement;
             const immersiveEl = document.getElementById('immersive-player');
+            
+            // Calculate average level for reactivity
+            let levelSum = 0;
+            for(let i=0; i<dataArray.length; i++) levelSum += dataArray[i];
+            const avgLevel = (levelSum / dataArray.length) / 255;
+            document.dispatchEvent(new CustomEvent('veredillas:audio-level', {
+                detail: { level: avgLevel }
+            }));
+
             if(immCanvas && immersiveEl && !immersiveEl.classList.contains('hidden')) {
                 const immCtx = immCanvas.getContext('2d');
                 if(immCtx) {

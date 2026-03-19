@@ -15,9 +15,12 @@
   --color-border: #27272a;
   
   --color-primary: #8b5cf6;
+  --color-primary-rgb: 139, 92, 246;
   --color-primary-glow: rgba(139, 92, 246, 0.5);
   --color-secondary: #0ea5e9;
+  --color-secondary-rgb: 14, 165, 233;
   --color-accent: #ec4899;
+  --color-accent-rgb: 236, 72, 153;
   
   --color-text-main: #ffffff;
   --color-text-muted: #a1a1aa;
