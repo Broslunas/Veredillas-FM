@@ -223,7 +223,7 @@ body::before {
 
 /* Hover 3D Effect */
 .hover-3d-container {
-    perspective: 1000px;
+    perspective: 2000px;
 }
 
 .hover-3d-card {

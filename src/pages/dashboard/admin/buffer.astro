@@ -1,0 +1,404 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import dbConnect from '../../../lib/mongodb';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/404');
+}
+
+await dbConnect();
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404'); 
+}
+
+const BUFFER_TOKEN = import.meta.env.BUFFER_ACCESS_TOKEN || "";
+let profiles: any[] = [];
+let scheduledPosts: any[] = [];
+let bufferError = null;
+
+if (BUFFER_TOKEN) {
+    try {
+        const orgQuery = `
+        query {
+          account {
+            organizations {
+              id
+              channels { id name service }
+            }
+          }
+        }`;
+        
+        const orgRes = await fetch('https://api.buffer.com/1/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${BUFFER_TOKEN}` },
+            body: JSON.stringify({ query: orgQuery })
+        });
+        
+        const orgData = await orgRes.json();
+        
+        if (orgData.errors) {
+            bufferError = `Error GraphQL (Organización): ${orgData.errors[0].message}`;
+        } else {
+            const org = orgData.data.account.organizations[0];
+            if (org) {
+                profiles = org.channels;
+                const orgId = org.id;
+                
+                const postsQuery = `
+                query GetPosts($orgId: OrganizationId!) {
+                  posts(input: { organizationId: $orgId, filter: { status: scheduled } }, first: 40) {
+                    edges {
+                      node {
+                        id
+                        text
+                        dueAt
+                        channel { id service name }
+                      }
+                    }
+                  }
+                }`;
+                
+                const postsRes = await fetch('https://api.buffer.com/1/graphql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${BUFFER_TOKEN}` },
+                    body: JSON.stringify({ query: postsQuery, variables: { orgId } })
+                });
+                
+                const postsData = await postsRes.json();
+                
+                if (postsData.errors) {
+                    bufferError = `Error GraphQL (Posts): ${postsData.errors[0].message}`;
+                } else {
+                    const edges = postsData.data.posts.edges || [];
+                    scheduledPosts = edges.map((edge: any) => ({
+                        id: edge.node.id,
+                        text: edge.node.text,
+                        due_at: edge.node.dueAt,
+                        _profile: edge.node.channel
+                    }));
+                    
+                    scheduledPosts.sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime());
+                    scheduledPosts = scheduledPosts.slice(0, 40);
+                }
+            } else {
+                bufferError = "No se encontró organización en Buffer.";
+            }
+        }
+    } catch (e: any) {
+        bufferError = e.message;
+    }
+}
+
+// Helpers
+function formatTime(isoString: string) {
+    return new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' }).format(new Date(isoString));
+}
+
+function formatDateFull(isoString: string) {
+    return new Intl.DateTimeFormat('es-ES', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(isoString));
+}
+
+function formatDayOnly(isoString: string) {
+    return new Intl.DateTimeFormat('es-ES', { day: 'numeric' }).format(new Date(isoString));
+}
+
+function formatWeekdayOnly(isoString: string) {
+    return new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(new Date(isoString)).toUpperCase();
+}
+
+function getServiceIcon(service: string) {
+    switch(service) {
+        case 'twitter': return '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+        case 'instagram': return '<svg class="w-4 h-4 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>';
+        case 'tiktok': return '<svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>';
+        case 'facebook': return '<svg class="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>';
+        case 'linkedin': return '<svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>';
+        default: return `<span class="uppercase font-bold text-[10px]">${service.substring(0,2)}</span>`;
+    }
+}
+
+// Generar últimos 30 días para calendario (los próximos 7 días con contenido)
+const postsByDate: Record<string, any[]> = {};
+scheduledPosts.forEach(p => {
+    const d = new Date(p.due_at).toISOString().split('T')[0];
+    if(!postsByDate[d]) postsByDate[d] = [];
+    postsByDate[d].push(p);
+});
+
+// Mostrar una ventana de 7 días naturales partiendo desde hoy
+const calendarDays = [];
+const today = new Date();
+for(let i=0; i<7; i++) {
+    const target = new Date(today);
+    target.setDate(today.getDate() + i);
+    const dayStr = target.toISOString().split('T')[0];
+    calendarDays.push({
+        dateStr: dayStr,
+        weekday: formatWeekdayOnly(target.toISOString()),
+        dayNum: formatDayOnly(target.toISOString()),
+        posts: postsByDate[dayStr] || []
+    });
+}
+---
+
+<Layout title="Buffer Schedule | Veredillas FM" robots="noindex, nofollow">
+  <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-slate-950">
+    <div class="absolute -top-40 -left-60 w-[30rem] h-[30rem] bg-indigo-600/20 rounded-full blur-[140px] mix-blend-screen"></div>
+    <div class="absolute top-40 right-0 w-[40rem] h-[40rem] bg-fuchsia-600/10 rounded-full blur-[150px] mix-blend-screen"></div>
+    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-150 contrast-150 mix-blend-overlay"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 py-8 relative">
+    <AdminNav />
+
+    <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+        <div class="flex-1">
+            <h1 class="text-5xl font-black tracking-tight text-white mb-2 italic drop-shadow-lg">SOCIAL <span class="text-indigo-400">SCHEDULE</span></h1>
+            <p class="text-slate-400 text-lg font-medium">Visualiza y publica clips en el instante.</p>
+        </div>
+        
+        {BUFFER_TOKEN && !bufferError && (
+            <div class="flex items-center gap-2 bg-slate-900/60 backdrop-blur-xl border border-white/10 p-1.5 rounded-2xl shadow-xl">
+                <button id="btn-view-timeline" class="view-toggle px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide transition-all bg-indigo-500 text-white shadow-lg">Timeline</button>
+                <button id="btn-view-calendar" class="view-toggle px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide transition-all text-slate-400 hover:text-white">Calendario</button>
+            </div>
+        )}
+    </header>
+
+    {!BUFFER_TOKEN || bufferError ? (
+        <div class="bg-amber-900/20 border border-amber-500/30 rounded-[3rem] p-12 flex flex-col items-center text-center max-w-2xl mx-auto backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent"></div>
+            <div class="relative z-10 w-24 h-24 bg-amber-500/10 border border-amber-500/30 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <h2 class="relative z-10 text-3xl font-black text-white mb-4 tracking-tight">API Key Necesaria</h2>
+            <p class="relative z-10 text-slate-300 mb-8 max-w-md">
+                Añade el <code class="bg-slate-900 text-amber-300 px-2 py-0.5 rounded-md font-mono text-sm border border-white/10">BUFFER_ACCESS_TOKEN</code> en el archivo <code>.env</code>
+            </p>
+            {bufferError && (
+                <div class="relative z-10 w-full bg-rose-950/40 border border-rose-500/20 text-rose-300 text-xs p-4 rounded-2xl mb-8 font-mono text-left break-words">
+                    <strong>Error:</strong> {bufferError}
+                </div>
+            )}
+        </div>
+    ) : (
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <!-- Left Sidebar -->
+            <div class="xl:col-span-3 flex flex-col gap-6">
+                <!-- Estadísticas Globales -->
+                <div class="bg-indigo-600/10 border border-indigo-500/20 backdrop-blur-xl rounded-[2.5rem] p-6 text-center shadow-xl group hover:border-indigo-500/50 transition-colors">
+                    <span class="block text-5xl font-black text-indigo-400 mb-1 group-hover:scale-110 transition-transform origin-center">{scheduledPosts.length}</span>
+                    <span class="text-[10px] uppercase tracking-[0.2em] font-black text-slate-400">Posts Programados</span>
+                </div>
+
+                <!-- Lista de Redes -->
+                <div class="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent"></div>
+                    <h3 class="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-5 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Redes Sincronizadas
+                    </h3>
+                    <div class="flex flex-col gap-2">
+                        {profiles.map((profile) => (
+                            <div class="flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-2xl hover:bg-white/10 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-slate-800 shrink-0 border border-white/10 flex justify-center items-center">
+                                        <Fragment set:html={getServiceIcon(profile.service)} />
+                                    </div>
+                                    <span class="text-slate-300 text-xs font-bold truncate max-w-[100px]">{profile.formatted_username || profile.name || profile.service}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="xl:col-span-9 relative">
+                
+                <!-- VISTA 1: TIMELINE -->
+                <div id="view-timeline" class="view-section active flex flex-col gap-8 fade-in">
+                    <div class="bg-black/20 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 shadow-2xl relative overflow-hidden min-h-[600px]">
+                        <div class="absolute top-0 right-10 w-64 h-64 bg-fuchsia-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+                        <div class="relative pl-6 md:pl-8 border-l-2 border-slate-800/80 flex flex-col gap-8">
+                            {scheduledPosts.length === 0 ? (
+                                <div class="py-20 text-center">
+                                    <p class="text-slate-500 font-medium text-lg">No hay clips en espera.</p>
+                                </div>
+                            ) : (
+                                scheduledPosts.map((post) => (
+                                    <div class="relative group" id={`post-card-${post.id}`}>
+                                        <div class="absolute -left-[35px] md:-left-[43px] top-6 w-5 h-5 bg-indigo-500 rounded-full border-4 border-slate-950 group-hover:bg-fuchsia-400 transition-colors z-10"></div>
+                                        
+                                        <div class="bg-white/5 border border-white/5 rounded-[2rem] p-6 transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:-translate-y-1 overflow-hidden group-hover:bg-slate-900/80">
+                                            <div class="relative z-10 flex flex-col md:flex-row gap-6">
+                                                
+                                                <div class="flex-shrink-0 flex flex-col md:w-32 justify-between">
+                                                    <div>
+                                                        <span class="text-emerald-400 font-mono font-bold text-sm block">{formatDateFull(post.due_at)}</span>
+                                                        <div class="flex items-center gap-2 mt-2">
+                                                            <div class="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center">
+                                                                <Fragment set:html={getServiceIcon(post._profile.service)} />
+                                                            </div>
+                                                            <span class="text-slate-400 font-medium text-xs capitalize">{post._profile.service}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex-1 bg-black/40 rounded-2xl p-4 border border-white/5 break-words">
+                                                    <p class="text-slate-200 text-sm leading-relaxed">{post.text}</p>
+                                                </div>
+
+                                                <div class="flex flex-col justify-end">
+                                                    <a href={`https://publish.buffer.com/profile/${post._profile.id}/tab/queue`} target="_blank" class="px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center gap-2">
+                                                        <span>Abrir en Buffer</span>
+                                                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA 2: CALENDARIO (7 DÍAS) -->
+                <div id="view-calendar" class="view-section hidden fade-in w-full overflow-x-auto pb-6">
+                    <div class="flex gap-4 min-w-max">
+                        {calendarDays.map(day => (
+                            <div class="w-[320px] flex flex-col gap-4">
+                                <div class="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-5 text-center sticky top-0 z-20 shadow-xl overflow-hidden group hover:border-indigo-500/30 transition-all">
+                                    <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent"></div>
+                                    <span class="block text-xs font-black tracking-[0.2em] uppercase text-indigo-400 mb-1">{day.weekday}</span>
+                                    <span class="block text-4xl font-black text-white">{day.dayNum}</span>
+                                    <div class="mt-3 flex items-center justify-center gap-2">
+                                        <div class="h-2 w-2 rounded-full bg-emerald-500"></div>
+                                        <span class="text-xs text-slate-400 font-bold">{day.posts.length} clips</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-4">
+                                    {day.posts.map(post => (
+                                        <div class="bg-white/5 backdrop-blur-md border border-white/5 rounded-3xl p-5 hover:border-white/20 transition-all shadow-lg hover:-translate-y-1 hover:shadow-indigo-500/10 group flex flex-col justify-between" id={`cal-post-${post.id}`}>
+                                            <div>
+                                                <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                                                    <span class="text-indigo-300 font-mono font-bold text-xs bg-indigo-500/10 px-2 py-1 rounded inline-block">{formatTime(post.due_at)}</span>
+                                                    <div class="w-6 h-6 rounded-md bg-black/50 flex flex-col justify-center items-center shadow-inner">
+                                                        <Fragment set:html={getServiceIcon(post._profile.service)} />
+                                                    </div>
+                                                </div>
+                                                <p class="text-slate-300 text-xs leading-relaxed line-clamp-4 overflow-hidden mb-4 bg-black/30 p-3 rounded-2xl">{post.text}</p>
+                                            </div>
+                                            <a href={`https://publish.buffer.com/profile/${post._profile.id}/tab/queue`} target="_blank" class="block w-full text-center px-4 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all">
+                                                Abrir en Buffer
+                                            </a>
+                                        </div>
+                                    ))}
+                                    {day.posts.length === 0 && (
+                                        <div class="border-2 border-dashed border-white/5 rounded-3xl h-32 flex flex-col items-center justify-center text-slate-600 bg-white/[0.01]">
+                                            <span class="text-sm font-medium">Día Libre</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    )}
+  </div>
+</Layout>
+
+<script>
+    import confetti from 'canvas-confetti';
+
+    function initBufferUI() {
+        const btnTimeline = document.getElementById('btn-view-timeline');
+        const btnCalendar = document.getElementById('btn-view-calendar');
+        const viewTimeline = document.getElementById('view-timeline');
+        const viewCalendar = document.getElementById('view-calendar');
+
+        if (btnTimeline && btnCalendar && viewTimeline && viewCalendar) {
+            // Remove old listeners to prevent duplicates on navigation
+            const newBtnTimeline = btnTimeline.cloneNode(true);
+            const newBtnCalendar = btnCalendar.cloneNode(true);
+            btnTimeline.parentNode?.replaceChild(newBtnTimeline, btnTimeline);
+            btnCalendar.parentNode?.replaceChild(newBtnCalendar, btnCalendar);
+
+            newBtnTimeline.addEventListener('click', () => {
+                viewTimeline.classList.remove('hidden');
+                viewTimeline.classList.add('flex');
+                viewCalendar.classList.add('hidden');
+                
+                (newBtnTimeline as HTMLElement).classList.add('bg-indigo-500', 'text-white', 'shadow-lg');
+                (newBtnTimeline as HTMLElement).classList.remove('text-slate-400', 'hover:text-white');
+                (newBtnCalendar as HTMLElement).classList.remove('bg-indigo-500', 'text-white', 'shadow-lg');
+                (newBtnCalendar as HTMLElement).classList.add('text-slate-400', 'hover:text-white');
+            });
+
+            newBtnCalendar.addEventListener('click', () => {
+                viewCalendar.classList.remove('hidden');
+                viewTimeline.classList.add('hidden');
+                viewTimeline.classList.remove('flex');
+                
+                (newBtnCalendar as HTMLElement).classList.add('bg-indigo-500', 'text-white', 'shadow-lg');
+                (newBtnCalendar as HTMLElement).classList.remove('text-slate-400', 'hover:text-white');
+                (newBtnTimeline as HTMLElement).classList.remove('bg-indigo-500', 'text-white', 'shadow-lg');
+                (newBtnTimeline as HTMLElement).classList.add('text-slate-400', 'hover:text-white');
+            });
+        }
+
+        // Removed broken internal Buffer action since it's unsupported.
+    }
+
+    // Initialize on both standard load and Astro's ViewTransitions client-side routing
+    document.addEventListener('DOMContentLoaded', initBufferUI);
+    document.addEventListener('astro:page-load', initBufferUI);
+    
+    // Incase DOMContentLoaded already fired before script was parsed:
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        initBufferUI();
+    }
+</script>
+
+<style>
+    .fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .view-section {
+        transition: opacity 0.3s ease;
+    }
+    ::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.02);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.4);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.8);
+    }
+</style>

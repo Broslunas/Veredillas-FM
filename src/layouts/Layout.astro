@@ -201,10 +201,10 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
                     const centerX = rect.width / 2;
                     const centerY = rect.height / 2;
                     
-                    const rotateX = (centerY - y) / 15;
-                    const rotateY = (x - centerX) / 15;
+                    const rotateX = (centerY - y) / 40;
+                    const rotateY = (x - centerX) / 40;
                     
-                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    card.style.transform = `perspective(2000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
                     
                     const xPercent = (x / rect.width) * 100;
                     const yPercent = (y / rect.height) * 100;
@@ -218,7 +218,7 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
                     
                     const relatedTarget = e.relatedTarget;
                     if (!relatedTarget || !card.contains(relatedTarget)) {
-                        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+                        card.style.transform = `perspective(2000px) rotateX(0deg) rotateY(0deg)`;
                     }
                 });
             };
