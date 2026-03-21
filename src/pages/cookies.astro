@@ -6,55 +6,62 @@ import Layout from '../layouts/Layout.astro';
 <Layout title="Política de Cookies | Veredillas FM">
   <main class="page-container">
     <div class="content-wrapper">
-      <h1>Política de Cookies y Almacenamiento Local</h1>
+      <h1>Política de Cookies y Tecnologías de Almacenamiento Local</h1>
       <p class="updated-date">Última actualización: {new Date().toLocaleDateString('es-ES')}</p>
       
       <section>
-        <h2>¿Qué son las cookies y el almacenamiento local?</h2>
-        <p>En Veredillas FM utilizamos cookies y <strong>Local Storage</strong> para mejorar tu experiencia. Estas tecnologías nos permiten recordar tus preferencias y progreso sin necesidad de solicitarlos constantemente.</p>
+        <h2>1. Contextualización sobre los Instrumentos de Almacenamiento</h2>
+        <p>En orden de proporcionar un servicio fluido, tecnológicamente competente y de baja latencia en un entorno de interactividad alta como ostenta Veredillas FM, empleamos de manera intensiva diminutos contenedores de datos que se guardan directamente en el terminal electrónico o navegador web del usuario. Estas entidades técnicas se categorizan predominantemente bajo el paradigma clásico de <strong>Cookies del Navegador</strong> o a través del empleo de las nuevas interfaces de programación agrupadas bajo las librerías relativas de la Web Storage API genérica (típicamente <strong>LocalStorage</strong> o <strong>SessionStorage</strong>).</p>
+        <p>Su función es de índole primaria a nivel arquitectónico y actúan como facilitadores de la navegación continua del oyente, otorgan capacidad funcional de alto rendimiento y mejoran la experiencia general, conforme a la directriz e-Privacy de la Unión Europea y el RGPD.</p>
       </section>
 
       <section>
-        <h2>¿Qué tecnologías utilizamos?</h2>
+        <h2>2. Desglose Documentado de las Tecnologías Cimentadas</h2>
         
-        <h3>1. Esenciales</h3>
-        <p>Necesarias para el funcionamiento básico del sitio:</p>
+        <h3>2.1. Tecnologías de Grado Crítico y Naturaleza Esencial</h3>
+        <p>Su denegación impide por completo el uso de componentes fundamentales como el inicio de sesión del usuario. Se exigen forzosamente para la prestación del servicio base:</p>
         <ul class="cookie-list">
-          <li><strong>Autenticación:</strong> Mantener tu sesión abierta de forma segura.</li>
-          <li><strong>Seguridad:</strong> Protección contra ataques CSRF y validación de formularios.</li>
+          <li><strong>Módulos de Autenticación Seguras:</strong> Retienen un token efímero que informa a la sesión y valida que navegas legítimamente como el propietario en las vistas logueadas.</li>
+          <li><strong>Validación Preventiva y Escudos CSRF:</strong> Inyectan códigos que corroboran la equidad de las peticiones para llenar formularios, neutralizando proactivamente intentos de secuestro de interacciones.</li>
         </ul>
 
-        <h3>2. Experiencia de Usuario y Multimedia</h3>
-        <p>Mejoran tu interacción con el reproductor y la comunidad:</p>
+        <h3>2.2. Tecnologías Orientadas a Dinámicas de Mejora Multimedia (UX/UI)</h3>
+        <p>Destinadas al aumento de valor de interfaz y retención de las elecciones visuales sin someter al usuario a un tedioso reclamo repetitivo de las mismas, habilitando una experiencia inmersiva:</p>
         <ul class="cookie-list">
-          <li><strong>Estado del Reproductor:</strong> Guardamos el volumen, el último episodio y la posición exacta de reproducción (timestamps) para que puedas "Continuar Escuchando".</li>
-          <li><strong>Preferencias de Interfaz:</strong> Selección de tema (Claroscuro), modo Zen y ajustes de visualización de perfiles.</li>
-          <li><strong>Chat en Vivo:</strong> Preferencias de notificaciones y estado del scroll en el chat.</li>
+          <li><strong>Persistencia de Parámetros del Reproductor Híbrido:</strong> Salvaguardas continuas sobre el control de volumen específico, episodio en curso y marcadores de posición temporal (timestamps exactos) que habilitan las funciones de "Continuar Escuchando" y el soporte robusto a la continuidad de escucha al cambiar de ventana.</li>
+          <li><strong>Micro-Personalizaciones de Interfaz:</strong> Opciones que atañen pura y exclusivamente al gusto del consumidor, como la paleta de colores preferida (Modo Claroscuro) y la orientación de perfiles interactivos de visión de paneles.</li>
+          <li><strong>Entornos de Chat en Vivo y Timeline:</strong> Manejo asíncrono de alertas auditivas e inerciales sobre a qué coordenada del scroll el individuo abandonó la lectura de la comunidad.</li>
         </ul>
 
-        <h3>3. Gamificación y Progreso</h3>
-        <p>Rastreamos tu actividad para otorgar recompensas:</p>
+        <h3>2.3. Tecnologías de Sistemas de Gamificación, Logros y Niveles</h3>
+        <p>Instrumentales a la hora de monitorizar las progresiones de recompensas por consumo e interacción, a fin de procesarlas fluidamente asincrónicamente frente al Backend:</p>
         <ul class="cookie-list">
-          <li><strong>Logros Recientes:</strong> Almacenamiento temporal de hitos alcanzados para mostrar notificaciones de "Achievement Unlocked".</li>
-          <li><strong>Puntuación en tiempo real:</strong> Sincronización de puntos y niveles durante la sesión de navegación.</li>
+          <li><strong>Validación Asíncrona de Criterios y Logros:</strong> Datos operacionales temporales en frontend que verifican si se cumplen premisas lógicas para disparar animaciones de pop-ups de insignias descubiertas ("Achievement Unlocked").</li>
+          <li><strong>Rastreo en Tiempo Real de Estatus y Puntuación:</strong> Pre-procesan de manera escalonada sumatorias de puntuación frente a envíos ineficientes recurrentes hacia los servidores, optimizando tu cuota de tráfico de red y nuestro límite de transacciones.</li>
         </ul>
 
-        <h3>4. Rendimiento y Analítica</h3>
-        <p>Utilizamos datos anónimos para entender el uso de la plataforma:</p>
+        <h3>2.4. Tecnologías relativas a Analíticas, Métricas y Desempeño General</h3>
+        <p>Acopian informaciones cuantificables y anónimas sobre el itinerario estadístico de las acciones de los consumidores dentro del portal:</p>
         <ul class="cookie-list">
-          <li><strong>Métricas de Episodios:</strong> Conteo de reproducciones para generar los rankings de "Top Listeners".</li>
-          <li><strong>Interacción con IA:</strong> Análisis de satisfacción con las respuestas del chatbot.</li>
+          <li><strong>Modelización Ponderada de Preferencias (Audios):</strong> Telemétrica para recuento anónimo del grado de engagement provisto en capítulos; fundamental en la estructuración de listados y el Top General.</li>
+          <li><strong>Uso en Herramientas Integradoras IA:</strong> Cosecha estadística relativa al uso que se efectúa en chatbots para el simple interés de recalibración de nuestras redes e incitar mejora en la satisfacción de consultas subsecuentes.</li>
         </ul>
       </section>
 
       <section>
-        <h2>Gestión de tus preferencias</h2>
-        <p>Puedes limpiar estos datos desde la configuración de tu navegador. Si lo haces:</p>
+        <h2>3. Arquitectura de Delegación y Control del Usuario frente a su Browser</h2>
+        <p>Veredillas FM asume categóricamente una conducta pasiva, dejando en tus manos la capacidad absoluta de aceptar y configurar a nivel externo la limpieza del terminal de cookies. Conservas el derecho a usar la consola central o configuración de tu navegador (Chrome, Firefox, Safari o el que aplique) para bloquear preventivamente estas transferencias o purgarlas sistemáticamente.</p>
+        <p>Si procedes a ejecutar una limpieza agresiva de datos de sitio o bloqueas tecnologías estrictas operará:</p>
         <ul class="cookie-list">
-          <li>Se cerrará tu sesión activa.</li>
-          <li>El reproductor perderá tu progreso actual.</li>
-          <li>Tus preferencias visuales volverán a los valores por defecto.</li>
+          <li>Desconexión radical unívoca al invalidarse el token de paso seguro, requiriéndote iniciar sesión desde cero manualmente.</li>
+          <li>Quiebra de la sincronización de las marcas guardadas, reseteando tu progreso temporal del reproductor hasta el inicio del episodio actual al no encontrar tracking persistente de tus minutos consumidos en este PC/Aparato.</li>
+          <li>Retorno del tema interactivo (oscuro / iluminado) a la configuración base que extraiga por defecto el navegador o Sistema Operativo del dispositivo, desapareciendo todas las demás personalizaciones manuales introducidas por ti sobre tu entorno.</li>
         </ul>
+      </section>
+
+      <section>
+        <h2>4. Cambios y Actualizaciones Iterativas</h2>
+        <p>Debido al constante refinamiento tecnológico propio del ecosistema web moderno al que estamos circunscritos, actualizaremos sistemáticamente el panel para encuadrar posibles nuevas adiciones a tecnologías de terceros. Promovemos revisiones regulares a esta página.</p>
       </section>
     </div>
   </main>
@@ -67,59 +74,98 @@ import Layout from '../layouts/Layout.astro';
   }
   
   .content-wrapper {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
+    padding: 2rem 0;
   }
   
   h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
     color: var(--color-text-heading);
+    letter-spacing: -0.02em;
+    font-weight: 800;
   }
   
   .updated-date {
-    color: var(--color-text-muted);
-    margin-bottom: 3rem;
+    color: var(--color-primary);
+    font-weight: 600;
+    margin-bottom: 3.5rem;
+    font-size: 0.95rem;
+    text-transform: uppercase;
   }
   
   section {
-    margin-bottom: 2.5rem;
+    margin-bottom: 3rem;
   }
   
   h2 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+    color: var(--color-text-heading);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  
+  h3 {
+    font-size: 1.35rem;
+    margin-top: 2rem;
     margin-bottom: 1rem;
     color: var(--color-text-heading);
+    font-weight: 700;
+    border-left: 4px solid var(--color-primary);
+    padding-left: 1rem;
   }
   
   p {
     color: var(--color-text-body);
-    line-height: 1.7;
-    margin-bottom: 1rem;
-  }
-  
-  h3 {
-    font-size: 1.25rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    color: var(--color-text-heading);
-    font-weight: 600;
+    line-height: 1.8;
+    margin-bottom: 1.25rem;
+    font-size: 1.05rem;
   }
 
   .cookie-list {
-    list-style-type: disc;
-    padding-left: 1.5rem;
-    margin-bottom: 1.5rem;
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 2rem;
+    margin-top: 1rem;
     color: var(--color-text-body);
   }
-  
+
   .cookie-list li {
-    margin-bottom: 0.75rem;
-    line-height: 1.6;
+    position: relative;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    line-height: 1.7;
+    font-size: 1.05rem;
+  }
+
+  .cookie-list li::before {
+    content: "•";
+    color: var(--color-primary);
+    position: absolute;
+    left: 0;
+    font-size: 1.5rem;
+    line-height: 1;
   }
 
   strong {
     color: var(--color-text-heading);
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    .content-wrapper {
+      padding: 1.5rem;
+    }
+    h1 {
+      font-size: 2.25rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+    }
+    h3 {
+      font-size: 1.2rem;
+    }
   }
 </style>
-
