@@ -7,24 +7,6 @@ tags:
   - estilo de vida
   - subculturas
   - tatuajes significativos
-description: >-
-  Humo y Tinta: Un podcast sobre tatuajes significativos, la cultura vaper y su
-  conexión. Historias reales, risas y el estilo de vida que los une. ¡Escúchalo
-  ahora!
-pubDate: '2026-03-18T17:00:00.000Z'
-image: 'https://cdn.veredillasfm.es/images/ceecad26-0b03-4c79-a605-0325a16fc4c8.webp'
-season: 2
-episode: 4
-duration: 43 min
-participants:
-  - Dylan
-  - Eric
-  - Alejandro Verano
-  - Joan
-isPremiere: true
-videoUrl: 'https://www.youtube.com/embed/7qAOq11amYU'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/117112237/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-18%2F420271663-44100-2-b49239a026f1d.mp3
 transcription:
   - time: '00:03'
     text: >-
@@ -1438,6 +1420,24 @@ transcription:
       todo, nos sigan y todo, compartan.
   - time: '43:18'
     text: Ceci Armi comparte.
+description: >-
+  Humo y Tinta: Un podcast sobre tatuajes significativos, la cultura vaper y su
+  conexión. Historias reales, risas y el estilo de vida que los une. ¡Escúchalo
+  ahora!
+pubDate: '2026-03-18T17:00:00.000Z'
+image: 'https://cdn.veredillasfm.es/images/ceecad26-0b03-4c79-a605-0325a16fc4c8.webp'
+season: 2
+episode: 4
+duration: 43 min
+participants:
+  - Dylan
+  - Eric
+  - Alejandro Verano
+  - Joan
+isPremiere: true
+videoUrl: 'https://www.youtube.com/embed/7qAOq11amYU'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/117112237/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-18%2F420271663-44100-2-b49239a026f1d.mp3
 sections:
   - time: '00:03'
     title: Bienvenida a Veredillas FM
@@ -1529,6 +1529,19 @@ sections:
     title: Despedida y agradecimientos
   - time: '43:13'
     title: Cierre del programa
+clips:
+  - title: ¡Peligro! Fácil Acceso a Tabaco y Cerveza para Menores
+    url: 'https://youtu.be/BG1aB2EnJKo'
+  - title: 'Apariencia vs. Mérito: Tatuajes y Trabajos'
+    url: 'https://youtu.be/-_Ebk0BYi8Y'
+  - title: 'Méritos y Logros: Tu Valor Real, No la Apariencia'
+    url: 'https://youtu.be/OaIHVvHfldw'
+  - title: ¡Mi Madre Me Salvó de la Policía! Experiencia Real
+    url: 'https://youtu.be/ndJTx1grwmY'
+  - title: ¡Vaper o Chocolate! La Primera Impresión Engaña
+    url: 'https://youtu.be/SePL1-6kBKY'
+  - title: ¡¡Padres Regalan Vapes a Menores!! ¡¡Preocupante Realidad!!
+    url: 'https://youtu.be/Ft2wSb_9Etk'
 ---
 Hoy el estudio se mueve entre nubes de vapor y el sonido de las máquinas. En este episodio de Humo y Tinta, nos sentamos con Dylan, Eric, Alejandro y Joan para hablar de dos mundos que van de la mano: el arte en la piel y la cultura del vapeo.
 
