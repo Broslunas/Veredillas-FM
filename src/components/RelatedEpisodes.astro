@@ -106,8 +106,14 @@ const sectionTitle = listenedEpisodes.length > 0 ? "Seleccionado para ti" : "Tam
 
   .related-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--spacing-lg);
     justify-content: center;
+  }
+
+  @media (max-width: 480px) {
+    .related-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
