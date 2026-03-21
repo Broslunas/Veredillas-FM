@@ -21,9 +21,9 @@
                     <div class="flex flex-col gap-0.5">
                         <div class="flex items-center gap-2">
                             <h3 class="m-0 text-white text-base font-semibold leading-tight">Veredillas AI</h3>
-                            <span class="bg-red-700 text-red-100 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wider uppercase">OFFLINE</span>
+                            <span class="bg-blue-600 text-blue-100 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wider uppercase">BETA</span>
                         </div>
-                        <p class="m-0 text-zinc-400 text-xs flex items-center gap-1">🔴 Fuera de servicio.</p>
+                        <p class="m-0 text-zinc-400 text-xs flex items-center gap-1">🟢 En línea e inteligente.</p>
                     </div>
                 </div>
                 <button id="close-chat" class="bg-transparent border-none text-zinc-400 cursor-pointer p-1 rounded transition-colors hover:bg-white/10 hover:text-white" aria-label="Cerrar chat">
@@ -39,23 +39,22 @@
                 <!-- Welcome Message (Out of Service) -->
                 <div class="flex flex-col max-w-[85%] self-start items-start animate-in fade-in slide-in-from-bottom-1 duration-300">
                     <div class="p-3 px-4 rounded-xl text-sm leading-relaxed relative break-words bg-zinc-800 text-zinc-200 border border-zinc-800 border-bl-none rounded-bl-sm">
-                        ¡Hola! Lo sentimos, pero el chat de IA de Veredillas FM se encuentra actualmente **fuera de servicio** por mantenimiento. Por favor, vuelve a intentarlo más tarde.
+                        ¡Hola! Soy Veredillas AI, tu asistente inteligente. ¿En qué puedo ayudarte hoy? Pregúntame sobre episodios, invitados o el instituto.
                     </div>
                 </div>
             </div>
 
             <!-- Input Area -->
             <div class="p-4 border-t border-zinc-800 bg-[#0f1117] shrink-0">
-                <form id="chat-form" class="flex items-center bg-zinc-900 border border-zinc-800 rounded-[24px] pl-4 pr-1.5 py-1 transition-colors opacity-50 cursor-not-allowed">
+                <form id="chat-form" class="flex items-center bg-zinc-900 border border-zinc-800 rounded-[24px] pl-4 pr-1.5 py-1 transition-colors hover:border-zinc-700 focus-within:border-indigo-500/50">
                     <input 
                         type="text" 
                         id="chat-input" 
-                        placeholder="Chat no disponible..." 
-                        disabled
+                        placeholder="Escribe un mensaje..." 
                         autocomplete="off"
                         class="flex-1 bg-transparent border-none text-white text-sm py-2 outline-none min-w-0 placeholder:text-zinc-600"
                     />
-                    <button type="submit" disabled class="bg-zinc-800 border-none text-zinc-600 w-8 h-8 rounded-full flex items-center justify-center cursor-not-allowed shrink-0" aria-label="Enviar mensaje">
+                    <button type="submit" class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-indigo-500 hover:scale-105 active:scale-95 shrink-0" aria-label="Enviar mensaje">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="22" y1="2" x2="11" y2="13"></line>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
