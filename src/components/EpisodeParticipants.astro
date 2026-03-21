@@ -39,7 +39,7 @@ if (episodeGuests.length === 0) {
           )}
           <div class="flex flex-col justify-center">
             <div class="flex items-center gap-2">
-              <span class="font-semibold text-base text-[var(--color-text-main)] leading-none">{guest.data.name}</span>
+              <span class="font-semibold text-base text-[var(--color-text-main)] leading-tight break-words">{guest.data.name}</span>
               {guest.data.social?.instagram && (
                 <a 
                   href={guest.data.social.instagram} 

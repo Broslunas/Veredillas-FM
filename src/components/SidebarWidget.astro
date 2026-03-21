@@ -12,7 +12,7 @@ const { title, id, isOpen = true, class: className = "" } = Astro.props;
 
 <div class:list={["sidebar-widget-collapsible", className]} id={id} data-is-open={isOpen ? "true" : "false"}>
   <div class="widget-header">
-      <h3>{title}</h3>
+      <h3 class="leading-tight break-words">{title}</h3>
       <div class="header-actions">
            <slot name="header-actions" />
            <button class="toggle-btn" aria-label="Colapsar/Expandir">
@@ -32,20 +32,13 @@ const { title, id, isOpen = true, class: className = "" } = Astro.props;
         const widgets = document.querySelectorAll('.sidebar-widget-collapsible');
         
         widgets.forEach(widget => {
-            const btn = widget.querySelector('.toggle-btn');
+            const header = widget.querySelector('.widget-header');
             const content = widget.querySelector('.widget-content') as HTMLElement;
             
-            if(btn && content) {
-                btn.addEventListener('click', () => {
+            if(header && content) {
+                header.addEventListener('click', () => {
                     const isOpen = widget.getAttribute('data-is-open') === 'true';
-                    
-                    if(isOpen) {
-                        widget.setAttribute('data-is-open', 'false');
-                        // Collapse
-                    } else {
-                        widget.setAttribute('data-is-open', 'true');
-                        // Expand
-                    }
+                    widget.setAttribute('data-is-open', isOpen ? "false" : "true");
                 });
             }
         });
@@ -54,33 +47,69 @@ const { title, id, isOpen = true, class: className = "" } = Astro.props;
 
 <style>
   .sidebar-widget-collapsible {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     margin-bottom: var(--spacing-lg);
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-theme="light"] .sidebar-widget-collapsible {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
   }
   
   .widget-header {
-      padding: var(--spacing-md) var(--spacing-lg);
+      padding: 1.25rem 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(255,255,255,0.02);
+      background: rgba(255, 255, 255, 0.02);
       border-bottom: 1px solid transparent;
-      transition: border-color 0.3s;
+      transition: all 0.3s;
+      cursor: pointer;
+      position: relative;
+  }
+
+  .widget-header::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 30%;
+      bottom: 30%;
+      width: 3px;
+      background: var(--color-primary);
+      border-radius: 0 4px 4px 0;
+      opacity: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px var(--color-primary);
+  }
+
+  .sidebar-widget-collapsible[data-is-open="true"] .widget-header::before {
+      opacity: 1;
+      top: 25%;
+      bottom: 25%;
+  }
+
+  .widget-header:hover {
+      background: rgba(255, 255, 255, 0.04);
   }
   
   .sidebar-widget-collapsible[data-is-open="true"] .widget-header {
-      border-bottom-color: rgba(255,255,255,0.05);
+      border-bottom-color: rgba(255, 255, 255, 0.05);
   }
 
   h3 {
     margin: 0;
-    font-size: 1.1rem;
-    color: var(--color-text-heading);
-    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-text-main);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    opacity: 0.9;
   }
   
   .header-actions {
@@ -117,7 +146,7 @@ const { title, id, isOpen = true, class: className = "" } = Astro.props;
   }
   
   .widget-content {
-      padding: var(--spacing-lg);
+      padding: 1.5rem;
       transition: all 0.3s ease;
       display: block;
   }
@@ -125,5 +154,14 @@ const { title, id, isOpen = true, class: className = "" } = Astro.props;
   .sidebar-widget-collapsible[data-is-open="false"] .widget-content {
       display: none;
       padding: 0;
+  }
+
+  @media (max-width: 640px) {
+      .widget-header {
+          padding: 1rem 1.25rem;
+      }
+      .widget-content {
+          padding: 1.25rem;
+      }
   }
 </style>

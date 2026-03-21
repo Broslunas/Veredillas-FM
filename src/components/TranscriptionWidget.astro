@@ -228,6 +228,7 @@ if (!transcription || transcription.length === 0) {
   .transcription-scroll {
     max-height: 350px; /* Limit height for widget */
     overflow-y: auto;
+    overflow-x: hidden;
     padding-right: var(--spacing-xs);
     
     /* Custom Scrollbar */
@@ -306,6 +307,7 @@ if (!transcription || transcription.length === 0) {
     color: var(--color-text-muted);
     line-height: 1.5;
     margin: 0;
+    overflow-wrap: anywhere;
   }
   
   .transcription-line:hover .text, .transcription-line.active .text {
