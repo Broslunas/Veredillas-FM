@@ -20,7 +20,7 @@ duration: 26 min
 isPremiere: true
 season: 2
 episode: 5
-image: 'https://cdn.veredillasfm.es/images/b7d3ae3d-089f-4f09-8cc0-96fef950c618.png'
+image: 'https://cdn.veredillasfm.es/images/407d3dd8-882d-46f2-9562-7742120f20bb.webp'
 participants:
   - Prof. Carmen
 videoUrl: 'https://www.youtube.com/embed/9TIlWJItYWE'
