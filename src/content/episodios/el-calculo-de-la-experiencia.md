@@ -16,13 +16,14 @@ description: >-
   decisiones y el crecimiento personal. ¡Aprende de décadas de experiencia en la
   educación!
 pubDate: '2026-03-24T17:00:00.000Z'
-duration: ¿?
+duration: 26 min
 isPremiere: true
 season: 2
-episode: 4
+episode: 5
 image: 'https://cdn.veredillasfm.es/images/b7d3ae3d-089f-4f09-8cc0-96fef950c618.png'
 participants:
   - Prof. Carmen
+videoUrl: 'https://www.youtube.com/embed/9TIlWJItYWE'
 ---
 ¿Es la vida una ecuación que podemos resolver o un sistema complejo lleno de variables inesperadas? En este episodio especial, nos sentamos con la **Prof. Carmen** para desglosar cómo los años de docencia y las matemáticas se entrelazan con las lecciones más valiosas de la vida.
 
