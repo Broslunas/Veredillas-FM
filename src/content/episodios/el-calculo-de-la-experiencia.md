@@ -556,6 +556,54 @@ clips:
     url: 'https://youtu.be/ZvwUqXDi6_0'
   - title: Descubre la Sorprendente Trayectoria de Rayo Veredilla
     url: 'https://youtu.be/BLbppxPCdck'
+  - title: Opinión  ¿Es Justo el Porcentaje de la PAU
+    url: 'https://youtu.be/KoWkM3gEQMY'
+  - title: Organización del Tiempo  Clave para Éxito Escolar y Vida
+    url: 'https://youtu.be/IBDhWjD6Us0'
+  - title: Matemáticas vs Física  ¿Por qué elegí esta carrera
+    url: 'https://youtu.be/fZEpFGwtNak'
+  - title: Matemáticas Fáciles  Mi Método Para Clases Menos Pesadas
+    url: 'https://youtu.be/BbCOqLWtyk4'
+  - title: El Secreto de un Profesor  Conectar con los Alumnos
+    url: 'https://youtu.be/xwRRSS70KfE'
+  - title: Mi Experiencia REAL con la PAU  ¡Así Entré a Matemáticas!
+    url: 'https://youtu.be/wsxwXyXd8ps'
+  - title: Profesores Recuerdos  ¡Alumnos Vuelven Siempre!
+    url: 'https://youtu.be/37krvnbr_Aw'
+  - title: Pasión por las Matemáticas  Ser Profesora de Vocación
+    url: 'https://youtu.be/56QN2987YFs'
+  - title: Tu Segunda Familia  ¡Horas y Vínculos en el Trabajo!
+    url: 'https://youtu.be/0pfInp-_QhQ'
+  - title: Matemáticas  El Lenguaje Universal de la Ciencia
+    url: 'https://youtu.be/Fdgm5M2hsb8'
+  - title: Compromiso Profe  Apoyo Total al Alumnado
+    url: 'https://youtu.be/HXjCiDNFIZc'
+  - title: Conoce a Carmen  ¡La Profesora de Matemáticas Favorita!
+    url: 'https://youtu.be/Ux6S3sSN1cw'
+  - title: Secretos de una Profe Apasionada  Motivación Diaria Revelada
+    url: 'https://youtu.be/CJ_ZG0qZFKI'
+  - title: Profesor de Bachillerato vs ESO  ¿Cuál prefiere él
+    url: 'https://youtu.be/lHByQOa-j2E'
+  - title: Decisiones Clave  ¡Prepárate Para la Universidad YA!
+    url: 'https://youtu.be/B1ob-rl8sHA'
+  - title: Redes Sociales  ¿Horas Perdidas o Herramienta Útil
+    url: 'https://youtu.be/TRlKbLDc3po'
+  - title: Un día malo no te define  ¡Siempre puedes recuperarte!
+    url: 'https://youtu.be/gel1C920IsU'
+  - title: El Secreto de los Profesores  Conexión Humana y Legado
+    url: 'https://youtu.be/-idi02R_kVc'
+  - title: Profesora Feliz Alumnos Motivados  ¡Examen Aprobado!
+    url: 'https://youtu.be/RBB-_PDnKp0'
+  - title: Matemáticas  Nuevas Salidas Profesionales y Subida de Notas
+    url: 'https://youtu.be/NikXnhNEotU'
+  - title: Redes Sociales  ¿Ayuda o Perjuicio para la Generación Actual
+    url: 'https://youtu.be/UVzEKcOZu70'
+  - title: Estudia Inteligente  Maximiza Tu Tiempo y Resultados
+    url: 'https://youtu.be/el-4AyyUxxo'
+  - title: 'Profe, ¿Cómo Entraste al Mundo de las Matemáticas'
+    url: 'https://youtu.be/lP0O2X30brM'
+  - title: PAU  ¿Cómo Superar los Días Malos
+    url: 'https://youtu.be/UOgFabFEVpo'
 ---
 ¿Es la vida una ecuación que podemos resolver o un sistema complejo lleno de variables inesperadas? En este episodio especial, nos sentamos con la **Prof. Carmen** para desglosar cómo los años de docencia y las matemáticas se entrelazan con las lecciones más valiosas de la vida.
 
