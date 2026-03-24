@@ -547,6 +547,15 @@ sections:
     title: 'Consejos Clave: Gestión del Tiempo y Redes'
   - time: '25:53'
     title: Despedida y Agradecimiento
+clips:
+  - title: Profesora de Matemáticas  Ser Buena Persona Primero
+    url: 'https://youtu.be/KwXYJ_K07JA'
+  - title: Pasión por Enseñar  Inspírate con esta Entrevista Motivadora
+    url: 'https://youtu.be/2ZmD0HGIDc8'
+  - title: Matemáticas  El Lenguaje Secreto de la Ciencia Revelado
+    url: 'https://youtu.be/ZvwUqXDi6_0'
+  - title: Descubre la Sorprendente Trayectoria de Rayo Veredilla
+    url: 'https://youtu.be/BLbppxPCdck'
 ---
 ¿Es la vida una ecuación que podemos resolver o un sistema complejo lleno de variables inesperadas? En este episodio especial, nos sentamos con la **Prof. Carmen** para desglosar cómo los años de docencia y las matemáticas se entrelazan con las lecciones más valiosas de la vida.
 
