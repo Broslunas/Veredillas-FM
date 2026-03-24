@@ -468,6 +468,21 @@ const podcastEpisodeSchema = {
     .content-body {
         font-size: 1.125rem;
         color: var(--color-text-main);
+        padding: 0 var(--spacing-md);
+    }
+    
+    @media (min-width: 768px) {
+        .content-body {
+            padding: 0; 
+            padding-right: var(--spacing-lg); 
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .content-body {
+            padding-left: 70px; /* Espacio para que no choque con la barra flotante de redes sociales */
+            padding-right: var(--spacing-xl);
+        }
     }
 
     /* Markdown Styles */
