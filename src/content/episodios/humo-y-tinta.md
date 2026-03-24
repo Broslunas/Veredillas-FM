@@ -1542,6 +1542,40 @@ clips:
     url: 'https://youtu.be/SePL1-6kBKY'
   - title: ¡¡Padres Regalan Vapes a Menores!! ¡¡Preocupante Realidad!!
     url: 'https://youtu.be/Ft2wSb_9Etk'
+  - title: Educación y Confianza_ Aprendiendo de la Experiencia
+    url: 'https://youtu.be/yy4-tdNo5p8'
+  - title: 'Ciberbullying_ Redes Sociales, Anonimato y Consecuencias Ocultas'
+    url: 'https://youtu.be/kG_u9TQuMmY'
+  - title: 'Sociedad Corrompida_ Redes Sociales, Vapers y Tatuajes'
+    url: 'https://youtu.be/r0R8owvOQlk'
+  - title: Entorno Familiar y Amistades_ Impacto en Decisiones
+    url: 'https://youtu.be/1GQsVC-ZjVc'
+  - title: Menos Tolerancia_ El Aumento del Bullying y la Discriminación
+    url: 'https://youtu.be/Xq-diKWlOIU'
+  - title: Libertad Parental_ Cómo mis padres me dieron alas
+    url: 'https://youtu.be/tgDK1ONsFAk'
+  - title: 'No Te Acosan: Identifica el Acoso Real y Evita Exagerar'
+    url: 'https://youtu.be/kFKY0Iaya-c'
+  - title: Vístete Como Quieras_ ¡Moda o Gusto Personal!
+    url: 'https://youtu.be/6Wq09V456zU'
+  - title: 'Tatuajes: ¿Estereotipos vs. Realidad Personal_'
+    url: 'https://youtu.be/hrHMwNVa6xU'
+  - title: Límites y Mano Dura_ ¿Cómo Actuar_
+    url: 'https://youtu.be/peAOUevSNTc'
+  - title: Impactantes Vídeos de Niños Fumando en Fiestas Infantiles
+    url: 'https://youtu.be/TbBEpBnc8XQ'
+  - title: Libertad de Expresión vs. Burla_ ¿Dónde Está la Línea_
+    url: 'https://youtu.be/PvcKiN-M1D8'
+  - title: 'Caso de Menor: ¿Castigo Justo por un Cachetón_'
+    url: 'https://youtu.be/fgUM50glN-o'
+  - title: 'Generación de Cristal vs. Bullying: ¿Hemos Cambiado Demasiado_'
+    url: 'https://youtu.be/Pfn26nK6sa8'
+  - title: 'Libertad de Expresión: ¿Hasta Dónde Llega_'
+    url: 'https://youtu.be/kaXCy2iDO4o'
+  - title: 'Experimenta y Aprende: Tu Propia Experiencia Importa'
+    url: 'https://youtu.be/ZO4SD_OONJE'
+  - title: 'Currículums Sin Foto: ¡Tu Formación Importa Más!'
+    url: 'https://youtu.be/C6O1QPo5viU'
 ---
 Hoy el estudio se mueve entre nubes de vapor y el sonido de las máquinas. En este episodio de Humo y Tinta, nos sentamos con Dylan, Eric, Alejandro y Joan para hablar de dos mundos que van de la mano: el arte en la piel y la cultura del vapeo.
 
