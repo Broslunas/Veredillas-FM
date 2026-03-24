@@ -1,6 +1,9 @@
 ---
 category: Episodios Temporada 2
 images:
+  - title: T2 E5 - Cálculo de la Experiencia
+    src: >-
+      https://cdn.veredillasfm.es/images/407d3dd8-882d-46f2-9562-7742120f20bb.webp
   - title: T2 E4 - Humo y Tinta
     src: >-
       https://cdn.veredillasfm.es/images/ceecad26-0b03-4c79-a605-0325a16fc4c8.webp
