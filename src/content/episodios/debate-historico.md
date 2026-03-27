@@ -22,7 +22,10 @@ participants:
 season: 2
 episode: 6
 duration: ¿? min
-pubDate: '2026-03-25T17:00:00.000Z'
+pubDate: '2026-04-08T16:00:00.000Z'
+warningMessage: >-
+  Debido a las circunstancias metereologicas,  nos hemos visto obligados a
+  posponer este episodio, disculpamos las molestias.
 ---
 ¡Bienvenidos a un fascinante encuentro de ideas! En este episodio, seremos testigos de un debate histórico entre el Profesor Ulises, un respetado historiador con años de experiencia, y Gustavo, un joven y entusiasta estudiante de primer año de bachillerato.  Prepárense para un choque de generaciones y perspectivas sobre los eventos que han moldeado nuestro mundo.
 

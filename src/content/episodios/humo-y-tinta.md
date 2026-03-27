@@ -1576,6 +1576,22 @@ clips:
     url: 'https://youtu.be/ZO4SD_OONJE'
   - title: 'Currículums Sin Foto: ¡Tu Formación Importa Más!'
     url: 'https://youtu.be/C6O1QPo5viU'
+  - title: Mi Reacción Violenta_ Mi Padre Me Apoya y Explica el Acoso
+    url: 'https://youtu.be/HIrIb-jSMfA'
+  - title: Tatuajes con Significado_ Expresa Tu Historia Corporal
+    url: 'https://youtu.be/gBUN_G-lsR0'
+  - title: 'Méritos y Logros_ Tu Valor Real, No la Apariencia'
+    url: 'https://youtu.be/anDPB4ozurU'
+  - title: Adicciones_ Cómo Guíar Sin Prohibir
+    url: 'https://youtu.be/0OOmmD_yAT4'
+  - title: Vape_ La moda juvenil y la trampa de la nicotina
+    url: 'https://youtu.be/AGt82ZEIC8U'
+  - title: Verdades Antiguas vs. Cobardía Moderna en Redes Sociales
+    url: 'https://youtu.be/MODgsamp1MA'
+  - title: IA y Tatuajes_ ¿Prejuicios o Nueva Realidad Laboral_
+    url: 'https://youtu.be/hL5sZCy08DQ'
+  - title: Valores y Normas Familiares_ Una Guía Esencial
+    url: 'https://youtu.be/LVvAC0YOIMc'
 ---
 Hoy el estudio se mueve entre nubes de vapor y el sonido de las máquinas. En este episodio de Humo y Tinta, nos sentamos con Dylan, Eric, Alejandro y Joan para hablar de dos mundos que van de la mano: el arte en la piel y la cultura del vapeo.
 
