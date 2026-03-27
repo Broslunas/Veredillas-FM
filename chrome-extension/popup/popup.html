@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Veredillas FM - Radio en Segundo Plano</title>
+    <link rel="stylesheet" href="popup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="h-top">
+            <div class="logo-box">📻</div>
+            <h2>Veredillas FM</h2>
+            <button id="settings-btn">⚙️</button>
+        </div>
+        <div class="h-bottom">
+            <p>Hecho por estudiantes, para estudiantes.</p>
+        </div>
+    </header>
+
+    <main id="episode-list">
+        <div class="loader-state">
+            <div class="spinner"></div>
+            <p>Sintonizando emisora...</p>
+        </div>
+    </main>
+
+    <div id="player-bar" class="hidden">
+        <div class="pb-progress" id="pb-progress-container">
+            <div class="pb-fill" id="pb-progress-fill"></div>
+        </div>
+        <div class="pb-bottom">
+            <img src="" id="pb-img" alt="Portada" />
+            <div class="pb-text">
+                <h4 id="pb-title"></h4>
+                <div class="pb-controls">
+                    <button id="pb-rw">⏪</button>
+                    <button id="pb-play">▶</button>
+                    <button id="pb-fw">⏩</button>
+                </div>
+            </div>
+            <div id="pb-time">0:00</div>
+        </div>
+    </div>
+
+    <!-- Fallback/Spotify modal -->
+    <div id="spotify-modal" class="hidden">
+        <div class="modal-content">
+            <h3>Episodio exclusivo Spotify</h3>
+            <p>Este episodio actualmente requiere Spotify para reproducirse o el Iframe no está disponible de forma nativa.</p>
+            <button id="open-spotify-btn">Abrir Veredillas FM</button>
+            <button id="close-modal-btn" class="secondary">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Episode Detail View (For internal playback) -->
+    <div id="detail-view" class="hidden">
+        <div class="detail-header">
+            <button id="back-btn">⬅ Volver</button>
+            <h3 id="detail-title">Reproducir</h3>
+        </div>
+        <div class="detail-content" id="detail-content-area">
+            <!-- Spotify iframe or details injected here -->
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

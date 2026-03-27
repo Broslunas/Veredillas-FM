@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Opciones - Veredillas FM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Configuración</h1>
+        <div class="setting-card">
+            <label class="switch">
+              <input type="checkbox" id="env-toggle">
+              <span class="slider round"></span>
+            </label>
+            <div class="setting-info">
+              <h3>Entorno de Desarrollo</h3>
+              <p>Conectarse a localhost:4321 en lugar del sitio en producción.</p>
+            </div>
+        </div>
+        <button id="save-btn" class="btn">Guardar Cambios</button>
+    </div>
+    <script src="options.js"></script>
+</body>
+</html>
