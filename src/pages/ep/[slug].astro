@@ -46,6 +46,7 @@ const isUpcoming = isPremiere && (new Date() < entry.data.pubDate);
 
 // Calculate if premiere ended
 let hasPremiereEnded = false;
+let premiereEndTimeMs = 0;
 if (isPremiere && entry.data.duration) {
     const durationStr = entry.data.duration;
     let durationMs = 0;
@@ -59,6 +60,7 @@ if (isPremiere && entry.data.duration) {
     }
     
     const premiereEndTime = new Date(entry.data.pubDate.getTime() + durationMs);
+    premiereEndTimeMs = premiereEndTime.getTime();
     hasPremiereEnded = new Date() > premiereEndTime;
 }
 
@@ -137,7 +139,7 @@ const podcastEpisodeSchema = {
 >
     <!-- Schema.org PodcastEpisode Structured Data -->
     <script type="application/ld+json" set:html={JSON.stringify(podcastEpisodeSchema)} slot="head" />
-    <article class="episode-article">
+    <article class="episode-article" data-premiere-end-time={isPremiere && !hasPremiereEnded ? premiereEndTimeMs : ""}>
         <!-- Header -->
         <header class="article-header container">
             <div class="meta-row">
@@ -229,8 +231,8 @@ const podcastEpisodeSchema = {
                 />
             </div>
 
-            {isPremiere && !hasPremiereEnded && (
-                <div class="chat-sidebar">
+            {isPremiere && (
+                <div id="live-chat-wrapper" class="chat-sidebar" style={hasPremiereEnded ? "display:none;" : ""}>
                     <LiveChat slug={entry.slug} />
                 </div>
             )}
@@ -284,11 +286,9 @@ const podcastEpisodeSchema = {
         <SocialShare title={entry.data.title} />
 
         <!-- Comments Section (Chat handled above if active) -->
-        {(!isPremiere || hasPremiereEnded) && (
-            <div id="comments" class="container" style="max-width: 1000px; margin-bottom: 6rem;">
-                <Comments slug={entry.slug} />
-            </div>
-        )}
+        <div id="comments-wrapper" class="container" style={`max-width: 1000px; margin-bottom: 6rem; ${isPremiere && !hasPremiereEnded ? 'display: none;' : ''}`}>
+            <Comments slug={entry.slug} />
+        </div>
 
         <RelatedEpisodes 
             currentSlug={entry.slug} 
@@ -311,8 +311,33 @@ const podcastEpisodeSchema = {
             });
         }
     });
+    
+    const checkPremiereRealtimeEnd = () => {
+        const article = document.querySelector('.episode-article');
+        if (!article) return;
+        const endMsStr = article.getAttribute('data-premiere-end-time');
+        if (!endMsStr) return;
+        const endMs = parseInt(endMsStr, 10);
+        if (!endMs) return;
+
+        const now = Date.now();
+        if (now >= endMs) {
+            // Premiere is over
+            const commentsWrapper = document.getElementById('comments-wrapper');
+            if (commentsWrapper) commentsWrapper.style.display = 'block';
+
+            const chatWrapper = document.getElementById('live-chat-wrapper');
+            if (chatWrapper) chatWrapper.style.display = 'none';
+
+            article.removeAttribute('data-premiere-end-time'); // Stop checking
+        } else {
+            setTimeout(checkPremiereRealtimeEnd, 10000); // Check every 10s
+        }
+    };
 
     const setupEpisodePage = () => {
+        checkPremiereRealtimeEnd();
+        
         const btns = document.querySelectorAll('.play-trigger-btn');
         btns.forEach(btn => {
             // Remove old listener if possible? No, we just rely on fresh DOM or clean initial add.
