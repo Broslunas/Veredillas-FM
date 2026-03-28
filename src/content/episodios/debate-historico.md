@@ -21,7 +21,7 @@ participants:
   - Gustavo
 season: 2
 episode: 6
-duration: ¿? min
+duration: ░░ min
 pubDate: '2026-04-08T16:00:00.000Z'
 warningMessage: >-
   Debido a las circunstancias metereologicas,  nos hemos visto obligados a
