@@ -4,14 +4,19 @@
 
 
 <div class="p-6 flex flex-col bg-white/3 backdrop-blur-[10px] border border-white/10 rounded-2xl shadow-xl gs-fade-up top-listeners-widget">
-    <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/5">
-        <div class="flex items-center gap-3">
-            <span class="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_0_rgba(16,185,129,0.4)] animate-pulse"></span>
-            <h3 class="m-0 text-xl font-bold text-white">Top Oyentes</h3>
+    <div class="mb-6 space-y-3">
+        <div class="flex items-center gap-2 text-emerald-400 font-black tracking-[0.2em] uppercase text-[0.6rem]">
+            <span class="w-8 h-[2px] bg-emerald-500 rounded-full"></span>
+            Comunidad
         </div>
-        <span class="text-[0.7rem] px-2.5 py-0.5 bg-white/10 rounded-full text-zinc-400">
-            All Days
-        </span>
+        <div class="flex justify-between items-end">
+            <h3 class="text-2xl font-black text-white leading-none tracking-tighter m-0">
+                Top <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">Oyentes</span>
+            </h3>
+            <span class="text-[0.65rem] font-bold px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 uppercase tracking-wider">
+                Histórico
+            </span>
+        </div>
     </div>
 
     <div id="leaderboard-list" class="flex flex-col gap-3">

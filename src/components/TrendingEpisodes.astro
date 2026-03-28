@@ -3,16 +3,20 @@
 ---
 
 
-<section id="trending-section" class="py-16 relative overflow-hidden contain-content">
-  <!-- Background Elements -->
-  <div class="absolute top-0 right-0 w-64 h-64 bg-primary blur-[80px] opacity-10 rounded-full -z-10"></div>
-  <div class="absolute bottom-0 left-0 w-96 h-96 bg-blue-500 blur-[80px] opacity-10 rounded-full -z-10"></div>
+<section id="trending-section" class="py-16 relative overflow-hidden contain-content border-t border-white/5">
 
   <div class="w-full max-w-[1280px] mx-auto px-4">
-    <div class="flex flex-col md:flex-row justify-between items-center mb-8">
-      <h2 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-        Tendencias
-      </h2>
+    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-8">
+      <div class="space-y-4">
+        <div class="flex items-center gap-3 text-accent font-black tracking-[0.3em] uppercase text-[0.65rem] md:text-xs">
+            <span class="w-12 h-[2px] bg-accent rounded-full"></span>
+            Lo más escuchado
+        </div>
+        <h2 class="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter">
+            Episodios <span class="text-gradient-accent">Tendencia</span>
+        </h2>
+        <p class="text-zinc-400 text-lg">Lo que está capturando la atención de todos</p>
+      </div>
       
       <!-- Time Period Toggle -->
       <div class="flex items-center gap-2 bg-white/5 p-1 rounded-full border border-white/10 backdrop-blur-sm mt-4 md:mt-0">

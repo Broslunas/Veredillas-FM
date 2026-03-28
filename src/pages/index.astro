@@ -22,7 +22,7 @@ const allPosts = await getCollection('blog');
 const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 // Recent episodes pool (top 12)
-const recentEpisodesPool = sortedEpisodes.slice(0, 12);
+const recentEpisodesPool = sortedEpisodes.filter(ep => ep.data.pubDate <= new Date()).slice(0, 12);
 // Upcoming candidate pool (we take a few from the end of all to be safe)
 const upcomingCandidatePool = allEpisodes
     .filter(ep => ep.data.pubDate > new Date())
@@ -148,10 +148,16 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
     <section id="latest-episodes" class="py-16 md:py-24 overflow-hidden">
         <div class="container">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gs-fade-up">
-                <div>
-                    <h2 class="text-4xl mb-2">Nuevos Lanzamientos</h2>
-                    <p class="text-zinc-400 text-lg">Lo último que está sonando en los pasillos</p>
-                </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 text-primary font-black tracking-[0.3em] uppercase text-[0.65rem] md:text-xs">
+                            <span class="w-12 h-[2px] bg-primary rounded-full"></span>
+                            Recién Grabado
+                        </div>
+                        <h2 class="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter">
+                            Nuevos <span class="text-gradient">Lanzamientos</span>
+                        </h2>
+                        <p class="text-zinc-400 text-lg">Lo último que está sonando en los pasillos</p>
+                    </div>
                 <div class="hidden sm:flex gap-4">
                     <button class="w-[50px] h-[50px] rounded-full border border-zinc-800 bg-[#0e0e11] text-white flex items-center justify-center cursor-pointer transition-all duration-300 text-xl hover:bg-primary hover:border-primary swiper-button-prev-custom" aria-label="Previous slide">←</button>
                     <button class="w-[50px] h-[50px] rounded-full border border-zinc-800 bg-[#0e0e11] text-white flex items-center justify-center cursor-pointer transition-all duration-300 text-xl hover:bg-primary hover:border-primary swiper-button-next-custom" aria-label="Next slide">→</button>
@@ -177,19 +183,21 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
 
     <!-- Upcoming Episodes Slider (Conditional) -->
     {upcomingCandidatePool.length > 0 && (
-        <section id="upcoming-episodes" class="py-16 md:py-24 overflow-hidden relative bg-purple-900/10">
+        <section id="upcoming-episodes" class="py-16 md:py-24 overflow-hidden relative border-y border-white/5">
             <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none"></div>
             <div class="container relative z-10">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gs-fade-up">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center gap-3 text-purple-400 font-black tracking-[0.3em] uppercase text-[0.65rem] md:text-xs">
                              <span class="relative flex h-2 w-2">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
                             </span>
-                            Próximamente
+                            En el Horizonte
                         </div>
-                        <h2 class="text-4xl mb-2">Próximos Estrenos</h2>
+                        <h2 class="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter">
+                            Próximos <span class="text-gradient from-purple-400 to-pink-500">Estrenos</span>
+                        </h2>
                         <p class="text-zinc-400 text-lg">Lo que está por llegar a Veredillas FM</p>
                     </div>
                     <div class="hidden sm:flex gap-4">
@@ -224,11 +232,17 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
     </div>
 
     <!-- Recent Posts Section -->
-    <section class="py-16 md:py-24 bg-white/[0.02]">
+    <section class="py-16 md:py-24 border-t border-white/5">
         <div class="container">
              <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gs-fade-up">
-                 <div>
-                    <h2 class="text-4xl mb-2">Actualidad</h2>
+                 <div class="space-y-4">
+                    <div class="flex items-center gap-3 text-secondary font-black tracking-[0.3em] uppercase text-[0.65rem] md:text-xs">
+                        <span class="w-12 h-[2px] bg-secondary rounded-full"></span>
+                        Blog Estudiantil
+                    </div>
+                    <h2 class="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter">
+                        Nuestra <span class="text-gradient-secondary">Actualidad</span>
+                    </h2>
                     <p class="text-zinc-400 text-lg">Lo último que pasa en el Veredillas</p>
                 </div>
                 <div class="mt-4 md:mt-0">
@@ -284,7 +298,7 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
     <Newsletter />
 
     <!-- CTA Final -->
-    <section class="py-24 md:py-32 text-center bg-gradient-to-t from-primary/10 to-transparent final-cta">
+    <section class="py-24 md:py-32 text-center relative border-t border-white/5 transition-colors duration-500 hover:bg-primary/5 final-cta">
         <div class="container">
             <div class="gs-scale-up cta-inner">
                 <h2 class="text-3xl md:text-6xl mb-4 font-bold">¿Tienes algo que contar?</h2>

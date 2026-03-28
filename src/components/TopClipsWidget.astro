@@ -2,21 +2,18 @@
 // src/components/TopClipsWidget.astro
 ---
 
-<section class="py-24 relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-transparent">
-    <!-- Decorative background elements -->
-    <div class="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
-    <div class="absolute top-1/4 right-0 w-64 h-64 bg-accent/10 rounded-full blur-[100px] pointer-events-none"></div>
-
+<section class="py-24 relative overflow-hidden border-t border-white/5">
     <div class="w-full max-w-[1400px] mx-auto px-4">
         <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-8 px-4">
-            <div class="space-y-3">
+            <div class="space-y-4">
                 <div class="flex items-center gap-3 text-primary font-black tracking-[0.3em] uppercase text-[0.65rem] md:text-xs">
                     <span class="w-12 h-[2px] bg-primary rounded-full"></span>
                     Momentos Epicos
                 </div>
-                <h2 class="text-4xl md:text-7xl font-black text-white leading-[0.9] tracking-tighter">
+                <h2 class="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter">
                     Mejores <span class="text-gradient">Clips</span>
                 </h2>
+                <p class="text-zinc-400 text-lg">Fragmentos destacados que tienes que ver</p>
             </div>
             
             <div class="flex items-center gap-4">

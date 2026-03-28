@@ -7,7 +7,7 @@ const { standalone = false } = Astro.props;
 ---
 
 
-<section class:list={["relative py-24 px-4 overflow-hidden bg-gradient-to-b from-transparent to-primary/5 border-t border-white/10", { "mt-0 border-t-0 py-8 bg-transparent flex items-center justify-center": standalone }]} id="newsletter">
+<section class:list={["relative py-24 px-4 overflow-hidden border-t border-white/5", { "mt-0 border-t-0 py-8 bg-transparent flex items-center justify-center": standalone }]} id="newsletter">
   <div class="max-w-[800px] mx-auto relative z-10">
     <div class="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-8 md:p-12 text-center shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex flex-col items-center light:bg-white/80 light:border-black/5 light:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]">
       <div class="w-16 h-16 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl flex items-center justify-center mb-6 text-primary border border-white/10 light:bg-gradient-to-br light:from-primary/10 light:to-secondary/10 light:border-black/5">
@@ -67,8 +67,6 @@ const { standalone = false } = Astro.props;
     </div>
   </div>
 
-  <div class="absolute -top-[50px] -left-[50px] w-[300px] h-[300px] rounded-full bg-primary blur-[100px] opacity-15 pointer-events-none z-0"></div>
-  <div class="absolute -bottom-[50px] -right-[50px] w-[300px] h-[300px] rounded-full bg-secondary blur-[100px] opacity-15 pointer-events-none z-0"></div>
 </section>
 
 <script>
