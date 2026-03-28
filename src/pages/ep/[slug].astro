@@ -211,7 +211,25 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                          >
 
                             {/* Standard Audio Player Section (Hidden if video mode by default) */}
-                            <div id="audio-player-container" class={entry.data.videoUrl ? "hidden" : "block"}>
+                            <div 
+                                id="audio-player-container" 
+                                class={entry.data.videoUrl ? "hidden" : "block relative"}
+                            >
+                                {/* Static Placeholder to prevent layout shift during hydration */}
+                                <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5">
+                                    <div class="loader-vfm flex flex-col items-center gap-4">
+                                        <div class="loader-spinner"></div>
+                                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Sintonizando...</span>
+                                    </div>
+                                    {entry.data.image && (
+                                        <img 
+                                            src={entry.data.image} 
+                                            alt="" 
+                                            class="absolute inset-0 w-full h-full object-cover opacity-[0.03] blur-xl grayscale" 
+                                        />
+                                    )}
+                                </div>
+
                                 <CinemaAudioPlayer 
                                     client:load
                                     audioUrl={entry.data.audioUrl || ''}
@@ -224,8 +242,14 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                             </div>
 
                             {/* Video Player Section */}
-                            <div id="video-player-container" class={!entry.data.videoUrl ? "hidden" : "block"}>
-                                 {/* Filled by JS */}
+                            <div id="video-player-container" class={!entry.data.videoUrl ? "hidden" : "block relative"}>
+                                 {/* Video Placeholder */}
+                                 <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5">
+                                    <div class="loader-vfm flex flex-col items-center gap-4">
+                                        <div class="loader-spinner !border-t-red-500"></div>
+                                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Iniciando Video...</span>
+                                    </div>
+                                 </div>
                             </div>
                             
                             {!entry.data.audioUrl && !entry.data.spotifyUrl && !entry.data.videoUrl && (
@@ -630,6 +654,51 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
     @keyframes slideUp {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
+    }
+    /* --- PLAYER PLACEHOLDER & LOADERS --- */
+    #audio-player-container, #video-player-container {
+        aspect-ratio: 16 / 9;
+        min-height: 380px;
+        background: #0f0f0f;
+        border-radius: 16px;
+    }
+
+    @media (max-width: 768px) {
+        #audio-player-container, #video-player-container {
+            aspect-ratio: 16 / 10;
+            min-height: 320px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        #audio-player-container {
+            aspect-ratio: 3 / 4;
+            min-height: 300px;
+        }
+        #video-player-container {
+             aspect-ratio: 16 / 9;
+             min-height: 0;
+        }
+    }
+
+    .loader-spinner {
+        width: 32px;
+        height: 32px;
+        border: 2px solid rgba(255, 255, 255, 0.05);
+        border-top: 2px solid var(--color-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Hide placeholder visual when player is interactive */
+    :global(.cinema-audio-player-react) {
+        position: relative;
+        z-index: 10;
     }
 </style>
 
