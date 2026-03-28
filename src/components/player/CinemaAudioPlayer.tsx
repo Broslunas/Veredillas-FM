@@ -51,6 +51,7 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     const [currentCaption, setCurrentCaption] = useState('');
     const [wavesData, setWavesData] = useState<number[]>(new Array(40).fill(10));
     const [useCORS, setUseCORS] = useState(true);
+    const [mode, setMode] = useState<'audio' | 'video'>(videoUrl ? 'video' : 'audio');
 
     // Refs for restore logic
     const savedProgressRef = useRef<number>(0);
@@ -176,9 +177,37 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
             }
         };
 
+        const handleModeSwitch = (e: any) => {
+            if (e.detail?.mode) {
+                setMode(e.detail.mode);
+            }
+        };
+
+        const handleSeek = (e: any) => {
+            // Only respond to transcript/section seeking if player is in 'audio' mode
+            if (mode !== 'audio') return;
+
+            const { time } = e.detail;
+            if (audioRef.current) {
+                console.log(`[Audio] Seeking to ${time}s`);
+                audioRef.current.currentTime = time;
+                setCurrentTime(time);
+                // Auto-play when seeking from transcript/sections to improve UX
+                if (!isPlaying) {
+                    togglePlay();
+                }
+            }
+        };
+
         document.addEventListener('veredillas:sync-playback', handleSync);
-        return () => document.removeEventListener('veredillas:sync-playback', handleSync);
-    }, [slug]);
+        document.addEventListener('veredillas:switch-mode', handleModeSwitch);
+        document.addEventListener('veredillas:audio-seek', handleSeek);
+        return () => {
+            document.removeEventListener('veredillas:sync-playback', handleSync);
+            document.removeEventListener('veredillas:switch-mode', handleModeSwitch);
+            document.removeEventListener('veredillas:audio-seek', handleSeek);
+        };
+    }, [slug, isPlaying, mode]);
 
     // TRACKING / STATISTICS LOOP
     const lastReportedTime = useRef<number>(0);
@@ -240,7 +269,13 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
 
         let frameId: number;
         const sync = () => {
-            setCurrentTime(audio.currentTime);
+            const time = audio.currentTime;
+            setCurrentTime(time);
+            
+            // Dispatch event for other widgets (transcription, sections)
+            document.dispatchEvent(new CustomEvent('veredillas:audio-timeupdate', {
+                detail: { currentTime: time }
+            }));
             
             // Transcription sync inside high-freq loop for accuracy at high speeds
             if (showCC && transcription?.length) {

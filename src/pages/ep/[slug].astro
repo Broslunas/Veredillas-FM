@@ -1064,6 +1064,12 @@ const episodeGuests = allGuests.filter(guest => participantsSlugs.includes(guest
                         sync();
                     });
 
+                    player.on('timeupdate', () => {
+                        document.dispatchEvent(new CustomEvent('veredillas:audio-timeupdate', {
+                            detail: { currentTime: player.currentTime }
+                        }));
+                    });
+
                     player.on('ended', () => {
                         if (trackingInterval) clearInterval(trackingInterval);
                         sync(true);
@@ -1080,6 +1086,20 @@ const episodeGuests = allGuests.filter(guest => participantsSlugs.includes(guest
                             } else {
                                 player.pause();
                             }
+                        }
+                    });
+
+                    // Listen for direct seek from Transcript/Chapters -> Video
+                    document.addEventListener('veredillas:audio-seek', (e: any) => {
+                        // Only respond if video is NOT hidden
+                        if (videoContainer.classList.contains('hidden')) return;
+
+                        const { time } = e.detail;
+                        if (player) {
+                            console.log(`[Video] Seeking to ${time}s`);
+                            player.currentTime = time;
+                            // Auto-play on seek for better UX
+                            player.play();
                         }
                     });
                 }

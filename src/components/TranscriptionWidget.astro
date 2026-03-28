@@ -60,7 +60,7 @@ if (!transcription || transcription.length === 0) {
 </dialog>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    function initTranscription() {
         const widgetScroll = document.getElementById('transcription-scroll');
         const modalScroll = document.getElementById('transcription-scroll-modal');
         const modal = document.getElementById('transcription-modal') as HTMLDialogElement;
@@ -221,7 +221,10 @@ if (!transcription || transcription.length === 0) {
                 updateActive(modalLines, modalScroll);
             }
         });
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', initTranscription);
+    document.addEventListener('astro:page-load', initTranscription);
 </script>
 
 <style>
