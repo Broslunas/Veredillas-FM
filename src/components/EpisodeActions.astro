@@ -9,12 +9,13 @@ interface Props {
   guests?: string[];
   slug?: string;
   duration?: number | string;
+  className?: string;
 }
 
-const { title, audioUrl, image, guests, slug, duration } = Astro.props;
+const { title, audioUrl, image, guests, slug, duration, className = '' } = Astro.props;
 ---
 
-<div class="flex flex-wrap items-center justify-center gap-4 mt-6 mb-8 pt-6 border-t border-white/5 max-[600px]:grid max-[600px]:grid-cols-1 max-[600px]:gap-3">
+<div class:list={["flex flex-wrap items-center justify-center gap-3 max-[600px]:grid max-[600px]:grid-cols-1", className]}>
     <!-- Create Clip -->
     <button 
         id="action-create-clip" 
@@ -25,7 +26,7 @@ const { title, audioUrl, image, guests, slug, duration } = Astro.props;
         data-duration={duration}
     >
         <span class="flex items-center justify-center text-inherit max-[600px]:w-5 max-[600px]:h-5">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 0 0 5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2h-4c-1.35 0-2.58.5-3.6 1.4L6 9"/><path d="M6 2h4c1.35 0 2.58.5 3.6 1.4L18 9"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><path d="M8.12 8.12 12 12"></path><circle cx="6" cy="18" r="3"></circle><path d="M14.8 14.8 20 20"></path><path d="M8.12 15.88 12 12"></path><path d="M14.8 9.2 20 4"></path></svg>
         </span>
         <span>Crear Clip</span>
     </button>
@@ -43,7 +44,7 @@ const { title, audioUrl, image, guests, slug, duration } = Astro.props;
 
     <!-- Comments -->
     <a 
-        href="#comments" 
+        href="#comments-wrapper" 
         class="inline-flex items-center justify-center gap-[10px] bg-[#27272a] border border-white/10 px-6 py-3 rounded-[100px] color-white cursor-pointer no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] text-[0.95rem] font-semibold min-w-[140px] hover:bg-[#3f3f46] hover:border-white/20 hover:-translate-y-0.5 max-[600px]:w-full max-[600px]:py-3.5 max-[600px]:text-base"
     >
         <span class="flex items-center justify-center text-inherit max-[600px]:w-5 max-[600px]:h-5">

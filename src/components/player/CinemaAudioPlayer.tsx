@@ -10,6 +10,11 @@ interface Transcription {
     speaker?: string;
 }
 
+interface Section {
+    title: string;
+    time: string; // "MM:SS"
+}
+
 interface CinemaAudioPlayerProps {
     audioUrl: string;
     title: string;
@@ -18,6 +23,7 @@ interface CinemaAudioPlayerProps {
     transcription?: Transcription[] | null;
     slug?: string;
     videoUrl?: string;
+    sections?: Section[];
 }
 
 import { syncPlaybackData, recordListen } from '../../services/player/playbackSync';
@@ -29,7 +35,8 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     author = 'Veredillas FM', 
     transcription = [],
     slug,
-    videoUrl
+    videoUrl,
+    sections = []
 }) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -372,6 +379,13 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
+    const parseTime = (t: string) => {
+        const parts = t.split(':').map(Number);
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        return 0;
+    };
+
     const PROXY_URL = 'https://broslunas-veredillasfm-proxy.hf.space/stream?url=';
     
     // Check if the URL should be proxied (if it's not from our own CDN or a relative path)
@@ -615,8 +629,28 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
 
                     <div className="progress-wrapper relative">
                         <div className="custom-seek w-full">
-                            <div className="seek-bar-container w-full">
-                                <div className="seek-bar-fill" style={{ width: `${(currentTime / (duration || 1)) * 100}%` }} />
+                            <div className="seek-bar-container w-full relative h-[6px] bg-white/10 rounded-full overflow-visible">
+                                <div className="seek-bar-fill h-full bg-primary rounded-full absolute top-0 left-0 z-[2]" style={{ width: `${(currentTime / (duration || 1)) * 100}%` }} />
+                                
+                                {/* CHAPTER MARKERS (SECTIONS) */}
+                                {sections.map((section, idx) => {
+                                    const timeInSeconds = parseTime(section.time);
+                                    const percentage = (timeInSeconds / (duration || 1)) * 100;
+                                    if (percentage > 100 || isNaN(percentage)) return null;
+                                    
+                                    return (
+                                        <div 
+                                            key={idx}
+                                            className="section-marker absolute h-full w-[2px] bg-white/40 hover:bg-white transition-all z-[5] group/marker"
+                                            style={{ left: `${percentage}%` }}
+                                        >
+                                            <div className="opacity-0 group-hover/marker:opacity-100 absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-black/95 backdrop-blur-md text-white text-[10px] px-3 py-1.5 rounded-lg border border-white/10 whitespace-nowrap pointer-events-none transition-all duration-200 translate-y-2 group-hover/marker:translate-y-0 shadow-xl">
+                                                <span className="font-black text-primary mr-2">{section.time}</span>
+                                                <span className="font-bold">{section.title}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                             <input 
                                 type="range"

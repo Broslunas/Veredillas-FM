@@ -197,6 +197,7 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                              data-is-premiere={isPremiere}
                              data-video-url={entry.data.videoUrl}
                              data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
+                             data-sections={entry.data.sections ? JSON.stringify(entry.data.sections) : null}
                          >
 
                             {/* Standard Audio Player Section (Hidden if video mode by default) */}
@@ -228,6 +229,7 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                                     transcription={formattedTranscription}
                                     slug={entry.slug}
                                     videoUrl={entry.data.videoUrl}
+                                    sections={entry.data.sections}
                                 />
                             </div>
 
@@ -254,8 +256,8 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
 
                 <!-- Info Header (Below Player) -->
                 <header class="player-info py-6">
-                    <h1 class="text-2xl md:text-3xl font-black mb-2 tracking-tight">{entry.data.title}</h1>
-                    <div class="flex flex-wrap items-center justify-between gap-4">
+                    <h1 class="text-2xl md:text-3xl font-black mb-4 tracking-tight">{entry.data.title}</h1>
+                    <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-zinc-800/50">
                         <div class="author-meta flex items-center gap-3">
                             <img src="/logo.webp" alt="Veredillas FM" class="w-10 h-10 rounded-full border border-zinc-800" />
                             <div>
@@ -269,22 +271,24 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                              <FavoriteButton episodeSlug={entry.slug} />
                         </div>
                     </div>
+                    
+                    <div class="flex items-center py-4">
+                        <EpisodeActions 
+                            title={entry.data.title} 
+                            audioUrl={entry.data.audioUrl} 
+                            image={entry.data.image} 
+                            slug={entry.slug} 
+                            guests={entry.data.participants}
+                            duration={entry.data.duration}
+                        />
+                    </div>
                 </header>
             </section>
 
 
-            <!-- 2. DESCRIPTION / CONTENT AREA -->
             <section class="description-section glass-panel p-6 mb-8">
-                <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
+                <div class="mb-4">
                     <span class="text-sm font-bold uppercase tracking-wider text-zinc-400">Descripción</span>
-                    <EpisodeActions 
-                        title={entry.data.title} 
-                        audioUrl={entry.data.audioUrl} 
-                        image={entry.data.image} 
-                        slug={entry.slug} 
-                        guests={entry.data.participants}
-                        duration={entry.data.duration}
-                    />
                 </div>
                 
                 <div class="content-body prose prose-invert max-w-none mb-8">
@@ -697,11 +701,78 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
         position: relative;
         z-index: 10;
     }
+    :global(.plyr-video-wrapper .plyr__progress) {
+        overflow: visible !important;
+    }
+
+    :global(.plyr-section-marker) {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.3);
+        z-index: 10;
+        pointer-events: auto;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    :global(.plyr-section-marker:hover) {
+        background: white;
+        transform: scaleX(1.5);
+    }
+
+    :global(.plyr-marker-tooltip) {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 10px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        margin-bottom: 8px;
+    }
+
+    :global(.plyr-section-marker:hover .plyr-marker-tooltip) {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    :global(.marker-time) {
+        color: #8b5cf6;
+        font-weight: 900;
+        font-family: monospace;
+    }
+
+    :global(.marker-title) {
+        font-weight: 700;
+    }
 </style>
 
 <script>
     declare var Plyr: any;
     import { syncPlaybackData, recordListen } from '../../services/player/playbackSync';
+
+    const parseTime = (t: string) => {
+        const parts = t.split(':').map(Number);
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        return 0;
+    };
 
     const initCinemaSection = () => {
         const playerBox = document.getElementById('episode-player-inner');
@@ -809,6 +880,52 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                     const placeholder = videoContainer.querySelector('.player-placeholder-visual');
                     if (placeholder) {
                         (placeholder as HTMLElement).style.display = 'none';
+                    }
+
+                    // --- CHAPTER MARKERS INJECTION ---
+                    const sectionsRaw = playerBox.getAttribute('data-sections');
+                    if (sectionsRaw && sectionsRaw !== 'null') {
+                        const sections = JSON.parse(sectionsRaw);
+                        
+                        const injectMarkers = () => {
+                            if (!player.duration || player.duration <= 0) {
+                                // Try again if duration not yet available
+                                setTimeout(injectMarkers, 1000);
+                                return;
+                            }
+
+                            const progress = videoContainer.querySelector('.plyr__progress');
+                            if (!progress) return;
+
+                            // Remove existing if any
+                            progress.querySelectorAll('.plyr-section-marker').forEach(m => m.remove());
+
+                            sections.forEach((section: any) => {
+                                const time = parseTime(section.time);
+                                const percentage = (time / player.duration) * 100;
+                                
+                                if (percentage > 100) return;
+
+                                const marker = document.createElement('div');
+                                marker.className = 'plyr-section-marker';
+                                marker.style.left = `${percentage}%`;
+                                marker.innerHTML = `
+                                    <div class="plyr-marker-tooltip">
+                                        <span class="marker-time">${section.time}</span>
+                                        <span class="marker-title">${section.title}</span>
+                                    </div>
+                                `;
+                                marker.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    player.currentTime = time;
+                                });
+                                progress.appendChild(marker);
+                            });
+                        };
+
+                        // Check on ready, loadedmetadata and with a small delay
+                        setTimeout(injectMarkers, 1000);
+                        player.on('loadedmetadata', injectMarkers);
                     }
                 });
 
