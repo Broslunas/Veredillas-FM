@@ -16,6 +16,7 @@ import PremiereCountdown from '../../components/PremiereCountdown.astro';
 import LiveChat from '../../components/LiveChat.astro';
 import ListenerCount from '../../components/ListenerCount.astro';
 import EpisodeActions from '../../components/EpisodeActions.astro';
+import CinemaAudioPlayer from '../../components/player/CinemaAudioPlayer.tsx';
 
 export const prerender = true;
 
@@ -124,6 +125,18 @@ const podcastEpisodeSchema = {
     "inLanguage": "es-ES"
 };
 
+const timeToSeconds = (timeStr: string) => {
+  const parts = timeStr.split(':').map(Number);
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return 0;
+};
+
+const formattedTranscription = entry.data.transcription?.map(t => ({
+  ...t,
+  time: timeToSeconds(t.time)
+}));
+
 ---
 
 <Layout 
@@ -139,508 +152,438 @@ const podcastEpisodeSchema = {
 >
     <!-- Schema.org PodcastEpisode Structured Data -->
     <script type="application/ld+json" set:html={JSON.stringify(podcastEpisodeSchema)} slot="head" />
-    <article class="episode-article" data-premiere-end-time={isPremiere && !hasPremiereEnded ? premiereEndTimeMs : ""}>
-        <!-- Header -->
-        <header class="article-header container">
-            <div class="meta-row">
-                <span class="date">{formattedDate}</span>
-                <span class="dot">•</span>
-                <span class="author">{entry.data.author}</span>
-            </div>
-            
-            <h1>{entry.data.title}</h1>
-            <p class="lead">{entry.data.description}</p>
-            
-            <div class="header-actions">
-                <ListenerCount onlyCurrentPath={true} />
-                <EpisodeRating slug={entry.slug} />
-                <FavoriteButton episodeSlug={entry.slug} />
-            </div>
+    
+    <div class="cinema-layout container">
+        <main class="main-content">
+            <!-- 1. THE PLAYER AREA -->
+            <section class="player-section section-fade">
+                <div class="player-wrapper shadow-2xl relative">
+                    {/* 1. SWITCHER BUTTON (Overlay) - Moved outside dynamic container for persistence */}
+                    {entry.data.videoUrl && entry.data.audioUrl && (
+                        <div class="player-mode-switch absolute top-6 right-6 z-[60]">
+                                <button 
+                                    id="btn-switch-mode"
+                                    class="group/btn flex items-center gap-2.5 px-6 py-3 rounded-full bg-black/80 hover:bg-[#8b5cf6] border border-white/10 hover:border-white/20 transition-all text-[11px] font-black uppercase tracking-widest text-white backdrop-blur-xl shadow-2xl scale-95 hover:scale-100 active:scale-95"
+                                >
+                                    <span class="mode-icon text-lg transition-transform group-hover/btn:rotate-12">🎧</span>
+                                    <span class="mode-text">Escuchar Episodio</span>
+                                </button>
+                        </div>
+                    )}
 
-        </header>
+                    {isUpcoming && (
+                        <div id="premiere-countdown-wrapper">
+                            <PremiereCountdown targetDate={entry.data.pubDate} title={entry.data.title} />
+                        </div>
+                    )}
+                    
+                    <div id="premiere-player-wrapper" class:list={{"hidden": isUpcoming}} style={isUpcoming ? "display:none;" : ""}>
+                         <!-- We'll use a direct player placement here -->                         <div 
+                             id="episode-player-inner" 
+                             class="cinema-player-box group"
+                             data-audio-url={entry.data.audioUrl}
+                             data-spotify-url={entry.data.spotifyUrl}
+                             data-title={entry.data.title}
+                             data-image={entry.data.image}
+                             data-author={entry.data.author}
+                             data-slug={entry.slug}
+                             data-is-premiere={isPremiere}
+                             data-video-url={entry.data.videoUrl}
+                             data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
+                         >
 
-        {entry.data.image && (
-            <div class="featured-image container">
-                <img 
-                    src={entry.data.image} 
-                    alt={entry.data.title} 
-                    class="hero-image" 
-                    transition:name={`cover-${entry.slug}`}
-                />
-            </div>
-        )}
+                            {/* Standard Audio Player Section (Hidden if video mode by default) */}
+                            <div id="audio-player-container" class={entry.data.videoUrl ? "hidden" : "block"}>
+                                <CinemaAudioPlayer 
+                                    client:load
+                                    audioUrl={entry.data.audioUrl || ''}
+                                    title={entry.data.title || ''}
+                                    cover={entry.data.image || ''}
+                                    author={entry.data.author || 'Veredillas FM'}
+                                    transcription={formattedTranscription}
+                                />
+                            </div>
 
-        {entry.data.warningMessage && (
-            <div class="container warning-wrapper">
-                <div class="warning-alert">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="warning-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
-                   <span>{entry.data.warningMessage}</span>
-                </div>
-            </div>
-        )}
+                            {/* Video Player Section */}
+                            <div id="video-player-container" class={!entry.data.videoUrl ? "hidden" : "block"}>
+                                 {/* Filled by JS */}
+                            </div>
+                            
+                            {!entry.data.audioUrl && !entry.data.spotifyUrl && !entry.data.videoUrl && (
+                                <div class="player-skeleton bg-zinc-900 rounded-xl aspect-video flex items-center justify-center border border-zinc-800">
+                                    <span class="text-zinc-500 font-medium">Contenido no disponible</span>
+                                </div>
+                            )}
+                         </div>
 
-        <!-- Premiere / Player Section -->
-        <div class={isPremiere && !hasPremiereEnded ? "premiere-layout container" : "player-container container"}>
-            
-            <div class="player-area">
-                {isUpcoming && (
-                    <div id="premiere-countdown-wrapper">
-                        <PremiereCountdown targetDate={entry.data.pubDate} title={entry.data.title} />
                     </div>
-                )}
+                </div>
+
+                <!-- Info Header (Below Player) -->
+                <header class="player-info py-6">
+                    <h1 class="text-2xl md:text-3xl font-black mb-2 tracking-tight">{entry.data.title}</h1>
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="author-meta flex items-center gap-3">
+                            <img src="/logo.webp" alt="Veredillas FM" class="w-10 h-10 rounded-full border border-zinc-800" />
+                            <div>
+                                <p class="font-bold text-zinc-100">{entry.data.author}</p>
+                                <p class="text-xs text-zinc-500">{formattedDate}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <ListenerCount onlyCurrentPath={true} />
+                             <EpisodeRating slug={entry.slug} />
+                             <FavoriteButton episodeSlug={entry.slug} />
+                        </div>
+                    </div>
+                </header>
+            </section>
+
+            <!-- 2. DESCRIPTION / CONTENT AREA -->
+            <section class="description-section glass-panel p-6 mb-8">
+                <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
+                    <span class="text-sm font-bold uppercase tracking-wider text-zinc-400">Descripción</span>
+                    <EpisodeActions 
+                        title={entry.data.title} 
+                        audioUrl={entry.data.audioUrl} 
+                        image={entry.data.image} 
+                        slug={entry.slug} 
+                        guests={entry.data.participants}
+                        duration={entry.data.duration}
+                    />
+                </div>
                 
-                <div id="premiere-player-wrapper" class:list={{"hidden": isUpcoming}} style={isUpcoming ? "display:none; opacity: 0; transition: opacity 1s ease-in;" : ""}>
-                    {entry.data.spotifyUrl ? (
-                        <div 
-                            id="episode-player-placeholder" 
-                            data-spotify-url={entry.data.spotifyUrl}
-                            data-title={entry.data.title}
-                            data-image={entry.data.image}
-                            data-author={entry.data.author}
-                            data-slug={entry.slug}
-                            data-is-premiere={isPremiere}
-                            data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
-                            data-video-url={entry.data.videoUrl}
-                            data-sections={entry.data.sections ? JSON.stringify(entry.data.sections) : null}
-                        ></div>
-                    ) : entry.data.audioUrl ? (
-                        <div 
-                            id="episode-player-placeholder" 
-                            data-audio-url={entry.data.audioUrl}
-                            data-title={entry.data.title}
-                            data-image={entry.data.image}
-                            data-author={entry.data.author}
-                            data-slug={entry.slug}
-                            data-is-premiere={isPremiere}
-                            data-premiere-date={isPremiere ? entry.data.pubDate.toISOString() : undefined}
-                            data-start-time="0" 
-                            data-transcription={entry.data.transcription ? JSON.stringify(entry.data.transcription) : null}
-                            data-sections={entry.data.sections ? JSON.stringify(entry.data.sections) : null}
-                            data-video-url={entry.data.videoUrl}
-                        ></div>
-                    ) : null}
+                <div class="content-body prose prose-invert max-w-none mb-8">
+                    <Content />
                 </div>
 
-                <EpisodeActions 
-                    title={entry.data.title} 
-                    audioUrl={entry.data.audioUrl} 
-                    image={entry.data.image} 
-                    slug={entry.slug} 
-                    guests={entry.data.participants}
-                    duration={entry.data.duration}
-                />
-            </div>
-
-            {isPremiere && (
-                <div id="live-chat-wrapper" class="chat-sidebar" style={hasPremiereEnded ? "display:none;" : ""}>
-                    <LiveChat slug={entry.slug} />
+                <!-- Extras inline for Cinema mode -->
+                <div class="mt-8 pt-8 border-t border-zinc-800">
+                    <EpisodeSections sections={entry.data.sections} />
+                    <TranscriptionWidget transcription={entry.data.transcription} />
                 </div>
-            )}
-        </div>
+            </section>
 
-        <!-- Content -->
-        <div class="content-container container">
-            <div class="content-body">
-                <Content />
-            </div>
-            
-            <div class="sidebar">
-                <SidebarWidget title="Detalles" isOpen={false}>
-                    <ul class="details-list">
-                        <li>
-                            <strong>Temporada:</strong> {entry.data.season}
+            <!-- 3. COMMENTS AREA -->
+            <section id="comments-wrapper" class="comments-section mb-20">
+                <div class="flex items-center gap-4 mb-8">
+                    <h2 class="text-xl font-black">Comentarios</h2>
+                </div>
+                {isPremiere && !hasPremiereEnded ? (
+                    <div class="chat-integration mb-8">
+                         <LiveChat slug={entry.slug} />
+                    </div>
+                ) : (
+                    <Comments slug={entry.slug} />
+                )}
+            </section>
+        </main>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar-column">
+             <div class="sticky top-24 space-y-6">
+                 <EpisodeParticipants participants={entry.data.participants} />
+                 
+                 <SidebarWidget title="Detalles" isOpen={true}>
+                    <ul class="details-list text-sm">
+                        <li class="flex justify-between py-2 border-b border-zinc-800/50">
+                            <span class="text-zinc-500">Temporada</span>
+                            <span class="font-bold">{entry.data.season}</span>
                         </li>
-                        <li>
-                            <strong>Episodio:</strong> {entry.data.episode}
+                        <li class="flex justify-between py-2 border-b border-zinc-800/50">
+                            <span class="text-zinc-500">Episodio</span>
+                            <span class="font-bold">{entry.data.episode}</span>
                         </li>
-                        <li>
-                            <strong>Duración:</strong> {entry.data.duration}
+                        <li class="flex justify-between py-2 border-b border-zinc-800/50">
+                            <span class="text-zinc-500">Duración</span>
+                            <span class="font-bold uppercase">{entry.data.duration}</span>
                         </li>
                         {entry.data.tags && (
-                            <li class="tags-row">
-                                <strong>Etiquetas:</strong> 
-                                <div class="tags-list">
+                            <li class="pt-4">
+                                <div class="flex flex-wrap gap-2">
                                     {entry.data.tags.map(tag => (
-                                        <a href={`/ep?tag=${tag}`} class="tag-link">#{tag}</a>
+                                        <a href={`/ep?tag=${tag}`} class="tag-chip text-[10px] font-bold uppercase px-2 py-1 bg-zinc-800 hover:bg-primary transition-colors rounded">#{tag}</a>
                                     ))}
                                 </div>
                             </li>
                         )}
                     </ul>
-                </SidebarWidget>
-                
-                <EpisodeParticipants participants={entry.data.participants} />
-                
-                <EpisodeClips clips={entry.data.clips} />
+                 </SidebarWidget>
 
-                <div id="live-content-widgets" style={isUpcoming ? "display:none; opacity: 0; transition: opacity 1s ease-in;" : ""}>
-                    <EpisodeSections sections={entry.data.sections} isPremiere={isPremiere && !hasPremiereEnded} />
-                    <TranscriptionWidget transcription={entry.data.transcription} isPremiere={isPremiere && !hasPremiereEnded} />
-                </div>
-            </div>
-        </div>
+                 <EpisodeClips clips={entry.data.clips} />
 
-
-
-        <!-- Social Share -->
-        <SocialShare title={entry.data.title} />
-
-        <!-- Comments Section (Chat handled above if active) -->
-        <div id="comments-wrapper" class="container" style={`max-width: 1000px; margin-bottom: 6rem; ${isPremiere && !hasPremiereEnded ? 'display: none;' : ''}`}>
-            <Comments slug={entry.slug} />
-        </div>
-
-        <RelatedEpisodes 
-            currentSlug={entry.slug} 
-            tags={entry.data.tags} 
-            listenedEpisodes={listenedEpisodes}
-            favoriteEpisodes={favoriteEpisodes}
-        />
-    </article>
+                 <!-- Sidebar Discovery Widgets would go here -->
+                 <div class="related-wrapper pt-4">
+                    <h3 class="text-sm font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">Siguiente episodio</h3>
+                    <RelatedEpisodes 
+                        currentSlug={entry.slug} 
+                        tags={entry.data.tags} 
+                        limit={4}
+                    />
+                 </div>
+             </div>
+        </aside>
+    </div>
 </Layout>
 
-<script>
-    // Listen for the Premiere Start event (dispatched by PremiereCountdown)
-    document.addEventListener('premiere-started', () => {
-        const widgets = document.getElementById('live-content-widgets');
-        if (widgets) {
-            widgets.style.display = 'block';
-            // Allow display:block to apply before changing opacity
-            requestAnimationFrame(() => {
-                widgets.style.opacity = '1';
-            });
-        }
-    });
-    
-    const checkPremiereRealtimeEnd = () => {
-        const article = document.querySelector('.episode-article');
-        if (!article) return;
-        const endMsStr = article.getAttribute('data-premiere-end-time');
-        if (!endMsStr) return;
-        const endMs = parseInt(endMsStr, 10);
-        if (!endMs) return;
-
-        const now = Date.now();
-        if (now >= endMs) {
-            // Premiere is over
-            const commentsWrapper = document.getElementById('comments-wrapper');
-            if (commentsWrapper) commentsWrapper.style.display = 'block';
-
-            const chatWrapper = document.getElementById('live-chat-wrapper');
-            if (chatWrapper) chatWrapper.style.display = 'none';
-
-            article.removeAttribute('data-premiere-end-time'); // Stop checking
-        } else {
-            setTimeout(checkPremiereRealtimeEnd, 10000); // Check every 10s
-        }
-    };
-
-    const setupEpisodePage = () => {
-        checkPremiereRealtimeEnd();
-        
-        const btns = document.querySelectorAll('.play-trigger-btn');
-        btns.forEach(btn => {
-            // Remove old listener if possible? No, we just rely on fresh DOM or clean initial add.
-            // With Custom Router, the DOM is fresh, so the elements are new.
-            // We just need to ensure we don't attach THIS setup loop multiple times to the SAME 'astro:page-load' event chain.
-            btn.addEventListener('click', (e) => {
-                const target = e.currentTarget as HTMLElement;
-                const spotifyUrl = target.getAttribute('data-spotify-url');
-                const audioUrl = target.getAttribute('data-audio-url');
-                const url = spotifyUrl || audioUrl;
-                
-                if(url) {
-                    document.dispatchEvent(new CustomEvent('play-episode', { detail: { url } }));
-                }
-            });
-        });
-
-        // -----------------------------------------------------
-        // Client-side hydratation of Static Shell 
-        // -----------------------------------------------------
-        const placeholder = document.getElementById('episode-player-placeholder');
-        if (placeholder) {
-            const slug = placeholder.getAttribute('data-slug');
-            if (slug) {
-                fetch(`/api/user/episode-state?slug=${slug}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.loggedIn) {
-                            // Update player start time
-                            if (data.savedProgress && data.savedProgress > 10) {
-                                placeholder.setAttribute('data-start-time', data.savedProgress);
-                            }
-                            
-                            // Let the RelatedEpisodes know there's played content to dim out potentially
-                            if (data.listenedEpisodes && data.listenedEpisodes.length > 0) {
-                                const relatedCards = document.querySelectorAll('.related-card-wrapper');
-                                relatedCards.forEach(card => {
-                                    const link = card.querySelector('a');
-                                    if (link) {
-                                        const cardSlug = link.getAttribute('href')?.split('/').filter(Boolean).pop();
-                                        if (cardSlug && data.listenedEpisodes.includes(cardSlug)) {
-                                            card.innerHTML += `<div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.7); color:white; font-size:12px; font-weight:bold; padding:4px 8px; border-radius:4px; z-index:10; backdrop-filter:blur(4px);">Escuchado</div>`;
-                                            (card.firstElementChild as HTMLElement).style.opacity = '0.7';
-                                        }
-                                    }
-                                });
-                            }
-                            
-                            // Note: FavoriteButton handles its own state client-side already!
-                        }
-                    })
-                    .catch(err => console.error("Error fetching user state:", err));
-            }
-        }
-
-    };
-
-    // WE USE { once: true } to prevent accumulation of this specific closure if the script is re-run.
-    // However, the Custom Router fires 'astro:page-load' on every navigation.
-    // If we use { once: true }, this listener runs for the CURRENT page load, then unregisters.
-    // If the script is re-executed on the NEXT navigation, it adds a NEW listener (once).
-    document.addEventListener('DOMContentLoaded', setupEpisodePage);
-</script>
-
 <style>
-    .article-header {
-        padding: var(--spacing-md) var(--spacing-md) var(--spacing-lg);
-        text-align: center;
-        max-width: 900px;
-        margin: 0 auto; /* Center horizontally */
-    }
-
-    .meta-row {
-        color: var(--color-text-muted);
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .dot { margin: 0 var(--spacing-sm); }
-
-    h1 {
-        font-size: clamp(2rem, 4vw, 3.5rem);
-        margin-bottom: var(--spacing-md);
-        line-height: 1.1;
-    }
-
-    .lead {
-        font-size: 1.25rem;
-        color: var(--color-text-muted);
-        line-height: 1.6;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .header-actions {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 1rem;
-        margin-top: var(--spacing-lg);
-    }
-
-    @media (max-width: 640px) {
-        .header-actions {
-            gap: 0.5rem;
-        }
-    }
-
-
-
-    .featured-image {
-        margin-bottom: var(--spacing-xl);
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        max-width: 1000px;
-    }
-
-    .hero-image {
-        width: 100%;
-        height: auto;
-        max-height: 500px;
-        object-fit: cover;
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--color-border);
-    }
-
-    .player-container {
-        max-width: 800px;
-        margin-bottom: var(--spacing-2xl);
-        position: relative; /* Context for absolute potentially, but we use body-relative usually */
-    }
-
-    #episode-player-placeholder {
-        width: 100%;
-        height: auto;
-        min-height: 160px;
-        border-radius: 12px;
-        background: rgba(255,255,255,0.05); /* Visual placeholder */
-        transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .content-container {
+    .cinema-layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
-        gap: var(--spacing-2xl);
-        max-width: 100%;
-        padding-bottom: var(--spacing-2xl);
-        box-sizing: border-box;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 3rem;
+        padding-top: 1rem;
+        max-width: 1600px;
+        margin: 0 auto;
     }
 
+    @media (max-width: 1280px) {
+        .cinema-layout {
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 2rem;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .cinema-layout {
+            grid-template-columns: 1fr;
+        }
+        .sidebar-column {
+            order: 2;
+        }
+        .sidebar-column .sticky {
+            position: relative;
+            top: 0;
+        }
+    }
+
+    .player-wrapper {
+        background: #000;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .cinema-player-box {
+        min-height: 200px;
+        width: 100%;
+        position: relative;
+    }
+
+    /* Content Body Typography */
     .content-body {
-        font-size: 1.125rem;
-        color: var(--color-text-main);
-        padding: 0 var(--spacing-md);
-    }
-    
-    @media (min-width: 768px) {
-        .content-body {
-            padding: 0; 
-            padding-right: var(--spacing-lg); 
-        }
+        line-height: 1.8;
+        font-size: 1.05rem;
+        color: #d4d4d8;
     }
 
-    @media (min-width: 1200px) {
-        .content-body {
-            padding-left: 70px; /* Espacio para que no choque con la barra flotante de redes sociales */
-            padding-right: var(--spacing-xl);
-        }
-    }
-
-    /* Markdown Styles */
     .content-body :global(h2) {
-        font-size: 1.75rem;
-        margin-top: var(--spacing-xl);
-        margin-bottom: var(--spacing-md);
-        color: var(--color-text-main);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
     }
 
-    .content-body :global(p) {
-        margin-bottom: var(--spacing-md);
-        line-height: 1.7;
+    .glass-panel {
+        background: rgba(24, 24, 27, 0.4);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.03);
+        border-radius: 20px;
     }
 
-    .content-body :global(ul), .content-body :global(ol) {
-        margin-bottom: var(--spacing-md);
-        padding-left: var(--spacing-lg);
-    }
-    
-    .content-body :global(li) {
-        margin-bottom: var(--spacing-sm);
+    .tag-chip {
+        color: #a1a1aa;
     }
 
-    /* Sidebar */
-    .sidebar-widget {
-        background: var(--color-surface);
-        padding: var(--spacing-lg);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--color-border);
-    }
-
-    .sidebar-widget h3 {
-        margin-bottom: var(--spacing-md);
-        font-size: 1.25rem;
-    }
-
-    .details-list {
-        list-style: none;
-    }
-
-    .details-list li {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 0.5rem;
-        padding: var(--spacing-sm) 0;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .details-list li:last-child {
-        border-bottom: none;
-    }
-    
-    .details-list strong {
-        color: var(--color-text-muted);
-    }
-
-    .tags-row {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 0.5rem;
-    }
-
-    .tags-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .tag-link {
-        color: var(--color-primary);
-        background: rgba(139, 92, 246, 0.1);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-
-    .tag-link:hover {
-        background: var(--color-primary);
+    .tag-chip:hover {
         color: white;
     }
 
-    @media (max-width: 768px) {
-        .content-container {
-            grid-template-columns: 1fr;
-        }
-        
-        .sidebar {
-            order: -1; 
-            margin-bottom: var(--spacing-lg);
-        }
-        
-        /* Stack Premiere Layout on mobile */
-        .premiere-layout {
-            grid-template-columns: 1fr !important;
-        }
-    }
-    
-    .premiere-layout {
-        display: grid;
-        grid-template-columns: 1fr 350px;
-        gap: var(--spacing-xl);
-        margin-bottom: var(--spacing-2xl);
-    }
-    
-    .chat-sidebar {
-        /* Stick to top if scrolling? Maybe later */
+    /* Animation on enter */
+    .section-fade {
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .warning-wrapper {
-        margin-bottom: var(--spacing-lg);
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    
-    .warning-alert {
-        background: rgba(234, 179, 8, 0.1); /* Yellow/Amber warning tint */
-        border: 1px solid rgba(234, 179, 8, 0.2);
-        color: #fbbf24; /* Amber 400 */
-        padding: var(--spacing-md) var(--spacing-lg);
-        border-radius: var(--radius-md);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
+</style>
+
+<script>
+    declare var Plyr: any;
+
+    const initCinemaSection = () => {
+        const playerBox = document.getElementById('episode-player-inner');
+        if (!playerBox) {
+            console.warn('[Cinema] #episode-player-inner not found in DOM.');
+            return;
+        }
+
+        const audioUrl = playerBox.getAttribute('data-audio-url');
+        const spotifyUrl = playerBox.getAttribute('data-spotify-url');
+        let videoUrl = playerBox.getAttribute('data-video-url');
+        
+        console.log('[Cinema] Initializing Player Section:', { audioUrl, spotifyUrl, videoUrl });
+
+        const title = playerBox.getAttribute('data-title') || '';
+        const image = playerBox.getAttribute('data-image') || '';
+        const author = playerBox.getAttribute('data-author') || '';
+        const transStr = playerBox.getAttribute('data-transcription');
+        const transcription = transStr ? JSON.parse(transStr) : null;
+
+        // --- HELPER: CONVERT YT URL TO EMBED ---
+        const getEmbedVideoUrl = (url: string) => {
+            if (!url) return '';
+            try {
+                const u = new URL(url);
+                if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
+                    if (u.pathname.includes('/embed/')) return url;
+                    let videoId = '';
+                    if (u.hostname.includes('youtu.be')) {
+                        videoId = u.pathname.slice(1);
+                    } else {
+                        videoId = u.searchParams.get('v') || '';
+                    }
+                    if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=0&modestbranding=1&rel=0`;
+                }
+            } catch(e) {
+                console.error('[Cinema] Video URL conversion failed:', e);
+            }
+            return url;
+        };
+
+        // If it's a video, render with Plyr to hide YouTube branding
+        const videoContainer = document.getElementById('video-player-container');
+        if (videoUrl && !spotifyUrl && videoContainer) {
+            const finalVideoUrl = getEmbedVideoUrl(videoUrl);
+            console.log('[Cinema] Rendering Video Mode with Plyr:', finalVideoUrl);
+            
+            videoContainer.innerHTML = `
+                <div class="plyr-video-wrapper shadow-2xl rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0f0f0f]">
+                    <div class="plyr__video-embed" id="video-player">
+                        <iframe 
+                            src="${finalVideoUrl}" 
+                            allowfullscreen 
+                            allowtransparency 
+                            allow="autoplay"
+                        ></iframe>
+                    </div>
+                </div>
+            `;
+
+            // Initialize Plyr for Video
+            const videoElement = document.getElementById('video-player');
+            if (videoElement) {
+                new Plyr(videoElement, {
+                    controls: [
+                        'play-large', 'play', 'progress', 'current-time', 
+                        'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
+                    ],
+                    youtube: { 
+                        noCookie: true, 
+                        modestbranding: 1, 
+                        rel: 0, 
+                        iv_load_policy: 3, 
+                        showinfo: 0 
+                    }
+                });
+            }
+        }
+
+        // If it's Spotify, render iframe (Spotify mode usually takes over entirely)
+        if (spotifyUrl) {
+             console.log('[Cinema] Rendering Spotify Mode:', spotifyUrl);
+             let finalUrl = spotifyUrl;
+             if (!finalUrl.includes('/embed/')) {
+                  try {
+                      const urlObj = new URL(finalUrl);
+                      const segments = urlObj.pathname.split('/').filter(Boolean);
+                      if (segments[0] !== 'embed') finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
+                  } catch(e) { console.error('[Cinema] Spotify URL processing failed', e); }
+             }
+
+             playerBox.innerHTML = `
+                <div class="spotify-cinema py-12 px-2 flex justify-center bg-zinc-950 rounded-2xl">
+                    <iframe 
+                        style="border-radius:12px" 
+                        src="${finalUrl}" 
+                        width="100%" 
+                        height="352" 
+                        frameBorder="0" 
+                        allowfullscreen="" 
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                        loading="lazy"
+                        class="max-w-4xl w-full"
+                    ></iframe>
+                </div>
+             `;
+             return;
+        }
+
+        // --- MODE SWITCHER LOGIC ---
+        const btnSwitch = document.getElementById('btn-switch-mode');
+        const audioContainer = document.getElementById('audio-player-container');
+
+        if (btnSwitch && audioContainer && videoContainer) {
+            console.log('[Cinema] Switcher logic ready: Attaching event listener.');
+            
+            // Remove any existing listeners if this runs multiple times
+            const newBtn = btnSwitch.cloneNode(true) as HTMLElement;
+            btnSwitch.parentNode?.replaceChild(newBtn, btnSwitch);
+
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isVideoCurrentlyVisible = !videoContainer.classList.contains('hidden');
+                console.log('[Cinema] Switching Mode. Currently showing video:', isVideoCurrentlyVisible);
+                
+                if (isVideoCurrentlyVisible) {
+                    // --- SWITCH TO AUDIO ---
+                    videoContainer.classList.add('hidden');
+                    audioContainer.classList.remove('hidden');
+                    newBtn.innerHTML = '<span class="mode-icon text-sm">📺</span> <span class="mode-text">Ver Video</span>';
+                    
+                    // Stop video if playing
+                    const iframe = videoContainer.querySelector('iframe');
+                    if (iframe) {
+                        const originalSrc = iframe.src;
+                        iframe.src = ''; 
+                        setTimeout(() => { iframe.src = originalSrc; }, 100);
+                    }
+                } else {
+                    // --- SWITCH TO VIDEO ---
+                    audioContainer.classList.add('hidden');
+                    videoContainer.classList.remove('hidden');
+                    newBtn.innerHTML = '<span class="mode-icon text-sm">🎧</span> <span class="mode-text">Escuchar Episodio</span>';
+                    
+                    // Stop audio if playing
+                    const audio = audioContainer.querySelector('audio');
+                    if (audio) {
+                        console.log('[Cinema] Pausing background audio.');
+                        audio.pause();
+                    }
+                }
+            });
+        } else if (btnSwitch) {
+            console.warn('[Cinema] Mode switcher elements missing:', { audioContainer: !!audioContainer, videoContainer: !!videoContainer });
+        }
+    };
+
+    // Runs on standard loads and transitions
+    document.addEventListener('DOMContentLoaded', initCinemaSection);
+    document.addEventListener('astro:page-load', initCinemaSection);
+
+    // Initial check if script runs AFTER DOMContentLoaded
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initCinemaSection();
     }
 
-    .warning-icon {
-        flex-shrink: 0;
-        color: #fbbf24;
-    }
-    
-    .warning-alert span {
-        font-weight: 500;
-        font-size: 1rem;
-    }</style>
+    // Cleanup on before-preparation to stop any stray audio if navigating
+    document.addEventListener('astro:before-preparation', () => {
+         const audio = document.querySelector('audio');
+         if (audio) {
+             audio.pause();
+             audio.src = '';
+         }
+    });
+</script>

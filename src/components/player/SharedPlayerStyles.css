@@ -9,57 +9,46 @@
     z-index: 10;
 }
 
-/* Glass Card Container */
+/* YouTube Theme Container */
 .player-card {
     display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 16px;
-    border-radius: 20px;
-    background: rgba(18, 18, 20, 0.75); /* Dark base */
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08); /* Stronger border for glass feel */
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    flex-direction: column; /* Stack progress bar below controls */
+    padding: 0;
+    border-radius: 12px;
+    background: #0f0f0f; /* YouTube Dark mode background */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     color: white;
     position: relative;
-    /* overflow: hidden; Removed to allow tooltips */
-    height: auto; /* Responsive height */
+    overflow: hidden;
+    height: auto;
     transition: all 0.3s ease;
 }
 
-/* Dynamic Glow Background */
+/* Red Glow for YouTube feel */
 .player-bg-glow {
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at center, var(--color-primary-glow, rgba(139, 92, 246, 0.15)), transparent 70%);
-    opacity: 0.4;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(239, 68, 68, 0.05), transparent 80%);
     pointer-events: none;
     z-index: 0;
-    filter: blur(60px);
-    transition: background 1s ease;
 }
 
-/* Inline Player Grid (Default) */
+/* YouTube Layout Grid */
 .player-grid {
-    display: grid;
-    grid-template-columns: auto 1fr auto; 
-    grid-template-rows: auto auto auto; 
-    grid-template-areas: 
-        "title title title"
-        "art body extras"
-        "progress progress progress";
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    column-gap: 20px;
-    row-gap: 12px;
     position: relative;
     z-index: 2;
+}
+
+.player-main-row {
+    display: flex;
     align-items: center;
+    padding: 12px 16px;
+    gap: 16px;
+    width: 100%;
 }
 
 /* Floating Player Grid (Flex row simulation via Grid or Flex) */
@@ -80,12 +69,11 @@
 }
 
 .artwork-wrapper {
-    width: 100px;
-    height: 100px;
-    border-radius: 12px;
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -141,13 +129,11 @@
 
 /* Metadata */
 .track-details {
-    grid-area: title;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding-bottom: 5px; /* Spacing from main row */
-    border-bottom: 1px solid rgba(255,255,255,0.05); /* Optional separator line */
-    margin-bottom: 5px;
+    gap: 0;
+    flex: 1;
+    min-width: 0;
 }
 .mini-player.floating .track-details {
     order: 2;
@@ -231,13 +217,11 @@
 }
 
 .player-progress {
-    grid-area: progress;
     width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 4px;
-    padding: 0 4px;
+    position: relative;
+    padding: 0;
+    margin-top: -2px; /* Pull up to sit exactly on the line border if needed */
+    order: 10;
 }
 
 .time-text {
@@ -260,11 +244,13 @@
 .seek-track-bg {
     position: absolute;
     width: 100%;
-    height: 4px; /* Thin line */
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    /* overflow: hidden; Removed to show tooltips */
-    transition: all 0.2s;
+    height: 3px; /* Signature YouTube thin bar */
+    background: rgba(255, 255, 255, 0.2);
+    transition: height 0.1s ease;
+}
+
+.seek-track-bg:hover {
+    height: 5px;
 }
 
 .seek-markers {
@@ -340,10 +326,28 @@
 
 .seek-track-fill {
     height: 100%;
-    background: var(--color-primary, #8b5cf6);
-    width: 0%; /* JS updates this */
-    border-radius: 2px;
+    background: #f00; /* YouTube Red */
+    width: 0%;
     position: relative;
+}
+
+/* YouTube Scrubber Head */
+.seek-track-fill::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    width: 12px;
+    height: 12px;
+    background: #f00;
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+    z-index: 10;
+}
+
+.seek-slider-wrapper:hover .seek-track-fill::after {
+    transform: translateY(-50%) scale(1);
 }
 
 /* Interaction: thicken on hover */
@@ -413,20 +417,17 @@ input[type="range"].u-hidden-range {
 }
 
 .btn-ctrl.primary-play {
-    width: 48px;
-    height: 48px;
-    background: white;
-    color: black;
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.25);
-    transform: scale(1);
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    color: white;
+    box-shadow: none;
     padding: 0;
-    position: relative; /* Anchor for absolute center icons */
 }
 
 .btn-ctrl.primary-play:hover {
-    transform: scale(1.08);
-    background: white;
-    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.1);
+    transform: none;
 }
 
 .btn-ctrl svg {
@@ -476,9 +477,9 @@ input[type="range"].u-hidden-range {
 .player-extras {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding-left: 16px;
-    border-left: 1px solid rgba(255,255,255,0.05);
+    gap: 8px;
+    padding-left: 12px;
+    border-left: none;
 }
 
 .mini-player.floating .player-extras {
@@ -724,4 +725,299 @@ input[type="range"].u-hidden-range {
     .auto-loudness-indicator {
         display: none;
     }
+}
+
+/* --- Captions Overlay Styles --- */
+.captions-overlay {
+    position: absolute;
+    bottom: 80px; /* Above the progress bar and controls */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 600px;
+    z-index: 100;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.mini-player.floating .captions-overlay {
+    bottom: 110px; /* Higher when floating in bottom bar */
+}
+
+.captions-container {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.caption-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    line-height: 1.4;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    display: block;
+}
+
+@media (max-width: 640px) {
+    .caption-text {
+        font-size: 0.95rem;
+    }
+}
+
+/* Button Active State */
+.btn-ctrl.captions-toggle.active {
+    color: #f00; /* YouTube Red */
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.btn-ctrl.captions-toggle.active svg {
+    fill: currentColor;
+    opacity: 0.8;
+}
+
+.time-display-yt {
+    padding: 2px 16px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #aaa;
+    display: flex;
+    gap: 4px;
+    pointer-events: none;
+}
+
+/* --- Plyr.io Veredillas Brand Theme --- */
+:root {
+  --plyr-color-main: var(--color-primary, #8b5cf6) !important;
+  --plyr-audio-controls-background: transparent;
+  --plyr-audio-control-color: #eee;
+  --plyr-audio-control-background-hover: rgba(139, 92, 246, 0.1);
+  --plyr-range-thumb-height: 12px;
+  --plyr-range-thumb-background: var(--color-primary);
+}
+
+/* --- Cinema Mode Professional Player --- */
+.cinema-audio-player-react.premium-view {
+    aspect-ratio: 16 / 9;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+    overflow: hidden;
+}
+
+.cinema-audio-player-react.premium-view .player-background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.cinema-audio-player-react.premium-view .player-background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(15px) brightness(0.5);
+    transform: scale(1.05);
+    transition: transform 10s linear;
+}
+
+.cinema-audio-player-react.premium-view:hover .player-background img {
+    transform: scale(1.2);
+}
+
+.cinema-audio-player-react.premium-view .player-background::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(0,0,0,0.2), rgba(0,0,0,0.8) 90%);
+}
+
+.cinema-audio-player-react.premium-view .player-content {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2.5rem;
+}
+
+.cinema-audio-player-react.premium-view .player-center-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.cinema-audio-player-react.premium-view .main-play-btn {
+    width: 80px;
+    height: 80px;
+    background: rgba(var(--color-primary-rgb), 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 0 50px rgba(var(--color-primary-rgb), 0.3), 0 10px 30px rgba(0,0,0,0.5);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.cinema-audio-player-react.premium-view .main-play-btn:hover {
+    transform: scale(1.1);
+    background: var(--color-primary);
+    box-shadow: 0 0 60px rgba(var(--color-primary-rgb), 0.5), 0 15px 40px rgba(0,0,0,0.6);
+}
+
+.cinema-audio-player-react.premium-view .main-play-btn svg {
+    width: 40px;
+    height: 40px;
+}
+
+.cinema-audio-player-react.premium-view .secondary-btn {
+    width: 54px;
+    height: 54px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.7);
+    transition: all 0.25s ease;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.cinema-audio-player-react.premium-view .secondary-btn:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* --- Waves Section --- */
+.cinema-audio-player-react.premium-view .waves-container {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    margin-bottom: 1rem;
+    pointer-events: none;
+}
+
+.cinema-audio-player-react.premium-view .wave-bar {
+    width: 4px;
+    border-radius: 4px;
+    background: linear-gradient(to top, var(--color-primary), white);
+    opacity: 0.6;
+    transition: opacity 0.3s, height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cinema-audio-player-react.premium-view .wave-bar.active {
+    opacity: 1;
+    animation: cinema-wave-anim 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes cinema-wave-anim {
+    0% { transform: scaleY(0.4); }
+    100% { transform: scaleY(1.5); }
+}
+
+/* --- Bottom Info Area --- */
+.cinema-audio-player-react.premium-view .bottom-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.cinema-audio-player-react.premium-view .track-info-premium {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.cinema-audio-player-react.premium-view .track-cover-mini {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.cinema-audio-player-react.premium-view .track-cover-mini img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cinema-audio-player-react.premium-view .track-meta-premium h4 {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.25rem;
+}
+
+.cinema-audio-player-react.premium-view .track-meta-premium p {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* --- Custom Progress Bar --- */
+.cinema-audio-player-react.premium-view .progress-wrapper {
+    width: 100%;
+}
+
+.cinema-audio-player-react.premium-view .custom-seek {
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cinema-audio-player-react.premium-view .seek-bar-container {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.cinema-audio-player-react.premium-view .seek-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--color-primary), #d946ef);
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.cinema-audio-player-react.premium-view .time-stamps {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255,255,255,0.5);
+}
+
+.cinema-audio-player-react.premium-view .plyr-container.hidden-plyr {
+    display: none !important;
 }
