@@ -51,6 +51,17 @@ const { title, audioUrl, image, guests, slug, duration } = Astro.props;
         </span>
         <span>Comentarios</span>
     </a>
+
+    <!-- Share Modal Trigger -->
+    <button 
+        id="action-share-episode" 
+        class="inline-flex items-center justify-center gap-[10px] bg-[#27272a] border border-white/10 px-6 py-3 rounded-[100px] color-white cursor-pointer no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] text-[0.95rem] font-semibold min-w-[140px] hover:bg-primary/20 hover:border-primary/30 hover:-translate-y-0.5 max-[600px]:w-full max-[600px]:py-3.5 max-[600px]:text-base"
+    >
+        <span class="flex items-center justify-center text-inherit max-[600px]:w-5 max-[600px]:h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        </span>
+        <span>Compartir</span>
+    </button>
 </div>
 
 
@@ -70,34 +81,50 @@ const { title, audioUrl, image, guests, slug, duration } = Astro.props;
         }
     }
 
-    const clipBtn = document.querySelector('#action-create-clip');
-    
-    if (clipBtn) {
-        clipBtn.addEventListener('click', () => {
-            const url = clipBtn.getAttribute('data-audio-url');
-            const title = clipBtn.getAttribute('data-title');
-            const image = clipBtn.getAttribute('data-image');
-            const duration = clipBtn.getAttribute('data-duration');
-            
-            if (url) {
-                const evt = new CustomEvent('veredillas:open-clip-editor', {
-                     detail: {
-                         audioUrl: url,
-                         title: title || 'Episodio',
-                         author: 'Veredillas FM',
-                         cover: image || '/logo.webp',
-                         duration: duration ? parseFloat(duration) : 0
-                     }
-                 });
-                 window.dispatchEvent(evt);
-            } else {
-                if (window.playerCurrentUrl) {
-                     alert('Esta función solo está disponible si hay un archivo de audio directo (no Spotify).');
+    const setupActions = () => {
+        const shareBtn = document.getElementById('action-share-episode');
+        console.log('[EpisodeActions] Setup. Share button found:', !!shareBtn);
+        
+        if (shareBtn) {
+            shareBtn.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 console.log('[EpisodeActions] Share button clicked. Dispatching event.');
+                 window.dispatchEvent(new CustomEvent('veredillas:open-share-modal'));
+            });
+        }
+
+        const clipBtn = document.querySelector('#action-create-clip');
+        if (clipBtn) {
+            clipBtn.addEventListener('click', () => {
+                const url = clipBtn.getAttribute('data-audio-url');
+                const title = clipBtn.getAttribute('data-title');
+                const image = clipBtn.getAttribute('data-image');
+                const duration = clipBtn.getAttribute('data-duration');
+                
+                if (url) {
+                    const evt = new CustomEvent('veredillas:open-clip-editor', {
+                         detail: {
+                             audioUrl: url,
+                             title: title || 'Episodio',
+                             author: 'Veredillas FM',
+                             cover: image || '/logo.webp',
+                             duration: duration ? parseFloat(duration) : 0
+                         }
+                     });
+                     window.dispatchEvent(evt);
                 } else {
-                     alert('No hay fuente de audio disponible para clips.');
+                    if (window.playerCurrentUrl) {
+                         alert('Esta función solo está disponible si hay un archivo de audio directo (no Spotify).');
+                    } else {
+                         alert('No hay fuente de audio disponible para clips.');
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
+    };
+
+    // Run on initial load and on view transitions navigation
+    setupActions();
+    document.addEventListener('astro:page-load', setupActions);
 </script>
 

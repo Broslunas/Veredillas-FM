@@ -4,8 +4,13 @@
 export function getShortLink(url: string | URL): string {
     let urlStr = url.toString();
     
-    // Si ya es un short link, no hacemos nada
-    if (urlStr.includes('vrdfm.es')) return urlStr;
+    // Si ya es un short link, nos aseguramos que tenga https
+    if (urlStr.includes('vrdfm.es')) {
+        if (urlStr.startsWith('http:')) {
+            return urlStr.replace('http:', 'https:');
+        }
+        return urlStr;
+    }
     
     // Dominios conocidos de la web
     const domains = [
@@ -17,7 +22,12 @@ export function getShortLink(url: string | URL): string {
     
     for (const domain of domains) {
         if (urlStr.includes(domain)) {
-            return urlStr.replace(domain, 'vrdfm.es');
+            let short = urlStr.replace(domain, 'vrdfm.es');
+            // Aseguramos que el shortlink sea siempre https
+            if (short.startsWith('http:')) {
+                short = short.replace('http:', 'https:');
+            }
+            return short;
         }
     }
     

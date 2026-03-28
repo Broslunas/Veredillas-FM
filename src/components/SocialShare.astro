@@ -3,14 +3,117 @@ import { getShortLink } from '../utils/shortLink';
 
 interface Props {
   title: string;
+  image?: string;
   url?: URL | string;
+  isModal?: boolean;
+  triggerId?: string;
 }
 
-const { title, url = Astro.url } = Astro.props;
+const { title, image, url = Astro.url, isModal = false, triggerId } = Astro.props;
 const shortUrl = getShortLink(url);
 const shareUrl = encodeURIComponent(shortUrl);
 const shareTitle = encodeURIComponent(title);
 ---
+
+{isModal ? (
+  <div id="social-share-modal" class="share-modal-backdrop" data-trigger-id={triggerId} data-title={title} data-image={image}>
+    <div class="share-modal-dialog">
+        <div class="share-modal-header">
+            <h3>Compartir</h3>
+            <button class="close-share-modal" id="close-share-modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <div class="share-modal-content">
+            <p class="share-modal-subtitle">Difunde este episodio en tus redes sociales</p>
+            
+            <div class="modal-share-grid">
+                <!-- WhatsApp -->
+                <a href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" class="modal-share-item whatsapp" aria-label="Compartir en WhatsApp">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
+                   <span>WhatsApp</span>
+                </a>
+
+                <!-- Telegram -->
+                <a href={`https://t.me/share/url?url=${shareUrl}&text=${shareTitle}`} target="_blank" rel="noopener noreferrer" class="modal-share-item telegram" aria-label="Compartir en Telegram">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></div>
+                   <span>Telegram</span>
+                </a>
+
+                <!-- Facebook -->
+                <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" class="modal-share-item facebook" aria-label="Compartir en Facebook">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></div>
+                   <span>Facebook</span>
+                </a>
+
+                <!-- X -->
+                <a href={`https://twitter.com/intent/tweet?text=${shareTitle}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer" class="modal-share-item twitter" aria-label="Compartir en X">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg></div>
+                   <span>X (Twitter)</span>
+                </a>
+
+                <!-- LinkedIn -->
+                <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" class="modal-share-item linkedin" aria-label="Compartir en LinkedIn">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></div>
+                   <span>LinkedIn</span>
+                </a>
+
+                <!-- Threads -->
+                <a href={`https://www.threads.net/intent/post?text=${shareTitle}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" class="modal-share-item threads" aria-label="Compartir en Threads">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.88 11.53c0 .82-.53 1.25-1.3 1.25s-1.3-.43-1.3-1.25.53-1.25 1.3-1.25 1.3.43 1.3 1.25zm5.72 4.47c-1.3 3.4-4.7 5.7-8.6 5.7-5.3 0-9.6-4.3-9.6-9.6s4.3-9.6 9.6-9.6c4.6 0 8.5 3.3 9.4 7.6.1.5.2 1.1.2 1.6 0 2.9-1.8 4.7-4.1 4.7-1.1 0-2.1-.5-2.7-1.3-.6.8-1.7 1.3-2.9 1.3-2.1 0-3.9-1.8-3.9-4.3s1.7-4.4 3.9-4.4c.9 0 1.8.4 2.4 1v-.1c0-.4.3-.7.7-.7s.7.3.7.7v3.2c0 .9.6 1.4 1.3 1.4.9 0 1.5-.7 1.5-2 0-.3 0-.7-.1-1-.7-3.2-3.6-5.6-7-5.6-4.2 0-7.6 3.4-7.6 7.6s3.4 7.6 7.6 7.6c1.6 0 3.1-.5 4.4-1.4.4-.3.9-.2 1.2.2.3.4.2.9-.2 1.2-1.6 1.2-3.5 1.8-5.4 1.8-6.1 0-11-4.9-11-11s4.9-11 11-11 11 4.9 11 11c0 .6-.1 1.3-.2 1.9-.3 1-.7 2-1.2 2.9z"/></svg></div>
+                   <span>Threads</span>
+                </a>
+
+                <!-- Reddit -->
+                <a href={`https://www.reddit.com/submit?url=${shareUrl}&title=${shareTitle}`} target="_blank" rel="noopener noreferrer" class="modal-share-item reddit" aria-label="Compartir en Reddit">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-1.25 1.25 1.22 1.22 0 0 1-.51-.113 7.39 7.39 0 0 1-2.023 1.933c.01.12.013.242.013.366 0 2.33-2.63 4.234-5.881 4.234-3.251 0-5.881-1.904-5.881-4.234 0-.124.003-.242.013-.362a7.377 7.377 0 0 1-2.023-1.94 1.26 1.26 0 0 1-.51.113 1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.249c.433 0 .806.223 1.023.559.98-.67 2.29-1.107 3.743-1.168L7.88 2.327l2.5 1.057c.046-.43.407-.768.847-.768.47 0 .85.38.85.85s-.38.85-.85.85a.848.848 0 0 1-.78-.514L8.761 3.511 8.281 5.73c1.46.06 2.77.498 3.75 1.168.217-.336.59-.559 1.023-.559zM8.5 9.25a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 1 0 0-2.5zm6.85 0a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 1 0 0-2.5zm-5.736 3.636a.348.348 0 0 0-.035.49c.81.81 2.3 1.01 2.42 1.01.12 0 1.61-.2 2.42-1.01a.348.348 0 0 0-.49-.49c-.53.53-1.63.7-1.93.73-.3-.03-1.4-.2-1.93-.73a.348.348 0 0 0-.441-.01z"/></svg></div>
+                   <span>Reddit</span>
+                </a>
+
+                <!-- Instagram -->
+                <a href={`https://www.instagram.com/`} target="_blank" rel="noopener noreferrer" class="modal-share-item instagram" aria-label="Compartir en Instagram">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></div>
+                   <span>Instagram</span>
+                </a>
+
+                <!-- Email -->
+                <button class="modal-share-item email" id="modal-email-trigger" aria-label="Compartir por Email">
+                   <div class="icon-circle"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
+                   <span>Email</span>
+                </button>
+            </div>
+
+            <!-- Email Form (Hidden by default) -->
+            <div id="email-share-form" class="share-modal-form">
+                <p class="form-title">Enviar por Email</p>
+                <div class="form-group">
+                    <input type="email" id="share-recipient-email" placeholder="correo@ejemplo.com" class="modal-input" />
+                    <button id="send-mailjet-btn" class="modal-primary-btn">
+                        <span>Enviar</span>
+                        <div class="btn-loader hidden"></div>
+                    </button>
+                </div>
+                <p id="email-status-msg" class="status-msg"></p>
+            </div>
+
+            <div class="share-modal-footer-actions">
+                <button id="modal-open-embed" class="secondary-modal-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    Insertar Episodio
+                </button>
+            </div>
+
+            <div class="share-modal-actions">
+                <div class="url-copy-box">
+                    <input type="text" value={shortUrl} readonly id="modal-share-url" />
+                    <button id="modal-copy-btn">Copiar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+) : (
 
 <aside class="social-share-floating">
   <div class="share-buttons">
@@ -45,6 +148,7 @@ const shareTitle = encodeURIComponent(title);
     </button>
   </div>
 </aside>
+)}
 
 <!-- Embed Modal -->
 <div id="embed-modal" class="embed-backdrop">
@@ -116,7 +220,20 @@ const shareTitle = encodeURIComponent(title);
 <script>
   import { getShortLink } from '../utils/shortLink';
 
+  // Global listener for opening the share modal - outside setup to avoid duplicates
+  window.addEventListener('veredillas:open-share-modal', () => {
+      console.log('[SocialShare] Global event received.');
+      const modal = document.getElementById('social-share-modal');
+      if (modal) {
+          modal.classList.add('visible');
+          console.log('[SocialShare] Modal visibility set to true.');
+      } else {
+          console.warn('[SocialShare] Modal element not found in DOM.');
+      }
+  });
+
   const setup = () => {
+      console.log('[SocialShare] Setup running.');
       // Copy Link Logic
       const copyBtn = document.getElementById('copy-link-btn');
       if (copyBtn) {
@@ -131,6 +248,118 @@ const shareTitle = encodeURIComponent(title);
             });
           });
       }
+
+      // Modal Share Logic
+      const shareModal = document.getElementById('social-share-modal');
+      const closeShareBtn = document.getElementById('close-share-modal');
+      const modalTriggerId = shareModal?.dataset.triggerId;
+      const modalCopyBtn = document.getElementById('modal-copy-btn');
+      const modalUrlInput = document.getElementById('modal-share-url') as HTMLInputElement;
+
+      if (modalTriggerId) {
+          const trigger = document.getElementById(modalTriggerId);
+          trigger?.addEventListener('click', () => {
+              shareModal?.classList.add('visible');
+          });
+      }
+
+      closeShareBtn?.addEventListener('click', () => {
+          shareModal?.classList.remove('visible');
+      });
+
+      shareModal?.addEventListener('click', (e) => {
+          if (e.target === shareModal) shareModal.classList.remove('visible');
+      });
+
+      modalCopyBtn?.addEventListener('click', () => {
+          if (modalUrlInput) {
+              modalUrlInput.select();
+              navigator.clipboard.writeText(modalUrlInput.value).then(() => {
+                  const original = modalCopyBtn.innerText;
+                  modalCopyBtn.innerText = "¡Copiado!";
+                  modalCopyBtn.classList.add('copied');
+                  setTimeout(() => {
+                      modalCopyBtn.innerText = original;
+                      modalCopyBtn.classList.remove('copied');
+                  }, 2000);
+              });
+          }
+      });
+
+      const modalOpenEmbed = document.getElementById('modal-open-embed');
+      modalOpenEmbed?.addEventListener('click', () => {
+          shareModal?.classList.remove('visible');
+          document.getElementById('embed-modal')?.classList.add('visible');
+      });
+
+      // Mailjet Email Sharing Logic
+      const emailTrigger = document.getElementById('modal-email-trigger');
+      const emailForm = document.getElementById('email-share-form');
+      const sendEmailBtn = document.getElementById('send-mailjet-btn');
+      const recipientInput = document.getElementById('share-recipient-email') as HTMLInputElement;
+      const statusMsg = document.getElementById('email-status-msg');
+
+      emailTrigger?.addEventListener('click', () => {
+          emailForm?.classList.toggle('visible');
+          if (emailForm?.classList.contains('visible')) {
+              recipientInput?.focus();
+          }
+      });
+
+      sendEmailBtn?.addEventListener('click', async () => {
+          const email = recipientInput?.value.trim();
+          if (!email) {
+              if (statusMsg) {
+                  statusMsg.innerText = "Introduce un email válido.";
+                  statusMsg.className = "status-msg error visible";
+              }
+              return;
+          }
+
+          const loader = sendEmailBtn.querySelector('.btn-loader');
+          const btnText = sendEmailBtn.querySelector('span');
+
+          try {
+              loader?.classList.remove('hidden');
+              btnText?.classList.add('hidden');
+              sendEmailBtn.setAttribute('disabled', 'true');
+
+              const response = await fetch('/api/share/email', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      to: email,
+                      title: shareModal?.getAttribute('data-title') || document.title,
+                      image: shareModal?.getAttribute('data-image') || '',
+                      url: document.getElementById('modal-share-url')?.getAttribute('value') || window.location.href
+                  })
+              });
+
+              const result = await response.json();
+
+              if (statusMsg) {
+                  statusMsg.innerText = result.message;
+                  statusMsg.className = result.success ? "status-msg success visible" : "status-msg error visible";
+                  
+                  if (result.success) {
+                      recipientInput.value = "";
+                      setTimeout(() => {
+                          emailForm?.classList.remove('visible');
+                          statusMsg.className = "status-msg";
+                      }, 3000);
+                  }
+              }
+          } catch (err) {
+              if (statusMsg) {
+                  statusMsg.innerText = "Error de conexión.";
+                  statusMsg.className = "status-msg error visible";
+              }
+          } finally {
+              loader?.classList.add('hidden');
+              btnText?.classList.remove('hidden');
+              sendEmailBtn.removeAttribute('disabled');
+          }
+      });
 
       // Embed Modal Logic
       const modal = document.getElementById('embed-modal');
@@ -688,12 +917,354 @@ const shareTitle = encodeURIComponent(title);
           border-color: rgba(255,255,255,0.3);
       }
 
-      /* Keep hover specific colors but ensure text is white */
+       /* Keep hover specific colors but ensure text is white */
       .whatsapp:hover { background: #25D366 !important; border-color: #25D366 !important; color: white !important; }
       .telegram:hover { background: #0088cc !important; border-color: #0088cc !important; color: white !important; }
       .facebook:hover { background: #1877F2 !important; border-color: #1877F2 !important; color: white !important; }
       .twitter:hover { background: #000 !important; border-color: #333 !important; color: white !important; }
       .embed-btn:hover { background: #8b5cf6 !important; border-color: #8b5cf6 !important; color: white !important; }
       .copy-link:hover { background: var(--color-primary) !important; border-color: var(--color-primary) !important; color: white !important; }
+  }
+
+  /* --- Share Modal Styles --- */
+  .share-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .share-modal-backdrop.visible {
+      opacity: 1;
+      pointer-events: auto;
+  }
+
+  .share-modal-dialog {
+      background: #121212;
+      border: 1px solid rgba(255,255,255,0.1);
+      width: 90%;
+      max-width: 450px;
+      border-radius: 24px;
+      padding: 24px;
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .share-modal-backdrop.visible .share-modal-dialog {
+      transform: translateY(0) scale(1);
+  }
+
+  .share-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+  }
+
+  .share-modal-header h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+  }
+
+  .close-share-modal {
+      background: rgba(255,255,255,0.05);
+      border: none;
+      color: #a1a1aa;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 12px;
+      transition: all 0.2s;
+  }
+
+  .close-share-modal:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      transform: rotate(90deg);
+  }
+
+  .share-modal-subtitle {
+      color: #71717a;
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+  }
+
+  .modal-share-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+  }
+
+  .modal-share-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 10px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      text-decoration: none;
+      color: #d4d4d8;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.3s;
+  }
+
+  .icon-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      transition: all 0.3s;
+  }
+
+  .modal-share-item:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-4px);
+      color: white;
+  }
+
+  .modal-share-item:hover .icon-circle {
+      transform: scale(1.1);
+  }
+
+  /* Modal Specific colors */
+  .modal-share-item.whatsapp:hover .icon-circle { background: #25D366; color: white; }
+  .modal-share-item.telegram:hover .icon-circle { background: #0088cc; color: white; }
+  .modal-share-item.facebook:hover .icon-circle { background: #1877F2; color: white; }
+  .modal-share-item.twitter:hover .icon-circle { background: #000; color: white; }
+  .modal-share-item.linkedin:hover .icon-circle { background: #0077b5; color: white; }
+  .modal-share-item.threads:hover .icon-circle { background: #000; color: white; }
+  .modal-share-item.reddit:hover .icon-circle { background: #ff4500; color: white; }
+  .modal-share-item.instagram:hover .icon-circle { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); color: white; }
+  .modal-share-item.email:hover .icon-circle { background: #ea4335; color: white; }
+
+  .share-modal-footer-actions {
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: center;
+  }
+
+  .secondary-modal-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #71717a;
+      padding: 10px 20px;
+      border-radius: 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+
+  .secondary-modal-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-color: rgba(255,255,255,0.2);
+  }
+
+  .share-modal-actions {
+      background: rgba(0,0,0,0.3);
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .url-copy-box {
+      display: flex;
+      gap: 10px;
+  }
+
+  .url-copy-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #a1a1aa;
+      font-size: 0.85rem;
+      outline: none;
+      min-width: 0;
+  }
+
+  .share-modal-form {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(139, 92, 246, 0.05);
+      margin: 0 -10px;
+      padding: 0 20px;
+      border-radius: 16px;
+  }
+
+  .share-modal-form.visible {
+      max-height: 200px;
+      opacity: 1;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .form-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #8b5cf6;
+      margin: 0 0 12px;
+  }
+
+  .form-group {
+      display: flex;
+      gap: 10px;
+  }
+
+  .modal-input {
+      flex: 1;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: white;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+  }
+
+  .modal-input:focus {
+      border-color: #8b5cf6;
+  }
+
+  .modal-primary-btn {
+      background: #8b5cf6;
+      color: white;
+      border: none;
+      padding: 0 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 80px;
+  }
+
+  .status-msg {
+      font-size: 0.75rem;
+      margin-top: 8px;
+      display: none;
+  }
+
+  .status-msg.visible {
+      display: block;
+  }
+
+  .status-msg.success { color: #10b981; }
+  .status-msg.error { color: #ef4444; }
+
+  .btn-loader {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+  }
+
+  .modal-primary-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+  }
+
+  @keyframes spin {
+      to { transform: rotate(360deg); }
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 480px) {
+      .share-modal-dialog {
+          padding: 20px 16px;
+          border-radius: 20px;
+          width: 95%;
+      }
+
+      .share-modal-header h3 {
+          font-size: 1.25rem;
+      }
+
+      .modal-share-grid {
+          gap: 8px;
+      }
+
+      .modal-share-item {
+          padding: 12px 8px;
+          border-radius: 16px;
+          font-size: 0.75rem;
+      }
+
+      .icon-circle {
+          width: 40px;
+          height: 40px;
+      }
+
+      .form-group {
+          flex-direction: column;
+      }
+
+      .modal-primary-btn {
+          padding: 12px;
+          width: 100%;
+      }
+
+      .share-modal-form.visible {
+          max-height: 250px;
+      }
+  }
+
+  @media (max-height: 600px) {
+      .share-modal-backdrop {
+          align-items: flex-start;
+          padding: 20px 0;
+          overflow-y: auto;
+      }
+      
+      .share-modal-dialog {
+          margin: auto;
+      }
+  }
+
+  .url-copy-box button {
+      background: var(--color-primary, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+
+  .url-copy-box button:hover {
+      background: #7c3aed;
+      transform: scale(1.05);
+  }
+
+  .url-copy-box button.copied {
+      background: #10b981;
   }
 </style>

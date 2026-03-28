@@ -17,6 +17,7 @@ interface CinemaAudioPlayerProps {
     author?: string;
     transcription?: Transcription[] | null;
     slug?: string;
+    videoUrl?: string;
 }
 
 import { syncPlaybackData, recordListen } from '../../services/player/playbackSync';
@@ -27,7 +28,8 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     cover, 
     author = 'Veredillas FM', 
     transcription = [],
-    slug
+    slug,
+    videoUrl
 }) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -539,7 +541,7 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                         </div>
 
                         {/* UTILITY CONTROLS (VOLUME, SPEED, FS, TRANSCRIPTION) */}
-                        <div className="utility-bar flex items-center gap-2 sm:gap-3 md:gap-6 bg-white/5 backdrop-blur-md px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/5">
+                        <div className="utility-bar flex flex-wrap items-center gap-2 sm:gap-3 md:gap-6 bg-white/5 backdrop-blur-md px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/5">
                             {/* Volume */}
                             <div className="volume-control flex items-center gap-2 group/volume">
                                 <button 
@@ -586,6 +588,27 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                                 >
                                     CC
                                 </button>
+                            )}
+
+                            {/* Mode Switcher (Audio/Video toggle integrated) */}
+                            {!!videoUrl && (
+                                <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10 ml-2 shadow-inner">
+                                    <button 
+                                        className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/20 text-white shadow-sm border border-white/10"
+                                        disabled
+                                    >
+                                        🎧 Audio
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            const event = new CustomEvent('veredillas:switch-mode', { detail: { mode: 'video' } });
+                                            document.dispatchEvent(event);
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-white/70 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/20"
+                                    >
+                                        📺 Vídeo
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
