@@ -16,14 +16,18 @@ interface CinemaAudioPlayerProps {
     cover?: string;
     author?: string;
     transcription?: Transcription[] | null;
+    slug?: string;
 }
+
+import { syncPlaybackData, recordListen } from '../../services/player/playbackSync';
 
 const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({ 
     audioUrl, 
     title, 
     cover, 
     author = 'Veredillas FM', 
-    transcription = [] 
+    transcription = [],
+    slug
 }) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -44,6 +48,26 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         const audio = audioRef.current;
         if (!audio) return;
 
+        // FETCH SAVED PROGRESS
+        if (slug) {
+            fetch(`/api/user/episode-state?slug=${slug}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.savedProgress && data.savedProgress > 0) {
+                        console.log(`[Audio] Restoring saved progress: ${data.savedProgress}s`);
+                        audio.currentTime = data.savedProgress;
+                        setCurrentTime(data.savedProgress);
+                        
+                        // @ts-ignore
+                        if (window.showToast) {
+                            // @ts-ignore
+                            window.showToast("He restaurado tu progreso de escucha 🎧", "info");
+                        }
+                    }
+                })
+                .catch(e => console.warn('[Audio] Failed to fetch episode state:', e));
+        }
+
         const updateMetadata = () => {
             setDuration(audio.duration || 0);
         };
@@ -56,7 +80,10 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         };
 
         audio.addEventListener('loadedmetadata', updateMetadata);
-        audio.addEventListener('play', () => setIsPlaying(true));
+        audio.addEventListener('play', () => {
+            setIsPlaying(true);
+            if (slug) recordListen(slug);
+        });
         audio.addEventListener('pause', () => setIsPlaying(false));
         audio.addEventListener('error', handleError);
 
@@ -66,7 +93,55 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
             audio.removeEventListener('pause', () => setIsPlaying(false));
             audio.removeEventListener('error', handleError);
         };
-    }, [audioUrl, useCORS]);
+    }, [audioUrl, useCORS, slug]);
+
+    // TRACKING / STATISTICS LOOP
+    const lastReportedTime = useRef<number>(0);
+    const lastSyncTime = useRef<number>(Date.now());
+
+    useEffect(() => {
+        if (!isPlaying || !slug) return;
+
+        const interval = setInterval(() => {
+            const now = Date.now();
+            const deltaMs = now - lastSyncTime.current;
+            const deltaSeconds = deltaMs / 1000;
+            
+            // Increment listening time only if we actually progressed
+            const currentAudioTime = audioRef.current?.currentTime || 0;
+            const progressDelta = Math.abs(currentAudioTime - lastReportedTime.current);
+            
+            // Only sync if we've moved forward and enough time has passed (e.g. 15s)
+            if (progressDelta > 1) {
+                syncPlaybackData({
+                    slug,
+                    increment: deltaSeconds,
+                    progress: currentAudioTime,
+                    duration: audioRef.current?.duration || 0
+                });
+                
+                lastReportedTime.current = currentAudioTime;
+                lastSyncTime.current = now;
+            }
+        }, 15000); // Every 15 seconds
+
+        return () => {
+            clearInterval(interval);
+            // Final sync on stop/pause/unmount
+            const currentAudioTime = audioRef.current?.currentTime || 0;
+            const now = Date.now();
+            const deltaSeconds = (now - lastSyncTime.current) / 1000;
+            
+            if (deltaSeconds > 1) {
+                syncPlaybackData({
+                    slug,
+                    increment: deltaSeconds,
+                    progress: currentAudioTime,
+                    duration: audioRef.current?.duration || 0
+                });
+            }
+        };
+    }, [isPlaying, slug]);
 
     // SMOOTH PROGRESS UPDATE LOOP
     useEffect(() => {

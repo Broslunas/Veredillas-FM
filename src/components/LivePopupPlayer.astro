@@ -59,6 +59,7 @@
 
 <script>
     import Hls from 'hls.js';
+    import { syncPlaybackData } from '../services/player/playbackSync';
     
     // Configuration
     const STREAM_URL = 'https://live.veredillasfm.es/stream-pro.m3u8';
@@ -179,9 +180,44 @@
             }
         });
 
-        video.addEventListener('play', updatePlayPauseUI);
-        video.addEventListener('pause', updatePlayPauseUI);
+        video.addEventListener('play', () => {
+            updatePlayPauseUI();
+            startTracking();
+        });
+        video.addEventListener('pause', () => {
+            updatePlayPauseUI();
+            stopTracking();
+        });
         video.addEventListener('volumechange', updateMuteUI);
+
+        // --- TRACKING ---
+        let lastSyncTime = Date.now();
+        let trackingInterval: any = null;
+
+        function startTracking() {
+            if (trackingInterval) return;
+            lastSyncTime = Date.now();
+            trackingInterval = setInterval(() => {
+                const now = Date.now();
+                const deltaSeconds = (now - lastSyncTime) / 1000;
+                if (deltaSeconds > 1) {
+                    syncPlaybackData({ increment: deltaSeconds });
+                    lastSyncTime = now;
+                }
+            }, 30000); // Sync live every 30s
+        }
+
+        function stopTracking() {
+            if (trackingInterval) {
+                const now = Date.now();
+                const deltaSeconds = (now - lastSyncTime) / 1000;
+                if (deltaSeconds > 1) {
+                    syncPlaybackData({ increment: deltaSeconds });
+                }
+                clearInterval(trackingInterval);
+                trackingInterval = null;
+            }
+        }
 
         // --- Stream Logic ---
 

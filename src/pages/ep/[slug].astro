@@ -219,6 +219,7 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                                     cover={entry.data.image || ''}
                                     author={entry.data.author || 'Veredillas FM'}
                                     transcription={formattedTranscription}
+                                    slug={entry.slug}
                                 />
                             </div>
 
@@ -431,6 +432,7 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
 
 <script>
     declare var Plyr: any;
+    import { syncPlaybackData, recordListen } from '../../services/player/playbackSync';
 
     const initCinemaSection = () => {
         const playerBox = document.getElementById('episode-player-inner');
@@ -494,7 +496,7 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
             // Initialize Plyr for Video
             const videoElement = document.getElementById('video-player');
             if (videoElement) {
-                new Plyr(videoElement, {
+                const player = new Plyr(videoElement, {
                     controls: [
                         'play-large', 'play', 'progress', 'current-time', 
                         'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
@@ -507,6 +509,61 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                         showinfo: 0 
                     }
                 });
+
+                // --- VIDEO ANALYTICS ---
+                if (playerBox && playerBox.getAttribute('data-slug')) {
+                    const slug = playerBox.getAttribute('data-slug')!;
+                    
+                    // FETCH SAVED PROGRESS
+                    fetch(`/api/user/episode-state?slug=${slug}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.savedProgress && data.savedProgress > 0) {
+                                console.log(`[Video] Restoring progress: ${data.savedProgress}s`);
+                                player.currentTime = data.savedProgress;
+                                // @ts-ignore
+                                if (window.showToast) window.showToast("He restaurado tu progreso del vídeo 📺", "info");
+                            }
+                        })
+                        .catch(e => console.warn('[Video] Failed to fetch state:', e));
+
+                    let lastReportedTime = 0;
+                    let lastSyncTime = Date.now();
+                    let trackingInterval: any = null;
+
+                    const sync = (isClosing = false) => {
+                        const now = Date.now();
+                        const deltaSeconds = (now - lastSyncTime) / 1000;
+                        const currentVideoTime = player.currentTime;
+                        
+                        if (deltaSeconds > 1 || isClosing) {
+                             syncPlaybackData({
+                                slug,
+                                increment: deltaSeconds,
+                                progress: currentVideoTime,
+                                duration: player.duration || 0
+                             });
+                             lastSyncTime = now;
+                             lastReportedTime = currentVideoTime;
+                        }
+                    };
+
+                    player.on('play', () => {
+                        recordListen(slug);
+                        lastSyncTime = Date.now();
+                        trackingInterval = setInterval(sync, 15000);
+                    });
+
+                    player.on('pause', () => {
+                        if (trackingInterval) clearInterval(trackingInterval);
+                        sync();
+                    });
+
+                    player.on('ended', () => {
+                        if (trackingInterval) clearInterval(trackingInterval);
+                        sync(true);
+                    });
+                }
             }
         }
 
