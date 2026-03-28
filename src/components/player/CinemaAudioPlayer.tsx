@@ -43,43 +43,98 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     const [wavesData, setWavesData] = useState<number[]>(new Array(40).fill(10));
     const [useCORS, setUseCORS] = useState(true);
 
+    // Refs for restore logic
+    const savedProgressRef = useRef<number>(0);
+    const hasRestoredRef = useRef<boolean>(false);
+    const hasFetchedRef = useRef<boolean>(false);
+
+    // Fetch saved progress once on mount
+    useEffect(() => {
+        if (!slug || hasFetchedRef.current) return;
+        hasFetchedRef.current = true;
+
+        // 1. Check localStorage first (instant, works for non-logged-in users too)
+        const localKey = `vfm-progress-${slug}`;
+        try {
+            const localProgress = parseFloat(localStorage.getItem(localKey) || '0');
+            if (localProgress > 0) {
+                savedProgressRef.current = localProgress;
+            }
+        } catch (e) {}
+
+        // 2. Fetch from server (overrides local if available and greater)
+        fetch(`/api/user/episode-state?slug=${slug}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.savedProgress && data.savedProgress > 0) {
+                    // Use the greater of local and server progress
+                    if (data.savedProgress >= savedProgressRef.current) {
+                        savedProgressRef.current = data.savedProgress;
+                    }
+                }
+                // Try to apply now if audio is already loaded
+                applyRestore();
+            })
+            .catch(e => {
+                console.warn('[Audio] Failed to fetch episode state:', e);
+                // Still try to restore from localStorage
+                applyRestore();
+            });
+    }, [slug]);
+
+    // Function to apply saved progress to audio element
+    const applyRestore = () => {
+        const audio = audioRef.current;
+        if (!audio || hasRestoredRef.current || savedProgressRef.current <= 0) return;
+        
+        // Only apply if audio has enough data (readyState >= 1 means metadata is loaded)
+        if (audio.readyState >= 1 && audio.duration > 0) {
+            // Don't restore if we're near the end (within last 5% = completed)
+            if (savedProgressRef.current >= audio.duration * 0.95) {
+                hasRestoredRef.current = true;
+                return;
+            }
+            
+            console.log(`[Audio] Restoring saved progress: ${savedProgressRef.current}s`);
+            audio.currentTime = savedProgressRef.current;
+            setCurrentTime(savedProgressRef.current);
+            hasRestoredRef.current = true;
+            
+            // @ts-ignore
+            if (window.showToast) {
+                const mins = Math.floor(savedProgressRef.current / 60);
+                const secs = Math.floor(savedProgressRef.current % 60);
+                // @ts-ignore
+                window.showToast(`Progreso restaurado en ${mins}:${secs.toString().padStart(2, '0')} 🎧`, "info");
+            }
+        }
+    };
+
     // Handle initial load and core metadata
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
 
-        // FETCH SAVED PROGRESS
-        if (slug) {
-            fetch(`/api/user/episode-state?slug=${slug}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.savedProgress && data.savedProgress > 0) {
-                        console.log(`[Audio] Restoring saved progress: ${data.savedProgress}s`);
-                        audio.currentTime = data.savedProgress;
-                        setCurrentTime(data.savedProgress);
-                        
-                        // @ts-ignore
-                        if (window.showToast) {
-                            // @ts-ignore
-                            window.showToast("He restaurado tu progreso de escucha 🎧", "info");
-                        }
-                    }
-                })
-                .catch(e => console.warn('[Audio] Failed to fetch episode state:', e));
-        }
-
         const updateMetadata = () => {
             setDuration(audio.duration || 0);
+            // Apply restore when metadata loads (this is the reliable moment)
+            applyRestore();
+        };
+
+        // Also try on canplay (backup for when metadata arrives before fetch completes)
+        const handleCanPlay = () => {
+            applyRestore();
         };
 
         const handleError = (e: any) => {
             console.warn('[Audio] Error detected, trying fallback...', e);
             if (useCORS) {
-                setUseCORS(false); // Disable CORS and retry
+                setUseCORS(false);
             }
         };
 
         audio.addEventListener('loadedmetadata', updateMetadata);
+        audio.addEventListener('canplay', handleCanPlay);
         audio.addEventListener('play', () => {
             setIsPlaying(true);
             if (slug) recordListen(slug);
@@ -87,8 +142,14 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         audio.addEventListener('pause', () => setIsPlaying(false));
         audio.addEventListener('error', handleError);
 
+        // If audio already has metadata (e.g., cached), apply immediately
+        if (audio.readyState >= 1) {
+            updateMetadata();
+        }
+
         return () => {
             audio.removeEventListener('loadedmetadata', updateMetadata);
+            audio.removeEventListener('canplay', handleCanPlay);
             audio.removeEventListener('play', () => setIsPlaying(true));
             audio.removeEventListener('pause', () => setIsPlaying(false));
             audio.removeEventListener('error', handleError);
@@ -102,16 +163,16 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     useEffect(() => {
         if (!isPlaying || !slug) return;
 
+        const localKey = `vfm-progress-${slug}`;
+
         const interval = setInterval(() => {
             const now = Date.now();
             const deltaMs = now - lastSyncTime.current;
             const deltaSeconds = deltaMs / 1000;
             
-            // Increment listening time only if we actually progressed
             const currentAudioTime = audioRef.current?.currentTime || 0;
             const progressDelta = Math.abs(currentAudioTime - lastReportedTime.current);
             
-            // Only sync if we've moved forward and enough time has passed (e.g. 15s)
             if (progressDelta > 1) {
                 syncPlaybackData({
                     slug,
@@ -120,18 +181,23 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                     duration: audioRef.current?.duration || 0
                 });
                 
+                // Also save to localStorage for instant restore
+                try { localStorage.setItem(localKey, String(currentAudioTime)); } catch(e) {}
+                
                 lastReportedTime.current = currentAudioTime;
                 lastSyncTime.current = now;
             }
-        }, 15000); // Every 15 seconds
+        }, 15000);
 
         return () => {
             clearInterval(interval);
-            // Final sync on stop/pause/unmount
             const currentAudioTime = audioRef.current?.currentTime || 0;
             const now = Date.now();
             const deltaSeconds = (now - lastSyncTime.current) / 1000;
             
+            // Save to localStorage immediately on pause/unmount
+            try { localStorage.setItem(localKey, String(currentAudioTime)); } catch(e) {}
+
             if (deltaSeconds > 1) {
                 syncPlaybackData({
                     slug,

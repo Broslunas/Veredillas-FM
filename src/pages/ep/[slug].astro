@@ -723,19 +723,57 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                 // --- VIDEO ANALYTICS ---
                 if (playerBox && playerBox.getAttribute('data-slug')) {
                     const slug = playerBox.getAttribute('data-slug')!;
+                    const localKey = `vfm-progress-${slug}`;
+                    let hasRestored = false;
                     
-                    // FETCH SAVED PROGRESS
+                    // Get saved progress from localStorage first (instant)
+                    let savedProgress = 0;
+                    try {
+                        savedProgress = parseFloat(localStorage.getItem(localKey) || '0');
+                    } catch(e) {}
+
+                    // Fetch from server and apply when Plyr is ready
+                    const applyRestore = () => {
+                        if (hasRestored || savedProgress <= 0) return;
+                        
+                        // Don't restore if near the end
+                        if (player.duration > 0 && savedProgress >= player.duration * 0.95) {
+                            hasRestored = true;
+                            return;
+                        }
+                        
+                        console.log(`[Video] Restoring progress: ${savedProgress}s`);
+                        player.currentTime = savedProgress;
+                        hasRestored = true;
+                        // @ts-ignore
+                        if (window.showToast) {
+                            const mins = Math.floor(savedProgress / 60);
+                            const secs = Math.floor(savedProgress % 60);
+                            // @ts-ignore
+                            window.showToast(`Progreso restaurado en ${mins}:${secs.toString().padStart(2, '0')} 📺`, "info");
+                        }
+                    };
+                    
+                    // Fetch from server (may override local if bigger)
                     fetch(`/api/user/episode-state?slug=${slug}`)
                         .then(res => res.json())
                         .then(data => {
-                            if (data.savedProgress && data.savedProgress > 0) {
-                                console.log(`[Video] Restoring progress: ${data.savedProgress}s`);
-                                player.currentTime = data.savedProgress;
-                                // @ts-ignore
-                                if (window.showToast) window.showToast("He restaurado tu progreso del vídeo 📺", "info");
+                            if (data.savedProgress && data.savedProgress > 0 && data.savedProgress >= savedProgress) {
+                                savedProgress = data.savedProgress;
                             }
+                            // Try to apply if player is already ready
+                            if (player.duration > 0) applyRestore();
                         })
                         .catch(e => console.warn('[Video] Failed to fetch state:', e));
+
+                    // Apply when Plyr signals ready
+                    player.on('ready', () => {
+                        applyRestore();
+                    });
+
+                    // Also try on loadedmetadata and canplay as fallbacks
+                    player.on('loadedmetadata', () => applyRestore());
+                    player.on('canplay', () => applyRestore());
 
                     let lastReportedTime = 0;
                     let lastSyncTime = Date.now();
@@ -745,6 +783,9 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                         const now = Date.now();
                         const deltaSeconds = (now - lastSyncTime) / 1000;
                         const currentVideoTime = player.currentTime;
+                        
+                        // Save to localStorage immediately 
+                        try { localStorage.setItem(localKey, String(currentVideoTime)); } catch(e) {}
                         
                         if (deltaSeconds > 1 || isClosing) {
                              syncPlaybackData({
