@@ -20,7 +20,7 @@ participants:
   - Prof. Ulises
   - Gustavo
 season: 2
-episode: 6
+episode: 7
 duration: ░░ min
 pubDate: '2026-04-08T16:00:00.000Z'
 warningMessage: >-
