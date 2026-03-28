@@ -156,6 +156,21 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         };
     }, [audioUrl, useCORS, slug]);
 
+    // React-side listener for sync from Video -> Audio
+    useEffect(() => {
+        const handleSync = (e: any) => {
+            const { time, slug: incomingSlug } = e.detail;
+            if (slug === incomingSlug && audioRef.current) {
+                console.log(`[Audio] Syncing audio to ${time}s (from video)`);
+                audioRef.current.currentTime = time;
+                setCurrentTime(time);
+            }
+        };
+
+        document.addEventListener('veredillas:sync-playback', handleSync);
+        return () => document.removeEventListener('veredillas:sync-playback', handleSync);
+    }, [slug]);
+
     // TRACKING / STATISTICS LOOP
     const lastReportedTime = useRef<number>(0);
     const lastSyncTime = useRef<number>(Date.now());

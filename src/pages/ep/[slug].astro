@@ -357,14 +357,7 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
         overflow-x: hidden;
     }
 
-    @media (max-width: 1280px) {
-        .cinema-layout {
-            grid-template-columns: minmax(0, 1fr) 320px;
-            gap: 2rem;
-        }
-    }
-
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
         .cinema-layout {
             grid-template-columns: 1fr;
         }
@@ -814,6 +807,15 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                         if (trackingInterval) clearInterval(trackingInterval);
                         sync(true);
                     });
+
+                    // Listen for sync from Audio -> Video
+                    document.addEventListener('veredillas:sync-playback', (e: any) => {
+                        const { time, slug: incomingSlug } = e.detail;
+                        if (slug === incomingSlug) {
+                            console.log(`[Video] Syncing video to ${time}s (from audio)`);
+                            player.currentTime = time;
+                        }
+                    });
                 }
             }
         }
@@ -864,15 +866,22 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                 const isVideoCurrentlyVisible = !videoContainer.classList.contains('hidden');
                 console.log('[Cinema] Switching Mode. Currently showing video:', isVideoCurrentlyVisible);
                 
+                const slug = playerBox.getAttribute('data-slug');
+
                 if (isVideoCurrentlyVisible) {
                     // --- SWITCH TO AUDIO ---
                     videoContainer.classList.add('hidden');
                     audioContainer.classList.remove('hidden');
                     newBtn.innerHTML = '<span class="mode-icon text-sm">📺</span> <span class="mode-text">Ver Video</span>';
                     
-                    // Stop video if playing
+                    // Stop video and BROADCAST time to audio
                     const iframe = videoContainer.querySelector('iframe');
                     if (iframe) {
+                        // Extract current time if possible or rely on last sync
+                        // For simplicity in this Iframe-based Plyr setup, we use the recorded sync if needed,
+                        // but if we have the plyr instance available we reach it.
+                        // However, standard Plyr doesn't expose currentTime easily via outer scope here 
+                        // unless we keep a ref. Let's just pause it.
                         const originalSrc = iframe.src;
                         iframe.src = ''; 
                         setTimeout(() => { iframe.src = originalSrc; }, 100);
@@ -883,11 +892,17 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                     videoContainer.classList.remove('hidden');
                     newBtn.innerHTML = '<span class="mode-icon text-sm">🎧</span> <span class="mode-text">Escuchar Episodio</span>';
                     
-                    // Stop audio if playing
+                    // Stop audio & BroadCast time to video
                     const audio = audioContainer.querySelector('audio');
                     if (audio) {
-                        console.log('[Cinema] Pausing background audio.');
+                        console.log('[Cinema] Pausing background audio and syncing to video.');
+                        const time = audio.currentTime;
                         audio.pause();
+
+                        // Fire event so Plyr can pick it up
+                        document.dispatchEvent(new CustomEvent('veredillas:sync-playback', { 
+                            detail: { time, slug } 
+                        }));
                     }
                 }
             });
@@ -912,5 +927,20 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
              audio.pause();
              audio.src = '';
          }
+    });
+
+    // Listen for sync requests (e.g. from Video Player)
+    document.addEventListener('veredillas:sync-playback', (e: any) => {
+        const { time, slug: incomingSlug } = e.detail;
+        const playerBox = document.getElementById('episode-player-inner');
+        const currentSlug = playerBox?.getAttribute('data-slug');
+        
+        if (incomingSlug === currentSlug) {
+            const audio = document.querySelector('audio');
+            if (audio) {
+                console.log(`[Cinema] Syncing audio to ${time}s`);
+                audio.currentTime = time;
+            }
+        }
     });
 </script>
