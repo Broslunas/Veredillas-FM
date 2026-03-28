@@ -155,6 +155,24 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
     
     <div class="cinema-layout container">
         <main class="main-content">
+            
+            {entry.data.warningMessage && (
+                <div class="warning-banner glass-panel p-5 mb-8 border-l-4 border-amber-500/50 flex items-start gap-4 section-fade">
+                    <div class="bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                            <path d="M12 9v4"/>
+                            <path d="M12 17h.01"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-500/80 mb-1.5">Aviso de contenido / Nota importante</p>
+                        <p class="text-zinc-100 text-[15px] leading-relaxed font-medium">
+                            {entry.data.warningMessage}
+                        </p>
+                    </div>
+                </div>
+            )}
             <!-- 1. THE PLAYER AREA -->
             <section class="player-section section-fade">
                 <div class="player-wrapper shadow-2xl relative">
@@ -238,6 +256,7 @@ const formattedTranscription = entry.data.transcription?.map(t => ({
                     </div>
                 </header>
             </section>
+
 
             <!-- 2. DESCRIPTION / CONTENT AREA -->
             <section class="description-section glass-panel p-6 mb-8">
