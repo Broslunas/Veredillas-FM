@@ -1018,6 +1018,212 @@ input[type="range"].u-hidden-range {
     color: rgba(255,255,255,0.5);
 }
 
+/* ====== CINEMA PLAYER RESPONSIVE (≤768px) ====== */
+@media (max-width: 768px) {
+    .cinema-audio-player-react.premium-view {
+        aspect-ratio: 16 / 10;
+        min-height: 320px;
+    }
+
+    .cinema-audio-player-react.premium-view .player-content {
+        padding: 1.5rem;
+    }
+
+    .cinema-audio-player-react.premium-view .main-play-btn {
+        width: 68px;
+        height: 68px;
+    }
+
+    .cinema-audio-player-react.premium-view .main-play-btn svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .cinema-audio-player-react.premium-view .secondary-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .cinema-audio-player-react.premium-view .secondary-btn svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .cinema-audio-player-react.premium-view .player-center-controls {
+        gap: 1.5rem;
+    }
+
+    .cinema-audio-player-react.premium-view .waves-container {
+        height: 70px;
+        gap: 2px;
+        margin-bottom: 0.75rem;
+    }
+
+    .cinema-audio-player-react.premium-view .wave-bar {
+        width: 3px;
+    }
+
+    .cinema-audio-player-react.premium-view .track-info-premium {
+        gap: 0.875rem;
+    }
+
+    .cinema-audio-player-react.premium-view .track-cover-mini {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+    }
+
+    .cinema-audio-player-react.premium-view .track-meta-premium h4 {
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cinema-audio-player-react.premium-view .track-meta-premium p {
+        font-size: 0.75rem;
+    }
+
+    .cinema-audio-player-react.premium-view .bottom-controls {
+        gap: 1rem;
+    }
+
+    .cinema-audio-player-react.premium-view .seek-bar-container {
+        height: 5px;
+    }
+}
+
+/* ====== CINEMA PLAYER RESPONSIVE (≤480px) ====== */
+@media (max-width: 480px) {
+    .cinema-audio-player-react.premium-view {
+        aspect-ratio: auto;
+        min-height: 0;
+        max-height: none;
+        overflow: hidden;
+    }
+
+    /* Switch from overlay layout to stacked flow layout */
+    .cinema-audio-player-react.premium-view .player-content {
+        padding: 1.25rem 1rem;
+        justify-content: flex-end;
+        gap: 0;
+    }
+
+    /* Remove the empty spacer div effect */
+    .cinema-audio-player-react.premium-view .player-content > div:first-child {
+        display: none;
+    }
+
+    /* Central area becomes a flow block, not overlapping */
+    .cinema-audio-player-react.premium-view .central-area {
+        padding: 2rem 0 1.5rem;
+    }
+
+    /* KEY FIX: Make play controls flow naturally instead of absolute overlay */
+    .cinema-audio-player-react.premium-view .player-center-controls {
+        position: static;
+        transform: none;
+        gap: 1.25rem;
+    }
+
+    .cinema-audio-player-react.premium-view .main-play-btn {
+        width: 64px;
+        height: 64px;
+        box-shadow: 0 0 30px rgba(var(--color-primary-rgb), 0.3), 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .cinema-audio-player-react.premium-view .main-play-btn svg {
+        width: 30px;
+        height: 30px;
+    }
+
+    .cinema-audio-player-react.premium-view .secondary-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .cinema-audio-player-react.premium-view .secondary-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Waves: compact but visible */
+    .cinema-audio-player-react.premium-view .waves-container {
+        height: 48px;
+        gap: 2px;
+        margin-bottom: 0.25rem;
+    }
+
+    .cinema-audio-player-react.premium-view .wave-bar {
+        width: 2.5px;
+    }
+
+    /* Track info row */
+    .cinema-audio-player-react.premium-view .track-cover-mini {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border-width: 1px;
+    }
+
+    .cinema-audio-player-react.premium-view .track-info-premium {
+        gap: 0.625rem;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .cinema-audio-player-react.premium-view .track-meta-premium {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .cinema-audio-player-react.premium-view .track-meta-premium h4 {
+        font-size: 0.875rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cinema-audio-player-react.premium-view .track-meta-premium p {
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+    }
+
+    .cinema-audio-player-react.premium-view .bottom-controls {
+        gap: 0.75rem;
+        min-width: 0;
+    }
+
+    .cinema-audio-player-react.premium-view .bottom-controls .utility-bar {
+        padding: 0.375rem 0.625rem;
+        gap: 0.5rem;
+        border-radius: 1rem;
+    }
+
+    .cinema-audio-player-react.premium-view .time-stamps {
+        font-size: 0.7rem;
+    }
+
+    .cinema-audio-player-react.premium-view .bottom-controls > .flex {
+        flex-wrap: wrap;
+        gap: 0.625rem;
+    }
+}
+
+/* ====== PLYR VIDEO RESPONSIVE (≤768px) ====== */
+@media (max-width: 768px) {
+    .plyr-video-wrapper {
+        border-radius: 12px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .plyr-video-wrapper {
+        border-radius: 8px !important;
+    }
+}
+
 .cinema-audio-player-react.premium-view .plyr-container.hidden-plyr {
     display: none !important;
 }
+

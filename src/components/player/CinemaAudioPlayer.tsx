@@ -446,8 +446,8 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
 
                 {/* BOTTOM METADATA & PROGRESS & EXTRA CONTROLS */}
                 <div className="bottom-controls space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="track-info-premium shrink-0">
+                    <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+                        <div className="track-info-premium min-w-0">
                             <div className="track-cover-mini">
                                 {cover && <img src={cover} alt="" />}
                             </div>
@@ -458,7 +458,7 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                         </div>
 
                         {/* UTILITY CONTROLS (VOLUME, SPEED, FS, TRANSCRIPTION) */}
-                        <div className="utility-bar flex items-center gap-3 sm:gap-6 bg-white/5 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/5">
+                        <div className="utility-bar flex items-center gap-2 sm:gap-3 md:gap-6 bg-white/5 backdrop-blur-md px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/5">
                             {/* Volume */}
                             <div className="volume-control flex items-center gap-2 group/volume">
                                 <button 
@@ -558,9 +558,9 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                         style={{
                             resize: 'both',
                             overflow: 'auto',
-                            minWidth: '280px',
-                            minHeight: '80px',
-                            width: '450px',
+                            minWidth: '200px',
+                            minHeight: '60px',
+                            width: 'min(450px, 85vw)',
                             maxWidth: '90vw',
                             maxHeight: '60vh'
                         }}

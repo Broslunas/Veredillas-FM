@@ -116,6 +116,18 @@ img {
   }
 }
 
+@media (max-width: 480px) {
+  .container {
+      padding: 0 0.75rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .container {
+      padding: 0 0.5rem;
+  }
+}
+
 .text-gradient {
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   -webkit-background-clip: text;
