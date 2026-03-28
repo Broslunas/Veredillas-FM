@@ -56,7 +56,7 @@ const embedClips = clips?.map(clip => ({
     </button>
 
     <!-- Cinematic Clips Modal -->
-    <div class="fixed inset-0 z-[10000] flex flex-col opacity-0 invisible transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] [&.active]:opacity-100 [&.active]:visible" id="clips-modal-overlay">
+    <div class="fixed inset-0 z-[99999] flex flex-col opacity-0 invisible transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] [&.active]:opacity-100 [&.active]:visible" id="clips-modal-overlay">
       <div class="absolute inset-0 bg-[#050508] z-0 bg-[radial-gradient(circle_at_10%_10%,rgba(139,92,246,0.1)_0%,transparent_40%),radial-gradient(circle_at_90%_90%,rgba(239,68,68,0.05)_0%,transparent_40%)]"></div>
       <div class="absolute inset-0 opacity-[0.03] z-[1] pointer-events-none bg-[url('data:image/svg+xml,%3Csvg_viewBox=%220_0_200_200%22_xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter_id=%22n%22%3E%3CfeTurbulence_type=%22fractalNoise%22_baseFrequency=%220.65%22_numOctaves=%223%22_stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect_width=%22100%25%22_height=%22100%25%22_filter=%22url(%23n)%22/%3E%3C/svg%3E')]"></div>
       
@@ -238,6 +238,9 @@ const embedClips = clips?.map(clip => ({
     }
 
     openBtn.addEventListener('click', () => {
+      // Move to body to avoid stacking context issues
+      document.body.appendChild(overlay);
+      
       overlay.classList.add('active');
       document.body.style.overflow = 'hidden';
       updateView(0);
