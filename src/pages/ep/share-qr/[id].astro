@@ -145,6 +145,15 @@ const accentColor = state?.c || '#8b5cf6';
         
         .listen-link { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; padding: 10px; }
         
+        /* Outline Action */
+        .outline-button {
+            width: 100%; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); 
+            padding: 18px; border-radius: 100px; font-size: 1.1rem; font-weight: 900; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            transition: all 0.3s;
+        }
+        .outline-button:active { background: rgba(255,255,255,0.05); }
+        
         /* Helpers */
         .text-center { text-align: center !important; } .text-right { text-align: right !important; }
         .items-center { align-items: center !important; } .items-end { align-items: flex-end !important; }
@@ -280,6 +289,10 @@ const accentColor = state?.c || '#8b5cf6';
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                         <span>Guardar Historia</span>
                     </button>
+                    <button class="outline-button" id="share-native-btn" style="display: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        <span>Enviar por Correo / App</span>
+                    </button>
                     <a href={state.u} class="listen-link">Volver al Episodio</a>
                 </div>
             </>
@@ -295,8 +308,15 @@ const accentColor = state?.c || '#8b5cf6';
         import * as htmlToImage from 'html-to-image';
 
         const btn = document.getElementById('save-btn');
+        const shareNativeBtn = document.getElementById('share-native-btn');
         const card = document.getElementById('share-card');
         const scaler = document.getElementById('card-scaler');
+
+        const nav = navigator as any;
+
+        if (nav.canShare) {
+            if (shareNativeBtn) shareNativeBtn.style.display = 'flex';
+        }
 
         // --- Fitting Logic ---
         const fitCard = () => {
@@ -320,6 +340,61 @@ const accentColor = state?.c || '#8b5cf6';
         fitCard();
         document.fonts.ready.then(fitCard);
 
+        const generateBlob = async () => {
+            if (!card) return null;
+            const imgs = Array.from(card.querySelectorAll('img'));
+            await Promise.all(imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(r => { img.onload = r; img.onerror = r; });
+            }));
+            
+            await new Promise(r => setTimeout(r, 200));
+
+            return await htmlToImage.toBlob(card, {
+                pixelRatio: 2.2,
+                width: 1080,
+                height: 1920,
+                cacheBust: true,
+                style: {
+                    transform: 'none',
+                    left: '0',
+                    top: '0',
+                    margin: '0',
+                    position: 'relative',
+                    visibility: 'visible',
+                    opacity: '1'
+                }
+            });
+        };
+
+        shareNativeBtn?.addEventListener('click', async () => {
+            const originalHTML = shareNativeBtn.innerHTML;
+            shareNativeBtn.innerHTML = '<span class="spin"></span>';
+            (shareNativeBtn as HTMLButtonElement).disabled = true;
+
+            try {
+                const blob = await generateBlob();
+                if (!blob) throw new Error('Render failed');
+                
+                const file = new File([blob], `Veredillas_Story_${Date.now()}.png`, { type: 'image/png' });
+                
+                if (nav.canShare && nav.canShare({ files: [file] })) {
+                    await nav.share({
+                        title: 'Episodio de Veredillas FM',
+                        text: '¡Mira este fragmento del podcast!',
+                        files: [file]
+                    });
+                } else {
+                    alert('Tu dispositivo no permite compartir archivos directamente.');
+                }
+            } catch (err: unknown) {
+                console.error(err);
+            } finally {
+                shareNativeBtn.innerHTML = originalHTML;
+                (shareNativeBtn as HTMLButtonElement).disabled = false;
+            }
+        });
+
         btn?.addEventListener('click', async () => {
             if (!card || !btn) return;
             
@@ -328,32 +403,7 @@ const accentColor = state?.c || '#8b5cf6';
             (btn as HTMLButtonElement).disabled = true;
 
             try {
-                // Wait for layout and images
-                const imgs = Array.from(card.querySelectorAll('img'));
-                await Promise.all(imgs.map(img => {
-                    if (img.complete) return Promise.resolve();
-                    return new Promise(r => { img.onload = r; img.onerror = r; });
-                }));
-                
-                // Allow a tiny bit more for final paint
-                await new Promise(r => setTimeout(r, 200));
-
-                const blob = await htmlToImage.toBlob(card, {
-                    pixelRatio: 2.2, // Balanced for performance/quality on old phones
-                    width: 1080,
-                    height: 1920,
-                    cacheBust: true,
-                    style: {
-                        transform: 'none',
-                        left: '0',
-                        top: '0',
-                        margin: '0',
-                        position: 'relative',
-                        visibility: 'visible',
-                        opacity: '1'
-                    }
-                });
-
+                const blob = await generateBlob();
                 if (!blob) throw new Error('Render failed');
                 
                 const url = URL.createObjectURL(blob);

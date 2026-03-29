@@ -236,6 +236,18 @@ const lowerTitle = displayTitle.toLowerCase();
                                 <span>Escanear para descargar</span>
                             </button>
                         </div>
+
+                        <div class="email-delivery-section">
+                            <h4 class="section-subtitle">Enviar a mi email</h4>
+                            <p class="export-desc">Recibe la imagen en alta resolución en tu bandeja de entrada.</p>
+                            <div class="email-input-group">
+                                <input type="email" id="send-email-input" placeholder="tu@email.com" class="premium-input-field" />
+                                <button id="email-card-btn" class="email-action-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+                                    <span>Enviar por Correo</span>
+                                </button>
+                            </div>
+                        </div>
                         
                         <div id="export-status" class="export-status hidden"></div>
                     </div>
@@ -991,6 +1003,79 @@ const lowerTitle = displayTitle.toLowerCase();
         }
     });
 
+    const emailBtn = document.getElementById('email-card-btn');
+    const emailInput = document.getElementById('send-email-input') as HTMLInputElement;
+
+    const generateImageData = async (quality = 0.95) => {
+        const card = document.getElementById('share-card');
+        if (!card) return null;
+        
+        try {
+            const dataUrl = await htmlToImage.toPng(card, {
+                quality,
+                width: 1080,
+                height: 1920,
+                cacheBust: true,
+                skipAutoScale: true,
+                style: { transform: 'none' },
+                pixelRatio: 1
+            });
+            return dataUrl;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    };
+
+    emailBtn?.addEventListener('click', async () => {
+        if (!emailBtn || !emailInput) return;
+        const email = emailInput.value.trim();
+        if (!email) {
+            showStatus('Introduce un email válido', true);
+            return;
+        }
+
+        const originalBtnHTML = emailBtn.innerHTML;
+        emailBtn.innerHTML = '<span class="spin-mini"></span> <span>Enviando...</span>';
+        (emailBtn as HTMLButtonElement).disabled = true;
+
+        try {
+            const dataUrl = await generateImageData();
+            if (!dataUrl) throw new Error('Error al generar la imagen');
+
+            const response = await fetch('/api/share/email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    imageData: dataUrl,
+                    episodeTitle: titleInput?.value || 'Historia de Podcast'
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                showStatus('¡Enviado! Revisa tu bandeja de entrada');
+                emailBtn.innerHTML = '<span>¡Enviado!</span>';
+                emailBtn.classList.add('success');
+            } else {
+                throw new Error(data.error || 'Error al enviar');
+            }
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Error al enviar el correo';
+            showStatus(msg, true);
+            emailBtn.innerHTML = originalBtnHTML;
+        } finally {
+            (emailBtn as HTMLButtonElement).disabled = false;
+            setTimeout(() => {
+                if (emailBtn) {
+                    emailBtn.innerHTML = originalBtnHTML;
+                    emailBtn.classList.remove('success');
+                }
+            }, 3000);
+        }
+    });
+
     copyCardBtn?.addEventListener('click', async () => {
         const card = document.getElementById('share-card');
         if (!card) return;
@@ -1160,7 +1245,21 @@ const lowerTitle = displayTitle.toLowerCase();
   .setting-divider { height: 1px; background: var(--border-color); margin: 2rem 0; }
 
   /* Layouts Grid */
-  .layouts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .email-delivery-section { margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+  .section-subtitle { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: white; display: block; text-transform: uppercase; letter-spacing: 0.1em; }
+  .email-input-group { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+  .premium-input-field { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; color: white; font-size: 14px; outline: none; transition: border 0.3s; }
+  .premium-input-field:focus { border-color: var(--card-accent); }
+  .email-action-btn { background: var(--card-accent); color: white; border: none; border-radius: 12px; padding: 12px 20px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s, opacity 0.2s; }
+  .email-action-btn:active { transform: scale(0.97); }
+  .email-action-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+  .email-action-btn.success { background: #22c55e; }
+  
+  .spin-mini { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
   .layout-preset {
       background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
       padding: 1rem; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
