@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './SharedPlayerStyles.css';
 
-// Declare Plyr globally for TypeScript
+// Declare Plyr and Cast globally for TypeScript
 declare var Plyr: any;
+declare var cast: any;
+declare var chrome: any;
 
 interface Transcription {
     time: number;
@@ -52,6 +54,8 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     const [wavesData, setWavesData] = useState<number[]>(new Array(40).fill(10));
     const [useCORS, setUseCORS] = useState(true);
     const [mode, setMode] = useState<'audio' | 'video'>(videoUrl ? 'video' : 'audio');
+    const [isCasting, setIsCasting] = useState(false);
+    const [castAvailable, setCastAvailable] = useState(false);
 
     // Refs for restore logic
     const savedProgressRef = useRef<number>(0);
@@ -524,6 +528,62 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         }
     };
 
+    // --- Google Cast Logic ---
+    useEffect(() => {
+        const checkCastSDK = setInterval(() => {
+            if (window.cast && window.cast.framework) {
+                const context = window.cast.framework.CastContext.getInstance();
+                setCastAvailable(true);
+                
+                const sessionListener = (event: any) => {
+                    if (event.sessionState === 'SESSION_STARTED') {
+                        setIsCasting(true);
+                        audioRef.current?.pause();
+                        loadMediaToCast();
+                    } else if (event.sessionState === 'SESSION_ENDED') {
+                        setIsCasting(false);
+                        // Optional: Resume locally if session ends?
+                        // audioRef.current?.play();
+                    }
+                };
+
+                context.addEventListener(
+                    window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+                    sessionListener
+                );
+
+                clearInterval(checkCastSDK);
+            }
+        }, 1000);
+
+        return () => clearInterval(checkCastSDK);
+    }, []);
+
+    const loadMediaToCast = () => {
+        const castSession = (window as any).cast.framework.CastContext.getInstance().getCurrentSession();
+        if (!castSession || !(window as any).chrome || !(window as any).chrome.cast) return;
+
+        const mediaInfo = new (window as any).chrome.cast.media.MediaInfo(finalAudioUrl, 'audio/mpeg');
+        mediaInfo.metadata = new (window as any).chrome.cast.media.MusicTrackMediaMetadata();
+        mediaInfo.metadata.title = title;
+        mediaInfo.metadata.artist = author;
+        if (cover) {
+            mediaInfo.metadata.images = [{ url: cover.startsWith('http') ? cover : window.location.origin + cover }];
+        }
+
+        const request = new (window as any).chrome.cast.media.LoadRequest(mediaInfo);
+        request.currentTime = audioRef.current?.currentTime || 0;
+
+        castSession.loadMedia(request).then(
+            () => console.log('Media cargado con éxito en Cast'),
+            (errorCode: any) => console.error('Error al cargar media en Cast:', errorCode)
+        );
+    };
+
+    const triggerCast = () => {
+        (window as any).cast.framework.CastContext.getInstance().requestSession();
+    };
+
     return (
         <div 
             ref={playerContainerRef}
@@ -628,6 +688,17 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
                             </button>
+
+                            {/* Google Cast Button */}
+                            {castAvailable && (
+                                <button 
+                                    onClick={triggerCast}
+                                    className={`transition-colors ${isCasting ? 'text-primary' : 'text-white/60 hover:text-white'}`}
+                                    aria-label="Google Cast"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><line x1="2" y1="20" x2="2.01" y2="20" strokeWidth="3"/></svg>
+                                </button>
+                            )}
 
                             {/* Captions Toggle */}
                             {transcription && transcription.length > 0 && (

@@ -86,6 +86,21 @@ const fullTitle = title === "Inicio" ? "Veredillas FM - El Podcast del IES Vered
 		<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 		<script is:inline src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
+		<!-- Google Cast SDK -->
+		<script is:inline src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+		<script is:inline>
+			window.__onGCastApiAvailable = function(isAvailable) {
+				if (isAvailable) {
+					window.castContext = cast.framework.CastContext.getInstance();
+					window.castContext.setOptions({
+						receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+						autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+					});
+					console.log('Google Cast SDK available and initialized');
+				}
+			};
+		</script>
+
 		<!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
 		<meta property="og:type" content={type} />
 		<meta property="og:url" content={canonicalURL} />

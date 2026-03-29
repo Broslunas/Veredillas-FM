@@ -35,6 +35,9 @@
                     </div>
 
                     <div class="right-controls">
+                        <button class="control-btn" id="popup-cast-btn" aria-label="Google Cast" style="display:none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><line x1="2" y1="20" x2="2.01" y2="20" stroke-width="3"/></svg>
+                        </button>
                         <button class="control-btn" id="popup-fullscreen-btn" aria-label="Pantalla completa">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
                         </button>
@@ -77,7 +80,66 @@
         const playPauseBtn = document.getElementById('popup-play-pause-btn');
         const muteBtn = document.getElementById('popup-mute-btn');
         const fullscreenBtn = document.getElementById('popup-fullscreen-btn');
+        const castBtn = document.getElementById('popup-cast-btn');
         
+        // --- Cast Logic ---
+        let castAvailable = false;
+        
+        function initCast() {
+            // @ts-ignore
+            if (window.cast && window.cast.framework) {
+                // @ts-ignore
+                const context = window.cast.framework.CastContext.getInstance();
+                if (castBtn) castBtn.style.display = 'flex';
+                castAvailable = true;
+
+                // @ts-ignore
+                context.addEventListener(window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED, (event) => {
+                    // @ts-ignore
+                    if (event.sessionState === 'SESSION_STARTED') {
+                        video.pause();
+                        loadLiveToCast();
+                        if (castBtn) castBtn.style.color = '#8b5cf6'; // Primary color
+                    } else {
+                        if (castBtn) castBtn.style.color = 'white';
+                    }
+                });
+            }
+        }
+
+        function loadLiveToCast() {
+            // @ts-ignore
+            const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+            if (!castSession) return;
+
+            // @ts-ignore
+            const mediaInfo = new window.chrome.cast.media.MediaInfo(STREAM_URL, 'application/x-mpegurl');
+            // @ts-ignore
+            mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
+            // @ts-ignore
+            mediaInfo.metadata.title = 'Veredillas FM - En Directo';
+            // @ts-ignore
+            mediaInfo.streamType = window.chrome.cast.media.StreamType.LIVE;
+
+            // @ts-ignore
+            const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+            castSession.loadMedia(request);
+        }
+
+        const castCheckInterval = setInterval(() => {
+            // @ts-ignore
+            if (window.cast && window.cast.framework) {
+                initCast();
+                clearInterval(castCheckInterval);
+            }
+        }, 1000);
+
+        castBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // @ts-ignore
+            window.cast.framework.CastContext.getInstance().requestSession();
+        });
+
         // Icons
         const iconPause = playPauseBtn?.querySelector('.icon-pause') as HTMLElement;
         const iconPlay = playPauseBtn?.querySelector('.icon-play') as HTMLElement;
