@@ -1,13 +1,18 @@
 ---
 interface Props {
   title: string;
+  audioUrl?: string;
   image?: string;
   guests?: string[];
   url?: URL | string;
   triggerId?: string;
+  slug?: string;
+  duration?: string;
+  className?: string;
 }
 
-const { title, image = '/logo.webp', guests = [], url = Astro.url, triggerId } = Astro.props;
+const { title, audioUrl, image, guests = [], url = Astro.url, triggerId, slug, duration, className = '' } = Astro.props;
+const normImage = image ? (image.startsWith('http') || image.startsWith('/') ? image : `/${image}`) : '/logo.webp';
 
 // Process title to remove "ft. X" since we show featuring below
 let displayTitle = title;
@@ -32,7 +37,12 @@ const lowerTitle = displayTitle.toLowerCase();
 )}
 
 <!-- Generator Modal -->
-<div id="generator-modal" class="generator-backdrop" data-trigger-id={triggerId}>
+<div id="generator-modal" class="generator-backdrop" 
+    data-trigger-id={triggerId}
+    data-title={title}
+    data-image={normImage}
+    data-guests={guests?.join(',')}
+>
     <div class="generator-dialog">
         <!-- Close button floating -->
         <button class="close-btn" id="close-generator-btn" aria-label="Cerrar">
@@ -265,7 +275,7 @@ const lowerTitle = displayTitle.toLowerCase();
                                 <!-- Top Bar -->
                                 <div class="card-top-bar">
                                     <div class="brand-badge frosted-glass draggable-item" id="el-logo" data-drag-id="logo">
-                                        <img src="/logo.webp" alt="Logo" class="brand-logo" crossorigin="anonymous" />
+                                        <img src="/logo.webp" alt="Logo" class="brand-logo" />
                                         <span class="brand-name">VEREDILLAS FM</span>
                                     </div>
                                     <div class="episode-pill frosted-glass draggable-item" id="el-tag" data-drag-id="tag">
@@ -276,7 +286,7 @@ const lowerTitle = displayTitle.toLowerCase();
                                 <!-- Visual Center -->
                                 <div class="main-visual" id="visual-container">
                                      <div class="cover-wrapper glass-border" id="cover-wrapper" data-drag-id="cover">
-                                         <img src={image} alt="Cover" class="cover-image" id="card-cover-img" />
+                                         <img src={image} alt="Cover" class="cover-image" id="card-cover-img" loading="eager" />
                                          <div class="cover-glow"></div>
                                      </div>
                                 </div>
@@ -478,6 +488,55 @@ const lowerTitle = displayTitle.toLowerCase();
     
     let elementStates = getInitialStates();
     let currentEpisodeUrl = window.location.href;
+    let currentEpisodeImage = '/logo.webp';
+    let currentShortId: string | null = null;
+    let isGeneratingId = false;
+
+    const getShortId = async () => {
+        if (isGeneratingId) return null;
+        isGeneratingId = true;
+        try {
+            const state = {
+                t: titleInput?.value,
+                g: guestInput?.value,
+                q: quoteInput?.value,
+                c: document.documentElement.style.getPropertyValue('--card-accent') || '#8b5cf6',
+                b: cardBgLayer?.className.replace('card-bg', '').trim() || 'cover',
+                bc: bgColorInput?.value,
+                img: currentEpisodeImage,
+                u: currentEpisodeUrl,
+                es: elementStates,
+                v: {
+                    l: showLogoInput?.checked,
+                    w: showWebsiteInput?.checked,
+                    wv: showWaveInput?.checked,
+                    q: showQRInput?.checked,
+                    cv: showCoverInput?.checked
+                }
+            };
+            const res = await fetch('/api/share/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(state)
+            });
+            const data = await res.json();
+            currentShortId = data.shortId;
+            return data.shortId;
+        } catch (e) {
+            console.error('Error saving state', e);
+            return null;
+        } finally {
+            isGeneratingId = false;
+        }
+    };
+
+    const updateQRCode = async (canvasId: string = 'card-qr-canvas') => {
+        const id = await getShortId();
+        if (id) {
+            const url = `${window.location.origin}/ep/share-qr/${id}`;
+            await generateQRCode(url, canvasId);
+        }
+    };
 
     const updateAllTransforms = () => {
         Object.keys(elementStates).forEach(id => {
@@ -489,6 +548,9 @@ const lowerTitle = displayTitle.toLowerCase();
                 // Toggle display for QR if not on
                 if (id === 'qr') {
                     el.classList.toggle('hidden', !showQRInput?.checked);
+                    if (showQRInput?.checked && !isDragging) {
+                         updateQRCode();
+                    }
                 }
                 
                 // Apply alignment classes
@@ -516,31 +578,40 @@ const lowerTitle = displayTitle.toLowerCase();
         } catch (err) { console.error(err); }
     };
 
-    window.openStoryGenerator = (data) => {
-        if (data.url) currentEpisodeUrl = typeof data.url === 'string' ? data.url : data.url.href;
+    window.openStoryGenerator = (data = {}) => {
+        // Hydrate from modal dataset if not provided in 'data'
+        const defaults = {
+            title: modal?.dataset.title || '',
+            image: modal?.dataset.image || '/logo.webp',
+            guests: modal?.dataset.guests?.split(',') || []
+        };
+        const finalData = { ...defaults, ...data };
         
-        if (titleInput && data.title !== undefined) {
-             let cleanTitle = data.title;
+        if (finalData.url) currentEpisodeUrl = typeof finalData.url === 'string' ? finalData.url : finalData.url.href;
+        
+        if (titleInput && finalData.title !== undefined) {
+             let cleanTitle = finalData.title;
              [' ft.', ' feat.', ' ft ', ' feat '].forEach(str => {
                  const idx = cleanTitle.toLowerCase().indexOf(str);
                  if (idx !== -1) cleanTitle = cleanTitle.substring(0, idx).trim();
              });
              titleInput.value = cleanTitle;
         }
-        if (guestInput && data.guests !== undefined) {
-             guestInput.value = Array.isArray(data.guests) ? data.guests.join(', ') : data.guests;
+        if (guestInput && finalData.guests !== undefined) {
+             guestInput.value = Array.isArray(finalData.guests) ? finalData.guests.join(', ') : finalData.guests;
         }
-        if (quoteInput && data.quote !== undefined) quoteInput.value = data.quote;
-        if (data.image) {
+        if (quoteInput && finalData.quote !== undefined) quoteInput.value = finalData.quote;
+        if (finalData.image) {
+             const img = finalData.image.startsWith('http') || finalData.image.startsWith('/') ? finalData.image : `/${finalData.image}`;
+             currentEpisodeImage = img;
              const bgImg = cardBgLayer?.querySelector('.bg-image') as HTMLImageElement;
-             if (bgImg) bgImg.src = data.image; 
-             if (cardCoverImg) (cardCoverImg as HTMLImageElement).src = data.image;
+             if (bgImg) bgImg.src = img; 
+             if (cardCoverImg) (cardCoverImg as HTMLImageElement).src = img;
         }
-        
-        generateQRCode(currentEpisodeUrl, 'card-qr-canvas');
         
         applyLayout('default');
         updatePreview();
+        updateQRCode(); // Initial QR
         toggleModal(true);
     };
 
@@ -633,6 +704,11 @@ const lowerTitle = displayTitle.toLowerCase();
         isDragging = false; 
         dragTargetId = null; 
         Object.values(guides).forEach(g => g?.classList.remove('visible'));
+        
+        // Update QR on drag end
+        if (showQRInput?.checked) {
+            updateQRCode();
+        }
     };
 
     const card = document.getElementById('share-card');
@@ -718,7 +794,13 @@ const lowerTitle = displayTitle.toLowerCase();
     const triggerId = modal?.dataset.triggerId;
     if (triggerId) {
         const extBtn = document.getElementById(triggerId);
-        extBtn?.addEventListener('click', () => toggleModal(true));
+        extBtn?.addEventListener('click', () => {
+            if (window.openStoryGenerator) {
+                window.openStoryGenerator({});
+            } else {
+                toggleModal(true);
+            }
+        });
     }
 
     openBtn?.addEventListener('click', () => toggleModal(true));
@@ -772,8 +854,11 @@ const lowerTitle = displayTitle.toLowerCase();
     [titleInput, guestInput, quoteInput, bgColorInput]
         .forEach(el => el?.addEventListener('input', updatePreview));
     
-    [showCoverInput, showLogoInput, showWebsiteInput, showWaveInput]
-        .forEach(el => el?.addEventListener('change', updatePreview));
+    [showCoverInput, showLogoInput, showWebsiteInput, showWaveInput, showQRInput]
+        .forEach(el => el?.addEventListener('change', () => {
+            updatePreview();
+            if (showQRInput?.checked) updateQRCode();
+        }));
 
     bgPresets.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -795,9 +880,9 @@ const lowerTitle = displayTitle.toLowerCase();
                     if (bgSolid) bgSolid.style.display = 'block';
                     if (solidColorPicker) solidColorPicker.classList.remove('hidden');
                     updatePreview();
-                } else if (bgType && bgType !== 'cover') {
+                } else if (bgType && bgType !== 'cover' && bgType !== 'solid') {
                     cardBgLayer.classList.add(bgType);
-                     if (bgImg) bgImg.style.display = 'none';
+                    if (bgImg) bgImg.style.display = 'none';
                 }
             }
         });
@@ -933,9 +1018,15 @@ const lowerTitle = displayTitle.toLowerCase();
             qrModalOverlay.classList.remove('hidden');
             // Create a temp canvas
             const canvas = document.createElement('canvas');
-            scanQRContainer.innerHTML = '';
-            scanQRContainer.appendChild(canvas);
-            await QRCode.toCanvas(canvas, currentEpisodeUrl, { width: 300, margin: 1 });
+            scanQRContainer.innerHTML = '<div class="loading-spinner" style="margin: 20px;"></div>';
+            
+            const shortId = await getShortId();
+            if (shortId) {
+                const url = `${window.location.origin}/ep/share-qr/${shortId}`;
+                scanQRContainer.innerHTML = '';
+                scanQRContainer.appendChild(canvas);
+                await QRCode.toCanvas(canvas, url, { width: 400, margin: 1 });
+            }
         }
     });
 
@@ -1168,7 +1259,7 @@ const lowerTitle = displayTitle.toLowerCase();
   /* --- THE EXPORT CARD VISUALS (1080x1920) --- */
   .share-card {
       width: 1080px; height: 1920px; background: #000; position: relative;
-      font-family: 'Inter', system-ui, sans-serif; color: white; display: flex; flex-direction: column; overflow: hidden;
+      font-family: 'Outfit', sans-serif; color: white; display: flex; flex-direction: column; overflow: hidden;
   }
 
   .card-bg { position: absolute; inset: 0; z-index: 1; }

@@ -75,6 +75,7 @@ let favoriteEpisodes: string[] = [];
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') ?? 'https://veredillasfm.es';
 const canonicalEpisodeUrl = `${siteUrl}/ep/${slug}`;
 const ogImageUrl = `${siteUrl}/og/${slug}.png`;
+const relativeOgImageUrl = `/og/${slug}.png`;
 
 // Build PodcastEpisode JSON-LD
 const podcastEpisodeSchema = {
@@ -309,7 +310,7 @@ const episodeGuests = allGuests.filter(guest => participantsSlugs.includes(guest
                         <EpisodeActions 
                             title={entry.data.title} 
                             audioUrl={entry.data.audioUrl} 
-                            image={entry.data.image} 
+                            image={entry.data.image || relativeOgImageUrl} 
                             slug={entry.slug} 
                             guests={entry.data.participants}
                             duration={entry.data.duration}
@@ -400,7 +401,7 @@ const episodeGuests = allGuests.filter(guest => participantsSlugs.includes(guest
         isModal={true} 
         triggerId="action-share-episode" 
         title={entry.data.title} 
-        image={entry.data.image}
+        image={entry.data.image || relativeOgImageUrl}
     />
 </Layout>
 

@@ -13,6 +13,7 @@ interface Props {
 }
 
 const { title, audioUrl, image, guests, slug, duration, className = '' } = Astro.props;
+const normImage = image ? (image.startsWith('http') || image.startsWith('/') ? image : `/${image}`) : '/logo.webp';
 ---
 
 <div class:list={["flex flex-wrap items-center justify-center gap-3 max-[600px]:grid max-[600px]:grid-cols-1", className]}>
@@ -69,7 +70,7 @@ const { title, audioUrl, image, guests, slug, duration, className = '' } = Astro
 <!-- The Hidden Generator Component -->
 <ShareCardGenerator 
     title={title} 
-    image={image} 
+    image={normImage} 
     guests={guests} 
     triggerId="action-create-story" 
 />

@@ -1,0 +1,387 @@
+---
+import dbConnect from '../../../lib/mongodb';
+import ShareDesign from '../../../models/ShareDesign';
+
+const { id } = Astro.params;
+
+if (!id) return Astro.redirect('/');
+
+let state = null;
+try {
+    await dbConnect();
+    const design = await ShareDesign.findOne({ shortId: id.toUpperCase() });
+    if (design) {
+        state = design.data;
+    }
+} catch (e) {
+    console.error('Error fetching share state', e);
+}
+
+const title = state?.t || 'Veredillas FM';
+const rawImage = state?.img || '/logo.webp';
+const image = rawImage.startsWith('http') || rawImage.startsWith('/') ? rawImage : `/${rawImage}`;
+const accentColor = state?.c || '#8b5cf6';
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>{title} | Veredillas FM</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --bg: #000;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { 
+            margin: 0; padding: 0; background: var(--bg); color: white; width: 100%; height: 100%; 
+            overflow: hidden; font-family: 'Outfit', sans-serif;
+        }
+
+        /* Animated Mesh Background */
+        .page-bg {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+        }
+        .mesh {
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(217, 70, 239, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.1) 0%, transparent 60%);
+            filter: blur(80px); animation: meshMove 25s infinite alternate ease-in-out;
+        }
+        @keyframes meshMove {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(5%, 5%) scale(1.1); }
+        }
+
+        .share-wrapper {
+            height: 100vh; height: 100dvh; display: flex; flex-direction: column; align-items: center;
+            justify-content: space-between; padding: env(safe-area-inset-top, 10px) 15px env(safe-area-inset-bottom, 15px) 15px;
+            overflow: hidden;
+        }
+
+        /* Top Logo Bar */
+        .top-bar {
+            width: 100%; padding: 15px 0; text-align: center; flex: none;
+            opacity: 0; animation: fadeInDown 0.6s ease-out forwards;
+        }
+        .logo-text { font-size: 0.9rem; font-weight: 900; letter-spacing: 0.3em; margin: 0; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+
+        /* Main Card Arena */
+        .card-arena {
+            flex: 1; width: 100%; position: relative; display: flex; align-items: center; justify-content: center;
+            perspective: 2000px; overflow: hidden;
+            opacity: 0; animation: scaleIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
+        }
+
+        .card-scaler {
+            width: 1080px; height: 1920px; position: absolute;
+            transform-origin: center center;
+            left: 50%; top: 50%;
+            box-shadow: 0 80px 160px rgba(0,0,0,0.8);
+            border-radius: 4px; overflow: hidden;
+            visibility: hidden; /* Shown after script fits it */
+        }
+
+        #share-card {
+            width: 1080px; height: 1920px; position: relative;
+            background: #000;
+        }
+
+        /* --- CARD INTERNAL STYLES (MATCH EDITOR) --- */
+        .share-card { position: relative; color: white; display: flex; flex-direction: column; overflow: hidden; font-family: 'Outfit', sans-serif; }
+        .card-bg { position: absolute; inset: 0; z-index: 1; }
+        .bg-image { width: 100%; height: 100%; object-fit: cover; filter: blur(100px) brightness(0.4); transform: scale(1.3); }
+        .bg-overlay { position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, transparent 0%, rgba(0,0,0,0.8) 100%); }
+        .bg-solid { position: absolute; inset: 0; }
+        
+        .card-content { position: absolute; inset: 0; z-index: 10; padding: 120px 80px 100px 80px; display: flex; flex-direction: column; }
+        .card-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 80px; }
+        .brand-badge { display: flex; align-items: center; gap: 24px; padding: 16px 36px 16px 16px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.15); }
+        .brand-logo { width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); }
+        .brand-name { font-size: 32px; font-weight: 800; letter-spacing: 0.15em; }
+        .episode-pill { background: rgba(255,255,255,0.95); color: #000; padding: 20px 40px; border-radius: 100px; font-size: 26px; font-weight: 800; letter-spacing: 0.1em; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .pulse-dot { width: 14px; height: 14px; background: #e11d48; border-radius: 50%; box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2); }
+        
+        .main-visual { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+        .cover-wrapper { position: relative; border-radius: 40px; display: inline-flex; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.6); }
+        .cover-image { max-width: 1000px; max-height: 1200px; width: auto; height: auto; object-fit: contain; border-radius: 40px; }
+        
+        .text-content { flex: none; display: flex; flex-direction: column; margin-top: 80px; padding: 0 40px; }
+        .card-title-text { font-size: 85px; line-height: 1.05; font-weight: 900; letter-spacing: -0.02em; margin: 0 0 40px 0; width: 100%; text-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+        .card-guest-text { display: flex; flex-direction: column; gap: 12px; margin-bottom: 50px; width: 100%; }
+        .guest-label { font-size: 22px; font-weight: 800; letter-spacing: 0.2em; padding: 6px 16px; border-radius: 6px; color: #fff; display: inline-block; width: fit-content; }
+        .guest-name { font-size: 56px; font-weight: 800; line-height: 1.1; margin-top: 10px; }
+        
+        .card-quote-container { padding: 50px; border-radius: 40px; margin-top: 20px; position: relative; width: 100%; }
+        .card-quote-text { font-size: 42px; line-height: 1.4; font-weight: 600; padding-left: 70px; font-style: italic; margin: 0; }
+        .quote-icon { position: absolute; top: 40px; left: 40px; opacity: 0.5; }
+        
+        .card-footer { margin-top: auto; padding-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; width: 100%; }
+        .website-pill { display: flex; align-items: center; gap: 24px; padding: 16px 48px 16px 16px; border-radius: 100px; }
+        .play-icon-circle { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .website-text { font-size: 32px; font-weight: 500; color: rgba(255,255,255,0.9); }
+        .frosted-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+
+        /* Floating Controls */
+        .bottom-bar {
+            width: 100%; max-width: 400px; padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; flex: none;
+            opacity: 0; animation: fadeInUp 0.6s ease-out forwards 0.4s;
+        }
+
+        .save-button {
+            width: 100%; background: #fff; color: #000; border: none; padding: 18px; border-radius: 100px;
+            font-size: 1.1rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+        }
+        .save-button:active { transform: scale(0.96); }
+        
+        .listen-link { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; padding: 10px; }
+        
+        /* Helpers */
+        .text-center { text-align: center !important; } .text-right { text-align: right !important; }
+        .items-center { align-items: center !important; } .items-end { align-items: flex-end !important; }
+        .justify-center { justify-content: center !important; } .justify-end { justify-content: flex-end !important; }
+        .spin { width: 24px; height: 24px; border: 3px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Not Found */
+        .not-found { text-align: center; margin-top: 30vh; }
+        .not-found a { color: #fff; text-decoration: underline; margin-top: 20px; display: block; }
+
+        /* Audio Waves Decoration */
+        .audio-wave-decoration {
+            position: absolute; top: 35%; left: 0; right: 0; height: 600px;
+            display: flex; align-items: center; justify-content: center; gap: 40px;
+            z-index: 2; opacity: 0.15;
+        }
+        .audio-wave-decoration .wave {
+            width: 25px; background: var(--accent); border-radius: 20px;
+            animation: soundwave 2s infinite ease-in-out;
+        }
+        @keyframes soundwave { 0%, 100% { height: 15%; } 50% { height: 100%; } }
+        .audio-wave-decoration .wave:nth-child(1) { animation-duration: 1.7s; }
+        .audio-wave-decoration .wave:nth-child(2) { animation-duration: 2.1s; animation-delay: 0.2s; }
+        .audio-wave-decoration .wave:nth-child(3) { animation-duration: 1.5s; animation-delay: 0.4s; }
+        .audio-wave-decoration .wave:nth-child(4) { animation-duration: 1.9s; animation-delay: 0.1s; }
+        .audio-wave-decoration .wave:nth-child(5) { animation-duration: 2.3s; animation-delay: 0.5s; }
+        .audio-wave-decoration .wave:nth-child(6) { animation-duration: 1.6s; animation-delay: 0.3s; }
+
+        /* Layout Overrides */
+        .layout-classic .main-visual { display: none; }
+        .layout-split .card-content { justify-content: flex-start; }
+
+        .bg-solid.gradient-aurora { background: linear-gradient(135deg, #1e3a8a 0%, #a21caf 100%); }
+        .bg-solid.gradient-sunset { background: linear-gradient(135deg, #f97316 0%, #db2777 100%); }
+        .bg-solid.gradient-midnight { background: linear-gradient(0deg, #09090b 0%, #18181b 100%); }
+    </style>
+</head>
+<body>
+    <div class="page-bg"><div class="mesh"></div></div>
+
+    <div class="share-wrapper" style={`--accent: ${accentColor}`}>
+        {state ? (
+            <>
+                <header class="top-bar">
+                    <p class="logo-text">Veredillas FM</p>
+                </header>
+
+                <div class="card-arena">
+                    <div class="card-scaler" id="card-scaler">
+                        <div id="share-card" class={`share-card layout-${state.l || 'default'} ${state.b}`}>
+                            <div class="card-bg">
+                                {(state.b === 'cover' || state.b === 'card-bg' || !state.b) ? (
+                                    <img src={image} alt="" class="bg-image" />
+                                ) : (
+                                    <div class:list={["bg-solid", state.b]} style={state.b === 'solid' ? `background-color: ${state.bc || '#09090b'}` : ''}></div>
+                                )}
+                                <div class="bg-overlay"></div>
+                            </div>
+
+                            {state.v?.wv && (
+                                <div class="audio-wave-decoration">
+                                    <div class="wave"></div><div class="wave"></div><div class="wave"></div>
+                                    <div class="wave"></div><div class="wave"></div><div class="wave"></div>
+                                </div>
+                            )}
+
+                            <div class="card-content">
+                                <div class="card-top-bar">
+                                    {state.v?.l && (
+                                        <div class="brand-badge frosted-glass" style={`transform: translate(${state.es.logo.x}px, ${state.es.logo.y}px) scale(${state.es.logo.s})`}>
+                                            <img src="/logo.webp" alt="Logo" class="brand-logo" />
+                                            <span class="brand-name">VEREDILLAS FM</span>
+                                        </div>
+                                    )}
+                                    <div class="episode-pill frosted-glass" style={`transform: translate(${state.es.tag.x}px, ${state.es.tag.y}px) scale(${state.es.tag.s})`}>
+                                        <div class="pulse-dot"></div>
+                                        <span>ESCUCHA</span>
+                                    </div>
+                                </div>
+
+                                <div class="main-visual">
+                                    {state.v?.cv && (
+                                        <div class="cover-wrapper" style={`transform: translate(${state.es.cover.x}px, ${state.es.cover.y}px) scale(${state.es.cover.s})`}>
+                                            <img src={image} alt="Cover" class="cover-image" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div class="text-content">
+                                    <h1 class={`card-title-text text-${state.es.title.align}`} style={`transform: translate(${state.es.title.x}px, ${state.es.title.y}px) scale(${state.es.title.s})`}>
+                                        {state.t}
+                                    </h1>
+                                    
+                                    {state.g && (
+                                        <div class={`card-guest-text items-${state.es.guest.align === 'center' ? 'center' : state.es.guest.align === 'right' ? 'end' : 'start'}`} style={`transform: translate(${state.es.guest.x}px, ${state.es.guest.y}px) scale(${state.es.guest.s})`}>
+                                            <span class="guest-label" style={`background: var(--accent)`}>INVITADOS</span>
+                                            <span class="guest-name" style={`color: var(--accent)`}>{state.g}</span>
+                                        </div>
+                                    )}
+
+                                    {state.q && (
+                                        <div class={`card-quote-container frosted-glass text-${state.es.quote.align}`} style={`transform: translate(${state.es.quote.x}px, ${state.es.quote.y}px) scale(${state.es.quote.s})`}>
+                                            <div class="quote-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="var(--accent)" opacity="0.4"><path d="M14.017 21L14.017 18C14.017 15.238 16.255 13 19.017 13L19.017 11C15.151 11 12.017 14.134 12.017 18L12.017 21L14.017 21ZM5.017 21L5.017 18C5.017 15.238 7.255 13 10.017 13L10.017 11C6.151 11 3.017 14.134 3.017 18L3.017 21L5.017 21Z"></path></svg>
+                                            </div>
+                                            <p class="card-quote-text">{state.q}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div class="card-footer">
+                                    {state.v?.w && (
+                                        <div class="website-pill frosted-glass" style={`transform: translate(${state.es.website.x}px, ${state.es.website.y}px) scale(${state.es.website.s})`}>
+                                            <div class="play-icon-circle" style={`background: var(--accent)`}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="black"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                            </div>
+                                            <span class="website-text">Escucha en <strong style={`color: var(--accent)`}>vrdfm.es</strong></span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-bar">
+                    <button class="save-button" id="save-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Guardar Historia</span>
+                    </button>
+                    <a href={state.u} class="listen-link">Volver al Episodio</a>
+                </div>
+            </>
+        ) : (
+            <div class="not-found">
+                <h2>Diseño no disponible</h2>
+                <a href="/">Volver al Inicio</a>
+            </div>
+        )}
+    </div>
+
+    <script>
+        import * as htmlToImage from 'html-to-image';
+
+        const btn = document.getElementById('save-btn');
+        const card = document.getElementById('share-card');
+        const scaler = document.getElementById('card-scaler');
+
+        // --- Fitting Logic ---
+        const fitCard = () => {
+            if (!scaler) return;
+            const arena = document.querySelector('.card-arena');
+            if (!arena) return;
+
+            const padding = 40;
+            const availableW = arena.clientWidth - padding;
+            const availableH = arena.clientHeight - padding;
+            
+            const scaleW = availableW / 1080;
+            const scaleH = availableH / 1920;
+            const scale = Math.min(scaleW, scaleH);
+            
+            scaler.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            scaler.style.visibility = 'visible';
+        };
+
+        window.addEventListener('resize', fitCard);
+        fitCard();
+        document.fonts.ready.then(fitCard);
+
+        btn?.addEventListener('click', async () => {
+            if (!card || !btn) return;
+            
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="spin"></span>';
+            (btn as HTMLButtonElement).disabled = true;
+
+            try {
+                // Wait for layout and images
+                const imgs = Array.from(card.querySelectorAll('img'));
+                await Promise.all(imgs.map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(r => { img.onload = r; img.onerror = r; });
+                }));
+                
+                // Allow a tiny bit more for final paint
+                await new Promise(r => setTimeout(r, 200));
+
+                const blob = await htmlToImage.toBlob(card, {
+                    pixelRatio: 2.2, // Balanced for performance/quality on old phones
+                    width: 1080,
+                    height: 1920,
+                    cacheBust: true,
+                    style: {
+                        transform: 'none',
+                        left: '0',
+                        top: '0',
+                        margin: '0',
+                        position: 'relative',
+                        visibility: 'visible',
+                        opacity: '1'
+                    }
+                });
+
+                if (!blob) throw new Error('Render failed');
+                
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `Veredillas_Story_${Date.now()}.png`;
+                link.href = url;
+                link.click();
+                
+                // Clean up URL object
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                
+                btn.innerHTML = '¡Guardado!';
+                btn.style.background = '#22c55e';
+                btn.style.color = '#fff';
+            } catch (err) {
+                console.error(err);
+                btn.innerHTML = 'Error';
+            } finally {
+                setTimeout(() => {
+                    if (btn) {
+                        btn.innerHTML = originalHTML;
+                        btn.style.background = '#fff';
+                        btn.style.color = '#000';
+                        (btn as HTMLButtonElement).disabled = false;
+                    }
+                }, 4000);
+            }
+        });
+    </script>
+</body>
+</html>
