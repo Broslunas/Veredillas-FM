@@ -4,189 +4,359 @@ import Layout from '../layouts/Layout.astro';
 
 const faqs = [
     {
-        category: "🚀 Sobre Veredillas FM",
-        icon: "🎙️",
+        id: "about",
+        category: "Sobre Veredillas FM",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic-2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
         items: [
-            { question: "¿Qué es exactamente Veredillas FM?", answer: "Veredillas FM es la plataforma de radio oficial del IES Las Veredillas (Tenerife, Canarias). Es un proyecto educativo transversal donde los estudiantes de 2º de Bachillerato crean, producen y gestionan todo el contenido, desde podcasts hasta artículos de blog y entrevistas." },
-            { question: "¿Quién está detrás del proyecto?", answer: "El equipo está formado principalmente por alumnos de la asignatura de Proyecto, pero cuenta con la colaboración de profesores y estudiantes de otros cursos. Es una iniciativa 100% escolar con calidad profesional." },
-            { question: "¿Cuál es vuestro objetivo?", answer: "Queremos dar voz a la comunidad educativa, fomentar la creatividad y el pensamiento crítico, y ofrecer una experiencia real de trabajo en medios de comunicación digitales." },
-            { question: "¿Con qué frecuencia publicáis?", answer: "Publicamos nuevos episodios de podcast semanalmente (normalmente los viernes), y artículos en el blog varias veces a la semana, dependiendo de la actualidad del centro." }
+            { 
+                question: "¿Qué es exactamente Veredillas FM?", 
+                answer: "Veredillas FM es la plataforma de comunicación digital y radio oficial del IES Las Veredillas en Santa Cruz de Tenerife. Se trata de un proyecto educativo innovador y transversal donde los estudiantes de 2º de Bachillerato lideran la creación, producción y gestión integral de contenidos multiformato: desde podcasts y directos hasta artículos de opinión y entrevistas exclusivas." 
+            },
+            { 
+                question: "¿Quién compone el equipo de la plataforma?", 
+                answer: "Aunque el núcleo operativo lo forman los alumnos de la asignatura de Proyecto de 2º de Bachillerato, Veredillas FM es un ecosistema abierto. Contamos con la colaboración activa de profesorado de diversos departamentos y estudiantes de todos los niveles educativos, garantizando una perspectiva diversa y una calidad técnica profesional." 
+            },
+            { 
+                question: "¿Cuál es la misión principal del proyecto?", 
+                answer: "Nuestro objetivo es doble: servir como altavoz para la comunidad educativa canaria y funcionar como un laboratorio real de periodismo y comunicación digital. Buscamos fomentar el pensamiento crítico, la creatividad y las competencias tecnológicas entre el alumnado en un entorno de trabajo colaborativo auténtico." 
+            },
+            { 
+                question: "¿Con qué periodicidad se publica nuevo contenido?", 
+                answer: "Mantenemos un ritmo constante de publicación. Los episodios principales del podcast se estrenan semanalmente (habitualmente los viernes), mientras que nuestra sección de 'Clips' y el blog de noticias se actualizan dinámicamente según la actualidad del centro y del panorama cultural." 
+            }
         ]
     },
     {
-        category: "🎧 Cómo Escucharnos",
-        icon: "📱",
+        id: "listening",
+        category: "Experiencia de Escucha",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-headphones"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>`,
         items: [
-            { question: "¿Dónde puedo escuchar los episodios?", answer: "Tienes muchas opciones: directamente en esta web con nuestro reproductor integrado, en Spotify, Amazon Music, Apple Podcasts, o instalando nuestra App (PWA) en tu móvil." },
-            { question: "¿Necesito una cuenta para escuchar?", answer: "¡No! Todo nuestro contenido es público y abierto. No necesitas registrarte ni iniciar sesión para escuchar los podcasts o leer el blog." },
-            { question: "¿Cómo instalo la App en mi móvil?", answer: "Es muy fácil y no ocupa espacio. En Android (Chrome): Abre el menú y selecciona 'Instalar aplicación'. En iOS (Safari): Pulsa el botón 'Compartir' y elige 'Añadir a pantalla de inicio'." },
-            { question: "¿Puedo descargarlos para escuchar offline?", answer: "Sí, si utilizas plataformas como Spotify o Apple Podcasts y tienes una cuenta que lo permita, puedes descargarlos. Desde la web consumen datos en streaming." },
-            { question: "¿Tenéis programas en directo?", answer: "¡Sí! Ocasionalmente realizamos emisiones en directo durante eventos escolares especiales. Aparecerá un aviso de 'EN VIVO' en la cabecera de la web cuando estemos emitiendo." }
+            { 
+                question: "¿En qué plataformas puedo encontrar los programas?", 
+                answer: "Estamos donde tú estés. Puedes escucharnos directamente desde esta web con nuestro reproductor premium Cinema Audio Player, o bien seguirnos en las principales plataformas de streaming: Spotify, Amazon Music, Apple Podcasts y YouTube. Solo busca 'Veredillas FM'." 
+            },
+            { 
+                question: "¿Necesito registrarme para acceder al contenido?", 
+                answer: "Para nada. En Veredillas FM creemos en la cultura libre y abierta. Todo nuestro catálogo de audio, vídeo y texto es accesible de forma gratuita y sin necesidad de crear una cuenta o iniciar sesión." 
+            },
+            { 
+                question: "¿Cómo puedo instalar la App (PWA) de Veredillas FM?", 
+                answer: "Nuestra web está diseñada como una Progressive Web App. En Android (Chrome), pulsa el menú de tres puntos y selecciona 'Instalar aplicación'. En iOS (Safari), pulsa el botón 'Compartir' y elige 'Añadir a pantalla de inicio'. Esto te permitirá acceder a la radio con un solo toque desde tu escritorio." 
+            },
+            { 
+                question: "¿Es posible escuchar los episodios sin conexión (Offline)?", 
+                answer: "Sí, aunque no directamente desde el navegador web. Puedes descargar cualquier episodio a través de la aplicación oficial de Spotify, Apple Podcasts o Amazon Music si tienes una suscripción que lo permita, ideal para trayectos sin cobertura." 
+            },
+            { 
+                question: "¿Realizáis emisiones en directo?", 
+                answer: "¡Definitivamente! Durante eventos destacados, festividades o jornadas especiales del IES Veredillas, activamos nuestro 'Live Studio'. Verás una barra de estado 'EN VIVO' en la parte superior del sitio cuando estemos emitiendo en tiempo real." 
+            }
         ]
     },
     {
-        category: "🤝 Participación y Comunidad",
-        icon: "👥",
+        id: "community",
+        category: "Comunidad y Colaboración",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><path d="M22 19a6 6 0 0 0-6-6 4 4 0 1 0 0-8"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
         items: [
-            { question: "¿Puedo participar en un podcast?", answer: "¡Nos encantaría! Si eres alumno, profesor o formas parte del personal del IES Veredillas, puedes solicitar una entrevista o proponer un tema en la sección de 'Participar'." },
-            { question: "¿Aceptáis propuestas de temas?", answer: "Absolutamente. Queremos hablar de lo que te interesa. Escríbenos a través del formulario de contacto o por Instagram con tus sugerencias." },
-            { question: "¿Puedo unirme al equipo organizador?", answer: "El equipo principal se renueva cada curso escolar con los alumnos de la asignatura. Sin embargo, siempre buscamos colaboradores para secciones específicas. Habla con los profesores responsables si estás interesado." },
-            { question: "¿Hacéis entrevistas a gente de fuera?", answer: "Sí, invitamos regularmente a antiguos alumnos, expertos y personalidades locales que tengan historias interesantes que aportar a nuestra comunidad." }
+            { 
+                question: "¿Siendo alumno o profesor, puedo participar en un episodio?", 
+                answer: "¡Es nuestro mayor deseo! La participación activa es el corazón de Veredillas FM. Si tienes una historia, un talento o un tema que quieras compartir, dirígete a la sección 'Participar' o habla directamente con el equipo técnico en el estudio durante el recreo." 
+            },
+            { 
+                question: "¿Aceptáis propuestas y sugerencias de temas externos?", 
+                answer: "Por supuesto. Siempre estamos buscando nuevas perspectivas. Puedes enviarnos tus ideas a través del formulario de contacto de la web o vía mensaje directo en nuestro Instagram oficial. Estudiamos cada propuesta con cariño." 
+            },
+            { 
+                question: "¿Cómo puedo formar parte estable del equipo organizador?", 
+                answer: "Si eres alumno del centro y vas a cursar 2º de Bachillerato el próximo año, matricularte en la asignatura de Proyecto es la vía directa. No obstante, siempre colaboramos con estudiantes de otros cursos interesados en edición, diseño gráfico o redacción." 
+            },
+            { 
+                question: "¿Entrevistáis a personas ajenas al centro educativo?", 
+                answer: "Sí. Invitamos regularmente a ex-alumnos, profesionales del sector, artistas y figuras de relevancia social que puedan aportar valor e inspiración a nuestra comunidad estudiantil." 
+            }
         ]
     },
     {
-        category: "🛠️ Soporte Técnico",
-        icon: "⚙️",
+        id: "technical",
+        category: "Soporte Técnico y Privacidad",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>`,
         items: [
-            { question: "¿La web va lenta o no carga?", answer: "Nuestra web utiliza tecnología moderna (Astro) para ser ultra-rápida. Si tienes problemas, prueba a borrar la caché de tu navegador o comprueba tu conexión a internet. Si el problema persiste, infórmanos en la sección de Contacto." },
-            { question: "¿El reproductor se corta?", answer: "Asegúrate de tener una conexión estable. El reproductor de la web stream de Spotify, por lo que a veces puede depender de su servicio. Prueba a recargar la página." },
-            { question: "¿Es compatible con todos los navegadores?", answer: "Sí, Veredillas FM funciona perfectamente en Chrome, Firefox, Safari, Edge y la mayoría de navegadores móviles modernos." },
-            { question: "¿Usáis Cookies?", answer: "Solo las esenciales para el funcionamiento técnico y analíticas anónimas para saber qué contenidos gustan más. Puedes revisar nuestra política de cookies en el pie de página." }
-        ]
-    },
-    {
-        category: "🔒 Privacidad y Legal",
-        icon: "⚖️",
-        items: [
-            { question: "¿Qué hacéis con mis datos?", answer: "Si nos contactas o solicitas una entrevista, tus datos se usan exclusivamente para responderte. No compartimos tu información con terceros ni te enviaremos spam." },
-            { question: "¿Puedo usar vuestro contenido?", answer: "Nuestro contenido tiene derechos de autor, pero nos encanta que lo compartas. Puedes difundir los episodios y artículos siempre que nos cites como fuente. Para usos comerciales o reedición, contáctanos primero." }
+            { 
+                question: "¿Por qué la web es tan rápida y fluida?", 
+                answer: "Veredillas FM está construida utilizando Astro y tecnologías de última generación que priorizan el rendimiento. Optimizamos cada recurso para que la carga sea instantánea incluso en conexiones limitadas." 
+            },
+            { 
+                question: "¿Qué ocurre con mis datos personales?", 
+                answer: "Tu privacidad es sagrada. Solo recopilamos los datos estrictamente necesarios para el funcionamiento técnico o para contactarte si tú lo solicitas. No compartimos información con terceros ni realizamos prácticas de rastreo intrusivo. Consulta nuestra Política de Privacidad para más detalles." 
+            },
+            { 
+                question: "¿El reproductor de audio experimenta cortes?", 
+                answer: "Nuestro reproductor principal utiliza el stream oficial de la plataforma de alojamiento. Si experimentas cortes, te recomendamos verificar tu conexión Wi-Fi o red de datos. Borrar la memoria caché del navegador también suele resolver pequeñas incidencias técnicas." 
+            },
+            { 
+                question: "¿Es la web compatible con navegadores antiguos?", 
+                answer: "Optimizamos la plataforma para las versiones más recientes de Chrome, Safari, Firefox y Edge. Si utilizas un navegador muy antiguo, es posible que algunas funciones visuales avanzadas no se muestren correctamente, aunque el audio siempre debería ser accesible." 
+            }
         ]
     }
+];
+
+const popularQuestions = [
+    { question: "¿Cómo instalo la App?", link: "#listening" },
+    { question: "¿Puedo participar?", link: "#community" },
+    { question: "¿Dónde escuchar?", link: "#listening" },
+    { question: "Privacidad", link: "#technical" }
 ];
 ---
 
 <Layout 
-  title="Preguntas Frecuentes | Veredillas FM" 
-  description="Resolvemos todas tus dudas sobre Veredillas FM, el proyecto, cómo escuchar y cómo participar."
+  title="Centro de Ayuda y FAQ | Veredillas FM" 
+  description="Resolvemos todas tus dudas sobre Veredillas FM, el proyecto radiofónico, cómo escucharnos en Spotify y cómo participar en nuestra comunidad."
 >
-    <!-- Background glow elements -->
-    <div class="glow-bg top-left"></div>
-    <div class="glow-bg bottom-right"></div>
+    <!-- Background Design Elements -->
+    <div class="faq-bg">
+        <div class="glow-sphere sphere-1"></div>
+        <div class="glow-sphere sphere-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
 
-    <div class="faq-page container relative z-10">
-        <header class="page-header gs-fade-up">
-            <span class="badge">Centro de Ayuda</span>
-            <h1>Preguntas Frecuentes</h1>
-            <p class="subtitle">Todo lo que necesitas saber sobre el proyecto radiofónico del IES Veredillas.</p>
-            
-            <div class="search-container mt-8 relative max-w-xl mx-auto">
-                <div class="search-input-wrapper glass-panel">
-                    <svg class="search-icon text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" id="faq-search" placeholder="Busca tu duda (ej. Spotify, participar...)" class="w-full bg-transparent text-white border-none py-4 pl-12 pr-4 outline-none placeholder-gray-500" />
+    <div class="faq-container relative z-10">
+        <!-- Hero Section -->
+        <section class="faq-hero gs-reveal">
+            <div class="hero-content">
+                <nav class="breadcrumb">
+                    <a href="/">Inicio</a>
+                    <span class="separator">/</span>
+                    <span class="current">Ayuda</span>
+                </nav>
+                <h1 class="hero-title">¿En qué podemos <br/><span class="text-gradient">ayudarte?</span></h1>
+                <p class="hero-subtitle">Encuentra respuestas rápidas sobre nuestra plataforma, contenidos y cómo formar parte de la familia Veredillas FM.</p>
+                
+                <div class="search-wrapper">
+                    <div class="search-box glass-card">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="text" id="faq-search" placeholder="Busca palabras clave (ej. Participar, Spotify, PWA...)" autocomplete="off">
+                        <div id="search-count" class="search-count-badge hidden">0</div>
+                    </div>
+                </div>
+
+                <div class="popular-tags">
+                    <span class="label">Consultas frecuentes:</span>
+                    <div class="tags-list">
+                        {popularQuestions.map(q => (
+                            <a href={q.link} class="tag-link glass-tag">{q.question}</a>
+                        ))}
+                    </div>
                 </div>
             </div>
-        </header>
+        </section>
 
-        <div class="faq-content">
-            <div id="no-results" class="no-results hidden text-center py-12 glass-panel rounded-2xl mb-8">
-                <span class="text-5xl mb-4 block">🔍</span>
-                <h3 class="text-2xl font-bold mb-2 text-white">No hemos encontrado resultados</h3>
-                <p class="text-gray-400">Prueba con otras palabras o contáctanos directamente si no encuentras tu respuesta.</p>
-            </div>
-
-            <div class="faq-grid">
-                {faqs.map((section, sIndex) => (
-                    <div class="faq-section gs-fade-up glass-panel-container" data-section style={`--delay: ${sIndex * 0.1}s`}>
-                        <div class="section-header">
-                            <div class="icon-wrapper glass-icon">
-                                <span class="section-icon">{section.icon}</span>
-                            </div>
-                            <h2 class="section-title">{section.category}</h2>
-                        </div>
-                        <div class="accordion-group">
-                            {section.items.map((item, iIndex) => (
-                                <details class="accordion-item glass-panel" data-question={item.question.toLowerCase()} data-answer={item.answer.toLowerCase()}>
-                                    <summary>
-                                        <span class="accordion-question">{item.question}</span>
-                                        <span class="icon-toggle">
-                                            <svg class="accordion-icon plus" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                        </span>
-                                    </summary>
-                                    <div class="accordion-answer">
-                                        <div class="answer-content">
-                                            <p>{item.answer}</p>
-                                        </div>
-                                    </div>
-                                </details>
-                            ))}
-                        </div>
-                    </div>
+        <!-- Mobile Category Picker (Visible only on small screens) -->
+        <nav class="mobile-cat-picker gs-reveal">
+            <div class="mobile-cat-scroll">
+                {faqs.map((section) => (
+                    <a href={`#${section.id}`} class="mobile-cat-item glass-tag" data-category-link={section.id}>
+                        <span class="m-cat-name">{section.category}</span>
+                    </a>
                 ))}
             </div>
-        </div>
-        
-        <div class="support-wrapper mt-16 gs-fade-up">
-            <div class="support-check glass-panel">
-                <div class="support-icon">👋</div>
-                <div class="support-text">
-                    <h3>¿Sigues con dudas?</h3>
-                    <p>Estamos aquí para ayudarte en lo que necesites, ya sea una propuesta, un problema técnico o simplemente para saludar.</p>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="faq-main-layout">
+            <!-- Sidebar Navigation (Desktop) -->
+            <aside class="faq-sidebar gs-reveal-left">
+                <div class="sidebar-sticky glass-card">
+                    <h3 class="sidebar-title">Categorías</h3>
+                    <nav class="category-nav">
+                        {faqs.map((section) => (
+                            <a href={`#${section.id}`} class="category-item" data-category-link={section.id}>
+                                <div class="cat-icon" set:html={section.icon} />
+                                <span class="cat-name">{section.category}</span>
+                                <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            </a>
+                        ))}
+                    </nav>
+
+                    <div class="sidebar-footer">
+                        <div class="help-box">
+                            <p>¿No encuentras lo que buscas?</p>
+                            <a href="/contacto" class="contact-link">Contactar soporte</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="support-actions">
-                    <a href="/contacto" class="btn btn-primary">Formulario de Contacto</a>
-                    <a href="mailto:contacto@veredillasfm.es" class="btn btn-outline">Enviar Email</a>
+            </aside>
+
+            <!-- FAQ Sections -->
+            <main class="faq-sections-list">
+                <div id="no-results" class="no-results-state hidden glass-card mt-4">
+                    <div class="no-results-content">
+                        <div class="empty-icon">📂</div>
+                        <h3>Sin resultados para tu búsqueda</h3>
+                        <p>Prueba con términos más generales o utiliza las categorías del lateral.</p>
+                        <button id="clear-search" class="btn-text">Limpiar búsqueda</button>
+                    </div>
+                </div>
+
+                {faqs.map((section, sIndex) => (
+                    <section id={section.id} class="faq-section gs-reveal-up" style={`--index: ${sIndex}`}>
+                        <div class="section-heading">
+                            <div class="heading-icon" set:html={section.icon} />
+                            <h2 class="section-title">{section.category}</h2>
+                        </div>
+                        
+                        <div class="questions-grid">
+                            {section.items.map((item) => (
+                                <div class="faq-item-wrapper" data-search-content={`${item.question} ${item.answer}`.toLowerCase()}>
+                                    <details class="faq-details glass-card">
+                                        <summary class="faq-summary">
+                                            <span class="question-text">{item.question}</span>
+                                            <div class="toggle-indicator">
+                                                <svg class="plus-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                            </div>
+                                        </summary>
+                                        <div class="answer-wrapper">
+                                            <div class="answer-content">
+                                                <p>{item.answer}</p>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ))}
+            </main>
+        </div>
+
+        <!-- Support Section -->
+        <footer class="faq-footer-cta gs-reveal-up">
+            <div class="cta-card glass-card">
+                <div class="cta-content">
+                    <div class="cta-badge">Soporte Express</div>
+                    <h2 class="cta-title">¿Aún tienes dudas sin resolver?</h2>
+                    <p class="cta-desc">Nuestro equipo está listo para ayudarte. Escríbenos y te responderemos en menos de 24 horas laborables.</p>
+                    
+                    <div class="cta-buttons">
+                        <a href="/contacto" class="btn-modern primary">
+                            <span>Formulario de Ayuda</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </a>
+                        <a href="mailto:info@veredillasfm.es" class="btn-modern secondary">
+                            <span>Enviar Email</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="cta-visual">
+                    <div class="avatar-stack">
+                        <div class="avatar">VP</div>
+                        <div class="avatar">JC</div>
+                        <div class="avatar">AL</div>
+                    </div>
+                    <p>Equipo de soporte activo</p>
                 </div>
             </div>
-        </div>
+        </footer>
     </div>
 </Layout>
 
 <script>
     import { gsap } from "gsap";
+    import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+
+    gsap.registerPlugin(ScrollToPlugin);
 
     document.addEventListener('astro:page-load', () => {
-        // Run animations
-        gsap.from(".gs-fade-up", {
-            y: 40,
-            opacity: 0,
-            duration: 0.8,
-            stagger: 0.15,
-            ease: "power3.out"
-        });
+        // --- Animations ---
+        const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 1 } });
+        
+        tl.from(".gs-reveal", { y: 30, opacity: 0, delay: 0.2 })
+          .from(".gs-reveal-left", { x: -30, opacity: 0 }, "-=0.6")
+          .from(".gs-reveal-up", { y: 40, opacity: 0, stagger: 0.1 }, "-=0.8");
 
-        // Search functionality
+        // --- Search Logic ---
         const searchInput = document.getElementById('faq-search') as HTMLInputElement;
+        const faqItems = document.querySelectorAll('.faq-item-wrapper');
         const faqSections = document.querySelectorAll('.faq-section');
         const noResults = document.getElementById('no-results');
+        const searchCount = document.getElementById('search-count');
+        const clearBtn = document.getElementById('clear-search');
 
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = searchInput.value.toLowerCase().trim();
-                let hasAnyVisibleResult = false;
+            searchInput.addEventListener('input', () => {
+                const term = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
 
                 faqSections.forEach(section => {
-                    const items = section.querySelectorAll('.accordion-item');
-                    let sectionHasVisibleItem = false;
-
+                    let sectionHasMatch = false;
+                    const items = section.querySelectorAll('.faq-item-wrapper');
+                    
                     items.forEach(item => {
-                        const question = item.getAttribute('data-question') || '';
-                        const answer = item.getAttribute('data-answer') || '';
-
-                        if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                        const content = item.getAttribute('data-search-content') || '';
+                        if (content.includes(term)) {
                             (item as HTMLElement).style.display = 'block';
-                            sectionHasVisibleItem = true;
-                            hasAnyVisibleResult = true;
+                            sectionHasMatch = true;
+                            visibleCount++;
                         } else {
                             (item as HTMLElement).style.display = 'none';
                         }
                     });
 
-                    if (sectionHasVisibleItem) {
-                        (section as HTMLElement).style.display = 'block';
-                    } else {
-                        (section as HTMLElement).style.display = 'none';
-                    }
+                    (section as HTMLElement).style.display = sectionHasMatch ? 'block' : (term === '' ? 'block' : 'none');
                 });
 
-                if (hasAnyVisibleResult || searchTerm === '') {
-                    noResults?.classList.add('hidden');
+                // Update UI states
+                if (term.length > 0) {
+                    searchCount?.classList.remove('hidden');
+                    if (searchCount) searchCount.textContent = visibleCount.toString();
+                    noResults?.classList.toggle('hidden', visibleCount > 0);
                 } else {
-                    noResults?.classList.remove('hidden');
+                    searchCount?.classList.add('hidden');
+                    noResults?.classList.add('hidden');
                 }
+            });
+
+            clearBtn?.addEventListener('click', () => {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.focus();
             });
         }
 
-        // Close other details when opening one (Exclusive accordion)
+        // --- Smooth Scrolling & Active State ---
+        const categoryLinks = document.querySelectorAll('[data-category-link]');
+        
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                if (targetId) {
+                    gsap.to(window, { duration: 1, scrollTo: { y: targetId, offsetY: 100 }, ease: "power4.out" });
+                }
+            });
+        });
+
+        // Intersection Observer for active category highlight
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    categoryLinks.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+                    });
+                }
+            });
+        }, observerOptions);
+
+        faqSections.forEach(section => observer.observe(section));
+
+        // --- Accordion Logic (Exclusive opening) ---
         const allDetails = document.querySelectorAll("details");
         allDetails.forEach((targetDetail) => {
             targetDetail.addEventListener("toggle", (e) => {
@@ -203,370 +373,647 @@ const faqs = [
 </script>
 
 <style>
-    .faq-page {
-        padding-bottom: 6rem;
-        position: relative;
+    :root {
+        --faq-primary: #38bdf8;
+        --faq-primary-glow: rgba(56, 189, 248, 0.15);
+        --faq-surface: rgba(15, 23, 42, 0.6);
+        --faq-border: rgba(255, 255, 255, 0.08);
+        --faq-text-muted: #94a3b8;
     }
 
-    /* Cinematic Glows */
-    .glow-bg {
-        position: absolute;
-        width: 600px;
-        height: 600px;
-        border-radius: 50%;
-        filter: blur(120px);
-        opacity: 0.15;
+    .faq-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem 8rem;
+    }
+
+    /* --- Background --- */
+    .faq-bg {
+        position: fixed;
+        inset: 0;
         z-index: 0;
+        overflow: hidden;
         pointer-events: none;
     }
 
-    .glow-bg.top-left {
-        top: -10%;
-        left: -10%;
-        background: var(--color-primary);
+    .glow-sphere {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.12;
     }
 
-    .glow-bg.bottom-right {
-        bottom: 0%;
-        right: -10%;
-        background: #8b5cf6;
+    .sphere-1 {
+        width: 600px;
+        height: 600px;
+        background: var(--faq-primary);
+        top: -100px;
+        left: -100px;
     }
 
-    .page-header {
+    .sphere-2 {
+        width: 500px;
+        height: 500px;
+        background: #818cf8;
+        bottom: -100px;
+        right: -100px;
+    }
+
+    .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+    }
+
+    /* --- Hero Section --- */
+    .faq-hero {
+        padding: 6rem 0 4rem;
         text-align: center;
-        margin-bottom: 4rem;
-        padding-top: 4rem;
-        position: relative;
     }
 
-    .badge {
-        background: rgba(56, 189, 248, 0.1);
-        color: #38bdf8;
-        padding: 0.5rem 1.25rem;
-        border-radius: 9999px;
-        font-weight: 600;
+    .breadcrumb {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.75rem;
         font-size: 0.875rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        display: inline-block;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        color: var(--faq-text-muted);
+        margin-bottom: 2rem;
     }
 
-    h1 {
-        font-size: clamp(2.5rem, 6vw, 4.5rem);
-        margin-bottom: 1.5rem;
+    .tag-link:hover {
+        background: rgba(56, 189, 248, 0.2);
+        border-color: var(--faq-primary);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .breadcrumb a {
+        color: var(--faq-text-muted);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb a:hover {
+        color: var(--faq-primary);
+    }
+
+    .hero-title {
+        font-size: clamp(2.5rem, 8vw, 4.5rem);
         font-weight: 800;
         line-height: 1.1;
-        background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.04em;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
-    .subtitle {
-        color: var(--color-text-muted, #9ca3af);
+    .hero-subtitle {
         font-size: 1.25rem;
-        max-width: 650px;
-        margin: 0 auto;
+        color: var(--faq-text-muted);
+        max-width: 600px;
+        margin: 0 auto 3rem;
         line-height: 1.6;
     }
 
-    /* Search Component */
-    .search-input-wrapper {
-        border-radius: 9999px;
-        transition: all 0.3s ease;
-        background: rgba(17, 24, 39, 0.6);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    /* --- Search Box --- */
+    .search-wrapper {
+        max-width: 700px;
+        margin: 0 auto 2rem;
     }
 
-    .search-input-wrapper:focus-within {
-        border-color: rgba(56, 189, 248, 0.5);
-        box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1), 0 8px 32px rgba(0,0,0,0.3);
+    .search-box {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1.5rem;
+        gap: 1rem;
+        border-radius: 99px;
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid var(--faq-border);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .search-box:focus-within {
+        border-color: var(--faq-primary);
+        background: rgba(15, 23, 42, 0.8);
+        box-shadow: 0 0 0 4px var(--faq-primary-glow), 0 10px 40px rgba(0,0,0,0.3);
         transform: translateY(-2px);
     }
 
-    /* FAQ List Layout */
-    .faq-content {
-        max-width: 850px;
-        margin: 0 auto 4rem;
+    .search-icon {
+        color: var(--faq-text-muted);
+        flex-shrink: 0;
     }
 
-    .faq-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 3rem;
+    .search-box input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        padding: 1rem 0;
+        font-size: 1.1rem;
+        outline: none;
     }
 
-    .faq-section {
-        background: rgba(15, 23, 42, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 24px;
-        padding: 2rem;
-        backdrop-filter: blur(10px);
+    .search-count-badge {
+        background: var(--faq-primary);
+        color: #0f172a;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.25rem 0.6rem;
+        border-radius: 10px;
     }
-    
-    .section-header {
+
+    .popular-tags {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 1rem;
-        margin-bottom: 2rem;
+        flex-wrap: wrap;
     }
 
-    .glass-icon {
+    .popular-tags .label {
+        font-size: 0.875rem;
+        color: var(--faq-text-muted);
+    }
+
+    .tags-list {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .glass-tag {
+        padding: 0.4rem 1rem;
+        border-radius: 99px;
+        font-size: 0.875rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--faq-border);
+        color: var(--faq-text-muted);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    /* --- Page Layout --- */
+    .faq-main-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 4rem;
+        margin-top: 4rem;
+    }
+
+    .sidebar-sticky {
+        position: sticky;
+        top: 100px;
+        padding: 2rem;
+        border-radius: 24px;
+    }
+
+    .sidebar-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--faq-text-muted);
+        margin-bottom: 1.5rem;
+    }
+
+    .category-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .category-item {
+        display: flex;
+        align-items: center;
+        padding: 0.875rem 1rem;
+        border-radius: 12px;
+        color: var(--faq-text-muted);
+        text-decoration: none;
+        transition: all 0.2s;
+        gap: 1rem;
+    }
+
+    .category-item:hover {
+        background: rgba(255,255,255,0.03);
+        color: #fff;
+    }
+
+    .category-item.active {
+        background: var(--faq-primary-glow);
+        color: var(--faq-primary);
+    }
+
+    .category-item .chevron {
+        margin-left: auto;
+        opacity: 0;
+        transition: all 0.2s;
+    }
+
+    .category-item.active .chevron {
+        opacity: 1;
+        transform: translateX(4px);
+    }
+
+    .cat-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.03);
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .category-item.active .cat-icon {
+        background: var(--faq-primary);
+        color: #0f172a;
+    }
+
+    .sidebar-footer {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--faq-border);
+    }
+
+    .help-box p {
+        font-size: 0.875rem;
+        color: var(--faq-text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .contact-link {
+        color: var(--faq-primary);
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.93rem;
+    }
+
+    /* --- Sections & Questions --- */
+    .faq-section {
+        margin-bottom: 5rem;
+        scroll-margin-top: 120px;
+    }
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .heading-icon {
         width: 48px;
         height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
         border-radius: 14px;
-        font-size: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        color: #0f172a;
+        box-shadow: 0 8px 16px rgba(56, 189, 248, 0.2);
     }
 
     .section-title {
-        font-size: 1.75rem;
+        font-size: 2rem;
         font-weight: 700;
-        color: #fff;
-        margin: 0;
         letter-spacing: -0.02em;
     }
 
-    /* Accordion Styles */
-    .accordion-group {
+    .questions-grid {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.25rem;
     }
 
-    .accordion-item {
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .accordion-item:hover {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .accordion-item[open] {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(56, 189, 248, 0.3);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    }
-
-    summary {
-        list-style: none;
-        padding: 1.5rem;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .accordion-question {
-        font-weight: 600;
-        font-size: 1.15rem;
-        color: #f3f4f6;
-        line-height: 1.5;
-        transition: color 0.3s ease;
-    }
-
-    .accordion-item[open] .accordion-question {
-        color: #38bdf8;
-    }
-
-    .icon-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--color-text-muted, #9ca3af);
+    .faq-details {
+        border-radius: 20px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--faq-border);
         transition: all 0.3s ease;
-        flex-shrink: 0;
     }
 
-    .accordion-item:hover .icon-toggle {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+    .faq-details:hover {
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(255,255,255,0.15);
     }
 
-    .accordion-icon {
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    .faq-details[open] {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: var(--faq-primary);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
-    .accordion-item[open] .icon-toggle {
-        background: rgba(56, 189, 248, 0.15);
-        color: #38bdf8;
-        transform: rotate(45deg);
-    }
-
-    .accordion-answer {
-        color: #d1d5db;
-        line-height: 1.7;
-        font-size: 1.05rem;
-        overflow: hidden;
-    }
-
-    .answer-content {
-        padding: 0 1.5rem 1.5rem 1.5rem;
-        animation: revealDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    @keyframes revealDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Support CTA */
-    .support-wrapper {
-        max-width: 900px;
-        margin: 4rem auto 0;
-    }
-
-    .support-check {
+    .faq-summary {
+        list-style: none;
+        padding: 1.5rem 2rem;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 2rem;
-        padding: 3rem;
-        border-radius: 24px;
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        position: relative;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .faq-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .question-text {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #f1f5f9;
+        transition: color 0.3s;
+        line-height: 1.4;
+    }
+
+    .faq-details[open] .question-text {
+        color: var(--faq-primary);
+    }
+
+    .toggle-indicator {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        color: var(--faq-text-muted);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        flex-shrink: 0;
+    }
+
+    .faq-details[open] .toggle-indicator {
+        background: var(--faq-primary);
+        color: #0f172a;
+        transform: rotate(45deg);
+    }
+
+    .answer-wrapper {
         overflow: hidden;
     }
 
-    .support-check::before {
+    .answer-content {
+        padding: 0 2rem 2rem;
+        color: #94a3b8;
+        line-height: 1.7;
+        font-size: 1.05rem;
+        animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- No Results --- */
+    .no-results-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon { font-size: 3rem; margin-bottom: 1.5rem; }
+    .no-results-state h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .no-results-state p { color: var(--faq-text-muted); margin-bottom: 2rem; }
+
+    .btn-text {
+        background: none;
+        border: none;
+        color: var(--faq-primary);
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    /* --- Footer CTA --- */
+    .faq-footer-cta {
+        margin-top: 6rem;
+    }
+
+    .cta-card {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 3rem;
+        padding: 4rem;
+        border-radius: 32px;
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%);
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+        position: relative;
+    }
+
+    .cta-card::after {
         content: '';
         position: absolute;
         top: 0;
-        left: 0;
+        right: 0;
         width: 100%;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.5), transparent);
+        height: 100%;
+        background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 60%);
+        pointer-events: none;
     }
 
-    .support-icon {
-        font-size: 4rem;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-    
-    .support-text {
-        flex: 1;
-    }
-
-    .support-check h3 {
-        font-size: 1.75rem;
-        margin-bottom: 0.5rem;
+    .cta-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: var(--faq-primary-glow);
+        color: var(--faq-primary);
+        border-radius: 99px;
+        font-size: 0.75rem;
         font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1.5rem;
+    }
+
+    .cta-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1.25rem;
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+    }
+
+    .cta-desc {
+        font-size: 1.2rem;
+        color: var(--faq-text-muted);
+        max-width: 500px;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-modern {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 2rem;
+        border-radius: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .btn-modern.primary {
+        background: var(--faq-primary);
+        color: #0f172a;
+        box-shadow: 0 10px 20px rgba(56, 189, 248, 0.2);
+    }
+
+    .btn-modern.primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(56, 189, 248, 0.3);
+    }
+
+    .btn-modern.secondary {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
         color: #fff;
     }
-    
-    .support-check p {
-        color: #9ca3af;
-        font-size: 1.1rem;
-        margin: 0;
+
+    .btn-modern.secondary:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateY(-3px);
     }
 
-    .support-actions {
+    .cta-visual {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
-        flex-shrink: 0;
-        min-width: 200px;
-    }
-    
-    .btn {
-        display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0.875rem 1.5rem;
-        font-weight: 600;
-        border-radius: 12px;
-        text-decoration: none;
-        transition: all 0.2s ease;
+        background: rgba(255,255,255,0.03);
+        border-radius: 24px;
+        padding: 2rem;
         text-align: center;
     }
 
-    .btn-primary {
-        background: rgba(56, 189, 248, 0.9);
+    .avatar-stack {
+        display: flex;
+        margin-bottom: 1.25rem;
+    }
+
+    .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #334155;
+        border: 3px solid #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-left: -12px;
+    }
+
+    .avatar:first-child { margin-left: 0; background: #6366f1; }
+    .avatar:nth-child(2) { background: #38bdf8; }
+    .avatar:nth-child(3) { background: #10b981; }
+
+    .cta-visual p {
+        font-size: 0.875rem;
+        color: var(--faq-text-muted);
+        margin: 0;
+    }
+
+    /* --- Glass Utilities --- */
+    .glass-card {
+        background: var(--faq-surface);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--faq-border);
+    }
+
+    /* --- Mobile Category Picker --- */
+    .mobile-cat-picker {
+        display: none;
+        margin: 1rem -1.5rem 3rem;
+        padding: 0 1.5rem;
+    }
+
+    .mobile-cat-scroll {
+        display: flex;
+        gap: 0.75rem;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .mobile-cat-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mobile-cat-item {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .mobile-cat-item.active {
+        background: var(--faq-primary);
         color: #0f172a;
-        box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+        border-color: var(--faq-primary);
+        font-weight: 700;
     }
 
-    .btn-primary:hover {
-        background: #38bdf8;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
-    }
-    
-    .btn-outline {
-        background: transparent;
-        border: 1px solid rgba(255,255,255,0.15);
-        color: #e5e7eb;
-    }
-    
-    .btn-outline:hover {
-        background: rgba(255,255,255,0.05);
-        border-color: rgba(255,255,255,0.3);
-        transform: translateY(-2px);
-    }
-
-    /* Responsive */
-    @media (max-width: 860px) {
-        .support-check {
-            flex-direction: column;
-            text-align: center;
-            padding: 2.5rem 1.5rem;
+    /* --- Responsive --- */
+    @media (max-width: 1024px) {
+        .mobile-cat-picker {
+            display: block;
         }
 
-        .support-actions {
-            flex-direction: row;
-            flex-wrap: wrap;
-            width: 100%;
+        .faq-main-layout {
+            grid-template-columns: 1fr;
+            gap: 2rem;
         }
 
-        .btn {
-            flex: 1;
-            min-width: 180px;
+        .faq-sidebar {
+            display: none; /* Hide sidebar on tablet/mobile or change to top nav */
+        }
+
+        .cta-card {
+            grid-template-columns: 1fr;
+            padding: 2.5rem;
+        }
+
+        .cta-visual {
+            display: none;
         }
     }
 
-    @media (max-width: 600px) {
-        .faq-section {
-            padding: 1.5rem;
-        }
-
-        .section-header {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .support-actions {
+    @media (max-width: 640px) {
+        .faq-hero { padding: 4rem 0 2rem; }
+        .hero-title { font-size: 2.5rem; }
+        .cta-title { font-size: 2rem; }
+        
+        .cta-buttons {
             flex-direction: column;
         }
+
+        .btn-modern {
+            justify-content: center;
+        }
+
+        .faq-summary {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .question-text { font-size: 1rem; }
     }
 </style>
