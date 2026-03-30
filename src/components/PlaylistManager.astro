@@ -1,0 +1,215 @@
+---
+interface Props {
+  episodeSlug: string;
+  className?: string;
+}
+
+const { episodeSlug, className = '' } = Astro.props;
+---
+
+<div class={`playlist-manager relative ${className}`} data-episode-slug={episodeSlug}>
+  <button 
+    class="btn-playlist flex items-center justify-center gap-2 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+    aria-label="Añadir a lista de reproducción"
+    title="Añadir a lista"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6"></line>
+      <line x1="8" y1="12" x2="21" y2="12"></line>
+      <line x1="8" y1="18" x2="21" y2="18"></line>
+      <line x1="3" y1="6" x2="3.01" y2="6"></line>
+      <line x1="3" y1="12" x2="3.01" y2="12"></line>
+      <line x1="3" y1="18" x2="3.01" y2="18"></line>
+    </svg>
+    <span class="max-sm:hidden text-sm font-semibold text-white/80">Guardar</span>
+  </button>
+
+  <!-- Modal overlay -->
+  <div class="playlist-modal fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="modal-content bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl scale-95 opacity-0 transition-all duration-300">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold">Guardar en...</h3>
+        <button class="close-modal p-2 hover:bg-white/10 rounded-full transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="playlists-list max-h-60 overflow-y-auto mb-6 flex flex-col gap-2">
+        <div class="loading-state text-center py-4 text-zinc-500 text-sm">Cargando listas...</div>
+        <!-- Playlists will be injected here -->
+      </div>
+
+      <div class="create-playlist-form pt-4 border-t border-white/10">
+        <h4 class="text-sm font-semibold mb-3 text-white/70">Crear nueva lista</h4>
+        <div class="flex gap-2">
+          <input type="text" placeholder="Nombre de la lista" class="new-playlist-name flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+          <button class="btn-create-playlist bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors">
+            Crear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<template id="playlist-item-template">
+  <label class="playlist-item flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-white/10">
+    <div class="relative flex items-center justify-center">
+      <input type="checkbox" class="playlist-checkbox peer appearance-none w-5 h-5 border-2 border-white/20 rounded-md checked:bg-primary checked:border-primary transition-all">
+      <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    <div class="flex flex-col">
+      <span class="playlist-name text-sm font-bold text-white"></span>
+      <span class="playlist-meta text-xs text-zinc-500"></span>
+    </div>
+  </label>
+</template>
+
+<script>
+  function initPlaylistManager() {
+    const managers = document.querySelectorAll('.playlist-manager');
+    if (managers.length === 0) return;
+
+    managers.forEach(manager => {
+      const slug = manager.getAttribute('data-episode-slug');
+      if (!slug) return;
+
+      const btn = manager.querySelector('.btn-playlist');
+      const modal = manager.querySelector('.playlist-modal');
+      const modalContent = manager.querySelector('.modal-content');
+      const closeBtn = manager.querySelector('.close-modal');
+      const playlistsList = manager.querySelector('.playlists-list');
+      const template = document.getElementById('playlist-item-template') as HTMLTemplateElement;
+      
+      const createInput = manager.querySelector('.new-playlist-name') as HTMLInputElement;
+      const createBtn = manager.querySelector('.btn-create-playlist');
+
+      let playlistsData: any[] = [];
+
+      const openModal = async () => {
+        modal?.classList.remove('hidden');
+        // Small delay to allow display:block to apply before animating opacity
+        setTimeout(() => {
+          modalContent?.classList.remove('scale-95', 'opacity-0');
+          modalContent?.classList.add('scale-100', 'opacity-100');
+        }, 10);
+        await loadPlaylists();
+      };
+
+      const closeModal = () => {
+        modalContent?.classList.remove('scale-100', 'opacity-100');
+        modalContent?.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          modal?.classList.add('hidden');
+        }, 300);
+      };
+
+      btn?.addEventListener('click', openModal);
+      closeBtn?.addEventListener('click', closeModal);
+      modal?.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      const renderPlaylists = () => {
+        if (!playlistsList || !template) return;
+        
+        playlistsList.innerHTML = ''; // Clear loading
+        
+        if (playlistsData.length === 0) {
+           playlistsList.innerHTML = '<div class="text-center py-4 text-zinc-500 text-sm">No tienes listas aún.</div>';
+           return;
+        }
+
+        playlistsData.forEach(playlist => {
+          const clone = template.content.cloneNode(true) as HTMLElement;
+          const container = clone.querySelector('.playlist-item');
+          const checkbox = clone.querySelector('.playlist-checkbox') as HTMLInputElement;
+          const nameEl = clone.querySelector('.playlist-name');
+          const metaEl = clone.querySelector('.playlist-meta');
+
+          if (nameEl) nameEl.textContent = playlist.name;
+          if (metaEl) metaEl.textContent = `${playlist.episodes?.length || 0} episodios`;
+          if (checkbox) {
+            checkbox.checked = playlist.episodes?.includes(slug) || false;
+            
+            checkbox.addEventListener('change', async (e) => {
+              checkbox.disabled = true;
+              try {
+                const res = await fetch('/api/playlists/toggle-episode', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ playlistId: playlist._id, episodeSlug: slug })
+                });
+                
+                if (!res.ok) {
+                    if (res.status === 401) {
+                         if ((window as any).showToast) (window as any).showToast('Inicia sesión para esto', 'info');
+                    }
+                    checkbox.checked = !checkbox.checked; // Revert
+                } else {
+                    const data = await res.json();
+                    if (metaEl) metaEl.textContent = `${data.playlist.episodes.length} episodios`;
+                    if ((window as any).showToast) {
+                        (window as any).showToast(data.isAdded ? `Añadido a ${playlist.name}` : `Eliminado de ${playlist.name}`, 'success');
+                    }
+                }
+              } catch (err) {
+                 checkbox.checked = !checkbox.checked; // Revert
+              } finally {
+                 checkbox.disabled = false;
+              }
+            });
+          }
+
+          playlistsList.appendChild(clone);
+        });
+      };
+
+      const loadPlaylists = async () => {
+        try {
+          const res = await fetch('/api/playlists');
+          if (res.status === 401) {
+            if (playlistsList) playlistsList.innerHTML = '<div class="text-center py-4 text-zinc-500 text-sm">Para crear listas debes <a href="/login" class="text-primary hover:underline">iniciar sesión</a>.</div>';
+            return;
+          }
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          playlistsData = data.playlists || [];
+          renderPlaylists();
+        } catch (err) {
+          if (playlistsList) playlistsList.innerHTML = '<div class="text-center py-4 text-red-500 text-sm">Error cargando listas</div>';
+        }
+      };
+
+      createBtn?.addEventListener('click', async () => {
+        const name = createInput?.value.trim();
+        if (!name) return;
+
+        createBtn.classList.add('opacity-50', 'pointer-events-none');
+        try {
+           const res = await fetch('/api/playlists', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name })
+           });
+           if (!res.ok) {
+               if (res.status === 401 && (window as any).showToast) (window as any).showToast('Inicia sesión para esto', 'info');
+               throw new Error();
+           }
+           const data = await res.json();
+           playlistsData.push(data.playlist);
+           if (createInput) createInput.value = '';
+           renderPlaylists();
+        } catch(e) {
+
+        } finally {
+           createBtn.classList.remove('opacity-50', 'pointer-events-none');
+        }
+      });
+      
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initPlaylistManager);
+  document.addEventListener('astro:page-load', initPlaylistManager);
+</script>

@@ -1,0 +1,158 @@
+---
+import mongoose from 'mongoose';
+import User from '../models/User';
+
+interface Props {
+  episodeSlug: string;
+  className?: string;
+}
+
+const { episodeSlug, className = '' } = Astro.props;
+
+let likesCount = 0;
+let dislikesCount = 0;
+try {
+  if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = import.meta.env.MONGODB_URI;
+    if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
+  }
+  likesCount = await User.countDocuments({ likedEpisodes: episodeSlug });
+  dislikesCount = await User.countDocuments({ dislikedEpisodes: episodeSlug });
+} catch (e) {
+  // fail silently
+}
+---
+
+<div class={`like-dislike-group flex items-center bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden ${className}`} data-episode-slug={episodeSlug}>
+  <button 
+    class="btn-like flex items-center gap-2 px-4 py-2 hover:bg-white/10 transition-colors group"
+    aria-label="Me gusta"
+    title="Me gusta"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-[.liked]:fill-white group-[.liked]:text-white transition-all">
+      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+    </svg>
+    <span class="label-count text-sm font-bold opacity-80" data-count={likesCount}>{likesCount}</span>
+  </button>
+  
+  <div class="h-6 w-px bg-white/20"></div>
+  
+  <button 
+    class="btn-dislike flex items-center gap-2 px-4 py-2 hover:bg-white/10 transition-colors group"
+    aria-label="No me gusta"
+    title="No me gusta"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-[.disliked]:fill-white group-[.disliked]:text-white transition-all transform rotate-180 scale-x-[-1]">
+      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+    </svg>
+    <span class="label-count text-sm font-bold opacity-80" data-count={dislikesCount}>{dislikesCount}</span>
+  </button>
+</div>
+
+<script>
+  function initLikeDislike() {
+    async function loadState() {
+      const groups = document.querySelectorAll('.like-dislike-group');
+      if (groups.length === 0) return;
+
+      groups.forEach(async (group) => {
+        const slug = group.getAttribute('data-episode-slug');
+        if (!slug) return;
+
+        try {
+          // Fetch initial interactive state (isLiked, isDisliked)
+          const response = await fetch(`/api/interaction/status?slug=${encodeURIComponent(slug)}`);
+          if (!response.ok) return;
+          const data = await response.json();
+
+          const btnLike = group.querySelector('.btn-like');
+          const btnDislike = group.querySelector('.btn-dislike');
+
+          if (data.isLiked) btnLike?.classList.add('liked');
+          if (data.isDisliked) btnDislike?.classList.add('disliked');
+          
+          if (data.likesCount !== undefined && btnLike) {
+            const countEl = btnLike.querySelector('.label-count');
+            if (countEl) countEl.textContent = data.likesCount;
+          }
+          if (data.dislikesCount !== undefined && btnDislike) {
+            const countEl = btnDislike.querySelector('.label-count');
+            if (countEl) countEl.textContent = data.dislikesCount;
+          }
+
+          // Attach listeners securely preventing duplicate listeners
+          const newLikeBtn = btnLike?.cloneNode(true);
+          btnLike?.parentNode?.replaceChild(newLikeBtn!, btnLike);
+          const newDislikeBtn = btnDislike?.cloneNode(true);
+          btnDislike?.parentNode?.replaceChild(newDislikeBtn!, btnDislike);
+
+          newLikeBtn?.addEventListener('click', async () => await toggleInteraction(slug, 'like', newLikeBtn as HTMLElement, newDislikeBtn as HTMLElement));
+          newDislikeBtn?.addEventListener('click', async () => await toggleInteraction(slug, 'dislike', newDislikeBtn as HTMLElement, newLikeBtn as HTMLElement));
+
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    }
+
+    async function toggleInteraction(slug: string, action: 'like'|'dislike', originBtn: HTMLElement, oppositeBtn: HTMLElement) {
+      if (originBtn.classList.contains('loading')) return;
+      originBtn.classList.add('loading', 'opacity-50');
+
+      try {
+        const response = await fetch(`/api/interaction/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ episodeSlug: slug }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 401) {
+             if ((window as any).showToast) (window as any).showToast('Inicia sesión para esto', 'info');
+             return;
+          }
+           throw new Error();
+        }
+
+        // Update classes based on response
+        if (action === 'like') {
+           if (data.isLiked) {
+             originBtn.classList.add('liked');
+             oppositeBtn.classList.remove('disliked'); // It can't be both
+           } else {
+             originBtn.classList.remove('liked');
+           }
+        } else {
+           if (data.isDisliked) {
+             originBtn.classList.add('disliked');
+             oppositeBtn.classList.remove('liked'); 
+           } else {
+             originBtn.classList.remove('disliked');
+           }
+        }
+
+        // Fetch counts directly to reflect
+        const statusRes = await fetch(`/api/interaction/status?slug=${encodeURIComponent(slug)}`);
+        if (statusRes.ok) {
+           const statusData = await statusRes.json();
+           const likeCount = originBtn.parentElement?.querySelector('.btn-like .label-count');
+           const dislikeCount = originBtn.parentElement?.querySelector('.btn-dislike .label-count');
+           if (likeCount && statusData.likesCount !== undefined) likeCount.textContent = statusData.likesCount;
+           if (dislikeCount && statusData.dislikesCount !== undefined) dislikeCount.textContent = statusData.dislikesCount;
+        }
+
+      } catch (err) {
+        if ((window as any).showToast) (window as any).showToast('Error de conexión', 'error');
+      } finally {
+        originBtn.classList.remove('loading', 'opacity-50');
+      }
+    }
+
+    loadState();
+  }
+
+  document.addEventListener('DOMContentLoaded', initLikeDislike);
+  document.addEventListener('astro:page-load', initLikeDislike);
+</script>

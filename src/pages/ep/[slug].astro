@@ -11,6 +11,8 @@ import EpisodeClips from '../../components/EpisodeClips.astro';
 import SidebarWidget from '../../components/SidebarWidget.astro';
 import FavoriteButton from '../../components/FavoriteButton.astro';
 import EpisodeRating from '../../components/EpisodeRating.astro';
+import LikeDislikeGroup from '../../components/LikeDislikeGroup.astro';
+import PlaylistManager from '../../components/PlaylistManager.astro';
 
 import PremiereCountdown from '../../components/PremiereCountdown.astro';
 import LiveChat from '../../components/LiveChat.astro';
@@ -331,10 +333,12 @@ const nextEpisodes = candidates.slice(0, 3).map(c => ({
                                 </div>
                             )}
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
                              <ListenerCount onlyCurrentPath={true} />
                              <EpisodeRating slug={entry.slug} />
                              <FavoriteButton episodeSlug={entry.slug} />
+                             <LikeDislikeGroup episodeSlug={entry.slug} />
+                             <PlaylistManager episodeSlug={entry.slug} />
                         </div>
                     </div>
                     

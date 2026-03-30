@@ -8,6 +8,16 @@ export interface IUser extends mongoose.Document {
   picture?: string;
   bio?: string;
   favorites: string[]; // Array de slugs de episodios favoritos
+  likedEpisodes: string[];
+  dislikedEpisodes: string[];
+  playlists: {
+    _id: mongoose.Types.ObjectId;
+    name: string;
+    description?: string;
+    episodes: string[];
+    createdAt: Date;
+    isPublic: boolean;
+  }[];
   playbackHistory: {
     episodeSlug: string;
     progress: number; // in seconds
@@ -64,6 +74,21 @@ const userSchema = new mongoose.Schema<IUser>({
     type: [String],
     default: []
   },
+  likedEpisodes: {
+    type: [String],
+    default: []
+  },
+  dislikedEpisodes: {
+    type: [String],
+    default: []
+  },
+  playlists: [{
+    name: { type: String, required: true },
+    description: String,
+    episodes: { type: [String], default: [] },
+    createdAt: { type: Date, default: Date.now },
+    isPublic: { type: Boolean, default: false }
+  }],
   playbackHistory: [{
     episodeSlug: { type: String, required: true },
     progress: { type: Number, default: 0 },
