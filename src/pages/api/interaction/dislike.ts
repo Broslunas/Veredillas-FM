@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import { getUserFromCookie } from '../../../lib/auth';
-import User from '../../../models/User';
+import EpisodeReaction from '../../../models/EpisodeReaction';
 
 export const prerender = false;
 
@@ -32,39 +32,35 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const user = await User.findById(userPayload.userId);
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'User not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    const userId = userPayload.userId;
 
-    let likedEpisodes = user.likedEpisodes || [];
-    let dislikedEpisodes = user.dislikedEpisodes || [];
-    
-    const isCurrentlyDisliked = dislikedEpisodes.includes(episodeSlug);
-    let isNowDisliked = false;
+    // Check existing reaction
+    const existing = await EpisodeReaction.findOne({ userId, episodeSlug });
 
-    if (isCurrentlyDisliked) {
-      // Remove dislike
-      dislikedEpisodes = dislikedEpisodes.filter((slug: string) => slug !== episodeSlug);
+    let isLiked = false;
+    let isDisliked = false;
+
+    if (existing) {
+      if (existing.type === 'dislike') {
+        // Toggle off
+        await EpisodeReaction.deleteOne({ _id: existing._id });
+        isDisliked = false;
+      } else {
+        // Switch like to dislike
+        existing.type = 'dislike';
+        await existing.save();
+        isDisliked = true;
+      }
     } else {
-      // Add dislike and remove like if any
-      dislikedEpisodes.push(episodeSlug);
-      likedEpisodes = likedEpisodes.filter((slug: string) => slug !== episodeSlug);
-      isNowDisliked = true;
+      // Create new dislike
+      await EpisodeReaction.create({ userId, episodeSlug, type: 'dislike' });
+      isDisliked = true;
     }
-
-    await User.findByIdAndUpdate(
-      userPayload.userId,
-      { $set: { likedEpisodes, dislikedEpisodes } }
-    );
 
     return new Response(JSON.stringify({ 
       success: true,
-      isDisliked: isNowDisliked,
-      isLiked: false // Since we just disliked, it can't be liked
+      isLiked,
+      isDisliked
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

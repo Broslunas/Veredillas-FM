@@ -55,26 +55,32 @@ try {
 
 <script>
   function initFavoriteButtons() {
-    async function loadState() {
-      try {
-        const response = await fetch('/api/favorites/list');
-        const data = await response.json();
-        const favorites = data.favorites || [];
+    window.vfmStateCache = window.vfmStateCache || {};
+    
+    async function fetchEpisodeState(slug: string) {
+      if (window.vfmStateCache[slug]) return window.vfmStateCache[slug];
+      window.vfmStateCache[slug] = fetch(`/api/episodes/state?slug=${encodeURIComponent(slug)}`).then(r => r.json());
+      return window.vfmStateCache[slug];
+    }
 
-        const buttons = document.querySelectorAll('.favorite-premium-btn');
-        
-        for (const button of buttons) {
-          const slug = button.getAttribute('data-episode-slug');
+    async function loadState() {
+      const buttons = document.querySelectorAll('.favorite-premium-btn');
+      for (const button of buttons) {
+        const slug = button.getAttribute('data-episode-slug');
+        if (!slug) continue;
+
+        try {
+          const data = await fetchEpisodeState(slug);
           
-          if (favorites.includes(slug)) {
+          if (data.userState?.isFavorite) {
             button.classList.add('favorited');
           }
 
-          if (slug) {
-            loadCount(slug, button as HTMLElement);
+          if (data.globalStats?.favoritesCount !== undefined) {
+             const countEl = button.querySelector('.label-count');
+             if (countEl) countEl.textContent = data.globalStats.favoritesCount;
           }
 
-          // Important: remove old listeners if re-initializing
           const newBtn = button.cloneNode(true);
           button.parentNode?.replaceChild(newBtn, button);
           
@@ -82,21 +88,10 @@ try {
             e.preventDefault();
             await toggleFavorite(newBtn as HTMLButtonElement);
           });
+        } catch (error) {
+          console.error(error);
         }
-      } catch (error) {
-        console.error('Error loading favorites:', error);
       }
-    }
-
-    async function loadCount(slug: string, button: HTMLElement) {
-      try {
-        const response = await fetch(`/api/favorites/count?slug=${encodeURIComponent(slug)}`);
-        const data = await response.json();
-        const countEl = button.querySelector('.label-count');
-        if (countEl && data.favoritesCount !== undefined) {
-          countEl.textContent = data.favoritesCount;
-        }
-      } catch (e) {}
     }
 
     async function toggleFavorite(button: HTMLButtonElement) {
@@ -125,13 +120,20 @@ try {
 
         if (data.isFavorite) {
           button.classList.add('favorited');
-          if (window.showToast) window.showToast('¡Guardado!', 'success');
+          if ((window as any).showToast) (window as any).showToast('¡Guardado!', 'success');
         } else {
           button.classList.remove('favorited');
-          if (window.showToast) window.showToast('Eliminado', 'info');
+          if ((window as any).showToast) (window as any).showToast('Eliminado', 'info');
         }
 
-        loadCount(slug, button);
+        // We can just manually increment or decrement client side, but since other components might
+        // want freshness, let's force a refetch by clearing the cache and refetching.
+        delete window.vfmStateCache[slug];
+        const freshData = await fetchEpisodeState(slug);
+        if (freshData.globalStats?.favoritesCount !== undefined) {
+             const countEl = button.querySelector('.label-count');
+             if (countEl) countEl.textContent = freshData.globalStats.favoritesCount;
+        }
       } catch (error) {
         if (window.showToast) window.showToast('Error de conexión', 'error');
       } finally {

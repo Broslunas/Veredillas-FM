@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import { getUserFromCookie } from '../../../lib/auth';
-import User from '../../../models/User';
+import EpisodeReaction from '../../../models/EpisodeReaction';
 
 export const prerender = false;
 
@@ -32,39 +32,35 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const user = await User.findById(userPayload.userId);
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'User not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    const userId = userPayload.userId;
 
-    let likedEpisodes = user.likedEpisodes || [];
-    let dislikedEpisodes = user.dislikedEpisodes || [];
-    
-    const isCurrentlyLiked = likedEpisodes.includes(episodeSlug);
-    let isNowLiked = false;
+    // Check existing reaction
+    const existing = await EpisodeReaction.findOne({ userId, episodeSlug });
 
-    if (isCurrentlyLiked) {
-      // Remove like
-      likedEpisodes = likedEpisodes.filter((slug: string) => slug !== episodeSlug);
+    let isLiked = false;
+    let isDisliked = false;
+
+    if (existing) {
+      if (existing.type === 'like') {
+        // Toggle off
+        await EpisodeReaction.deleteOne({ _id: existing._id });
+        isLiked = false;
+      } else {
+        // Switch dislike to like
+        existing.type = 'like';
+        await existing.save();
+        isLiked = true;
+      }
     } else {
-      // Add like and remove dislike if any
-      likedEpisodes.push(episodeSlug);
-      dislikedEpisodes = dislikedEpisodes.filter((slug: string) => slug !== episodeSlug);
-      isNowLiked = true;
+      // Create new like
+      await EpisodeReaction.create({ userId, episodeSlug, type: 'like' });
+      isLiked = true;
     }
-
-    await User.findByIdAndUpdate(
-      userPayload.userId,
-      { $set: { likedEpisodes, dislikedEpisodes } }
-    );
 
     return new Response(JSON.stringify({ 
       success: true,
-      isLiked: isNowLiked,
-      isDisliked: false // Since we just liked (or removed like), it can't be disliked
+      isLiked,
+      isDisliked
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

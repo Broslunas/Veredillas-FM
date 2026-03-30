@@ -8,8 +8,6 @@ export interface IUser extends mongoose.Document {
   picture?: string;
   bio?: string;
   favorites: string[]; // Array de slugs de episodios favoritos
-  likedEpisodes: string[];
-  dislikedEpisodes: string[];
   playlists: {
     _id: mongoose.Types.ObjectId;
     name: string;
@@ -71,14 +69,6 @@ const userSchema = new mongoose.Schema<IUser>({
     maxlength: 500
   },
   favorites: {
-    type: [String],
-    default: []
-  },
-  likedEpisodes: {
-    type: [String],
-    default: []
-  },
-  dislikedEpisodes: {
     type: [String],
     default: []
   },

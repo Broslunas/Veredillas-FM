@@ -1,6 +1,6 @@
 ---
 import mongoose from 'mongoose';
-import User from '../models/User';
+import EpisodeReaction from '../models/EpisodeReaction';
 
 interface Props {
   episodeSlug: string;
@@ -16,8 +16,8 @@ try {
     const MONGODB_URI = import.meta.env.MONGODB_URI;
     if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
   }
-  likesCount = await User.countDocuments({ likedEpisodes: episodeSlug });
-  dislikesCount = await User.countDocuments({ dislikedEpisodes: episodeSlug });
+  likesCount = await EpisodeReaction.countDocuments({ episodeSlug, type: 'like' });
+  dislikesCount = await EpisodeReaction.countDocuments({ episodeSlug, type: 'dislike' });
 } catch (e) {
   // fail silently
 }
@@ -51,6 +51,14 @@ try {
 
 <script>
   function initLikeDislike() {
+    window.vfmStateCache = window.vfmStateCache || {};
+    
+    async function fetchEpisodeState(slug: string) {
+      if (window.vfmStateCache[slug]) return window.vfmStateCache[slug];
+      window.vfmStateCache[slug] = fetch(`/api/episodes/state?slug=${encodeURIComponent(slug)}`).then(r => r.json());
+      return window.vfmStateCache[slug];
+    }
+    
     async function loadState() {
       const groups = document.querySelectorAll('.like-dislike-group');
       if (groups.length === 0) return;
@@ -60,24 +68,22 @@ try {
         if (!slug) return;
 
         try {
-          // Fetch initial interactive state (isLiked, isDisliked)
-          const response = await fetch(`/api/interaction/status?slug=${encodeURIComponent(slug)}`);
-          if (!response.ok) return;
-          const data = await response.json();
+          // Fetch unified state
+          const data = await fetchEpisodeState(slug);
 
           const btnLike = group.querySelector('.btn-like');
           const btnDislike = group.querySelector('.btn-dislike');
 
-          if (data.isLiked) btnLike?.classList.add('liked');
-          if (data.isDisliked) btnDislike?.classList.add('disliked');
+          if (data.userState?.isLiked) btnLike?.classList.add('liked');
+          if (data.userState?.isDisliked) btnDislike?.classList.add('disliked');
           
-          if (data.likesCount !== undefined && btnLike) {
+          if (data.globalStats?.likesCount !== undefined && btnLike) {
             const countEl = btnLike.querySelector('.label-count');
-            if (countEl) countEl.textContent = data.likesCount;
+            if (countEl) countEl.textContent = data.globalStats.likesCount;
           }
-          if (data.dislikesCount !== undefined && btnDislike) {
+          if (data.globalStats?.dislikesCount !== undefined && btnDislike) {
             const countEl = btnDislike.querySelector('.label-count');
-            if (countEl) countEl.textContent = data.dislikesCount;
+            if (countEl) countEl.textContent = data.globalStats.dislikesCount;
           }
 
           // Attach listeners securely preventing duplicate listeners
@@ -134,13 +140,17 @@ try {
         }
 
         // Fetch counts directly to reflect
-        const statusRes = await fetch(`/api/interaction/status?slug=${encodeURIComponent(slug)}`);
-        if (statusRes.ok) {
-           const statusData = await statusRes.json();
-           const likeCount = originBtn.parentElement?.querySelector('.btn-like .label-count');
-           const dislikeCount = originBtn.parentElement?.querySelector('.btn-dislike .label-count');
-           if (likeCount && statusData.likesCount !== undefined) likeCount.textContent = statusData.likesCount;
-           if (dislikeCount && statusData.dislikesCount !== undefined) dislikeCount.textContent = statusData.dislikesCount;
+        delete window.vfmStateCache[slug];
+        const statusData = await fetchEpisodeState(slug);
+        
+        const likeCount = originBtn.parentElement?.querySelector('.btn-like .label-count');
+        const dislikeCount = originBtn.parentElement?.querySelector('.btn-dislike .label-count');
+        
+        if (likeCount && statusData.globalStats?.likesCount !== undefined) {
+            likeCount.textContent = statusData.globalStats.likesCount;
+        }
+        if (dislikeCount && statusData.globalStats?.dislikesCount !== undefined) {
+            dislikeCount.textContent = statusData.globalStats.dislikesCount;
         }
 
       } catch (err) {
