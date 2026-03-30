@@ -1,0 +1,106 @@
+---
+const { currentSlug } = Astro.props;
+---
+
+<div id="playlist-sidebar-container" class="hidden animate-fade-in-up w-full">
+  <div class="glass-panel rounded-2xl p-5 border border-primary/30 shadow-[0_0_30px_rgba(236,72,153,0.1)] relative overflow-hidden">
+    <!-- Highlight Ambient -->
+    <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+      </div>
+      <div>
+        <h3 class="text-xs uppercase tracking-widest text-white/50 font-bold mb-0.5">Siguiente en Lista</h3>
+        <h2 id="playlist-name" class="font-bold text-lg text-white truncate max-w-[200px]">Cargando...</h2>
+      </div>
+    </div>
+    
+    <div id="playlist-episodes" class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+      <!-- Episodes dynamically injected here -->
+      <div class="animate-pulse flex gap-3 h-16 bg-white/5 rounded-xl"></div>
+      <div class="animate-pulse flex gap-3 h-16 bg-white/5 rounded-xl"></div>
+      <div class="animate-pulse flex gap-3 h-16 bg-white/5 rounded-xl"></div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ currentSlug }}>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const playlistId = params.get('playlist');
+    
+    if (playlistId) {
+      const container = document.getElementById('playlist-sidebar-container');
+      const nameEl = document.getElementById('playlist-name');
+      const listEl = document.getElementById('playlist-episodes');
+      
+      container.classList.remove('hidden');
+      
+      try {
+        const response = await fetch(`/api/playlists/${playlistId}`);
+        if (!response.ok) throw new Error('Failed to fetch playlist');
+        
+        const data = await response.json();
+        nameEl.textContent = data.name;
+        
+        // Remove skeletons
+        listEl.innerHTML = '';
+        
+        let currentIndex = -1;
+        
+        // Render
+        data.episodes.forEach((ep, index) => {
+          const isCurrent = ep.slug === currentSlug;
+          if (isCurrent) currentIndex = index;
+          
+          const epLink = document.createElement('a');
+          epLink.href = `/ep/${ep.slug}?playlist=${playlistId}`;
+          epLink.className = `flex items-center gap-3 p-2 rounded-xl transition-all border ${isCurrent ? 'bg-primary/10 border-primary/30' : 'bg-transparent border-transparent hover:bg-white/5'} group`;
+          
+          epLink.innerHTML = `
+            <div class="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden border border-white/10 shadow-md">
+                <img src="${ep.image || '/logo.webp'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" alt="Cover" />
+                ${isCurrent ? 
+                  `<div class="absolute inset-0 bg-primary/40 flex items-center justify-center">
+                     <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                   </div>` : 
+                  ''}
+            </div>
+            <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-bold truncate text-white ${isCurrent ? 'text-primary' : ''}">${ep.title}</h4>
+                <p class="text-[10px] text-white/50 uppercase tracking-wider">${ep.duration || '00:00'}</p>
+            </div>
+          `;
+          
+          listEl.appendChild(epLink);
+          
+          // Next track autoplay logic (could be linked with internal player if possible, but for UX just scroll it into view)
+          if (isCurrent) {
+            setTimeout(() => epLink.scrollIntoView({ behavior: 'smooth', block: 'center' }), 500);
+          }
+        });
+
+      } catch (err) {
+        container.classList.add('hidden');
+        console.error(err);
+      }
+    }
+  });
+</script>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+</style>

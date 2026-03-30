@@ -13,6 +13,7 @@ import FavoriteButton from '../../components/FavoriteButton.astro';
 import EpisodeRating from '../../components/EpisodeRating.astro';
 import LikeDislikeGroup from '../../components/LikeDislikeGroup.astro';
 import PlaylistManager from '../../components/PlaylistManager.astro';
+import PlaylistSidebar from '../../components/PlaylistSidebar.astro';
 
 import PremiereCountdown from '../../components/PremiereCountdown.astro';
 import LiveChat from '../../components/LiveChat.astro';
@@ -390,6 +391,8 @@ const nextEpisodes = candidates.slice(0, 3).map(c => ({
         <!-- SIDEBAR -->
         <aside class="sidebar-column">
              <div class="sticky top-24 space-y-6">
+                 <PlaylistSidebar currentSlug={entry.slug} />
+                 
                  <EpisodeParticipants participants={entry.data.participants} />
                  
                  <SidebarWidget title="Detalles" isOpen={true}>

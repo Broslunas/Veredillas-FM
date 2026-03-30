@@ -1,0 +1,346 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import EpisodeCard from '../../components/EpisodeCard.astro';
+import { getCollection } from 'astro:content';
+import User from '../../models/User';
+import mongoose from 'mongoose';
+import { getUserFromCookie } from '../../lib/auth';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/dashboard');
+}
+
+// Build DB connection
+if (mongoose.connection.readyState !== 1) {
+   const MONGODB_URI = import.meta.env.MONGODB_URI;
+   if (MONGODB_URI) await mongoose.connect(MONGODB_URI);
+}
+
+// Find the playlist
+// We need to find a user who has this playlist. 
+let foundPlaylist = null;
+let isOwner = false;
+let foundUser = null;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+try {
+    // Attempt to find it by ID in any user
+    foundUser = await User.findOne({ 'playlists._id': id });
+    if (foundUser) {
+        foundPlaylist = foundUser.playlists?.find((p: any) => p._id.toString() === id);
+        if (userPayload && foundUser._id.toString() === userPayload.userId) {
+            isOwner = true;
+        }
+    }
+} catch (e) {
+    // invalid ID formatting
+}
+
+// Check visibility
+if (!foundPlaylist) {
+    return Astro.redirect('/dashboard');
+}
+if (!foundPlaylist.isPublic && !isOwner) {
+    // Private and not the owner
+    return Astro.redirect('/dashboard');
+}
+
+// Get Episodes
+const allEpisodes = await getCollection('episodios');
+const episodeMap = new Map(allEpisodes.map(ep => [ep.slug, ep]));
+
+// Keep the exact order of the playlist
+const playlistEpisodes = (foundPlaylist.episodes || [])
+    .map((slug: string) => episodeMap.get(slug))
+    .filter((ep: any) => !!ep);
+
+// Generate random hue for this playlist based on its ID
+const hueVal = parseInt(id.substring(18, 24), 16) % 360;
+
+---
+
+<Layout title={`${foundPlaylist.name} `} robots={foundPlaylist.isPublic ? "index, follow" : "noindex, nofollow"}>
+    <div class="playlist-world relative overflow-hidden min-h-screen pb-16">
+        <!-- Ambient animated blobs -->
+        <div class="ambient-orb orb-main" style={`background: radial-gradient(circle, hsl(${hueVal}, 80%, 40%) 0%, transparent 70%);`}></div>
+        
+        <div class="container-pl relative z-10">
+            <!-- Back to dashboard -->
+            <a href="/dashboard" class="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-8 font-semibold tracking-wider text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Volver
+            </a>
+
+            <!-- Playlist Mega Header -->
+            <header class="pl-hero-header animate-fade-in glass-panel-premium mb-12">
+                <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+                    <div class="pl-cover w-48 h-48 md:w-56 md:h-56 rounded-[32px] flex-shrink-0 flex items-center justify-center relative overflow-hidden group border border-white/20 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8)]">
+                        <div class="absolute inset-0 opacity-40 mix-blend-overlay" style={`background: linear-gradient(135deg, hsl(${hueVal}, 90%, 60%), hsl(${(hueVal + 60) % 360}, 100%, 50%));`}></div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white relative z-10 drop-shadow-2xl"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                    </div>
+                    
+                    <div class="pl-info text-center md:text-left flex flex-col justify-end h-full md:pt-4">
+                        <span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-[0.2em] text-white/50 border border-white/10 uppercase mb-4 self-center md:self-start">
+                            {foundPlaylist.isPublic ? 'Lista Pública' : 'Lista Privada'}
+                        </span>
+                        
+                        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4 text-white drop-shadow-md leading-tight" style={`text-shadow: 0 0 40px hsl(${hueVal}, 80%, 40%, 0.5);`}>
+                            {foundPlaylist.name}
+                        </h1>
+                        
+                        <div class="flex items-center justify-center md:justify-start gap-3 text-white/60 font-semibold mb-8">
+                            <span class="flex items-center gap-2">
+                                <img src={foundUser.picture || '/logo.webp'} alt={foundUser.name} class="w-6 h-6 rounded-full inline-block" />
+                                {foundUser.name}
+                            </span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+                            <span>{playlistEpisodes.length} episodios</span>
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                            {playlistEpisodes.length > 0 ? (
+                                <a href={`/ep/${playlistEpisodes[0].slug}?playlist=${id}`} class="btn-play-mega flex items-center justify-center gap-3 bg-white text-black hover:bg-zinc-200 px-8 py-3.5 rounded-full font-black text-sm uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] hover:scale-105">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                    Reproducir Todo
+                                </a>
+                            ) : (
+                                <button disabled class="btn-play-mega flex items-center justify-center gap-3 bg-white/10 text-white/40 px-8 py-3.5 rounded-full font-black text-sm uppercase tracking-wide cursor-not-allowed border border-white/5">
+                                    Lista Vacía
+                                </button>
+                            )}
+                            
+                            {isOwner && (
+                                <button id="btn-edit-playlist" class="btn-edit flex items-center justify-center w-12 h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all hover:scale-105" title="Editar Lista">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Episodes List -->
+            <section class="max-w-5xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s;">
+                <div class="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+                    <h2 class="text-2xl font-black text-white">Contenido</h2>
+                </div>
+                
+                {playlistEpisodes.length > 0 ? (
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {playlistEpisodes.map((ep: any, index: number) => (
+                            <div class="relative group">
+                                <div class="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-black/80 backdrop-blur-md border border-white/20 flex items-center justify-center text-sm font-black text-white z-20 shadow-xl opacity-90 group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all">
+                                    {index + 1}
+                                </div>
+                                <div class="h-full">
+                                    <EpisodeCard post={ep} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div class="premium-empty-state">
+                        <div class="pes-icon mb-4">🎵</div>
+                        <h3 class="text-2xl font-bold mb-2">Pista en Blanco</h3>
+                        <p class="text-white/50 text-sm max-w-sm mx-auto">No hay episodios guardados en esta lista todavía. Explora Veredillas FM y guarda contenido usando el botón de agregar a lista.</p>
+                        
+                        {isOwner && (
+                            <a href="/ep" class="inline-flex mt-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 border border-white/10 px-6 py-2.5 text-sm font-bold text-white transition-colors">
+                                Explorar Episodios
+                            </a>
+                        )}
+                    </div>
+                )}
+            </section>
+        </div>
+        
+        {isOwner && (
+            <div id="playlist-edit-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+                <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" id="playlist-modal-overlay"></div>
+                <div class="relative bg-zinc-900 border border-white/10 rounded-3xl p-8 w-[90%] max-w-md shadow-2xl scale-95 transition-transform duration-300 pointer-events-auto" id="playlist-modal-content">
+                    <h3 class="text-2xl font-black mb-6">Ajustes de la Lista</h3>
+                    <form id="playlist-edit-form" class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">Nombre de la lista</label>
+                            <input type="text" id="pl-edit-name" value={foundPlaylist.name} class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-white/40 transition-colors" required />
+                        </div>
+                        <div class="flex items-center gap-4 bg-white/5 px-4 py-4 rounded-xl border border-white/5">
+                            <input type="checkbox" id="pl-edit-public" checked={foundPlaylist.isPublic} class="w-5 h-5 rounded accent-primary bg-black/50 border-white/10 cursor-pointer" />
+                            <label for="pl-edit-public" class="font-bold text-sm cursor-pointer select-none">Hacer lista Pública</label>
+                        </div>
+                        <div class="pt-2 flex gap-3">
+                            <button type="button" id="pl-btn-delete" class="px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition-colors w-1/3 border border-red-500/20 text-sm flex justify-center items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mdMax:hidden mr-1"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                Borrar
+                            </button>
+                            <button type="submit" id="pl-btn-save" class="px-4 py-3 rounded-xl bg-white text-black hover:bg-zinc-200 font-black transition-colors flex-1 shadow-[0_0_20px_rgba(255,255,255,0.2)]">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <script define:vars={{ playlistId: foundPlaylist._id }}>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const btnEdit = document.getElementById('btn-edit-playlist');
+                    const modal = document.getElementById('playlist-edit-modal');
+                    const overlay = document.getElementById('playlist-modal-overlay');
+                    const form = document.getElementById('playlist-edit-form');
+                    const btnDelete = document.getElementById('pl-btn-delete');
+                    const btnSave = document.getElementById('pl-btn-save');
+                    const content = document.getElementById('playlist-modal-content');
+                    
+                    if (!btnEdit || !modal) return;
+                    
+                    const closeModal = () => {
+                        modal.classList.remove('opacity-100');
+                        modal.classList.add('opacity-0');
+                        content.classList.remove('scale-100');
+                        content.classList.add('scale-95');
+                        setTimeout(() => modal.classList.add('hidden'), 300);
+                    };
+                    
+                    btnEdit.addEventListener('click', () => {
+                        modal.classList.remove('hidden');
+                        // Small delay to allow CSS transitions to trigger
+                        requestAnimationFrame(() => {
+                            modal.classList.remove('opacity-0');
+                            modal.classList.add('opacity-100');
+                            content.classList.remove('scale-95');
+                            content.classList.add('scale-100');
+                        });
+                    });
+                    
+                    overlay.addEventListener('click', closeModal);
+                    
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        btnSave.textContent = 'Guardando...';
+                        btnSave.disabled = true;
+                        
+                        const newName = document.getElementById('pl-edit-name').value;
+                        const isPublic = document.getElementById('pl-edit-public').checked;
+                        
+                        try {
+                            const res = await fetch(`/api/playlists/manager/${playlistId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ name: newName, isPublic })
+                            });
+                            if (res.ok) window.location.reload();
+                            else throw new Error('API failed');
+                        } catch(e) { 
+                            console.error(e);
+                            btnSave.textContent = 'Error al guardar';
+                            setTimeout(() => { btnSave.textContent = 'Guardar Cambios'; btnSave.disabled = false; }, 2000);
+                        }
+                    });
+                    
+                    btnDelete.addEventListener('click', async () => {
+                        if (confirm('¿Estás seguro de que deseas eliminar esta lista permanentemente? Se perderán todos los episodios guardados en ella.')) {
+                            btnDelete.textContent = '...';
+                            try {
+                                const res = await fetch(`/api/playlists/manager/${playlistId}`, { method: 'DELETE' });
+                                if (res.ok) window.location.href = '/dashboard';
+                                else throw new Error();
+                            } catch(e) {
+                                console.error(e);
+                                btnDelete.textContent = 'Borrar';
+                            }
+                        }
+                    });
+                });
+            </script>
+        )}
+    </div>
+</Layout>
+
+<style>
+    .playlist-world {
+        background: #0a0a0a;
+    }
+
+    .container-pl {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 4rem 1.5rem;
+    }
+
+    /* Ambient VFX */
+    .ambient-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(140px);
+        opacity: 0.25;
+        z-index: 0;
+        pointer-events: none;
+        animation: floatOrb 25s infinite alternate ease-in-out;
+    }
+    .orb-main {
+        width: 800px;
+        height: 800px;
+        top: -300px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    @keyframes floatOrb {
+        0% { transform: translate(-50%, 0) scale(1); }
+        50% { transform: translate(-40%, 50px) scale(1.1); }
+        100% { transform: translate(-60%, 120px) scale(0.9); }
+    }
+
+    /* Mega Header */
+    .glass-panel-premium {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 40px;
+        padding: 3rem;
+        box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Empty States */
+    .premium-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 5rem 2rem;
+        background: rgba(255,255,255,0.01);
+        border: 1px dashed rgba(255,255,255,0.1);
+        border-radius: 32px;
+        backdrop-filter: blur(10px);
+    }
+
+    .pes-icon {
+        font-size: 5rem;
+        opacity: 0.2;
+        filter: grayscale(1);
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-fade-in-up {
+        opacity: 0;
+        animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(40px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+</style>

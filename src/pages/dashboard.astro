@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { getLevel, getNextLevel, getProgressToNextLevel } from '../lib/gamification';
 import LevelsModal from '../components/LevelsModal.astro';
 import AchievementsPanel from '../components/AchievementsPanel.astro';
+import EpisodeReaction from '../models/EpisodeReaction';
 
 export const prerender = false;
 
@@ -32,6 +33,10 @@ if (!user) {
   return Astro.redirect('/');
 }
 
+// Fetch likes
+const userLikes = await EpisodeReaction.find({ userId: userPayload.userId, type: 'like' }).sort({ createdAt: -1 });
+const likedSlugs = userLikes.map(r => r.episodeSlug);
+
 // Format Time
 const formatTime = (seconds: number) => {
    const hrs = Math.floor(seconds / 3600);
@@ -43,13 +48,20 @@ const formatTime = (seconds: number) => {
 
 // Get Favorites
 const allEpisodes = await getCollection('episodios');
-// Map for fast lookup
 const favoritesMap = new Map(allEpisodes.map(ep => [ep.slug, ep]));
 
 // Preserve order from user.favorites
 const sortedFavorites = (user.favorites || [])
     .map(slug => favoritesMap.get(slug))
     .filter((ep): ep is typeof allEpisodes[0] => !!ep);
+
+// Get liked episodes (already sorted by createdAt descending)
+const likedEpisodesObj = likedSlugs
+    .map(slug => favoritesMap.get(slug))
+    .filter((ep): ep is typeof allEpisodes[0] => !!ep);
+
+// User playlists
+const userPlaylists = user.playlists || [];
 
 const listeningTimeStr = formatTime(user.listeningTime || 0);
 
@@ -61,430 +73,502 @@ const hoursToNext = nextLevel ? Math.ceil((nextLevel.minSeconds - (user.listenin
 ---
 
 <Layout title="Dashboard" robots="noindex, nofollow">
-    <div class="container-dashboard">
-        <header class="dashboard-header animate-fade-in">
-            <div class="header-content">
-                <div class="avatar-ring">
-                     <img src={user.picture || '/logo.webp'} alt={user.name} class="user-avatar" />
-                </div>
-                <div>
-                     <h1 class="dashboard-title">Hola, <span class="text-gradient">{user.name.split(' ')[0]}</span></h1>
-                     <div class="level-badge" style={`background: ${currentLevel.color}20; color: ${currentLevel.color}; border-color: ${currentLevel.color}40;`}>
-                        <span class="level-icon">{currentLevel.icon}</span>
-                        <span class="level-name">{currentLevel.name}</span>
-                     </div>
-                     <p class="dashboard-subtitle">Tu resumen de actividad en Veredillas FM.</p>
-                     
-                     <div class="header-actions" style="margin-top: 1rem; display:flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <a href="/perfil" class="btn-sm btn-secondary">Editar Perfil</a>
-                        <a href="/logros" class="btn-sm btn-achievements">🏅 Mis Logros</a>
-                        <a href="/cromos" class="btn-sm btn-cromos">✨ Álbum de Cromos</a>
-                        {(user.role === 'admin' || user.role === 'owner') && (
-                            <a href="/dashboard/admin/push" class="btn-sm btn-secondary" style="background: rgba(236,72,153,0.2); border-color: #ec4899; color: #fbcfe8;">🔔 Enviar Push</a>
-                        )}
-                     </div>
-                </div>
-            </div>
-        </header>
-        <!-- Progress / Level Section -->
-        <section class="level-section animate-fade-in-up glass-panel">
-            <div class="level-info">
-                <h3>Nivel Actual</h3>
-                <p style="margin-bottom: 0.5rem;">{currentLevel.description}</p>
-                <button class="view-levels-btn">Ver progresión de niveles</button>
-            </div>
-            
-            <div class="progress-container">
-                <div class="progress-labels">
-                    <span class="curr-prog">{Math.floor(progressPercent)}% completado</span>
-                    {nextLevel ? (
-                        <span class="next-prog">Siguiente: {nextLevel.name} ({hoursToNext}h más)</span>
-                    ) : (
-                        <span class="next-prog">¡Nivel Máximo!</span>
-                    )}
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style={`width: ${progressPercent}%; background: ${currentLevel.color};`}></div>
-                </div>
-            </div>
-        </section>
+    <div class="dashboard-world relative overflow-hidden">
+        <!-- Ambient animated blobs for unique premium feel -->
+        <div class="ambient-orb orb-1"></div>
+        <div class="ambient-orb orb-2"></div>
         
-        <div class="stats-grid animate-fade-in-up" style="animation-delay: 0.1s;">
-            <div class="stat-card glass-panel">
-                <div class="stat-icon-wrapper">
-                    <span class="stat-icon">🎧</span>
+        <div class="container-dashboard relative z-10">
+            <!-- Mega Header -->
+            <header class="hero-header animate-fade-in glass-panel-premium mb-12">
+                <div class="hero-inner flex flex-col md:flex-row items-center gap-8">
+                    <div class="avatar-pedestal relative group">
+                        <div class="avatar-glow absolute inset-0 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" style={`background: ${currentLevel.color};`}></div>
+                        <img src={user.picture || '/logo.webp'} alt={user.name} class="user-avatar-mega relative z-10" />
+                        <div class="level-float-badge absolute -bottom-3 left-1/2 -translate-x-1/2 z-20" style={`background: ${currentLevel.color}20; color: ${currentLevel.color}; border: 1px solid ${currentLevel.color}50; backdrop-filter: blur(10px);`}>
+                            <span class="mr-1 drop-shadow-md">{currentLevel.icon}</span> {currentLevel.name}
+                        </div>
+                    </div>
+                    
+                    <div class="hero-content text-center md:text-left flex-1" style="z-index: 10;">
+                        <div class="inline-block px-3 py-1 mb-3 rounded-full bg-white/5 border border-white/10 text-xs font-bold tracking-widest text-white/70 uppercase">Centro de Oyente</div>
+                        <h1 class="text-5xl md:text-6xl font-black tracking-tight mb-2 text-white">Hola, <br class="hidden md:block"/><span class="text-gradient drop-shadow-2xl">{user.name.split(' ')[0]}</span></h1>
+                        <p class="text-lg text-zinc-400 mb-6 drop-shadow-md">Tu ecosistema personal de Veredillas FM. Descubre, gestiona y colecciona.</p>
+                        
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                            <a href="/perfil" class="action-pill bg-white/10 hover:bg-white/20 text-white shadow-xl backdrop-blur-md">Editar Perfil</a>
+                            <a href="/logros" class="action-pill bg-purple-500/10 text-purple-300 border border-purple-500/30 hover:bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">🏅 Logros</a>
+                            <a href="/cromos" class="action-pill bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]">✨ Cromos</a>
+                            {(user.role === 'admin' || user.role === 'owner') && (
+                                <a href="/dashboard/admin/push" class="action-pill bg-pink-500/10 text-pink-300 border border-pink-500/30 hover:bg-pink-500/20 shadow-[0_0_15px_rgba(236,72,153,0.15)]">🔔 Push</a>
+                            )}
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-info">
-                     <h3>Tiempo Escuchado</h3>
-                     <p class="stat-value">{listeningTimeStr}</p>
-                     <span class="stat-sub">en total</span>
-                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <!-- Progress Card -->
+                <section class="lg:col-span-2 level-card p-8 rounded-[32px] relative overflow-hidden group animate-fade-in-up">
+                    <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent z-0"></div>
+                    <div class="absolute right-0 top-0 w-64 h-64 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:scale-110 transition-transform duration-1000 z-0 opacity-40" style={`background: ${currentLevel.color}`}></div>
+                    
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div class="flex justify-between items-start mb-12">
+                            <div>
+                                <h3 class="text-xs uppercase tracking-[0.2em] text-white/50 mb-2 font-bold flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full" style={`background: ${currentLevel.color}`}></span>
+                                    Progresión
+                                </h3>
+                                <h2 class="text-2xl font-bold">{currentLevel.description}</h2>
+                            </div>
+                            <button class="view-levels-btn text-xs font-bold uppercase tracking-wider text-white/40 hover:text-white border-b border-white/20 hover:border-white transition-colors pb-1">Ver niveles</button>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between items-end text-sm font-bold mb-3">
+                                <span class="text-white text-2xl drop-shadow-md">{Math.floor(progressPercent)}% <span class="text-xs text-white/50 font-normal tracking-wide uppercase">Completado</span></span>
+                                {nextLevel ? (
+                                    <span class="text-white/60 text-right">Siguiente: <span class="text-white">{nextLevel.name}</span> <br/><span class="text-xs opacity-70">En {hoursToNext} horas</span></span>
+                                ) : (
+                                    <span class="text-yellow-400">🔥 Nivel Máximo</span>
+                                )}
+                            </div>
+                            <div class="h-4 bg-black/40 rounded-full overflow-hidden border border-white/10 shadow-inner backdrop-blur-md relative p-1">
+                                <div class="h-full rounded-full transition-all duration-1000 relative overflow-hidden shadow-[0_0_10px_currentColor]" style={`width: ${progressPercent}%; background: ${currentLevel.color}; color: ${currentLevel.color};`}>
+                                    <div class="absolute inset-0 w-[200%] animate-shimmer" style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transform: skewX(-20deg);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Stats Pillar -->
+                <section class="stats-pillar animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="stat-capsule group">
+                        <div class="cap-icon text-cyan-400 bg-cyan-400/10 group-hover:bg-cyan-400/20 ring-1 ring-cyan-400/20 group-hover:ring-cyan-400/50 group-hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]">🎧</div>
+                        <div class="cap-data">
+                            <span class="cap-label">Tiempo Escucha</span>
+                            <span class="cap-val text-cyan-50">{listeningTimeStr}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-capsule group">
+                        <div class="cap-icon text-rose-400 bg-rose-400/10 group-hover:bg-rose-400/20 ring-1 ring-rose-400/20 group-hover:ring-rose-400/50 group-hover:shadow-[0_0_30px_rgba(251,113,133,0.2)]">❤️</div>
+                        <div class="cap-data">
+                            <span class="cap-label">Favoritos</span>
+                            <span class="cap-val text-rose-50">{user.favorites?.length || 0}</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-capsule group">
+                        <div class="cap-icon text-emerald-400 bg-emerald-400/10 group-hover:bg-emerald-400/20 ring-1 ring-emerald-400/20 group-hover:ring-emerald-400/50 group-hover:shadow-[0_0_30px_rgba(52,211,153,0.2)]">👍</div>
+                        <div class="cap-data">
+                            <span class="cap-label">Me Gusta</span>
+                            <span class="cap-val text-emerald-50">{likedSlugs.length}</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-capsule group">
+                        <div class="cap-icon text-amber-400 bg-amber-400/10 group-hover:bg-amber-400/20 ring-1 ring-amber-400/20 group-hover:ring-amber-400/50 group-hover:shadow-[0_0_30px_rgba(251,191,36,0.2)]">📂</div>
+                        <div class="cap-data">
+                            <span class="cap-label">Listas Personales</span>
+                            <span class="cap-val text-amber-50">{userPlaylists.length}</span>
+                        </div>
+                    </div>
+                </section>
             </div>
-            
-             <div class="stat-card glass-panel">
-                <div class="stat-icon-wrapper secondary">
-                    <span class="stat-icon">❤️</span>
+
+            <!-- Playlists Section Premium -->
+            <section class="mb-16 animate-fade-in-up" style="animation-delay: 0.2s;">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-3xl font-black flex items-center gap-3">
+                        <span class="w-1 h-8 rounded-full bg-gradient-to-b from-amber-400 to-amber-600 block shadow-[0_0_15px_#f59e0b]"></span>
+                        Listas de Reproducción
+                    </h2>
                 </div>
-                <div class="stat-info">
-                     <h3>Favoritos</h3>
-                     <p class="stat-value">{user.favorites?.length || 0}</p>
-                     <span class="stat-sub">episodios guardados</span>
-                </div>
+                
+                {userPlaylists.length > 0 ? (
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {userPlaylists.map((playlist, i) => (
+                            <div class="playlist-neon-card group" style={`--hue-rotate: ${i * 60}deg;`}>
+                                <div class="pnc-bg"></div>
+                                <div class="pnc-content">
+                                    <div class="flex justify-between items-start mb-6">
+                                        <div class="w-12 h-12 rounded-[14px] bg-white/5 backdrop-blur-md flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-all duration-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white/80 group-hover:scale-110 transition-transform"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                                        </div>
+                                        <div class="flex flex-col items-end">
+                                            <span class="px-2 py-0.5 bg-black/40 rounded w-full text-center text-[10px] font-bold uppercase tracking-widest text-white/50 mb-1 border border-white/5">
+                                                {playlist.isPublic ? '🌐 Pública' : '🔒 Privada'}
+                                            </span>
+                                            <span class="px-2 py-0.5 bg-white/10 rounded w-full text-center text-xs font-bold text-white shadow-inner">
+                                                {playlist.episodes?.length || 0} EPs
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <h3 class="font-bold text-xl mb-6 truncate text-white drop-shadow-md group-hover:text-amber-100 transition-colors">{playlist.name}</h3>
+                                    
+                                    {playlist.episodes?.length > 0 ? (
+                                        <a href={`/playlist/${playlist._id}`} class="block w-full text-center py-3 rounded-[12px] bg-white text-black hover:bg-zinc-200 font-bold text-sm transition-all duration-300 shadow-[0_4px_15px_rgba(255,255,255,0.2)]">
+                                            Ver Lista
+                                        </a>
+                                    ) : (
+                                        <a href={`/playlist/${playlist._id}`} class="block w-full text-center py-3 rounded-[12px] bg-white/10 hover:bg-white/20 text-white/50 font-bold text-sm border border-white/5 transition-colors">
+                                            Ver Lista (Vacía)
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div class="premium-empty-state">
+                        <div class="pes-icon">🎧</div>
+                        <h3 class="text-2xl font-black mb-2">Colección Vacía</h3>
+                        <p class="text-white/50 text-sm max-w-sm mx-auto">Añade episodios a listas personalizadas mientras los escuchas para tenerlos siempre a mano.</p>
+                    </div>
+                )}
+            </section>
+
+            <!-- Favorites & Likes Grid -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-12 mb-16 animate-fade-in-up" style="animation-delay: 0.3s;">
+                <section class="glass-panel-light p-6 rounded-[32px] border border-white/5">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-black flex items-center gap-3">
+                            <span class="w-1 h-6 rounded-full bg-gradient-to-b from-rose-400 to-pink-600 block shadow-[0_0_10px_#f43f5e]"></span>
+                            Favoritos
+                        </h2>
+                        <a href="/favoritos" class="text-xs font-bold uppercase tracking-widest text-white/50 hover:text-rose-400 transition-colors bg-white/5 px-3 py-1.5 rounded-full">Ver todos</a>
+                    </div>
+                    {sortedFavorites.length > 0 ? (
+                        <div class="flex flex-col gap-4">
+                            {sortedFavorites.slice(0, 3).map(ep => (
+                                <EpisodeCard post={ep} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div class="bg-black/20 rounded-2xl p-8 text-center border border-white/5 h-full min-h-[150px] flex flex-col items-center justify-center">
+                            <p class="text-white/30 font-semibold">Aún no tienes episodios favoritos.</p>
+                        </div>
+                    )}
+                </section>
+
+                <section class="glass-panel-light p-6 rounded-[32px] border border-white/5">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-black flex items-center gap-3">
+                            <span class="w-1 h-6 rounded-full bg-gradient-to-b from-emerald-400 to-teal-600 block shadow-[0_0_10px_#34d399]"></span>
+                            Me Gusta Recientes
+                        </h2>
+                    </div>
+                    {likedEpisodesObj.length > 0 ? (
+                        <div class="flex flex-col gap-4">
+                            {likedEpisodesObj.slice(0, 3).map(ep => (
+                                <EpisodeCard post={ep} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div class="bg-black/20 rounded-2xl p-8 text-center border border-white/5 h-full min-h-[150px] flex flex-col items-center justify-center">
+                            <p class="text-white/30 font-semibold">Aún no le has dado Me Gusta a nada.</p>
+                        </div>
+                    )}
+                </section>
+            </div>
+
+            <!-- Achievements Section -->
+            <div class="animate-fade-in-up border-t border-white/5 pt-12" style="animation-delay: 0.4s;">
+                <AchievementsPanel />
             </div>
         </div>
-        
-        <section class="favorites-section animate-fade-in-up" style="animation-delay: 0.1s;">
-            <div class="section-header">
-                <h2>Tus Favoritos</h2>
-                <div class="section-line"></div>
-                <a href="/favoritos" class="view-all-link">Gestionar & Compartir</a>
-            </div>
-            
-            {sortedFavorites.length > 0 ? (
-                <div class="episodes-grid">
-                    {sortedFavorites.map(ep => (
-                        <EpisodeCard post={ep} />
-                    ))}
-                </div>
-            ) : (
-                <div class="empty-state glass-panel">
-                    <div class="empty-icon">📂</div>
-                    <h3>Aún no tienes favoritos</h3>
-                    <p>Guarda los episodios que más te gusten para escucharlos cuando quieras.</p>
-                    <a href="/ep" class="btn btn-primary">Explorar Episodios</a>
-                </div>
-            )}
-        </section>
-
-        <!-- Achievements Section -->
-        <AchievementsPanel />
     </div>
     <LevelsModal currentLevelName={currentLevel.name} listeningTime={user.listeningTime || 0} />
 </Layout>
 
 <style>
+    .dashboard-world {
+        min-height: 100vh;
+        background: #0a0a0a;
+        padding-bottom: 4rem;
+    }
+
     .container-dashboard {
-        max-width: 1200px;
+        max-width: 1280px;
         margin: 0 auto;
-        padding: 2rem 1rem;
-        min-height: 80vh;
+        padding: 4rem 1.5rem;
     }
 
-    /* Header */
-    .dashboard-header {
-        margin-bottom: 3rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .header-content {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-    }
-    
-    .avatar-ring {
-        padding: 4px;
+    /* Ambient VFX */
+    .ambient-orb {
+        position: absolute;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-        display: inline-block;
+        filter: blur(120px);
+        opacity: 0.25;
+        z-index: 0;
+        pointer-events: none;
+        animation: floatOrb 25s infinite alternate ease-in-out;
+    }
+    .orb-1 {
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, rgba(168,85,247,0.4) 0%, transparent 60%);
+        top: -200px;
+        left: -200px;
+    }
+    .orb-2 {
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 60%);
+        top: 30%;
+        right: -150px;
+        animation-delay: -10s;
+    }
+
+    @keyframes floatOrb {
+        0% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(150px, 80px) scale(1.1); }
+        100% { transform: translate(-100px, 200px) scale(0.9); }
+    }
+
+    /* Mega Header */
+    .glass-panel-premium {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 40px;
+        padding: 3.5rem;
+        box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
-    .user-avatar {
-        width: 80px;
-        height: 80px;
+    .glass-panel-light {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(20px);
+    }
+
+    .user-avatar-mega {
+        width: 150px;
+        height: 150px;
         border-radius: 50%;
-        border: 4px solid var(--color-bg);
         object-fit: cover;
-        display: block;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.8);
     }
 
-    .dashboard-title {
-        font-size: 2.5rem;
-        margin: 0;
-        line-height: 1.2;
-    }
-    
-    .dashboard-subtitle {
-        font-size: 1.1rem;
-        color: var(--color-text-muted);
-        margin: 0.5rem 0 0 0;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 4rem;
-    }
-
-    .stat-card {
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        border-radius: 16px;
-        transition: transform 0.3s ease, border-color 0.3s ease;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-5px);
-        border-color: rgba(var(--color-primary-rgb), 0.3);
-    }
-
-    .stat-icon-wrapper {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        background: rgba(var(--color-primary-rgb), 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-    }
-    
-    .stat-icon-wrapper.secondary {
-        background: rgba(236, 72, 153, 0.1); /* Pink tint */
-    }
-
-    .stat-info h3 {
-        font-size: 0.9rem;
-        color: var(--color-text-muted);
-        margin: 0;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        margin: 0.2rem 0;
-        background: linear-gradient(to right, #fff, #ccc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    
-    .stat-sub {
-        font-size: 0.85rem;
-        color: var(--color-text-muted);
-        opacity: 0.8;
-    }
-
-    /* Level Badge */
-    .level-badge {
+    .level-float-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.25rem 0.75rem;
+        padding: 0.5rem 1.25rem;
         border-radius: 50px;
         font-size: 0.85rem;
-        font-weight: 600;
-        margin: 0.5rem 0;
-        border: 1px solid transparent;
-    }
-    
-    .level-section {
-        margin-bottom: 2rem;
-        padding: 1.5rem;
-        border-radius: 16px;
-    }
-    
-    .level-info h3 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.1rem;
-    }
-    .level-info p {
-        margin: 0 0 1.5rem 0;
-        color: var(--color-text-muted);
-        font-size: 0.95rem;
-    }
-    
-    .progress-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .progress-labels {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.8rem;
-        color: var(--color-text-dim);
-        font-weight: 500;
-    }
-    
-    .progress-bar-bg {
-        height: 8px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 10px;
-        overflow: hidden;
-    }
-    
-    .progress-bar-fill {
-        height: 100%;
-        border-radius: 10px;
-        transition: width 1s ease-out;
+        font-weight: 800;
+        white-space: nowrap;
+        box-shadow: 0 15px 30px -5px rgba(0,0,0,0.5);
     }
 
-    /* Favorites Section */
-    .section-header {
+    .action-pill {
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .action-pill:hover {
+        transform: translateY(-3px);
+    }
+
+    /* Level Card */
+    .level-card {
+        background: linear-gradient(145deg, rgba(30,30,40,0.8) 0%, rgba(10,10,15,0.9) 100%);
+        border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+        backdrop-filter: blur(20px);
+    }
+
+    /* Stats Pillar */
+    .stats-pillar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .stat-capsule {
         display: flex;
         align-items: center;
         gap: 1.5rem;
-        margin-bottom: 2rem;
+        padding: 1.25rem 1.5rem;
+        border-radius: 28px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.03);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        backdrop-filter: blur(10px);
     }
     
-    .section-header h2 {
-        font-size: 1.8rem;
-        margin: 0;
-        white-space: nowrap;
+    .stat-capsule:hover {
+        background: rgba(255,255,255,0.04);
+        transform: translateX(12px) scale(1.02);
+        border-color: rgba(255,255,255,0.1);
+    }
+
+    .cap-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     
-    .section-line {
-        height: 1px;
-        background: linear-gradient(90deg, rgba(255,255,255,0.1), transparent);
-        width: 100%;
+    .stat-capsule:hover .cap-icon {
+        transform: scale(1.1) rotate(-5deg);
     }
 
-    .episodes-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 2rem;
+    .cap-data {
+        display: flex;
+        flex-direction: column;
     }
 
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        border-radius: 16px;
+    .cap-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: rgba(255,255,255,0.4);
+        font-weight: 800;
+        margin-bottom: 0.1rem;
+    }
+
+    .cap-val {
+        font-size: 1.7rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    /* Neon Playlist Cards */
+    .playlist-neon-card {
+        position: relative;
+        padding: 1px;
+        border-radius: 28px;
+        background: transparent;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .playlist-neon-card:hover {
+        transform: translateY(-10px) scale(1.02);
+    }
+
+    .pnc-bg {
+        position: absolute;
+        inset: 0;
+        border-radius: 28px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+        /* Create the glowing mesh */
+        background-image: conic-gradient(from 180deg at 50% 50%, #3b82f6 0deg, #8b5cf6 180deg, #f43f5e 360deg);
+        filter: hue-rotate(var(--hue-rotate));
+        opacity: 0.3;
+        transition: all 0.5s ease;
+        z-index: 0;
+    }
+
+    .playlist-neon-card:hover .pnc-bg {
+        opacity: 0.7;
+        filter: hue-rotate(var(--hue-rotate)) blur(8px);
+    }
+
+    .pnc-content {
+        position: relative;
+        background: rgba(15, 15, 20, 0.85);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 27px;
+        padding: 1.75rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+        /* Inner borders to simulate glass edge */
+        box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    /* Empty States */
+    .premium-empty-state {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 1rem;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255,255,255,0.01);
+        border: 1px dashed rgba(255,255,255,0.1);
+        border-radius: 32px;
+        backdrop-filter: blur(10px);
     }
-    
-    .empty-icon {
-        font-size: 3rem;
-        margin-bottom: 0.5rem;
-        opacity: 0.5;
+
+    .pes-icon {
+        font-size: 4rem;
+        opacity: 0.2;
+        margin-bottom: 1rem;
+        filter: grayscale(1);
     }
-    
-    .empty-state h3 {
-        margin: 0;
-        font-size: 1.5rem;
+
+    /* Shimmer Effect */
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
     }
-    
-    .empty-state p {
-        color: var(--color-text-muted);
-        max-width: 400px;
-        margin-bottom: 1.5rem;
+    .animate-shimmer {
+        animation: shimmer 3s infinite linear;
     }
 
     /* Animations */
     .animate-fade-in {
-        animation: fadeIn 0.8s ease-out forwards;
+        animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    
     .animate-fade-in-up {
         opacity: 0;
-        animation: fadeInUp 0.8s ease-out forwards;
+        animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
     }
-    
     @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(40px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    .btn-sm {
-        padding: 0.5rem 1rem;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.2s;
-        display: inline-block;
-    }
-    
-    .btn-secondary {
-        background: rgba(255,255,255,0.1);
-        color: var(--color-text);
-        border: 1px solid rgba(255,255,255,0.2);
-    }
-    
-    .btn-secondary:hover {
-        background: rgba(255,255,255,0.2);
+    @media (max-width: 1024px) {
+        .glass-panel-premium {
+            padding: 2.5rem;
+        }
     }
 
-    .btn-achievements {
-        background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(236,72,153,0.2));
-        color: #c4b5fd;
-        border: 1px solid rgba(124,58,237,0.4);
-    }
-
-    .btn-achievements:hover {
-        background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(236,72,153,0.35));
-        border-color: rgba(124,58,237,0.7);
-        box-shadow: 0 0 16px rgba(124,58,237,0.3);
-    }
-
-    .btn-cromos {
-        background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(251,146,60,0.2));
-        color: #fcd34d;
-        border: 1px solid rgba(245,158,11,0.4);
-    }
-
-    .btn-cromos:hover {
-        background: linear-gradient(135deg, rgba(245,158,11,0.4), rgba(251,146,60,0.35));
-        border-color: rgba(245,158,11,0.7);
-        box-shadow: 0 0 16px rgba(245,158,11,0.3);
-    }
-    
-    .view-all-link {
-        font-size: 0.9rem;
-        color: var(--color-primary);
-        text-decoration: none;
-        white-space: nowrap;
-        font-weight: 500;
-    }
-    
-    .view-all-link:hover {
-        text-decoration: underline;
-    }
-    
     @media (max-width: 768px) {
-        .dashboard-header {
+        .container-dashboard {
+            padding: 2rem 1rem;
+        }
+        .glass-panel-premium {
+            padding: 2rem;
+            border-radius: 28px;
+        }
+        .hero-inner {
+            flex-direction: column;
             text-align: center;
         }
-        .header-content {
-            flex-direction: column;
+        .action-pill {
+            width: 100%;
+            justify-content: center;
         }
-        
-        .dashboard-title {
-            font-size: 2rem;
+        .level-float-badge {
+            left: 50%;
         }
-    }
-
-    .view-levels-btn {
-        background: transparent;
-        border: none;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.75rem;
-        text-decoration: underline;
-        cursor: pointer;
-        padding: 0;
-        margin-bottom: 0.5rem;
-        transition: all 0.2s;
-        display: inline-block;
-    }
-    
-    .view-levels-btn:hover {
-        opacity: 1;
-        color: white;
     }
 </style>
