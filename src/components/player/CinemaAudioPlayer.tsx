@@ -26,6 +26,15 @@ interface CinemaAudioPlayerProps {
     slug?: string;
     videoUrl?: string;
     sections?: Section[];
+    nextEpisodes?: {
+        slug: string;
+        title: string;
+        image?: string;
+        author: string;
+        duration?: string;
+        episode?: number;
+        season?: number;
+    }[];
 }
 
 import { syncPlaybackData, recordListen } from '../../services/player/playbackSync';
@@ -38,7 +47,8 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     transcription = [],
     slug,
     videoUrl,
-    sections = []
+    sections = [],
+    nextEpisodes = []
 }) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -56,6 +66,7 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     const [mode, setMode] = useState<'audio' | 'video'>(videoUrl ? 'video' : 'audio');
     const [isCasting, setIsCasting] = useState(false);
     const [castAvailable, setCastAvailable] = useState(false);
+    const [showEndOverlay, setShowEndOverlay] = useState(false);
 
     // Refs for restore logic
     const savedProgressRef = useRef<number>(0);
@@ -155,6 +166,12 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         });
         audio.addEventListener('pause', () => setIsPlaying(false));
         audio.addEventListener('error', handleError);
+        audio.addEventListener('ended', () => {
+            setIsPlaying(false);
+            if (nextEpisodes && nextEpisodes.length > 0) {
+                setShowEndOverlay(true);
+            }
+        });
 
         // If audio already has metadata (e.g., cached), apply immediately
         if (audio.readyState >= 1) {
@@ -587,8 +604,72 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     return (
         <div 
             ref={playerContainerRef}
-            className="cinema-audio-player-react premium-view shadow-2xl rounded-2xl border border-zinc-800/50 bg-[#0f0f0f] group"
+            className="cinema-audio-player-react premium-view shadow-2xl rounded-2xl border border-zinc-800/50 bg-[#0f0f0f] group relative"
         >
+            {/* END SCREEN OVERLAY */}
+            {showEndOverlay && nextEpisodes && nextEpisodes.length > 0 && (
+                <div className="absolute inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center animate-vfm-fade-in">
+                    <button 
+                        onClick={() => setShowEndOverlay(false)}
+                        className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
+                        aria-label="Cerrar recomendaciones"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                    
+                    <div className="mb-8">
+                        <h3 className="text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-2">Episodio finalizado</h3>
+                        <h2 className="text-2xl font-black text-white">¿Qué quieres escuchar ahora?</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-4xl">
+                        {nextEpisodes.map((ep) => (
+                            <a 
+                                key={ep.slug}
+                                href={`/ep/${ep.slug}`}
+                                className="group/card flex flex-col bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-primary transition-all duration-300 hover:scale-[1.02]"
+                            >
+                                <div className="aspect-video relative overflow-hidden bg-zinc-900">
+                                    {ep.image ? (
+                                        <img src={ep.image} alt="" className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center opacity-30">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="8" x2="16" y1="22" y2="22"/></svg>
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="bg-primary text-white p-2 rounded-full shadow-xl">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-4 text-left">
+                                    <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
+                                        T{ep.season} • E{ep.episode}
+                                    </div>
+                                    <h4 className="text-sm font-bold text-white line-clamp-2 leading-tight group-hover/card:text-primary transition-colors">{ep.title}</h4>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+
+                    <div className="mt-8 flex gap-4">
+                        <button 
+                            onClick={() => {
+                                if (audioRef.current) {
+                                    audioRef.current.currentTime = 0;
+                                    audioRef.current.play();
+                                    setShowEndOverlay(false);
+                                }
+                            }}
+                            className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                            Volver a escuchar
+                        </button>
+                    </div>
+                </div>
+            )}
             
             {/* 1. BACKGROUND LAYER */}
             <div className="player-background">

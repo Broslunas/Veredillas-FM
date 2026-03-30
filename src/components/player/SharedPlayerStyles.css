@@ -1,3 +1,13 @@
+/* --- Animations --- */
+@keyframes vfm-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-vfm-fade-in {
+    animation: vfm-fade-in 0.5s ease-out forwards;
+}
+
 /* --- Custom Audio Player Styles (Professional Revamp) --- */
 .custom-audio-player {
     font-family: var(--font-body, "Outfit", sans-serif);
