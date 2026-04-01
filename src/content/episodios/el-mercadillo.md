@@ -222,6 +222,79 @@ sections:
     title: Impacto en la comunidad
   - time: '05:35'
     title: Mensaje final y Despedida
+quiz:
+  - question: >-
+      ¿Cuál es la iniciativa principal que se aborda en el episodio especial de
+      Veredillas FM?
+    options:
+      - Una feria de ciencias
+      - El Mercadillo Escolar
+      - Un concierto benéfico
+      - Un debate estudiantil
+    correctAnswer: 1
+  - question: >-
+      ¿Quiénes son los principales organizadores del 'Mercadillo Escolar' según
+      la descripción?
+    options:
+      - El profesorado del I.E.S. Las Veredillas
+      - Los padres de los alumnos
+      - El alumnado de 4º de la ESO
+      - La dirección del instituto
+    correctAnswer: 2
+  - question: >-
+      ¿Cuáles son los nombres de los tres estudiantes invitados al estudio para
+      explicar los detalles del mercadillo?
+    options:
+      - 'María, Juan y Pedro'
+      - 'Laura, David y Sofía'
+      - 'Carlos, Anaysa y Gisselle'
+      - 'Sergio, Marta y Pablo'
+    correctAnswer: 2
+  - question: >-
+      ¿Qué innovador sistema han creado los organizadores para el intercambio de
+      objetos en el mercadillo?
+    options:
+      - Un sistema de subastas directas
+      - Un sistema de trueque uno a uno
+      - Un sistema de 'economía de puntos'
+      - Una venta exclusiva por dinero
+    correctAnswer: 2
+  - question: >-
+      ¿Qué concepto económico se destaca como una lección práctica gracias al
+      funcionamiento del mercadillo?
+    options:
+      - Economía de mercado
+      - Economía colaborativa
+      - Economía circular
+      - Economía lineal
+    correctAnswer: 2
+  - question: >-
+      Si alguien no tiene objetos para intercambiar en el mercadillo, ¿cómo
+      puede participar para adquirir 'tesoros'?
+    options:
+      - Ofreciendo sus servicios como voluntario
+      - Realizando una pequeña donación económica
+      - Participando en un sorteo
+      - Apuntándose en una lista de espera para objetos
+    correctAnswer: 1
+  - question: >-
+      ¿Cuál de los siguientes no se menciona explícitamente como un objetivo del
+      Mercadillo Escolar?
+    options:
+      - Fomentar la solidaridad
+      - Crear comunidad en el instituto
+      - Financiar el viaje de fin de curso de 4º de la ESO
+      - Dar una segunda vida a las cosas
+    correctAnswer: 2
+  - question: >-
+      ¿Qué grupo de compañeros se menciona específicamente por haber llevado a
+      cabo el esfuerzo titánico de organización logística del evento?
+    options:
+      - Los alumnos de 1º de ESO
+      - Los alumnos de 4º A
+      - Los compañeros de 4º C
+      - El equipo de producción de Veredillas FM
+    correctAnswer: 2
 ---
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
