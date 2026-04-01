@@ -20,6 +20,8 @@ import LiveChat from '../../components/LiveChat.astro';
 import ListenerCount from '../../components/ListenerCount.astro';
 import EpisodeActions from '../../components/EpisodeActions.astro';
 import CinemaAudioPlayer from '../../components/player/CinemaAudioPlayer.tsx';
+import EpisodeQuiz from '../../components/EpisodeQuiz.tsx';
+import QuizModal from '../../components/QuizModal.tsx';
 
 export const prerender = true;
 
@@ -351,6 +353,7 @@ const nextEpisodes = candidates.slice(0, 3).map(c => ({
                             slug={entry.slug} 
                             guests={entry.data.participants}
                             duration={entry.data.duration}
+                            quiz={entry.data.quiz}
                         />
                     </div>
                 </header>
@@ -366,7 +369,6 @@ const nextEpisodes = candidates.slice(0, 3).map(c => ({
                     <Content />
                 </div>
 
-                <!-- Extras inline for Cinema mode -->
                 <div class="mt-8 pt-8 border-t border-zinc-800">
                     <EpisodeSections sections={entry.data.sections} />
                     <TranscriptionWidget transcription={entry.data.transcription} />
@@ -442,6 +444,14 @@ const nextEpisodes = candidates.slice(0, 3).map(c => ({
         title={entry.data.title} 
         image={entry.data.image || relativeOgImageUrl}
     />
+    {entry.data.quiz && (
+        <QuizModal 
+            client:only="react" 
+            quiz={entry.data.quiz} 
+            episodeTitle={entry.data.title} 
+            episodeSlug={entry.slug} 
+        />
+    )}
 </Layout>
 
 <style>

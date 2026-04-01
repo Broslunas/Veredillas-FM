@@ -4,6 +4,7 @@ import { getUserFromCookie } from '../../../lib/auth';
 import mongoose from 'mongoose';
 import User from '../../../models/User';
 import UserAchievement from '../../../models/UserAchievement';
+import QuizResult from '../../../models/QuizResult';
 import Comment from '../../../models/Comment';
 import UnlockedCard from '../../../models/UnlockedCard';
 import ChatMessage from '../../../models/ChatMessage';
@@ -65,9 +66,14 @@ export const GET: APIRoute = async ({ request }) => {
       : 12;
 
     const chatMessagesCount = await ChatMessage.countDocuments({ 'user.userId': user._id.toString() });
-    const unlockedCards = await UnlockedCard.countDocuments({ userId: user._id });
     const allGuests = await getCollection('guests');
     const totalCardsCount = allGuests.length;
+
+    // Count distinct quizzes completed
+    const distinctQuizzes = await QuizResult.distinct('episodeSlug', { userId: user._id });
+    const totalQuizzesCount = distinctQuizzes.length;
+
+    const unlockedCards = await UnlockedCard.countDocuments({ userId: user._id });
 
     const stats: AchievementStats = {
       listeningTime: user.listeningTime || 0,
@@ -95,6 +101,7 @@ export const GET: APIRoute = async ({ request }) => {
       unlockedCardsCount: unlockedCards,
       totalCardsCount,
       differentGuestsListenedCount: unlockedCards, // simplified mapping
+      totalQuizzesCount,
       totalPoints: 0,
     };
 

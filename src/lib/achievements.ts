@@ -14,8 +14,8 @@ export interface Achievement {
   name: string;
   description: string;
   icon: string;         // Emoji icon
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-  category: 'escucha' | 'social' | 'exploracion' | 'coleccion' | 'especial' | 'fidelidad' | 'madrugador' | 'coleccionista' | 'maraton';
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
+  category: 'escucha' | 'social' | 'exploracion' | 'coleccion' | 'especial' | 'fidelidad' | 'madrugador' | 'coleccionista' | 'maraton' | 'desafio';
   check: (stats: AchievementStats) => boolean;
   /** If defined, the UI will render a progress bar for this achievement. */
   progress?: (stats: AchievementStats) => AchievementProgress;
@@ -48,6 +48,7 @@ export interface AchievementStats {
   totalCardsCount: number;         // total available cromos
   differentGuestsListenedCount: number;
   bioLength: number;
+  totalQuizzesCount: number;       // total quizzes completed
   /** Sum of points from already-unlocked achievements — computed server-side before evaluating meta-achievements. */
   totalPoints: number;
 }
@@ -59,6 +60,7 @@ export const RARITY_COLORS: Record<Achievement['rarity'], string> = {
   rare:      '#60a5fa',
   epic:      '#a855f7',
   legendary: '#f59e0b',
+  mythic:    '#ef4444',
 };
 
 export const RARITY_LABELS: Record<Achievement['rarity'], string> = {
@@ -67,6 +69,7 @@ export const RARITY_LABELS: Record<Achievement['rarity'], string> = {
   rare:      'Raro',
   epic:      'Épico',
   legendary: 'Legendario',
+  mythic:    'Mítico',
 };
 
 export const CATEGORY_LABELS: Record<Achievement['category'], string> = {
@@ -79,6 +82,7 @@ export const CATEGORY_LABELS: Record<Achievement['category'], string> = {
   madrugador: '🌙 Madrugador',
   coleccionista: '🃏 Coleccionista',
   maraton:    '🏃 Maratonista',
+  desafio:    '🧠 Desafío',
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -1121,6 +1125,62 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: s => s.listeningTime >= 18000 && s.completedEpisodesCount >= 30 && s.chatMessagesCount >= 500,
     secret: true,
   },
+  // ─── DESAFÍOS (QUIZZES) ──────────────────────────────────
+  {
+    id: 'primer_quiz',
+    name: 'Primer Desafío',
+    description: 'Completa tu primer cuestionario de episodio.',
+    icon: '🧠',
+    rarity: 'common',
+    category: 'desafio',
+    points: 20,
+    check: s => s.totalQuizzesCount >= 1,
+    progress: s => ({ current: Math.min(s.totalQuizzesCount, 1), max: 1, unit: 'quiz' }),
+  },
+  {
+    id: 'estudiante_aplicado',
+    name: 'Estudiante Aplicado',
+    description: 'Completa 5 cuestionarios de episodios.',
+    icon: '📝',
+    rarity: 'uncommon',
+    category: 'desafio',
+    points: 50,
+    check: s => s.totalQuizzesCount >= 5,
+    progress: s => ({ current: Math.min(s.totalQuizzesCount, 5), max: 5, unit: 'quizzes' }),
+  },
+  {
+    id: 'maestro_examen',
+    name: 'Maestro del Examen',
+    description: 'Completa 10 cuestionarios de episodios.',
+    icon: '🎓',
+    rarity: 'rare',
+    category: 'desafio',
+    points: 120,
+    check: s => s.totalQuizzesCount >= 10,
+    progress: s => ({ current: Math.min(s.totalQuizzesCount, 10), max: 10, unit: 'quizzes' }),
+  },
+  {
+    id: 'enciclopedia_viviente',
+    name: 'Enciclopedia Viviente',
+    description: 'Completa 25 cuestionarios de episodios.',
+    icon: '📖',
+    rarity: 'epic',
+    category: 'desafio',
+    points: 300,
+    check: s => s.totalQuizzesCount >= 25,
+    progress: s => ({ current: Math.min(s.totalQuizzesCount, 25), max: 25, unit: 'quizzes' }),
+  },
+  {
+    id: 'leyenda_veredillas',
+    name: 'Leyenda de Veredillas',
+    description: 'Completa 50 cuestionarios de episodios. ¡Dominio absoluto!',
+    icon: '👑',
+    rarity: 'legendary',
+    category: 'desafio',
+    points: 600,
+    check: s => s.totalQuizzesCount >= 50,
+    progress: s => ({ current: Math.min(s.totalQuizzesCount, 50), max: 50, unit: 'quizzes' }),
+  },
 ];
 
 // ──────────────────────────────────────────────────────────────
@@ -1139,11 +1199,12 @@ export function getAchievementById(id: string): Achievement | undefined {
 
 /** Sort achievements by rarity weight for display. */
 export const RARITY_ORDER: Record<Achievement['rarity'], number> = {
-  legendary: 0,
-  epic:      1,
-  rare:      2,
-  uncommon:  3,
-  common:    4,
+  mythic:    0,
+  legendary: 1,
+  epic:      2,
+  rare:      3,
+  uncommon:  4,
+  common:    5,
 };
 
 export function sortByRarity(list: Achievement[]): Achievement[] {

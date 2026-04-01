@@ -793,6 +793,42 @@ episode: 3
 duration: 42 min
 participants:
   - Prof. Jezael
+quiz:
+  - question: ¿Cuántas veces respira Jezael hondo antes de empezar un examen importante?
+    options:
+      - 3 veces
+      - 5 veces
+      - 8 veces
+      - 10 veces
+    correctAnswer: 2
+  - question: Si no hubiera sido profesor de Matemáticas, ¿qué otra rama de la ciencia le apasionaba de niño?
+    options:
+      - Biología Marina
+      - Astrofísica / Física
+      - Química Orgánica
+      - Geología
+    correctAnswer: 1
+  - question: ¿En qué invirtió Jezael su primer sueldo como docente?
+    options:
+      - Un viaje a Japón
+      - Un coche de segunda mano
+      - Un PC Gaming
+      - Libros de cálculo avanzado
+    correctAnswer: 2
+  - question: ¿Qué videojuego menciona Jezael como uno de sus favoritos por su nivel de desafío?
+    options:
+      - League of Legends
+      - FIFA / FC24
+      - Dark Souls
+      - Minecraft
+    correctAnswer: 2
+  - question: ¿Cuál es el tema de matemáticas que Jezael más disfruta enseñar, especialmente en 2º de Bachillerato?
+    options:
+      - Estadística y Probabilidad
+      - Matrices y Determinantes
+      - Geometría en el Espacio
+      - Funciones y Derivadas
+    correctAnswer: 3
 sections:
   - time: '00:13'
     title: Intro / Bienvenida

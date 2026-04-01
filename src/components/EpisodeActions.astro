@@ -9,10 +9,11 @@ interface Props {
   guests?: string[];
   slug?: string;
   duration?: number | string;
+  quiz?: any[];
   className?: string;
 }
 
-const { title, audioUrl, image, guests, slug, duration, className = '' } = Astro.props;
+const { title, audioUrl, image, guests, slug, duration, quiz, className = '' } = Astro.props;
 const normImage = image ? (image.startsWith('http') || image.startsWith('/') ? image : `/${image}`) : '/logo.webp';
 ---
 
@@ -31,6 +32,20 @@ const normImage = image ? (image.startsWith('http') || image.startsWith('/') ? i
         </span>
         <span>Crear Clip</span>
     </button>
+
+    <!-- Quiz Desafío -->
+    {quiz && quiz.length > 0 && (
+        <button 
+            id="action-open-quiz" 
+            class="inline-flex items-center justify-center gap-[10px] bg-accent/10 border border-accent/20 px-6 py-3 rounded-[100px] text-accent cursor-pointer no-underline transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] text-[0.95rem] font-black min-w-[140px] hover:bg-accent/20 hover:border-accent/40 hover:-translate-y-1 shadow-lg shadow-accent/5 max-[600px]:w-full max-[600px]:py-3.5 max-[600px]:text-base relative overflow-hidden group"
+        >
+            <span class="flex items-center justify-center text-inherit max-[600px]:w-5 max-[600px]:h-5 transition-transform group-hover:scale-110">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"></path><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </span>
+            <span>Desafío Quiz</span>
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+        </button>
+    )}
 
     <!-- Create Story -->
     <button 
@@ -92,6 +107,27 @@ const normImage = image ? (image.startsWith('http') || image.startsWith('/') ? i
                  e.preventDefault();
                  console.log('[EpisodeActions] Share button clicked. Dispatching event.');
                  window.dispatchEvent(new CustomEvent('veredillas:open-share-modal'));
+            });
+        }
+
+        const quizBtn = document.getElementById('action-open-quiz');
+        if (quizBtn) {
+            console.log('[EpisodeActions] Quiz button found. Adding listener.');
+            quizBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('[EpisodeActions] Quiz button clicked. Triggering modal via event and backup.');
+                
+                // 1. Event (Recommended)
+                const event = new CustomEvent('veredillas:open-quiz-modal', { 
+                    bubbles: true, 
+                    detail: { open: true } 
+                });
+                document.dispatchEvent(event);
+                
+                // 2. Global backup (if React not yet listening)
+                if (typeof (window as any).openQuizModal === 'function') {
+                    (window as any).openQuizModal();
+                }
             });
         }
 

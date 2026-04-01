@@ -50,6 +50,11 @@
     <span class="pill-label">Madrugador</span>
     <span class="pill-count inline-flex items-center justify-center min-w-[20px] h-[18px] px-1.5 rounded-full bg-white/10 text-[0.68rem] font-bold text-zinc-500 transition-colors group-[.active]:bg-violet-500/30 group-[.active]:text-violet-300" id="pill-count-madrugador">–</span>
   </button>
+  <button class="filter-pill group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-[0.8rem] font-medium cursor-pointer transition-all duration-200 whitespace-nowrap font-sans hover:bg-white/10 hover:border-white/20 hover:text-zinc-200 hover:-translate-y-px [&.active]:bg-gradient-to-br [&.active]:from-violet-600/30 [&.active]:to-pink-500/20 [&.active]:border-violet-500/55 [&.active]:text-violet-100 [&.active]:font-semibold [&.active]:shadow-lg [&.active]:shadow-violet-600/20" data-cat="desafio" role="tab" aria-selected="false">
+    <span class="group-hover:scale-110 transition-transform">🧠</span>
+    <span class="pill-label">Desafío</span>
+    <span class="pill-count inline-flex items-center justify-center min-w-[20px] h-[18px] px-1.5 rounded-full bg-white/10 text-[0.68rem] font-bold text-zinc-500 transition-colors group-[.active]:bg-violet-500/30 group-[.active]:text-violet-300" id="pill-count-desafio">–</span>
+  </button>
 </div>
 
 <!-- ── Sort + Search bar ── -->
@@ -202,7 +207,7 @@ let currentSort = 'default';
 let searchQuery = '';
 let viewMode: 'grid' | 'list' = 'grid';
 
-const rarityW: Record<string,number> = { legendary:0, epic:1, rare:2, uncommon:3, common:4 };
+const rarityW: Record<string,number> = { mythic:0, legendary:1, epic:2, rare:3, uncommon:4, common:5 };
 
 function fmtDate(iso: string | null) {
   if (!iso) return '';
@@ -322,7 +327,7 @@ function renderGrid() {
 }
 
 function updatePillCounts() {
-  const cats = ['all','escucha','fidelidad','social','coleccion','exploracion','especial','madrugador'];
+  const cats = ['all','escucha','fidelidad','social','coleccion','exploracion','especial','madrugador','desafio'];
   for (const cat of cats) {
     const el = document.getElementById(`pill-count-${cat}`);
     if (!el) continue;
@@ -340,6 +345,7 @@ function updateSummaryBanner(data: { totalUnlocked: number; totalAchievements: n
   const inner = document.getElementById('ach-summary-inner');
   if (!inner) return;
   const rarities = [
+    { key: 'mythic',    label: 'Míticos',       color: '#ef4444' },
     { key: 'legendary', label: 'Legendarios',  color: '#f59e0b' },
     { key: 'epic',      label: 'Épicos',        color: '#a855f7' },
     { key: 'rare',      label: 'Raros',         color: '#60a5fa' },

@@ -30,6 +30,11 @@ const episodios = defineCollection({
             title: z.string(),
             url: z.string(), // YouTube video URL
         })).optional(),
+        quiz: z.array(z.object({
+            question: z.string(),
+            options: z.array(z.string()),
+            correctAnswer: z.number(),
+        })).optional(),
 	}),
 });
 
