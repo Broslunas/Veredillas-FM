@@ -863,6 +863,87 @@ clips:
     url: 'https://youtu.be/BxEwYROfUUo'
   - title: Rufián  ¿Políticos por Contactos o por Méritos
     url: 'https://youtu.be/xwmKGQWyi6I'
+quiz:
+  - question: >-
+      ¿Quiénes son los tres invitados que se sientan a la mesa en este episodio
+      de Sociedad Limitada?
+    options:
+      - 'Samuel Machín, Hugo Calero y Carlos Ramos'
+      - 'Pedro Sánchez, Yolanda Díaz y Pablo Iglesias'
+      - 'Ana Botín, Juan Roig y Amancio Ortega'
+      - Un grupo de expertos en tecnología y marketing digital
+    correctAnswer: 0
+  - question: >-
+      Según el episodio, ¿qué tema principal se aborda bajo el apartado
+      'Ministros y Despachos'?
+    options:
+      - Las nuevas regulaciones fiscales para los cargos públicos
+      - La desconexión entre las altas esferas y el ciudadano de a pie
+      - Los protocolos de seguridad en los despachos ministeriales
+      - La influencia de los ministros en la cultura popular
+    correctAnswer: 1
+  - question: >-
+      En la sección 'El Juego de las Pagas', ¿qué cuestión central se plantea
+      sobre los incentivos y subsidios?
+    options:
+      - Si son suficientes para erradicar la pobreza
+      - >-
+        Si nos dan herramientas para crecer o 'cadenas de plata' para
+        mantenernos quietos
+      - Cómo optimizar su distribución en las empresas
+      - El origen histórico de los sistemas de subsidios
+    correctAnswer: 1
+  - question: 'En el marco del ''Especial 8M'', ¿sobre qué se abre el debate principal?'
+    options:
+      - La evolución del movimiento feminista en el último siglo
+      - >-
+        El impacto de las políticas de igualdad en el entorno empresarial y
+        social
+      - Los desafíos de la mujer en el ámbito de la ciencia y la tecnología
+      - >-
+        La importancia de la celebración del Día Internacional de la Mujer a
+        nivel global
+    correctAnswer: 1
+  - question: >-
+      Durante el 'Especial 8M', ¿qué aspectos se mencionan que se reflexionan
+      sobre el 8M?
+    options:
+      - Solo los avances tecnológicos impulsados por mujeres
+      - >-
+        Los discursos vacíos y cómo se vive el 8M desde diferentes perspectivas
+        generacionales y profesionales
+      - La historia de las sufragistas y su lucha
+      - Los retos de la maternidad y la vida laboral
+    correctAnswer: 1
+  - question: ¿Cuál es la idea principal de la sección 'Rompiendo Cadenas'?
+    options:
+      - La necesidad de más regulaciones para proteger a los consumidores
+      - >-
+        La importancia de la soberanía individual en un mundo cada vez más
+        regulado
+      - Cómo las cadenas de suministro globales afectan la economía local
+      - Las ventajas de un sistema social altamente predecible
+    correctAnswer: 1
+  - question: >-
+      ¿Qué implica la frase 'El sistema no quiere que seas libre, quiere que
+      seas predecible'?
+    options:
+      - Que la libertad es un objetivo fundamental del sistema
+      - Que la predictibilidad es una consecuencia inevitable de la libertad
+      - >-
+        Que el sistema busca controlar y anticipar el comportamiento individual,
+        no su autonomía
+      - 'Que para ser libre, uno debe adaptarse a las normas del sistema'
+    correctAnswer: 2
+  - question: >-
+      ¿Cómo se describe el análisis de la realidad social y económica que se
+      realiza en el episodio?
+    options:
+      - Optimista y superficial
+      - Crudo y sin filtros
+      - Académico y meramente descriptivo
+      - Esperanzador y propositivo
+    correctAnswer: 1
 ---
 En este episodio de Sociedad Limitada, nos sentamos a la mesa con tres invitados que no dejan indiferente a nadie: Samuel Machín, Hugo Calero y Carlos Ramos. Lo que empezó como una charla sobre la gestión del éxito y el peso de las estructuras actuales, terminó siendo un análisis crudo y sin filtros sobre la realidad social y económica que nos rodea.
 
