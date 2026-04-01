@@ -905,6 +905,75 @@ clips:
     url: 'https://youtu.be/EbRRJDXjamQ'
   - title: La Guerra Cerca  Por Qué La Distancia Nos Hace Insensibles
     url: 'https://youtu.be/3dSUAbs3wGQ'
+quiz:
+  - question: ¿Cuál es el tema principal de esta edición especial de Veredillas FM?
+    options:
+      - La importancia de la tecnología en las aulas
+      - Análisis sobre las últimas tendencias de SEO
+      - La situación actual de Venezuela
+      - Debate sobre la migración global
+    correctAnswer: 2
+  - question: >-
+      ¿Quiénes son los participantes en el debate sobre la situación de
+      Venezuela en este episodio?
+    options:
+      - Nicolás Maduro y Christopher
+      - Christopher y el Profesor Jezael Goya
+      - El Profesor Jezael Goya y el público
+      - Los oyentes de Veredillas FM
+    correctAnswer: 1
+  - question: Uno de los puntos clave analizados en el episodio es lo sucedido con...
+    options:
+      - Juan Guaidó
+      - Hugo Chávez
+      - Nicolás Maduro
+      - Simón Bolívar
+    correctAnswer: 2
+  - question: >-
+      ¿Qué aspectos se discuten como 'Las Consecuencias' de las decisiones
+      políticas en Venezuela?
+    options:
+      - Avances tecnológicos y reformas educativas
+      - 'Economía, sociedad y el flujo migratorio'
+      - Políticas medioambientales y cambio climático
+      - Desarrollo cultural y artístico
+    correctAnswer: 1
+  - question: >-
+      Respecto a 'Las Mejoras', ¿qué tipo de reportes se analizan en el
+      programa?
+    options:
+      - Reportes de inversión extranjera directa
+      - Reportes de recuperación económica
+      - Reportes de avances científicos
+      - Reportes de reducción de la criminalidad
+    correctAnswer: 1
+  - question: >-
+      La discusión sobre las mejoras en Venezuela se centra en determinar si los
+      cambios son...
+    options:
+      - Provisionales o definitivos
+      - Internos o externos
+      - Estructurales o meramente cosméticos
+      - Culturales o sociales
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál es la resonancia global de la situación de Venezuela que busca
+      explicar el episodio?
+    options:
+      - Cómo afecta solo a los países vecinos
+      - Cómo esto resuena en toda Latinoamérica y el mundo
+      - Cómo es un caso aislado sin impacto exterior
+      - Cómo influye únicamente en el mercado petrolero
+    correctAnswer: 1
+  - question: >-
+      En este episodio especial, Veredillas FM se aleja de su enfoque habitual
+      en...
+    options:
+      - Deportes y entretenimiento
+      - Noticias locales y regionales
+      - Tecnología y las aulas
+      - Música y entrevistas a artistas
+    correctAnswer: 2
 ---
 
 **¡Bienvenidos a una edición especial de Veredillas FM!**
