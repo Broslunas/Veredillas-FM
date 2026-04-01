@@ -11,21 +11,6 @@ tags:
   - geometría
   - decisiones
   - experiencias
-description: >-
-  Descubre la sabiduría de la Prof. Carmen: cómo las matemáticas iluminan las
-  decisiones y el crecimiento personal. ¡Aprende de décadas de experiencia en la
-  educación!
-pubDate: '2026-03-24T17:00:00.000Z'
-duration: 26 min
-isPremiere: true
-season: 2
-episode: 5
-image: 'https://cdn.veredillasfm.es/images/407d3dd8-882d-46f2-9562-7742120f20bb.webp'
-participants:
-  - Prof. Carmen
-videoUrl: 'https://www.youtube.com/embed/9TIlWJItYWE'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/117403443/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-24%2F420666543-44100-2-f7c10cab039a2.mp3
 transcription:
   - time: '00:02'
     text: >-
@@ -514,6 +499,21 @@ transcription:
       suerte. Este, organicen su tiempo, como dijo Carmen, y nos escuchamos en
       el próximo episodio, próximo programa, con más temas candentes. Hasta
       luego, muchas gracias.
+description: >-
+  Descubre la sabiduría de la Prof. Carmen: cómo las matemáticas iluminan las
+  decisiones y el crecimiento personal. ¡Aprende de décadas de experiencia en la
+  educación!
+pubDate: '2026-03-24T17:00:00.000Z'
+duration: 26 min
+isPremiere: true
+season: 2
+episode: 5
+image: 'https://cdn.veredillasfm.es/images/407d3dd8-882d-46f2-9562-7742120f20bb.webp'
+participants:
+  - Prof. Carmen
+videoUrl: 'https://www.youtube.com/embed/9TIlWJItYWE'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/117403443/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-24%2F420666543-44100-2-f7c10cab039a2.mp3
 sections:
   - time: '00:02'
     title: Bienvenida y Presentación de Carmen
@@ -604,6 +604,68 @@ clips:
     url: 'https://youtu.be/lP0O2X30brM'
   - title: PAU  ¿Cómo Superar los Días Malos
     url: 'https://youtu.be/UOgFabFEVpo'
+quiz:
+  - question: >-
+      ¿Cuál es el tema central que el episodio busca desglosar, según la
+      introducción?
+    options:
+      - La historia de las matemáticas puras.
+      - >-
+        Cómo las matemáticas y la docencia se entrelazan con las lecciones de la
+        vida.
+      - Un análisis profundo sobre las ecuaciones diferenciales.
+      - Los retos de la educación online en la actualidad.
+    correctAnswer: 1
+  - question: ¿Quién es la invitada especial que se sienta a conversar en este episodio?
+    options:
+      - Una experta en liderazgo empresarial.
+      - La Prof. Carmen.
+      - Un renombrado historiador de la ciencia.
+      - El anfitrión del podcast.
+    correctAnswer: 1
+  - question: >-
+      Según el punto 'La Geometría de las Decisiones', ¿qué aprenderán los
+      oyentes?
+    options:
+      - Técnicas avanzadas de geometría analítica.
+      - Cómo calcular el área de figuras complejas.
+      - La forma de elegir el camino correcto cuando las opciones son infinitas.
+      - La relación entre la geometría y la física cuántica.
+    correctAnswer: 2
+  - question: ¿Cómo se describen los errores en la sección 'Sumando Experiencias'?
+    options:
+      - Como restas que disminuyen nuestro potencial.
+      - Como factores acumulativos en nuestro crecimiento.
+      - Como desviaciones que deben ser eliminadas.
+      - Como variables sin importancia en la ecuación de la vida.
+    correctAnswer: 1
+  - question: >-
+      En el punto 'El Factor Humano', ¿qué compartió la Prof. Carmen como su
+      mayor lección de cálculo?
+    options:
+      - Los teoremas más complejos de la matemática.
+      - Sus años de investigación académica.
+      - Las anécdotas de décadas en el aula con sus alumnos.
+      - El desarrollo de nuevas metodologías de enseñanza.
+    correctAnswer: 2
+  - question: >-
+      La pregunta inicial del episodio plantea si la vida es una ecuación que
+      podemos resolver o...
+    options:
+      - Un juego de azar sin reglas.
+      - Un misterio indescifrable para la ciencia.
+      - Un sistema complejo lleno de variables inesperadas.
+      - Un viaje predestinado sin decisiones propias.
+    correctAnswer: 2
+  - question: >-
+      Según los hashtags proporcionados, ¿cuál de los siguientes temas NO es
+      directamente asociado con el episodio?
+    options:
+      - Matemáticas
+      - Tecnología
+      - Educación
+      - Liderazgo
+    correctAnswer: 1
 ---
 ¿Es la vida una ecuación que podemos resolver o un sistema complejo lleno de variables inesperadas? En este episodio especial, nos sentamos con la **Prof. Carmen** para desglosar cómo los años de docencia y las matemáticas se entrelazan con las lecciones más valiosas de la vida.
 
