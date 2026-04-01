@@ -1388,6 +1388,79 @@ clips:
     url: 'https://youtu.be/J2A0tq1OLAY'
   - title: Bachillerato  El Mejor Consejo Para Tu Éxito Escolar
     url: 'https://youtu.be/-Ma0WIOiZBY'
+quiz:
+  - question: >-
+      ¿Quiénes son los compañeros de 2º de Bachillerato que comparten su
+      experiencia en el episodio de Veredillas FM?
+    options:
+      - Edu y Mauro
+      - Domingo y Diego
+      - Charro y Diego
+      - Domingo y Edu
+    correctAnswer: 1
+  - question: >-
+      ¿Qué se describe en el episodio como el 'monstruo final' que enfrentan los
+      estudiantes pre-universitarios?
+    options:
+      - El tercer trimestre
+      - La rivalidad entre bachilleratos
+      - La PAU (Selectividad)
+      - Las fórmulas matemáticas
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál es la pasión de Diego, mencionada en el episodio, fuera del ámbito
+      académico?
+    options:
+      - La ingeniería
+      - La música y el conservatorio
+      - La Policía Nacional
+      - Viajar a Japón
+    correctAnswer: 1
+  - question: >-
+      ¿Entre qué dos carreras se debate Domingo para su futuro profesional,
+      según lo que comparte?
+    options:
+      - Profesor y músico
+      - Médico y abogado
+      - Ingeniería y Policía Nacional
+      - Periodista y viajero
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál de los siguientes países NO es mencionado como un posible destino de
+      viaje soñado por los invitados?
+    options:
+      - Japón
+      - India
+      - Corea del Sur
+      - Corea del Norte
+    correctAnswer: 2
+  - question: >-
+      ¿Qué anécdota surrealista de la historia de la clase es recordada en el
+      episodio?
+    options:
+      - Un viaje escolar fallido
+      - La plaga de cucarachas y el 'martillo de epoxy'
+      - Una competición de matemáticas
+      - Un profesor que se disfrazaba
+    correctAnswer: 1
+  - question: >-
+      ¿Cuál es uno de los propósitos principales del episodio de Veredillas FM,
+      según el texto de introducción?
+    options:
+      - Dar consejos para la PAU
+      - Promocionar carreras universitarias
+      - Ser un refugio para estudiantes abrumados o con dudas sobre su futuro
+      - Organizar un viaje de Interrail
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál es el curso de Bachillerato que se analiza en profundidad en el
+      episodio de Veredillas FM?
+    options:
+      - 1º de Bachillerato
+      - 2º de Bachillerato
+      - 3º de Bachillerato
+      - 4º de la ESO
+    correctAnswer: 1
 ---
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
