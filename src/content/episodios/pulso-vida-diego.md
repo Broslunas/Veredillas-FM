@@ -997,6 +997,75 @@ clips:
     url: 'https://youtu.be/wPUzWCxzaOE'
   - title: ¡Adiós Monosílabos! Conexión Real en Conversaciones
     url: 'https://youtu.be/yle-qOhRPeQ'
+quiz:
+  - question: >-
+      ¿Quién es el invitado especial que regresa a los micrófonos de Veredillas
+      FM en el episodio 'El Pulso de la Vida'?
+    options:
+      - El presentador habitual
+      - Un experto en redes sociales
+      - Diego Medrano
+      - Un sociólogo famoso
+    correctAnswer: 2
+  - question: >-
+      ¿Qué capacidad fundamental se debate que las redes sociales, como TikTok,
+      nos han robado?
+    options:
+      - La capacidad de concentración para el estudio
+      - 'La capacidad de aburrirnos y, por ende, de ser creativos'
+      - La capacidad de socializar en persona
+      - La capacidad de recordar información
+    correctAnswer: 1
+  - question: ¿Cuál es la paradoja sobre la conexión que se aborda en el episodio?
+    options:
+      - Estamos más desconectados que nunca pero nos sentimos más unidos
+      - Estamos más conectados que nunca pero nos sentimos cada vez más solos
+      - Estamos conectados solo con un pequeño grupo de personas
+      - La conexión digital ha eliminado la necesidad de interacción física
+    correctAnswer: 1
+  - question: >-
+      Según el debate, ¿qué característica común parecen tener las relaciones
+      modernas?
+    options:
+      - Suelen ser muy duraderas y estables
+      - Están basadas en la comunicación profunda y constante
+      - Parecen tener una fecha de caducidad de dos semanas
+      - Se inician y terminan exclusivamente a través de plataformas digitales
+    correctAnswer: 2
+  - question: ¿Qué plaga de comunicación se menciona en el contexto del amor moderno?
+    options:
+      - El exceso de videollamadas
+      - La falta total de comunicación escrita
+      - La plaga de los mensajes monosílabos
+      - El uso exclusivo de audios largos
+    correctAnswer: 2
+  - question: >-
+      ¿Qué dilema sobre el romanticismo en la primera cita se discute en el
+      programa?
+    options:
+      - Si es mejor cenar o ir al cine
+      - Si llevar flores es un gesto romántico o algo 'cringe' y anticuado
+      - Si se debe pagar la cuenta a medias o invitar
+      - Si hablar de temas profundos es apropiado
+    correctAnswer: 1
+  - question: >-
+      ¿Cómo se describe el efecto de pagar con el móvil o el reloj sobre nuestra
+      percepción del dinero?
+    options:
+      - Hace que el dinero parezca más valioso
+      - Hace que el dinero parezca 'fickey' y se gaste sin pensar
+      - Fomenta el ahorro y la planificación financiera
+      - No tiene ningún impacto en cómo gastamos
+    correctAnswer: 1
+  - question: >-
+      ¿Qué aspecto del consumismo confiesa Diego Medrano que le afecta
+      personalmente?
+    options:
+      - Su lucha contra la acumulación excesiva de objetos antiguos
+      - Su lucha contra el gasto impulsivo en cosas innecesarias
+      - Su esfuerzo por no comprar nunca nada nuevo
+      - Su adicción a las compras online programadas
+    correctAnswer: 1
 ---
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde te mantenemos al pendiente de los temas más candentes**
