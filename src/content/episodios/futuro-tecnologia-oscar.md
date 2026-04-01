@@ -607,6 +607,85 @@ sections:
     title: El Legado del Aula Creativa
   - time: '32:16'
     title: Despedida
+quiz:
+  - question: >-
+      ¿Quién es el invitado principal en el episodio de Veredillas FM y cuál era
+      su profesión anterior?
+    options:
+      - 'El Profesor Óscar, un ex-banquero.'
+      - 'El Profesor Óscar, un ex-ingeniero naval.'
+      - 'El Profesor Óscar, un ex-médico.'
+      - 'El Profesor Óscar, un ex-arquitecto.'
+    correctAnswer: 1
+  - question: >-
+      ¿Qué evento crítico fue el detonante para que el Profesor Óscar decidiera
+      cambiar radicalmente su estilo de vida y profesión?
+    options:
+      - Una oferta de trabajo irrefutable en docencia.
+      - Un grave accidente automovilístico por exceso de velocidad.
+      - Un accidente de moto causado por puro agotamiento.
+      - La quiebra de la empresa donde trabajaba.
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál de las siguientes afirmaciones describe mejor la situación laboral
+      del Profesor Óscar antes de su cambio de vida?
+    options:
+      - Trabajaba en una oficina con un horario flexible y buen sueldo.
+      - Tenía un horario de 8 horas diarias en un astillero.
+      - >-
+        Realizaba turnos inhumanos de 12 horas como ingeniero naval, con poco
+        descanso.
+      - Era un inversor exitoso con mucho tiempo libre.
+    correctAnswer: 2
+  - question: >-
+      Además de la historia personal de Óscar, ¿cuál es uno de los temas
+      importantes sobre los que se charla en el episodio?
+    options:
+      - La importancia de la inversión en bienes raíces.
+      - Estrategias para aumentar el sueldo en trabajos exigentes.
+      - La importancia de la salud mental y saber parar a tiempo.
+      - Cómo fundar una empresa tecnológica exitosa.
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál fue la oportunidad perdida mencionada por el Profesor Óscar que sus
+      amigos le propusieron hace 15 años?
+    options:
+      - Invertir en una nueva empresa de tecnología puntera.
+      - Comprar terrenos baratos para construir viviendas.
+      - Invertir en Bitcoin cuando estaba en sus inicios.
+      - Unirse a un grupo de música que luego se hizo famoso.
+    correctAnswer: 2
+  - question: >-
+      ¿Cómo se originó el 'Aula Creativa' donde se graba el podcast, según se
+      cuenta en el episodio?
+    options:
+      - Fue un proyecto de diseño financiado por el ayuntamiento.
+      - Un espacio preexistente del instituto que se reacondicionó.
+      - >-
+        Nació de la iniciativa de alumnos y profesores, transformando cajas
+        olvidadas.
+      - >-
+        Se construyó desde cero con fondos especiales de la Consejería de
+        Educación.
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál es la habilidad más importante que el Profesor Óscar sugiere
+      aprender en el mundo actual que cambia tan rápido?
+    options:
+      - Dominar las matemáticas complejas.
+      - Memorizar muchas fórmulas y datos.
+      - La capacidad de adaptarse al cambio.
+      - Ser un experto en tecnología y programación.
+    correctAnswer: 2
+  - question: >-
+      ¿Qué anécdota 'surrealista' se menciona para provocar risas en el
+      episodio?
+    options:
+      - La historia de un profesor que construyó un cohete casero.
+      - Un alumno que se dedicaba a robar sanitarios del instituto.
+      - El día que la alarma de incendios se activó por una clase de cocina.
+      - Un viaje de estudios donde se perdieron en la montaña.
+    correctAnswer: 1
 ---
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
