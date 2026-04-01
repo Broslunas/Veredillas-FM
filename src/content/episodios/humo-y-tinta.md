@@ -1592,6 +1592,70 @@ clips:
     url: 'https://youtu.be/hL5sZCy08DQ'
   - title: Valores y Normas Familiares_ Una Guía Esencial
     url: 'https://youtu.be/LVvAC0YOIMc'
+quiz:
+  - question: >-
+      ¿Quiénes son los participantes que conversan en este episodio de Humo y
+      Tinta?
+    options:
+      - 'David, Enrique, Alex y Juan'
+      - 'Dylan, Eric, Alejandro y Joan'
+      - 'Daniel, Eduardo, Arturo y Jorge'
+      - 'Diego, Esteban, Alberto y Javier'
+    correctAnswer: 1
+  - question: >-
+      ¿Cuáles son los dos mundos principales que se entrelazan y discuten en el
+      episodio?
+    options:
+      - Música y Moda
+      - Gastronomía y Viajes
+      - El arte en la piel y la cultura del vapeo
+      - Deportes extremos y Arte callejero
+    correctAnswer: 2
+  - question: >-
+      En la sección 'Historias bajo la piel', ¿qué aspecto de los tatuajes NO se
+      menciona explícitamente como tema de discusión?
+    options:
+      - Los tatuajes más significativos
+      - Las piezas que más les han dolido
+      - Cómo la tinta se ha convertido en su forma de expresión personal
+      - Las técnicas de tatuaje utilizadas
+    correctAnswer: 3
+  - question: >-
+      ¿Por qué se analiza que el vaper se ha vuelto el accesorio inseparable de
+      esta generación?
+    options:
+      - Por su bajo costo
+      - Por sus beneficios para la salud
+      - Por los sabores favoritos y los trucos más locos
+      - Por ser una herramienta de trabajo
+    correctAnswer: 2
+  - question: >-
+      ¿Qué concepto explica por qué las subculturas del humo y la tinta encajan
+      tan bien?
+    options:
+      - La política y la economía
+      - La historia y la filosofía
+      - El estilo de vida que rodea al humo y a la tinta
+      - Las tendencias musicales similares
+    correctAnswer: 2
+  - question: >-
+      ¿A qué se refiere la frase: 'Hay cosas que se esfuman en el aire y otras
+      que se quedan grabadas para siempre. Hoy hablamos de ambas'?
+    options:
+      - A los recuerdos y las fotografías
+      - A la música que se escucha y los libros que se leen
+      - Al vapeo y los tatuajes
+      - A los sueños y la realidad
+    correctAnswer: 2
+  - question: >-
+      Además de subir el volumen, ¿qué otra acción se pide a los oyentes que
+      preparen para acompañar la charla?
+    options:
+      - Un café
+      - Un cigarrillo
+      - Su vaper
+      - Un libro
+    correctAnswer: 2
 ---
 Hoy el estudio se mueve entre nubes de vapor y el sonido de las máquinas. En este episodio de Humo y Tinta, nos sentamos con Dylan, Eric, Alejandro y Joan para hablar de dos mundos que van de la mano: el arte en la piel y la cultura del vapeo.
 
