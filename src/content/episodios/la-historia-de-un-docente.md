@@ -7,21 +7,6 @@ tags:
   - Inspiración
   - Vocación
   - Vida Escolar
-description: >-
-  Descubre anécdotas inspiradoras, desafíos reales e historias de impacto
-  generacional en 'La Historia de un Docente'. ¡Un podcast para amantes de la
-  educación!
-isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/e723bb85-a053-48db-878c-98e0110e5415.JPEG'
-participants:
-  - Prof. Dulce
-season: 2
-episode: 1
-duration: 35 min
-pubDate: '2026-03-03T17:00:00.000Z'
-videoUrl: 'https://www.youtube.com/embed/ej49Dd1rngI'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/116323645/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-3%2F419195134-44100-2-100d5f1434295.mp3
 transcription:
   - time: '00:02'
     text: >-
@@ -666,6 +651,21 @@ transcription:
       mantenemos al pendiente de los temas más candentes. Hasta luego.
   - time: '34:55'
     text: 'Muchas gracias, chicos.'
+description: >-
+  Descubre anécdotas inspiradoras, desafíos reales e historias de impacto
+  generacional en 'La Historia de un Docente'. ¡Un podcast para amantes de la
+  educación!
+isPremiere: true
+image: 'https://cdn.veredillasfm.es/images/e723bb85-a053-48db-878c-98e0110e5415.JPEG'
+participants:
+  - Prof. Dulce
+season: 2
+episode: 1
+duration: 35 min
+pubDate: '2026-03-03T17:00:00.000Z'
+videoUrl: 'https://www.youtube.com/embed/ej49Dd1rngI'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/116323645/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-3%2F419195134-44100-2-100d5f1434295.mp3
 sections:
   - time: '00:02'
     title: Bienvenida e Introducción a Dulce
@@ -762,6 +762,60 @@ clips:
     url: 'https://youtu.be/dhYhf4gty_o'
   - title: Mi Viaje Inesperado al Mundo de la Enseñanza
     url: 'https://youtu.be/imUlLnqPjvc'
+quiz:
+  - question: ¿Cuál es el principal objetivo de 'La historia de un docente'?
+    options:
+      - Fomentar la investigación científica en pedagogía.
+      - Analizar las estadísticas del rendimiento académico.
+      - Explorar el lado más humano de la educación.
+      - Debatir sobre políticas educativas internacionales.
+    correctAnswer: 2
+  - question: 'Según el texto, ¿en qué formato se presenta ''La historia de un docente''?'
+    options:
+      - Un seminario web.
+      - Un libro impreso.
+      - Un podcast.
+      - Una publicación en blog.
+    correctAnswer: 2
+  - question: ¿Qué tipo de contenido se promete encontrar bajo 'Anécdotas inspiradoras'?
+    options:
+      - Estudios de caso sobre metodologías de enseñanza.
+      - Momentos que transformaron la visión de estudiantes y educadores.
+      - Análisis de las reformas educativas recientes.
+      - Entrevistas a líderes de opinión en educación.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué aspectos se abordan en la sección 'Desafíos reales' de 'La historia
+      de un docente'?
+    options:
+      - Avances tecnológicos y su aplicación en el aula.
+      - Estrategias para la financiación de proyectos educativos.
+      - 'La vocación, la paciencia y la resiliencia en la educación actual.'
+      - Técnicas para la evaluación del desempeño estudiantil.
+    correctAnswer: 2
+  - question: ¿Cómo se describe el 'Impacto generacional' en el contenido?
+    options:
+      - El análisis de las diferencias generacionales entre docentes.
+      - La influencia de los planes de estudio en distintas épocas.
+      - Historias sobre cómo una palabra o lección puede perdurar para siempre.
+      - La evolución de los métodos pedagógicos a lo largo del tiempo.
+    correctAnswer: 2
+  - question: ¿Quiénes están invitados a escuchar 'La historia de un docente'?
+    options:
+      - Solo docentes experimentados.
+      - Exclusivamente estudiantes universitarios.
+      - 'Docentes, estudiantes o cualquier persona interesada en el aprendizaje.'
+      - Únicamente administradores y directivos escolares.
+    correctAnswer: 2
+  - question: >-
+      Más allá de los libros y las pizarras, ¿qué tipo de historias existen en
+      un aula según el texto?
+    options:
+      - Historias de avances tecnológicos.
+      - Historias que transforman vidas.
+      - Historias sobre estadísticas académicas.
+      - Historias de financiación educativa.
+    correctAnswer: 1
 ---
 ¿Alguna vez te has preguntado qué sucede realmente detrás de las puertas de un aula? Más allá de los libros y las pizarras, existen historias que transforman vidas.
 
