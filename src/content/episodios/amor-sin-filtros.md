@@ -968,6 +968,64 @@ clips:
     url: 'https://youtube.com/shorts/fNApWRXa154'
   - title: ¡Deja el Móvil! Relaciones Tóxicas y Prioridades
     url: 'https://youtube.com/shorts/2isxbp9y4c0'
+quiz:
+  - question: ¿Cuál es el tema principal que se aborda en el post 'Amor Sin Filtros'?
+    options:
+      - Estrategias para mejorar la productividad laboral.
+      - Una conversación sincera sobre el amor auténtico y transparente.
+      - Consejos de viaje para parejas.
+      - Análisis de las tendencias de moda en redes sociales.
+    correctAnswer: 1
+  - question: >-
+      ¿Quiénes son las invitadas especiales que comparten sus perspectivas sobre
+      el 'amor sin filtros'?
+    options:
+      - María y Sofía
+      - Laura y Patricia
+      - Saray y Antonieta
+      - Elena y Carmen
+    correctAnswer: 2
+  - question: 'Según el post, ¿qué implica el concepto de ''amor sin filtros''?'
+    options:
+      - Mostrar solo las virtudes para impresionar a la pareja.
+      - Construir relaciones basadas en una imagen idealizada.
+      - 'Mostrar autenticidad y transparencia, incluyendo virtudes y defectos.'
+      - Utilizar filtros de redes sociales para embellecer la realidad.
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál es identificado como uno de los mayores desafíos en cualquier
+      relación de pareja?
+    options:
+      - La gestión del tiempo libre.
+      - La comunicación efectiva.
+      - Las diferencias de gustos musicales.
+      - La planificación de vacaciones.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué riesgo asocia el texto a la era de las redes sociales y las imágenes
+      idealizadas en el amor moderno?
+    options:
+      - La mejora de la conexión emocional entre parejas.
+      - La facilidad para encontrar parejas compatibles.
+      - Caer en la trampa de expectativas poco realistas.
+      - Fomentar relaciones más sólidas y duraderas.
+    correctAnswer: 2
+  - question: >-
+      ¿Sobre qué tema ofrecen Saray y Antonieta consejos prácticos en la sección
+      final del post?
+    options:
+      - Cómo decorar el hogar.
+      - Estrategias de ahorro financiero.
+      - Cómo cultivar un amor auténtico y duradero.
+      - Técnicas de relajación y meditación.
+    correctAnswer: 2
+  - question: ¿Qué se espera que inspire la conversación sobre el amor en los lectores?
+    options:
+      - Aumentar su número de seguidores en redes sociales.
+      - Buscar nuevas oportunidades laborales.
+      - Construir relaciones más significativas y auténticas en su vida.
+      - Aprender a cocinar nuevas recetas.
+    correctAnswer: 2
 ---
 # Amor Sin Filtros: Un Diálogo Abierto con Saray y Antonieta
 
