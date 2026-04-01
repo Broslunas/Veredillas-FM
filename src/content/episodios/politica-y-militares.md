@@ -7,22 +7,6 @@ tags:
   - Estrategia
   - Análisis Militar
   - Estado Y Fuerza
-description: >-
-  Descubre el podcast 'Política y Militares'. Analizamos conflictos, relaciones
-  civiles-militares y el futuro de la defensa con expertos. ¡Entiende el tablero
-  geopolítico!
-isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/95852e37-644f-4a6c-a4c8-423c4157de50.jpg'
-participants:
-  - Elio
-  - Gustavo
-season: 2
-episode: 2
-duration: 32 min
-pubDate: '2026-03-04T17:00:00.000Z'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/116383775/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-4%2F419278343-44100-2-7659b4fc76004.mp3
-videoUrl: 'https://www.youtube.com/embed/IHPyZAIxGaE'
 transcription:
   - time: '00:01'
     text: >-
@@ -648,6 +632,22 @@ transcription:
       Aprendimos la lección, estamos en un mundo mejor. Y, pues, bueno,
       manténganse sintonizados desde Pereira FM, donde los mantenemos al
       pendiente de los temas más candentes. Hasta luego.
+description: >-
+  Descubre el podcast 'Política y Militares'. Analizamos conflictos, relaciones
+  civiles-militares y el futuro de la defensa con expertos. ¡Entiende el tablero
+  geopolítico!
+isPremiere: true
+image: 'https://cdn.veredillasfm.es/images/95852e37-644f-4a6c-a4c8-423c4157de50.jpg'
+participants:
+  - Elio
+  - Gustavo
+season: 2
+episode: 2
+duration: 32 min
+pubDate: '2026-03-04T17:00:00.000Z'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/116383775/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-2-4%2F419278343-44100-2-7659b4fc76004.mp3
+videoUrl: 'https://www.youtube.com/embed/IHPyZAIxGaE'
 sections:
   - time: '00:01'
     title: Bienvenida y Presentación del Tema
@@ -768,6 +768,84 @@ clips:
     url: 'https://youtu.be/3OxyFTFhKS8'
   - title: Interés Mercantil vs  Vidas Humanas  ¿Qué Importa Más
     url: 'https://youtu.be/f-ETzug-lKQ'
+quiz:
+  - question: >-
+      ¿Cuál es el tema central que el podcast 'Política y Militares' busca
+      explorar, según la introducción?
+    options:
+      - La historia de los conflictos militares globales.
+      - La economía de la defensa nacional.
+      - >-
+        Cómo se entrelazan las decisiones de Estado con el poder estratégico de
+        las fuerzas armadas.
+      - Las biografías de líderes militares famosos.
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál es el nombre del podcast que profundiza en los temas que definen el
+      tablero geopolítico actual?
+    options:
+      - Geopolítica en Acción
+      - Estrategia Militar Hoy
+      - Poder y Seguridad Nacional
+      - Política y Militares
+    correctAnswer: 3
+  - question: >-
+      Uno de los temas principales a tratar en 'Política y Militares' es la
+      'Estrategia y Geopolítica'. ¿Qué aspectos específicos se analizarán dentro
+      de este tema?
+    options:
+      - El impacto de la tecnología en la cultura pop.
+      - Análisis de conflictos actuales y el equilibrio de poder global.
+      - La historia de la diplomacia europea.
+      - Las últimas tendencias en ciberseguridad personal.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué rol de las instituciones se aborda dentro del tema 'Relaciones
+      Civiles-Militares' en el podcast?
+    options:
+      - Su papel en la promoción del arte y la cultura.
+      - El papel de las instituciones en la democracia y la seguridad.
+      - Su influencia en el mercado de valores.
+      - La gestión de desastres naturales sin intervención militar.
+    correctAnswer: 1
+  - question: >-
+      En el apartado de 'Defensa Nacional', ¿qué elementos clave se discutirán
+      según la descripción del podcast?
+    options:
+      - Las dietas y ejercicios de los militares.
+      - 'Retos, tecnología y el futuro de las fuerzas armadas.'
+      - La evolución de los uniformes militares.
+      - El diseño de bases militares ecológicas.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué tipo de invitados se espera escuchar en las 'Entrevistas Exclusivas'
+      del podcast 'Política y Militares'?
+    options:
+      - Artistas y músicos.
+      - 'Expertos, analistas y protagonistas del sector.'
+      - Deportistas de élite.
+      - Chefs y gastrónomos.
+    correctAnswer: 1
+  - question: >-
+      ¿Cuál es el objetivo principal del podcast para su audiencia, según la
+      descripción?
+    options:
+      - Enseñar técnicas de combate.
+      - Ofrecer consejos de carrera militar.
+      - >-
+        Entender qué hay detrás de los titulares y cómo se toman las grandes
+        decisiones.
+      - Promover el alistamiento en las fuerzas armadas.
+    correctAnswer: 2
+  - question: >-
+      ¿Por qué se considera 'más crucial que nunca' entender la relación entre
+      el poder político y la seguridad nacional, según el contenido?
+    options:
+      - Debido al crecimiento de las redes sociales.
+      - En un mundo en constante cambio.
+      - Por el aumento del turismo global.
+      - Gracias a los avances en la medicina.
+    correctAnswer: 1
 ---
 ¿Cómo se entrelazan las decisiones de Estado con el poder estratégico de las fuerzas armadas? En un mundo en constante cambio, entender la relación entre el poder político y la seguridad nacional es más crucial que nunca.
 
