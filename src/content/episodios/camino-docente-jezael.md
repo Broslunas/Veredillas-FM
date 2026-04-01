@@ -794,41 +794,76 @@ duration: 42 min
 participants:
   - Prof. Jezael
 quiz:
-  - question: ¿Cuántas veces respira Jezael hondo antes de empezar un examen importante?
+  - question: >-
+      ¿Cuál es el rol principal que desempeña el Profesor Jezael en el I.E.S.
+      Las Veredillas, según la entrevista?
     options:
-      - 3 veces
-      - 5 veces
-      - 8 veces
-      - 10 veces
+      - Profesor de Física
+      - Director del centro
+      - Profesor de Matemáticas y tutor de 2º de Bachillerato B
+      - Orientador académico
     correctAnswer: 2
-  - question: Si no hubiera sido profesor de Matemáticas, ¿qué otra rama de la ciencia le apasionaba de niño?
+  - question: >-
+      ¿Qué método utiliza el Profesor Jezael para mantener la calma bajo
+      presión, según lo revelado en la entrevista?
     options:
-      - Biología Marina
-      - Astrofísica / Física
-      - Química Orgánica
-      - Geología
+      - Escuchar música relajante
+      - La técnica de las 8 respiraciones
+      - Hacer una pausa para jugar videojuegos
+      - Meditar por las mañanas
     correctAnswer: 1
-  - question: ¿En qué invirtió Jezael su primer sueldo como docente?
+  - question: ¿Qué opinión tiene el Profesor Jezael sobre la Selectividad (PAU)?
     options:
-      - Un viaje a Japón
-      - Un coche de segunda mano
-      - Un PC Gaming
-      - Libros de cálculo avanzado
+      - La considera un sistema perfectamente justo para medir el conocimiento.
+      - >-
+        La describe como un sistema injusto para medir el conocimiento real,
+        aunque un "baño de realidad" necesario.
+      - Cree que es la única forma válida de evaluar a los estudiantes.
+      - No tiene una opinión formada al respecto.
+    correctAnswer: 1
+  - question: >-
+      ¿De dónde es originario el Profesor Jezael, según se menciona en la
+      entrevista?
+    options:
+      - Un pueblo pequeño de la sierra
+      - Una ciudad en el norte de España
+      - Santa Cruz
+      - Madrid
     correctAnswer: 2
-  - question: ¿Qué videojuego menciona Jezael como uno de sus favoritos por su nivel de desafío?
+  - question: ¿Qué famosa saga de videojuegos es el Profesor Jezael un fanático?
     options:
-      - League of Legends
-      - FIFA / FC24
+      - The Legend of Zelda
+      - Call of Duty
       - Dark Souls
-      - Minecraft
+      - FIFA
     correctAnswer: 2
-  - question: ¿Cuál es el tema de matemáticas que Jezael más disfruta enseñar, especialmente en 2º de Bachillerato?
+  - question: >-
+      ¿Cuál es el consejo sentimental de oro que ofrece el Profesor Jezael
+      basado en su propia experiencia?
     options:
-      - Estadística y Probabilidad
-      - Matrices y Determinantes
-      - Geometría en el Espacio
-      - Funciones y Derivadas
-    correctAnswer: 3
+      - Comunicarse siempre abiertamente con la pareja
+      - No salir con alguien de tu misma clase
+      - Poner siempre las relaciones antes que los estudios
+      - Buscar siempre a alguien con gustos completamente opuestos
+    correctAnswer: 1
+  - question: >-
+      ¿Desde qué edad tuvo claro el Profesor Jezael que quería dedicarse a la
+      enseñanza?
+    options:
+      - Desde los 18 años
+      - Desde que terminó la universidad
+      - Desde los 8 años
+      - Desde su etapa en el instituto
+    correctAnswer: 2
+  - question: >-
+      ¿Qué lecciones importantes ha aprendido el Profesor Jezael de la saga de
+      videojuegos que le gusta?
+    options:
+      - Estrategias para competir en línea
+      - Valiosas lecciones sobre la perseverancia y la resolución de problemas
+      - La importancia de los gráficos en un juego
+      - Cómo evitar el estrés
+    correctAnswer: 1
 sections:
   - time: '00:13'
     title: Intro / Bienvenida
