@@ -888,6 +888,70 @@ sections:
     title: El sistema educativo y la PAU
   - time: '35:43'
     title: La apuesta del GTA VI
+quiz:
+  - question: >-
+      ¿Quiénes son los participantes en la conversación sincera y abierta de
+      este episodio?
+    options:
+      - El presentador y un oyente
+      - Carlos y un experto académico
+      - Carlos y Gustavo
+    correctAnswer: 2
+  - question: >-
+      ¿De qué tipo de temas se alejan los participantes en esta ocasión, según
+      el texto?
+    options:
+      - Temas personales y anécdotas
+      - Temas técnicos y académicos
+      - Temas sobre la rutina diaria
+      - Temas de reflexiones sobre la vida
+    correctAnswer: 1
+  - question: ¿Cuál es el enfoque principal de la conversación entre Carlos y Gustavo?
+    options:
+      - Novedades tecnológicas
+      - Investigaciones académicas
+      - Sus vivencias diarias
+      - Análisis de mercado
+    correctAnswer: 2
+  - question: 'Dentro de ''Experiencias Personales'', ¿qué tipo de contenido se compartirá?'
+    options:
+      - Datos estadísticos
+      - Consejos financieros
+      - Anécdotas que les han marcado
+      - Recetas de cocina
+    correctAnswer: 2
+  - question: ¿Qué aspecto de 'La Rutina' abordarán Carlos y Gustavo?
+    options:
+      - Cómo evitar la rutina por completo
+      - Cómo afrontar el día a día y encontrar motivación
+      - Críticas a las rutinas laborales
+      - Métodos para crear rutinas imposibles
+    correctAnswer: 1
+  - question: ¿Qué tipo de mirada ofrece el segmento 'Reflexiones'?
+    options:
+      - Una mirada crítica a la sociedad
+      - Una mirada superficial al pasado
+      - 'Una mirada introspectiva sobre la vida, las relaciones y el futuro'
+      - Una mirada técnica sobre los CMS
+    correctAnswer: 2
+  - question: >-
+      ¿Qué se espera que los oyentes experimenten al escuchar este episodio,
+      según el contenido?
+    options:
+      - Aprender nuevos conceptos técnicos
+      - Debatir sobre filosofía compleja
+      - 'Desconectar, reír y sentirse identificado'
+      - Recibir asesoramiento profesional
+    correctAnswer: 2
+  - question: >-
+      ¿Qué es lo que realmente conecta a Carlos y Gustavo en esta conversación,
+      más allá de lo técnico?
+    options:
+      - Su conocimiento sobre CMS
+      - Sus vivencias diarias
+      - Su afinidad por la academia
+      - Su experiencia en SEO
+    correctAnswer: 1
 ---
 
 **¡Bienvenidos a otro episodio de Veredillas FM!**
