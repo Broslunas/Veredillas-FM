@@ -846,6 +846,79 @@ clips:
     url: 'https://youtu.be/4qJn0MP9dWk'
   - title: Búsqueda de Empleo  Bolsa Extraordinaria y Opción Extranjero
     url: 'https://youtu.be/dJgi5fv3hGk'
+quiz:
+  - question: >-
+      ¿Cuál fue el sueño profesional original del Profesor Alejandro, inspirado
+      por un evento particular?
+    options:
+      - Ser programador informático
+      - Investigar toxinas alimentarias
+      - Ser veterinario
+      - Convertirse en biólogo
+    correctAnswer: 2
+  - question: >-
+      ¿Qué disciplina académica terminó estudiando Alejandro en Extremadura
+      debido a 'los avatares del destino y las notas de corte'?
+    options:
+      - Informática
+      - Veterinaria
+      - Biología
+      - Ingeniería de Redes
+    correctAnswer: 2
+  - question: >-
+      ¿Qué método inusual empleó Alejandro para poder estudiar mientras vivía en
+      un piso congelado en Extremadura?
+    options:
+      - Trabajó a tiempo parcial para pagar internet
+      - Compartió la conexión con sus compañeros de piso
+      - Hackeó éticamente la red Wi-Fi de un vecino
+      - Se conectaba desde la biblioteca universitaria
+    correctAnswer: 2
+  - question: >-
+      ¿Cuáles fueron algunos de los trabajos que desempeñó el Profesor Alejandro
+      antes de dedicarse a la docencia?
+    options:
+      - Desarrollador de software y analista de datos
+      - Investigador de toxinas alimentarias e inspector de sanidad
+      - Profesor particular de informática y biología
+      - Administrador de sistemas y seguridad web
+    correctAnswer: 1
+  - question: >-
+      ¿Cómo describe Alejandro sus inicios como profesor, enfrentándose a clases
+      difíciles?
+    options:
+      - Extremadamente motivadores y fáciles
+      - Rápidos y sin incidentes
+      - Accidentados y con amenazas
+      - Llenos de reconocimiento y éxito inmediato
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál es la filosofía educativa principal del Profesor Alejandro, según se
+      describe en la entrevista?
+    options:
+      - Fomentar la memorización de conceptos clave
+      - Crear alumnos que sigan las normas al pie de la letra
+      - Despertar el pensamiento crítico y 'ser la oveja negra'
+      - Enseñar exclusivamente el currículo oficial sin desviaciones
+    correctAnswer: 2
+  - question: >-
+      ¿Qué elementos de la cultura popular utiliza Alejandro para enseñar
+      conceptos complejos a sus alumnos?
+    options:
+      - Las tramas de películas de ciencia ficción
+      - La historia de los videojuegos clásicos
+      - La genética de Pokémon o Harry Potter
+      - Los personajes de la mitología griega
+    correctAnswer: 2
+  - question: >-
+      ¿Qué lugar mágico recomienda visitar el Profesor Alejandro al final de la
+      entrevista, como reflexión sobre la vida?
+    options:
+      - Un observatorio astronómico
+      - El Mariposario de Icod
+      - Un museo de ciencias naturales
+      - El jardín botánico de la universidad
+    correctAnswer: 1
 ---
 
 **¡Hola! ¡Bienvenido a Veredillas FM, dónde lo mejor del I.E.S. Las Veredillas es Veredillas FM!**
