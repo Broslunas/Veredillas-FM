@@ -13,9 +13,6 @@ import ClipModalWrapper from "../components/player/ClipModalWrapper";
 import AchievementToaster from "../components/AchievementToaster.astro";
 import PushNotifier from "../components/PushNotifier.astro";
 
-import { ClientRouter } from "astro:transitions";
-import GlobalAudioPlayer from "../components/player/GlobalAudioPlayer.astro";
-
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 
@@ -239,7 +236,7 @@ const fullTitle =
 		<!-- Named slot for extra head content (e.g. per-page JSON-LD) -->
 		<slot name="head" />
 
-		<ClientRouter />
+		
 
 		<script is:inline>
 			// Initialize theme from LocalStorage or Cookies
@@ -296,7 +293,7 @@ const fullTitle =
 			};
 
 			init3DHover();
-			document.addEventListener("astro:page-load", init3DHover);
+
 		</script>
 	</head>
 
@@ -318,6 +315,5 @@ const fullTitle =
 		<PushNotifier />
 		<Analytics />
 		<SpeedInsights />
-		<GlobalAudioPlayer />
 	</body>
 </html>

@@ -6,7 +6,6 @@ interface Props {
 
 const { targetDate, title } = Astro.props;
 const isoDate = targetDate.toISOString();
-const PROXY_URL = "https://broslunas-veredillasfm-proxy.hf.space/stream?url=";
 ---
 
 <div class="premiere-countdown" data-target={isoDate}>
@@ -46,18 +45,18 @@ const PROXY_URL = "https://broslunas-veredillasfm-proxy.hf.space/stream?url=";
                 <div class="grid-center">
                     <div class="custom-select-wrapper">
                         <div class="custom-select-trigger" tabindex="0">
-                            <span class="selection">Lofi Chill</span>
+                            <span class="selection">Los 40 Urban</span>
                             <div class="arrow"></div>
                         </div>
                         <div class="custom-options">
-                            <div class="custom-option selected" data-value={PROXY_URL + "https://stream.zeno.fm/0r0xa792kwzuv"}>Lofi Chill</div>
-                            <div class="custom-option" data-value={PROXY_URL + "https://s1.we4stream.com:2020/stream/locaurban"}>Loca Urban</div>
-                            <div class="custom-option" data-value={PROXY_URL + "https://27833.live.streamtheworld.com/LOS40_URBAN.mp3"}>Los 40 Urban</div>
-                            <div class="custom-option" data-value={PROXY_URL + "https://28503.live.streamtheworld.com/LOS40_CAT.mp3"}>Los 40</div>
-                            <div class="custom-option" data-value={PROXY_URL + "https://listen.technobase.fm/tunein-mp3"}>Techno</div>
-                            <div class="custom-option" data-value={PROXY_URL + "https://sunaer-stream.com:7113/LA_MUEVE_CADENA_HD"}>La MUEVE FM</div>
-                            <div class="custom-option" data-value={PROXY_URL + "https://stream-177.zeno.fm/gwmx5szrc0hvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnd214NXN6cmMwaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Ild6UHlGOHdzUkRLeVRHalhZY004SlEiLCJpYXQiOjE3NzUyMTIwMjEsImV4cCI6MTc3NTIxMjA4MX0.NrAFqkqJUVyckzTl0C0RqzdCDxEkgQxGfBkS47sENnQ"}>Rock FM</div>
-                            <div class="custom-option" data-value={PROXY_URL + "http://streaming.indalteco.net:8002/dial.mp3"}>Cadena Dial</div>
+                            <div class="custom-option" data-value="https://27833.live.streamtheworld.com/LOS40_URBAN.mp3">Los 40 Urban</div>
+                            <div class="custom-option selected" data-value="https://stream.zeno.fm/0r0xa792kwzuv">Lofi Chill</div>
+                            <div class="custom-option" data-value="https://s1.we4stream.com:2020/stream/locaurban">Loca Urban</div>
+                            <div class="custom-option" data-value="https://28503.live.streamtheworld.com/LOS40_CAT.mp3">Los 40</div>
+                            <div class="custom-option" data-value="https://listen.technobase.fm/tunein-mp3">Techno</div>
+                            <div class="custom-option" data-value="https://sunaer-stream.com:7113/LA_MUEVE_CADENA_HD">La MUEVE FM</div>
+                            <div class="custom-option" data-value="https://stream-177.zeno.fm/gwmx5szrc0hvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnd214NXN6cmMwaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Ild6UHlGOHdzUkRLeVRHalhZY004SlEiLCJpYXQiOjE3NzUyMTIwMjEsImV4cCI6MTc3NTIxMjA4MX0.NrAFqkqJUVyckzTl0C0RqzdCDxEkgQxGfBkS47sENnQ">Rock FM</div>
+                            <div class="custom-option" data-value="http://streaming.indalteco.net:8002/dial.mp3">Cadena Dial</div>
                         </div>
                     </div>
 
@@ -72,7 +71,7 @@ const PROXY_URL = "https://broslunas-veredillasfm-proxy.hf.space/stream?url=";
                     </button>
                     
                     <audio class="waiting-music" preload="none" loop>
-                        <source src="https://stream.zeno.fm/0r0xa792kwzuv" type="audio/mpeg">
+                        <source src="https://27833.live.streamtheworld.com/LOS40_URBAN.mp3" type="audio/mpeg">
                     </audio>
                 </div>
 
@@ -481,7 +480,7 @@ const PROXY_URL = "https://broslunas-veredillasfm-proxy.hf.space/stream?url=";
             this.volumeSlider = el.querySelector('.volume-slider');
             this.volumeContainer = el.querySelector('.vertical-volume-container');
 
-            this.currentUrl = "https://stream.zeno.fm/0r0xa792kwzuv"; // Default
+            this.currentUrl = "https://27833.live.streamtheworld.com/LOS40_URBAN.mp3"; // Default
             
             this.setupAudio();
             this.start();
