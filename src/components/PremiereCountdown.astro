@@ -35,34 +35,56 @@ const isoDate = targetDate.toISOString();
             </div>
         </div>
         
-        <div class="music-player-container">
-        <div class="music-player-container">
-            <div class="custom-select-wrapper">
-                <div class="custom-select-trigger" tabindex="0">
-                    <span class="selection">Lofi Chill</span>
-                    <div class="arrow"></div>
+        <div class="music-player-wrapper">
+            <!-- Grid-based layout for perfect centering (maintained from fix) -->
+            <div class="player-grid">
+                <!-- Left spacing to balance the volume bar -->
+                <div class="grid-side grid-left"></div>
+                
+                <!-- Center Column: Everything strictly centered -->
+                <div class="grid-center">
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select-trigger" tabindex="0">
+                            <span class="selection">Lofi Chill</span>
+                            <div class="arrow"></div>
+                        </div>
+                        <div class="custom-options">
+                            <div class="custom-option selected" data-value="https://stream.zeno.fm/0r0xa792kwzuv">Lofi Chill</div>
+                            <div class="custom-option" data-value="https://s1.we4stream.com:2020/stream/locaurban">Loca Urban</div>
+                            <div class="custom-option" data-value="https://27833.live.streamtheworld.com/LOS40_URBAN.mp3">Los 40 Urban</div>
+                            <div class="custom-option" data-value="https://28503.live.streamtheworld.com/LOS40_CAT.mp3">Los 40</div>
+                            <div class="custom-option" data-value="https://listen.technobase.fm/tunein-mp3">Techno</div>
+                            <div class="custom-option" data-value="https://sunaer-stream.com:7113/LA_MUEVE_CADENA_HD">La MUEVE FM</div>
+                            <div class="custom-option" data-value="https://stream-177.zeno.fm/gwmx5szrc0hvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnd214NXN6cmMwaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Ild6UHlGOHdzUkRLeVRHalhZY004SlEiLCJpYXQiOjE3NzUyMTIwMjEsImV4cCI6MTc3NTIxMjA4MX0.NrAFqkqJUVyckzTl0C0RqzdCDxEkgQxGfBkS47sENnQ">Rock FM</div>
+                            <div class="custom-option" data-value="http://streaming.indalteco.net:8002/dial.mp3">Cadena Dial</div>
+                        </div>
+                    </div>
+
+                    <button class="music-btn music-toggle-btn" aria-label="Activar música de fondo">
+                        <div class="equalizer">
+                            <span class="bar bar-1"></span>
+                            <span class="bar bar-2"></span>
+                            <span class="bar bar-3"></span>
+                            <span class="bar bar-4"></span>
+                        </div>
+                        <span class="music-label">Activar Música</span>
+                    </button>
+                    
+                    <audio class="waiting-music" preload="none" loop>
+                        <source src="https://stream.zeno.fm/0r0xa792kwzuv" type="audio/mpeg">
+                    </audio>
                 </div>
-                <div class="custom-options">
-                    <div class="custom-option selected" data-value="https://stream.zeno.fm/0r0xa792kwzuv">Lofi Chill</div>
-                    <div class="custom-option" data-value="https://s1.we4stream.com:2020/stream/locaurban">Reggaeton</div>
-                    <div class="custom-option" data-value="https://live.powerhitz.com/1power?aw_0_req.gdpr=true">Trap</div>
-                    <div class="custom-option" data-value="https://listen.technobase.fm/tunein-mp3">Techno</div>
-                    <div class="custom-option" data-value="https://streams.ilovemusic.de/iloveradio10.mp3">Hip Hop</div>
+
+                <!-- Right Column: Vertical Volume Bar -->
+                <div class="grid-side grid-right">
+                    <div class="vertical-volume-container">
+                        <div class="volume-slider-vertical-wrapper">
+                            <input type="range" class="volume-slider vertical" min="0" max="1" step="0.01" value="0.5" aria-label="Volumen">
+                        </div>
+                        <svg class="volume-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path class="volume-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path class="volume-waves-outer" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    </div>
                 </div>
             </div>
-
-            <button class="music-btn music-toggle-btn" aria-label="Activar música de fondo">
-                <div class="equalizer">
-                    <span class="bar bar-1"></span>
-                    <span class="bar bar-2"></span>
-                    <span class="bar bar-3"></span>
-                    <span class="bar bar-4"></span>
-                </div>
-                <span class="music-label">Activar Música</span>
-            </button>
-            <audio class="waiting-music" preload="none" loop>
-                <source src="https://stream.zeno.fm/0r0xa792kwzuv" type="audio/mpeg">
-            </audio>
         </div>
 
         <div class="status-message">Esperando que llegue la hora...</div>
@@ -93,6 +115,7 @@ const isoDate = targetDate.toISOString();
         pointer-events: none;
     }
 
+    /* Reverted Badge Styles */
     .badge {
         background: var(--color-primary);
         color: white;
@@ -106,6 +129,7 @@ const isoDate = targetDate.toISOString();
         box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
     }
 
+    /* Reverted H2 (Episode Title) Styles */
     h2 {
         font-size: clamp(1.5rem, 5vw, 2.5rem);
         margin-bottom: var(--spacing-sm);
@@ -120,6 +144,7 @@ const isoDate = targetDate.toISOString();
         margin-bottom: var(--spacing-xl);
     }
 
+    /* Reverted Timer Styles */
     .timer {
         display: flex;
         align-items: center;
@@ -156,6 +181,7 @@ const isoDate = targetDate.toISOString();
         margin-bottom: 20px; /* Align with numbers */
     }
 
+    /* Reverted Status Message Styles */
     .status-message {
         font-size: 0.9rem;
         color: var(--color-primary);
@@ -167,56 +193,129 @@ const isoDate = targetDate.toISOString();
         50% { opacity: 0.5; }
     }
 
-    /* Music Player Styles */
-    .music-player-container {
-        margin-bottom: var(--spacing-lg);
+    /* Music Player Layout Improvements (Maintained Centering Logic) */
+    .music-player-wrapper {
+        width: 100%;
+        max-width: 600px;
+        margin: 1rem auto 0;
+    }
+
+    .player-grid {
+        display: grid;
+        grid-template-columns: 80px 1fr 80px; 
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .grid-center {
         display: flex;
-        justify-content: center;
         flex-direction: column;
         align-items: center;
         gap: 1.5rem;
+        width: 100%;
     }
 
-    /* Custom Dropdown Styles */
+    .grid-side {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 80px;
+    }
+
+    /* Vertical Volume Bar (Fixed logic) */
+    .vertical-volume-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 10px;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 30px;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: scale(0.9) translateX(10px);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .vertical-volume-container.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: all;
+        transform: scale(1) translateX(0);
+    }
+
+    .volume-slider-vertical-wrapper {
+        height: 100px;
+        width: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .volume-slider.vertical {
+        -webkit-appearance: none;
+        width: 100px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        outline: none;
+        transform: rotate(-90deg);
+        cursor: pointer;
+        position: absolute;
+    }
+
+    .volume-slider.vertical::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: white;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .volume-icon {
+        color: var(--color-text-muted);
+    }
+
+    /* Dropdown Styles */
     .custom-select-wrapper {
         position: relative;
         user-select: none;
         width: 100%;
-        max-width: 300px;
+        max-width: 280px;
+        z-index: 50;
     }
 
     .custom-select-trigger {
-        position: relative;
         display: flex;
         align-items: center;
         justify-content: space-between;
         width: 100%;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 12px 20px;
-        border-radius: 20px;
+        padding: 10px 18px;
+        border-radius: 100px;
         cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .custom-select-trigger:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(10px);
     }
 
     .selection {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         color: var(--color-text-main);
-        font-weight: 500;
     }
 
     .arrow {
-        width: 10px;
-        height: 10px;
-        border-bottom: 2px solid rgba(255,255,255,0.7);
-        border-right: 2px solid rgba(255,255,255,0.7);
+        width: 8px;
+        height: 8px;
+        border-bottom: 2px solid rgba(255,255,255,0.5);
+        border-right: 2px solid rgba(255,255,255,0.5);
         transform: rotate(45deg);
-        transition: transform 0.3s ease;
+        transition: all 0.3s ease;
         margin-top: -4px;
     }
 
@@ -225,29 +324,23 @@ const isoDate = targetDate.toISOString();
         margin-top: 4px;
     }
 
-    .custom-select-wrapper.open .custom-select-trigger {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 139, 92, 246), 0.2);
-    }
-
     .custom-options {
         position: absolute;
-        display: block;
-        top: 100%;
+        bottom: calc(100% + 12px);
         left: 0;
         right: 0;
-        background: #1a1a1a;
+        background: #111;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        margin-top: 8px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border-radius: 16px;
         z-index: 100;
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
-        transform: translateY(-10px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
+        transform: translateY(10px);
+        transition: all 0.3s;
+        backdrop-filter: blur(20px);
+        max-height: 200px;
+        overflow-y: auto;
     }
 
     .custom-select-wrapper.open .custom-options {
@@ -260,19 +353,13 @@ const isoDate = targetDate.toISOString();
     .custom-option {
         padding: 12px 20px;
         cursor: pointer;
-        transition: all 0.2s;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        color: rgba(255,255,255,0.8);
-    }
-
-    .custom-option:last-child {
-        border-bottom: none;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.9rem;
     }
 
     .custom-option:hover {
-        background: rgba(var(--color-primary-rgb, 139, 92, 246), 0.2);
+        background: rgba(139, 92, 246, 0.15);
         color: white;
-        padding-left: 25px;
     }
 
     .custom-option.selected {
@@ -283,30 +370,19 @@ const isoDate = targetDate.toISOString();
     .music-btn {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 8px 16px;
-        border-radius: 20px;
+        padding: 10px 20px;
+        border-radius: 100px;
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         color: var(--color-text-muted);
-        transition: all 0.3s ease;
-    }
-
-    .music-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        transform: translateY(-2px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .music-btn.playing {
-        background: rgba(139, 92, 246, 0.2);
-        border-color: rgba(139, 92, 246, 0.4);
-        color: #a78bfa;
-        box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
-    }
-
-    .music-btn.playing .music-label {
+        background: rgba(139, 92, 246, 0.15);
+        border-color: var(--color-primary);
         color: white;
     }
 
@@ -335,48 +411,30 @@ const isoDate = targetDate.toISOString();
     .bar-4 { height: 5px; }
 
     @keyframes eq {
-        0% { height: 4px; }
+        0%, 100% { height: 4px; }
         50% { height: 12px; }
-        100% { height: 4px; }
     }
 
-    @media (max-width: 600px) {
-        .premiere-countdown {
-            padding: var(--spacing-md);
-            min-height: 300px;
+    @media (max-width: 630px) {
+        .player-grid {
+            grid-template-columns: 1fr;
+            justify-items: center;
+        }
+        .grid-left { display: none; }
+        .grid-side { width: auto; }
+        .vertical-volume-container {
+            flex-direction: row;
+            padding: 8px 16px;
+        }
+        .volume-slider-vertical-wrapper {
+            height: 30px;
+            width: 100px;
+        }
+        .volume-slider.vertical {
+            transform: none;
             width: 100%;
-            max-width: 100vw;
-            box-sizing: border-box;
+            position: relative;
         }
-
-        .timer {
-            gap: var(--spacing-xs, 0.5rem);
-            width: 100%;
-            justify-content: space-between; /* Distribute space evenly if needed or keep center */
-        }
-
-        .time-unit {
-            min-width: unset;
-        }
-
-        .value { 
-            font-size: clamp(1.5rem, 8vw, 2rem); 
-        }
-
-        .label {
-            font-size: 0.6rem;
-        }
-
-        .separator { 
-            font-size: 1.2rem;
-            margin-bottom: 12px;
-        }
-    }
-
-    @media (max-width: 380px) {
-        .value { font-size: 1.2rem; }
-        .separator { font-size: 1rem; }
-        .badge { font-size: 0.7rem; padding: 2px 8px; }
     }
 </style>
 
@@ -397,6 +455,8 @@ const isoDate = targetDate.toISOString();
         vibeSelectTrigger: HTMLElement | null;
         vibeOptions: NodeListOf<HTMLElement>;
         selectionText: HTMLElement | null;
+        volumeSlider: HTMLInputElement | null;
+        volumeContainer: HTMLElement | null;
         isPlaying: boolean = false;
         currentUrl: string;
 
@@ -417,6 +477,8 @@ const isoDate = targetDate.toISOString();
             this.vibeSelectTrigger = el.querySelector('.custom-select-trigger');
             this.vibeOptions = el.querySelectorAll('.custom-option');
             this.selectionText = el.querySelector('.selection');
+            this.volumeSlider = el.querySelector('.volume-slider');
+            this.volumeContainer = el.querySelector('.vertical-volume-container');
 
             this.currentUrl = "https://stream.zeno.fm/0r0xa792kwzuv"; // Default
             
@@ -489,12 +551,22 @@ const isoDate = targetDate.toISOString();
             
             this.audio.volume = 0.5;
             
+            // Volume Slider Logic
+            if(this.volumeSlider) {
+                this.volumeSlider.addEventListener('input', (e) => {
+                    const val = parseFloat((e.target as HTMLInputElement).value);
+                    if(this.audio) this.audio.volume = val;
+                    this.updateVolumeIcon(val);
+                });
+            }
+            
             // Handle audio errors
             this.audio.addEventListener('error', (e) => {
                 console.error('Audio stream error:', this.audio?.error);
                 if(this.musicLabel) this.musicLabel.textContent = "Error de conexión";
                 this.isPlaying = false;
                 this.musicBtn?.classList.remove('playing');
+                this.updateVolumeVisibility();
             });
         }
 
@@ -511,9 +583,8 @@ const isoDate = targetDate.toISOString();
             
             if (newUrl && this.audio) {
                 this.currentUrl = newUrl;
-                this.audio.src = newUrl; // Direct source change
+                this.audio.src = newUrl;
                 
-                // If it was playing, play the new one immediately
                 if (this.isPlaying) {
                      if(this.musicLabel) this.musicLabel.textContent = `Conectando con ${genreName}...`;
                      this.audio.play().then(() => {
@@ -522,11 +593,37 @@ const isoDate = targetDate.toISOString();
                          console.error("Switch play failed:", e);
                          this.isPlaying = false;
                          this.musicBtn?.classList.remove('playing');
+                         this.updateVolumeVisibility();
                      });
                 } else {
-                    // Update label but don't play yet
                     if(this.musicLabel) this.musicLabel.textContent = `Activar ${genreName}`;
                 }
+            }
+        }
+
+        updateVolumeIcon(volume: number) {
+            const waves = this.el.querySelector('.volume-waves') as HTMLElement;
+            const outerWaves = this.el.querySelector('.volume-waves-outer') as HTMLElement;
+            
+            if(!waves || !outerWaves) return;
+
+            if (volume === 0) {
+                waves.style.opacity = '0';
+                outerWaves.style.opacity = '0';
+            } else if (volume < 0.5) {
+                waves.style.opacity = '1';
+                outerWaves.style.opacity = '0';
+            } else {
+                waves.style.opacity = '1';
+                outerWaves.style.opacity = '1';
+            }
+        }
+
+        updateVolumeVisibility() {
+            if (this.isPlaying) {
+                this.volumeContainer?.classList.add('show');
+            } else {
+                this.volumeContainer?.classList.remove('show');
             }
         }
 
@@ -537,14 +634,10 @@ const isoDate = targetDate.toISOString();
                 this.audio.pause();
                 this.isPlaying = false;
                 this.musicBtn.classList.remove('playing');
-                // Reset label to current selection
                 const genreName = this.selectionText ? this.selectionText.textContent : "Música";
                 if(this.musicLabel) this.musicLabel.textContent = `Activar ${genreName}`;
             } else {
                 if(this.musicLabel) this.musicLabel.textContent = "Conectando...";
-                
-                // Update source if needed (ensure cache busting isn't blocking us, but usually streams handle it)
-                // For switching genres we already updated .src so we just play()
                 
                 this.audio.play().then(() => {
                     this.isPlaying = true;
@@ -556,14 +649,16 @@ const isoDate = targetDate.toISOString();
                     this.isPlaying = false;
                     this.musicBtn!.classList.remove('playing');
                     if(this.musicLabel) this.musicLabel!.textContent = "No disponible";
+                }).finally(() => {
+                    this.updateVolumeVisibility();
                 });
             }
+            this.updateVolumeVisibility();
         }
 
         async finish() {
             if(this.interval) clearInterval(this.interval);
             
-            // Fade out music if playing
             if (this.audio && this.isPlaying) {
                 const fadeAudio = setInterval(() => {
                     if (this.audio && this.audio.volume > 0.05) {
@@ -575,45 +670,35 @@ const isoDate = targetDate.toISOString();
                 }, 100);
             }
             
-            // 1. CONFETTI ALERT!
             // @ts-ignore
             import('canvas-confetti').then(({ default: confetti }) => {
                  this.fireConfetti(confetti);
             });
             
-            // 2. UI Transition
             const countdownWrapper = document.getElementById('premiere-countdown-wrapper');
             const playerWrapper = document.getElementById('premiere-player-wrapper');
 
             if(countdownWrapper && playerWrapper) {
-                // Fade out countdown
                 countdownWrapper.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
                 countdownWrapper.style.opacity = '0';
                 countdownWrapper.style.transform = 'scale(0.95)';
                 
-                // Show player container
                 playerWrapper.classList.remove('hidden');
                 playerWrapper.style.display = 'block';
                 
-                // Wait small tick then fade in
                 setTimeout(() => {
                     playerWrapper.style.opacity = '1';
-                    
-                    // Remove countdown from DOM after fade
                     setTimeout(() => {
                          countdownWrapper.style.display = 'none';
-                         // Dispatch event to notify others (like MiniPlayer to auto-start)
                          document.dispatchEvent(new CustomEvent('premiere-started'));
                     }, 1000);
                 }, 100);
             } else {
-                 // Fallback if structure missing
                  window.location.reload();
             }
         }
 
         instantFinish() {
-            // Instantly swap to the player without any animation or confetti
             if(this.interval) clearInterval(this.interval);
             
             const countdownWrapper = document.getElementById('premiere-countdown-wrapper');
@@ -621,12 +706,10 @@ const isoDate = targetDate.toISOString();
 
             if(countdownWrapper && playerWrapper) {
                 countdownWrapper.style.display = 'none';
-                
                 playerWrapper.classList.remove('hidden');
                 playerWrapper.style.display = 'block';
                 playerWrapper.style.opacity = '1';
-                playerWrapper.style.transition = 'none'; // remove transition for instant show
-                
+                playerWrapper.style.transition = 'none';
                 document.dispatchEvent(new CustomEvent('premiere-started'));
             } else {
                  window.location.reload();
@@ -635,9 +718,7 @@ const isoDate = targetDate.toISOString();
 
         fireConfetti(confetti: any) {
             const count = 200;
-            const defaults = {
-                origin: { y: 0.7 }
-            };
+            const defaults = { origin: { y: 0.7 } };
 
             function fire(particleRatio: number, opts: any) {
                 confetti({
