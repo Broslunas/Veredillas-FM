@@ -1,0 +1,566 @@
+---
+// GlobalAudioPlayer.astro
+// Persistent bottom audio bar — survives View Transitions via transition:persist
+---
+
+<div
+    id="global-player"
+    transition:persist
+    class="global-player hidden"
+    aria-label="Reproductor global"
+    role="region"
+>
+    <audio id="global-audio" preload="none"></audio>
+
+    <!-- Cover + info -->
+    <a id="gp-link" href="#" class="gp-info" aria-label="Ir al episodio">
+        <img id="gp-cover" src="/logo.webp" alt="" width="48" height="48" />
+        <div class="gp-meta">
+            <span id="gp-title" class="gp-title">—</span>
+            <span id="gp-author" class="gp-author">Veredillas FM</span>
+        </div>
+    </a>
+
+    <!-- Controls -->
+    <div class="gp-controls">
+        <button id="gp-rewind" class="gp-btn" aria-label="Retroceder 10s">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                ></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"
+                ></path></svg
+            >
+        </button>
+        <button id="gp-play" class="gp-btn gp-play-btn" aria-label="Reproducir">
+            <svg
+                id="gp-icon-play"
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                ><polygon points="5 3 19 12 5 21 5 3"></polygon></svg
+            >
+            <svg
+                id="gp-icon-pause"
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="hidden"
+                ><rect x="6" y="4" width="4" height="16"></rect><rect
+                    x="14"
+                    y="4"
+                    width="4"
+                    height="16"></rect></svg
+            >
+        </button>
+        <button id="gp-forward" class="gp-btn" aria-label="Avanzar 30s">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"
+                ></path><path d="M21 3v5h-5"></path><path d="M12 7v5l4 2"
+                ></path></svg
+            >
+        </button>
+    </div>
+
+    <!-- Progress -->
+    <div class="gp-progress-area">
+        <span id="gp-current" class="gp-time">0:00</span>
+        <div
+            class="gp-progress-track"
+            id="gp-track"
+            role="slider"
+            aria-label="Progreso"
+            tabindex="0"
+        >
+            <div id="gp-progress-fill" class="gp-progress-fill"></div>
+            <div id="gp-progress-thumb" class="gp-progress-thumb"></div>
+        </div>
+        <span id="gp-duration" class="gp-time">0:00</span>
+    </div>
+
+    <!-- Speed + Close -->
+    <div class="gp-right">
+        <button id="gp-speed" class="gp-btn gp-speed-btn" aria-label="Velocidad"
+            >1×</button
+        >
+        <a
+            id="gp-open"
+            href="#"
+            class="gp-btn"
+            aria-label="Abrir episodio"
+            title="Abrir episodio"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><path
+                    d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                ></path><polyline points="15 3 21 3 21 9"></polyline><line
+                    x1="10"
+                    y1="14"
+                    x2="21"
+                    y2="3"></line></svg
+            >
+        </a>
+        <button id="gp-close" class="gp-btn" aria-label="Cerrar reproductor">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                    x1="6"
+                    y1="6"
+                    x2="18"
+                    y2="18"></line></svg
+            >
+        </button>
+    </div>
+</div>
+
+<style>
+    .global-player {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 9998;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 20px;
+        background: rgba(15, 15, 15, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+        transform: translateY(0);
+        transition:
+            transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 0.3s ease;
+    }
+
+    .global-player.hidden {
+        transform: translateY(110%);
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    /* Info */
+    .gp-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        flex: 0 0 auto;
+        max-width: 220px;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    #gp-cover {
+        width: 44px;
+        height: 44px;
+        border-radius: 6px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gp-meta {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .gp-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px;
+    }
+
+    .gp-author {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.45);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Controls */
+    .gp-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .gp-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.75);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+            color 0.15s,
+            background 0.15s;
+        line-height: 1;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .gp-btn:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .gp-play-btn {
+        width: 40px;
+        height: 40px;
+        background: var(--color-primary, #8b5cf6);
+        color: #fff;
+        border-radius: 50%;
+    }
+
+    .gp-play-btn:hover {
+        background: var(--color-primary-hover, #7c3aed);
+        color: #fff;
+    }
+
+    /* Progress */
+    .gp-progress-area {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .gp-time {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.4);
+        flex-shrink: 0;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .gp-progress-track {
+        flex: 1;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 2px;
+        position: relative;
+        cursor: pointer;
+        transition: height 0.15s;
+    }
+
+    .gp-progress-track:hover {
+        height: 6px;
+    }
+
+    .gp-progress-fill {
+        height: 100%;
+        background: var(--color-primary, #8b5cf6);
+        border-radius: 2px;
+        width: 0%;
+        pointer-events: none;
+    }
+
+    .gp-progress-thumb {
+        position: absolute;
+        top: 50%;
+        left: 0%;
+        transform: translate(-50%, -50%);
+        width: 12px;
+        height: 12px;
+        background: #fff;
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.15s;
+        pointer-events: none;
+    }
+
+    .gp-progress-track:hover .gp-progress-thumb {
+        opacity: 1;
+    }
+
+    /* Right side */
+    .gp-right {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+
+    .gp-speed-btn {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 4px;
+        min-width: 36px;
+        text-align: center;
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+        .global-player {
+            padding: 8px 12px;
+            gap: 8px;
+        }
+        .gp-info {
+            max-width: 120px;
+        }
+        .gp-title {
+            max-width: 100px;
+        }
+        .gp-progress-area {
+            display: none;
+        }
+        #gp-rewind,
+        #gp-forward {
+            display: none;
+        }
+        .gp-speed-btn {
+            display: none;
+        }
+        #gp-open {
+            display: none;
+        }
+    }
+
+    .hidden {
+        display: none !important;
+    }
+</style>
+
+<script is:inline>
+    (function () {
+        const SPEEDS = [0.75, 1, 1.25, 1.5, 2];
+        let speedIdx = 1;
+        let isDragging = false;
+
+        // Add bottom padding to body when player is visible
+        function syncBodyPadding(visible) {
+            document.body.style.paddingBottom = visible ? "72px" : "";
+        }
+        let currentSlug = null;
+
+        const player = document.getElementById("global-player");
+        const audio = document.getElementById("global-audio");
+        const btnPlay = document.getElementById("gp-play");
+        const iconPlay = document.getElementById("gp-icon-play");
+        const iconPause = document.getElementById("gp-icon-pause");
+        const btnRewind = document.getElementById("gp-rewind");
+        const btnForward = document.getElementById("gp-forward");
+        const btnSpeed = document.getElementById("gp-speed");
+        const btnClose = document.getElementById("gp-close");
+        const track = document.getElementById("gp-track");
+        const fill = document.getElementById("gp-progress-fill");
+        const thumb = document.getElementById("gp-progress-thumb");
+        const elCurrent = document.getElementById("gp-current");
+        const elDuration = document.getElementById("gp-duration");
+        const elTitle = document.getElementById("gp-title");
+        const elAuthor = document.getElementById("gp-author");
+        const elCover = document.getElementById("gp-cover");
+        const elLink = document.getElementById("gp-link");
+        const elOpen = document.getElementById("gp-open");
+
+        function fmt(s) {
+            if (!isFinite(s) || s < 0) return "0:00";
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m}:${sec.toString().padStart(2, "0")}`;
+        }
+
+        function setPlaying(playing) {
+            iconPlay.classList.toggle("hidden", playing);
+            iconPause.classList.toggle("hidden", !playing);
+        }
+
+        function updateProgress() {
+            if (!audio.duration || isDragging) return;
+            const pct = (audio.currentTime / audio.duration) * 100;
+            fill.style.width = pct + "%";
+            thumb.style.left = pct + "%";
+            elCurrent.textContent = fmt(audio.currentTime);
+        }
+
+        audio.addEventListener("timeupdate", updateProgress);
+        audio.addEventListener("durationchange", () => {
+            elDuration.textContent = fmt(audio.duration);
+        });
+        audio.addEventListener("play", () => setPlaying(true));
+        audio.addEventListener("pause", () => setPlaying(false));
+        audio.addEventListener("ended", () => setPlaying(false));
+
+        btnPlay.addEventListener("click", () => {
+            if (audio.paused) audio.play();
+            else audio.pause();
+        });
+
+        btnRewind.addEventListener("click", () => {
+            audio.currentTime = Math.max(0, audio.currentTime - 10);
+        });
+        btnForward.addEventListener("click", () => {
+            audio.currentTime = Math.min(
+                audio.duration || 0,
+                audio.currentTime + 30,
+            );
+        });
+
+        btnSpeed.addEventListener("click", () => {
+            speedIdx = (speedIdx + 1) % SPEEDS.length;
+            audio.playbackRate = SPEEDS[speedIdx];
+            btnSpeed.textContent = SPEEDS[speedIdx] + "×";
+        });
+
+        btnClose.addEventListener("click", () => {
+            audio.pause();
+            player.classList.add("hidden");
+            syncBodyPadding(false);
+            currentSlug = null;
+            window._gpState = null;
+        });
+
+        // Seek via click on track
+        function seekTo(e) {
+            const rect = track.getBoundingClientRect();
+            const pct = Math.max(
+                0,
+                Math.min(1, (e.clientX - rect.left) / rect.width),
+            );
+            audio.currentTime = pct * (audio.duration || 0);
+        }
+
+        track.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            seekTo(e);
+        });
+        document.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            seekTo(e);
+        });
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+
+        // Touch support
+        track.addEventListener(
+            "touchstart",
+            (e) => {
+                isDragging = true;
+                seekTo(e.touches[0]);
+            },
+            { passive: true },
+        );
+        document.addEventListener(
+            "touchmove",
+            (e) => {
+                if (!isDragging) return;
+                seekTo(e.touches[0]);
+            },
+            { passive: true },
+        );
+        document.addEventListener("touchend", () => {
+            isDragging = false;
+        });
+
+        // Load episode into global player
+        function loadEpisode(detail) {
+            const { audioUrl, title, author, cover, slug, href, autoplay } =
+                detail;
+            if (!audioUrl) return;
+
+            const isSame = currentSlug && currentSlug === slug;
+
+            if (!isSame) {
+                audio.src = audioUrl;
+                audio.load();
+                currentSlug = slug || null;
+                speedIdx = 1;
+                audio.playbackRate = 1;
+                btnSpeed.textContent = "1×";
+                fill.style.width = "0%";
+                thumb.style.left = "0%";
+                elCurrent.textContent = "0:00";
+                elDuration.textContent = "0:00";
+            }
+
+            elTitle.textContent = title || "—";
+            elAuthor.textContent = author || "Veredillas FM";
+            elCover.src = cover || "/logo.webp";
+            elCover.alt = title || "";
+
+            const epHref = href || (slug ? `/ep/${slug}` : "#");
+            elLink.href = epHref;
+            elOpen.href = epHref;
+
+            player.classList.remove("hidden");
+            syncBodyPadding(true);
+
+            if (autoplay !== false) {
+                audio.play().catch(() => {});
+            }
+
+            // Persist state so View Transitions can restore it
+            window._gpState = { audioUrl, title, author, cover, slug, href };
+        }
+
+        // Listen for play requests from anywhere in the app
+        document.addEventListener("veredillas:play-episode", (e) => {
+            loadEpisode(e.detail);
+        });
+
+        // Restore state after View Transition navigation
+        document.addEventListener("astro:page-load", () => {
+            if (window._gpState && !audio.paused) {
+                // Player is already playing — just keep it visible
+                player.classList.remove("hidden");
+                syncBodyPadding(true);
+            }
+        });
+
+        // Expose for external use
+        window.vfmGlobalPlayer = { load: loadEpisode };
+    })();
+</script>

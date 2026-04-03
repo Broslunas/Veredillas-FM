@@ -18,7 +18,7 @@ const episodeDates = {};
 // Helper to get dynamic pages for sitemap (since we use SSR)
 function getCustomPages() {
   const pages = [];
-  
+
   // Episodios
   try {
     const episodios = globSync('src/content/episodios/*.md');
@@ -26,19 +26,19 @@ function getCustomPages() {
       const slug = path.basename(file, '.md');
       const url = `${SITE_URL}/ep/${slug}`; // Ensure no trailing slash for consistency check
       pages.push(url);
-      
+
       // Read file content to get pubDate from frontmatter
       // This is more reliable than fs.stats which resets on new clones/deploys
       try {
         const content = fs.readFileSync(file, 'utf-8');
         const match = content.match(/pubDate:\s*(["']?)(.*)\1/);
         if (match && match[2]) {
-            const dateStr = match[2].trim();
-            // Ensure valid date
-            const date = new Date(dateStr);
-            if (!isNaN(date.getTime())) {
-                episodeDates[url] = date.toISOString();
-            }
+          const dateStr = match[2].trim();
+          // Ensure valid date
+          const date = new Date(dateStr);
+          if (!isNaN(date.getTime())) {
+            episodeDates[url] = date.toISOString();
+          }
         }
       } catch (err) {
         // Fallback to file stats if regex fails or file read error
@@ -61,13 +61,17 @@ export default defineConfig({
   security: {
     checkOrigin: false
   },
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'viewport'
+  },
 
   integrations: [
     react(),
     tailwind(),
     sitemap({
       customPages: getCustomPages(),
-      filter: (page) => 
+      filter: (page) =>
         !page.includes('/newsletter/confirm') &&
         !page.includes('/verify-comment') &&
         !page.includes('/verify-delete') &&
@@ -85,44 +89,44 @@ export default defineConfig({
 
         // Home
         if (item.url === `${SITE_URL}/`) {
-            item.changefreq = 'daily';
-            item.priority = 1.0;
+          item.changefreq = 'daily';
+          item.priority = 1.0;
         }
-        
+
         // Blog Index & Episodes Index
         else if (item.url === `${SITE_URL}/blog/` || item.url === `${SITE_URL}/ep/`) {
-            item.changefreq = 'weekly';
-            item.priority = 0.8;
+          item.changefreq = 'weekly';
+          item.priority = 0.8;
         }
 
         // Episodes Details
         else if (item.url.includes('/ep/')) {
-            item.changefreq = 'monthly'; // Ep content doesn't change often
-            item.priority = 0.7;
-            
-            // Apply real lastmod if we have it (normalize URL to match key)
-            const cleanUrl = item.url.replace(/\/$/, ''); 
-            if (episodeDates[cleanUrl]) {
-                item.lastmod = episodeDates[cleanUrl];
-            }
+          item.changefreq = 'monthly'; // Ep content doesn't change often
+          item.priority = 0.7;
+
+          // Apply real lastmod if we have it (normalize URL to match key)
+          const cleanUrl = item.url.replace(/\/$/, '');
+          if (episodeDates[cleanUrl]) {
+            item.lastmod = episodeDates[cleanUrl];
+          }
         }
-        
+
         // Blog Posts
         else if (item.url.includes('/blog/')) {
-             item.changefreq = 'monthly';
-             item.priority = 0.7;
+          item.changefreq = 'monthly';
+          item.priority = 0.7;
         }
-        
+
         // Contact, Team, About
         else if (item.url.includes('/contacto') || item.url.includes('/equipo') || item.url.includes('/about')) {
-            item.changefreq = 'monthly';
-            item.priority = 0.6;
+          item.changefreq = 'monthly';
+          item.priority = 0.6;
         }
-        
+
         // Legal
         else if (item.url.includes('/politica') || item.url.includes('/terminos') || item.url.includes('/cookies')) {
-            item.changefreq = 'yearly';
-            item.priority = 0.1;
+          item.changefreq = 'yearly';
+          item.priority = 0.1;
         }
 
         return item;
@@ -132,11 +136,11 @@ export default defineConfig({
 
   vite: {
     ssr: {
-        noExternal: ['satori']
+      noExternal: ['satori']
     },
 
     optimizeDeps: {
-        exclude: ['@resvg/resvg-js'] 
+      exclude: ['@resvg/resvg-js']
     }
   }
 });

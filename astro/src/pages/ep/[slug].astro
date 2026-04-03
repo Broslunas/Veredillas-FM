@@ -1,0 +1,1698 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import Comments from "../../components/Comments.astro";
+import SocialShare from "../../components/SocialShare.astro";
+import RelatedEpisodes from "../../components/RelatedEpisodes.astro";
+import EpisodeParticipants from "../../components/EpisodeParticipants.astro";
+import TranscriptionWidget from "../../components/TranscriptionWidget.astro";
+import EpisodeSections from "../../components/EpisodeSections.astro";
+import EpisodeClips from "../../components/EpisodeClips.astro";
+import SidebarWidget from "../../components/SidebarWidget.astro";
+import FavoriteButton from "../../components/FavoriteButton.astro";
+import EpisodeRating from "../../components/EpisodeRating.astro";
+import LikeDislikeGroup from "../../components/LikeDislikeGroup.astro";
+import PlaylistManager from "../../components/PlaylistManager.astro";
+import PlaylistSidebar from "../../components/PlaylistSidebar.astro";
+
+import PremiereCountdown from "../../components/PremiereCountdown.astro";
+import LiveChat from "../../components/LiveChat.astro";
+import ListenerCount from "../../components/ListenerCount.astro";
+import EpisodeActions from "../../components/EpisodeActions.astro";
+import CinemaAudioPlayer from "../../components/player/CinemaAudioPlayer.tsx";
+import EpisodeQuiz from "../../components/EpisodeQuiz.tsx";
+import QuizModal from "../../components/QuizModal.tsx";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+    const episodes = await getCollection("episodios");
+    return episodes.map((entry) => ({
+        params: { slug: entry.slug },
+        props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+const { slug } = Astro.params;
+
+if (!entry) {
+    return Astro.redirect("/404");
+}
+const { Content } = await entry.render();
+
+const formattedDate = entry.data.pubDate.toLocaleDateString("es-ES", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+});
+
+const isPremiere = entry.data.isPremiere ?? false;
+const isUpcoming = isPremiere && new Date() < entry.data.pubDate;
+
+// Calculate if premiere ended
+let hasPremiereEnded = false;
+let premiereEndTimeMs = 0;
+if (isPremiere && entry.data.duration) {
+    const durationStr = entry.data.duration;
+    let durationMs = 0;
+
+    if (durationStr.toLowerCase().includes("min")) {
+        durationMs = parseInt(durationStr) * 60 * 1000;
+    } else if (durationStr.includes(":")) {
+        const parts = durationStr.split(":").map(Number);
+        if (parts.length === 2) durationMs = (parts[0] * 60 + parts[1]) * 1000;
+        else if (parts.length === 3)
+            durationMs = (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000;
+    }
+
+    const premiereEndTime = new Date(entry.data.pubDate.getTime() + durationMs);
+    premiereEndTimeMs = premiereEndTime.getTime();
+    hasPremiereEnded = new Date() > premiereEndTime;
+}
+
+// State definition for static shell
+let savedProgress = 0;
+let listenedEpisodes: string[] = [];
+let favoriteEpisodes: string[] = [];
+
+// --- Schema.org data ---
+const siteUrl =
+    Astro.site?.href?.replace(/\/$/, "") ?? "https://veredillasfm.es";
+const canonicalEpisodeUrl = `${siteUrl}/ep/${slug}`;
+const ogImageUrl = `${siteUrl}/og/${slug}.png`;
+const relativeOgImageUrl = `/og/${slug}.png`;
+
+// Build PodcastEpisode JSON-LD
+const podcastEpisodeSchema = {
+    "@context": "https://schema.org",
+    "@type": "PodcastEpisode",
+    "@id": canonicalEpisodeUrl,
+    url: canonicalEpisodeUrl,
+    name: entry.data.title,
+    description: entry.data.description,
+    datePublished: entry.data.pubDate.toISOString(),
+    ...(entry.data.duration
+        ? {
+              duration: (() => {
+                  const dur = entry.data.duration!;
+                  if (dur.includes("?")) return undefined;
+                  // "37 min" or "37min"
+                  const minOnly = dur.match(/^(\d+)\s*min/i);
+                  if (minOnly) return `PT${minOnly[1]}M`;
+                  // "1h 30min"
+                  const hourMin = dur.match(/(\d+)\s*h[a-z]*\s*(\d+)?\s*m?/i);
+                  if (hourMin) return `PT${hourMin[1]}H${hourMin[2] ?? "0"}M`;
+                  // "MM:SS" or "HH:MM:SS"
+                  const parts = dur.split(":").map(Number);
+                  if (parts.length === 2) return `PT${parts[0]}M${parts[1]}S`;
+                  if (parts.length === 3)
+                      return `PT${parts[0]}H${parts[1]}M${parts[2]}S`;
+                  return undefined;
+              })(),
+          }
+        : {}),
+    image: entry.data.image
+        ? entry.data.image.startsWith("http")
+            ? entry.data.image
+            : `${siteUrl}${entry.data.image}`
+        : ogImageUrl,
+    thumbnailUrl: entry.data.image
+        ? entry.data.image.startsWith("http")
+            ? entry.data.image
+            : `${siteUrl}${entry.data.image}`
+        : ogImageUrl,
+    ...(entry.data.audioUrl
+        ? {
+              associatedMedia: {
+                  "@type": "MediaObject",
+                  contentUrl: entry.data.audioUrl,
+              },
+          }
+        : {}),
+    ...(entry.data.spotifyUrl ? { sameAs: [entry.data.spotifyUrl] } : {}),
+    partOfSeries: {
+        "@type": "PodcastSeries",
+        "@id": siteUrl,
+        name: "Veredillas FM",
+        description:
+            "El podcast oficial del IES Veredillas. Entrevistas exclusivas, noticias del instituto, cultura estudiantil y mucho más.",
+        url: siteUrl,
+        image: `${siteUrl}/logo.webp`,
+    },
+    episodeNumber: entry.data.episode,
+    ...(entry.data.season !== undefined
+        ? {
+              partOfSeason: {
+                  "@type": "PodcastSeason",
+                  seasonNumber: entry.data.season,
+              },
+          }
+        : {}),
+    author: { "@type": "Person", name: entry.data.author },
+    publisher: {
+        "@type": "Organization",
+        name: "Veredillas FM",
+        url: siteUrl,
+        logo: { "@type": "ImageObject", url: `${siteUrl}/logo.webp` },
+    },
+    keywords: entry.data.tags?.join(", "),
+    inLanguage: "es-ES",
+};
+
+const timeToSeconds = (timeStr: string) => {
+    const parts = timeStr.split(":").map(Number);
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    return 0;
+};
+
+const formattedTranscription = entry.data.transcription?.map((t) => ({
+    ...t,
+    time: timeToSeconds(t.time),
+}));
+
+const participantsSlugs = entry.data.participants || [];
+const allGuests = await getCollection("guests");
+const episodeGuests = allGuests.filter((guest) =>
+    participantsSlugs.includes(guest.data.name),
+);
+
+// --- Next episodes logic for the end screen ---
+const allEpisodes = await getCollection("episodios");
+const now = new Date();
+const candidates = allEpisodes
+    .filter((ep) => ep.slug !== slug && ep.data.pubDate <= now)
+    .map((ep) => {
+        const episodeTags = ep.data.tags || [];
+        const contextMatches = episodeTags.filter((t) =>
+            entry.data.tags?.includes(t),
+        ).length;
+        return {
+            ep,
+            score: contextMatches * 3,
+            date: ep.data.pubDate.valueOf(),
+        };
+    });
+
+candidates.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return b.date - a.date;
+});
+
+const nextEpisodes = candidates.slice(0, 3).map((c) => ({
+    slug: c.ep.slug,
+    title: c.ep.data.title,
+    image: c.ep.data.image,
+    author: c.ep.data.author,
+    duration: c.ep.data.duration,
+    season: c.ep.data.season,
+    episode: c.ep.data.episode,
+}));
+---
+
+<Layout
+    title={entry.data.title}
+    description={entry.data.description}
+    image={`/og/${slug}.png`}
+    imageAlt={entry.data.title}
+    type="article"
+    publishedTime={entry.data.pubDate.toISOString()}
+    author={entry.data.author}
+    tags={[
+        `Temporada ${entry.data.season}`,
+        `Episodio ${entry.data.episode}`,
+        "podcast",
+        "audio",
+    ]}
+    canonicalURL={canonicalEpisodeUrl}
+>
+    <!-- Schema.org PodcastEpisode Structured Data -->
+    <!-- Global player sync: register this episode so the persistent bar reflects it -->
+    {entry.data.audioUrl && !isUpcoming && (
+        <script is:inline
+            data-audio-url={entry.data.audioUrl}
+            data-title={entry.data.title}
+            data-author={entry.data.author}
+            data-cover={entry.data.image || '/logo.webp'}
+            data-slug={entry.slug}
+            data-href={`/ep/${entry.slug}`}
+        >
+            (function() {
+                var s = document.currentScript;
+                var detail = {
+                    audioUrl: s.dataset.audioUrl,
+                    title: s.dataset.title,
+                    author: s.dataset.author,
+                    cover: s.dataset.cover,
+                    slug: s.dataset.slug,
+                    href: s.dataset.href,
+                    autoplay: false, // don't auto-play; user controls the in-page player
+                };
+                // Fire immediately or after page-load
+                function fire() {
+                    document.dispatchEvent(new CustomEvent('veredillas:play-episode', { detail: detail }));
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', fire, { once: true });
+                } else {
+                    fire();
+                }
+            })();
+        </script>
+    )}
+    <script
+        type="application/ld+json"
+        set:html={JSON.stringify(podcastEpisodeSchema)}
+        slot="head"
+    />
+
+    <div class="cinema-layout container">
+        <main class="main-content" style="overflow-x: hidden; min-width: 0;">
+            {
+                entry.data.warningMessage && (
+                    <div class="warning-banner glass-panel p-5 mb-8 border-l-4 border-amber-500/50 flex items-start gap-4 section-fade">
+                        <div class="bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-6 h-6 text-amber-500"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                                <path d="M12 9v4" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-500/80 mb-1.5">
+                                Aviso de contenido / Nota importante
+                            </p>
+                            <p class="text-zinc-100 text-[15px] leading-relaxed font-medium">
+                                {entry.data.warningMessage}
+                            </p>
+                        </div>
+                    </div>
+                )
+            }
+            <!-- 1. THE PLAYER AREA -->
+            <section class="player-section section-fade">
+                <div class="player-wrapper shadow-2xl relative">
+                    {
+                        /* 1. MODE SWITCHER - Now integrated into the players' own controls but held in a coordinated div if needed */
+                    }
+
+                    {
+                        isUpcoming && (
+                            <div id="premiere-countdown-wrapper">
+                                <PremiereCountdown
+                                    targetDate={entry.data.pubDate}
+                                    title={entry.data.title}
+                                />
+                            </div>
+                        )
+                    }
+
+                    <div
+                        id="premiere-player-wrapper"
+                        class:list={{ hidden: isUpcoming }}
+                        style={isUpcoming ? "display:none;" : ""}
+                    >
+                        <!-- We'll use a direct player placement here -->
+                        <div
+                            id="episode-player-inner"
+                            class="cinema-player-box group"
+                            data-audio-url={entry.data.audioUrl}
+                            data-spotify-url={entry.data.spotifyUrl}
+                            data-title={entry.data.title}
+                            data-image={entry.data.image}
+                            data-author={entry.data.author}
+                            data-slug={entry.slug}
+                            data-is-premiere={isPremiere}
+                            data-video-url={entry.data.videoUrl}
+                            data-transcription={entry.data.transcription
+                                ? JSON.stringify(entry.data.transcription)
+                                : null}
+                            data-sections={entry.data.sections
+                                ? JSON.stringify(entry.data.sections)
+                                : null}
+                            data-next-episodes={JSON.stringify(nextEpisodes)}
+                        >
+                            {
+                                /* Standard Audio Player Section (Hidden if video mode by default) */
+                            }
+                            <div
+                                id="audio-player-container"
+                                class={entry.data.videoUrl
+                                    ? "hidden"
+                                    : "block relative"}
+                            >
+                                {
+                                    /* Static Placeholder to prevent layout shift during hydration */
+                                }
+                                <div
+                                    class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5"
+                                >
+                                    <div
+                                        class="loader-vfm flex flex-col items-center gap-4"
+                                    >
+                                        <div class="loader-spinner"></div>
+                                        <span
+                                            class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse"
+                                            >Sintonizando...</span
+                                        >
+                                    </div>
+                                    {
+                                        entry.data.image && (
+                                            <img
+                                                src={entry.data.image}
+                                                alt=""
+                                                class="absolute inset-0 w-full h-full object-cover opacity-[0.03] blur-xl grayscale"
+                                            />
+                                        )
+                                    }
+                                </div>
+
+                                <CinemaAudioPlayer
+                                    client:load
+                                    audioUrl={entry.data.audioUrl || ""}
+                                    title={entry.data.title || ""}
+                                    cover={entry.data.image || ""}
+                                    author={entry.data.author ||
+                                        "Veredillas FM"}
+                                    transcription={formattedTranscription}
+                                    slug={entry.slug}
+                                    videoUrl={entry.data.videoUrl}
+                                    sections={entry.data.sections}
+                                    nextEpisodes={nextEpisodes}
+                                />
+                            </div>
+
+                            {/* Video Player Section */}
+                            <div
+                                id="video-player-container"
+                                class={!entry.data.videoUrl
+                                    ? "hidden"
+                                    : "block relative"}
+                            >
+                                {/* Video Placeholder */}
+                                <div
+                                    class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5"
+                                >
+                                    <div
+                                        class="loader-vfm flex flex-col items-center gap-4"
+                                    >
+                                        <div
+                                            class="loader-spinner !border-t-red-500"
+                                        >
+                                        </div>
+                                        <span
+                                            class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse"
+                                            >Iniciando Video...</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            {
+                                !entry.data.audioUrl &&
+                                    !entry.data.spotifyUrl &&
+                                    !entry.data.videoUrl && (
+                                        <div class="player-skeleton bg-zinc-900 rounded-xl aspect-video flex items-center justify-center border border-zinc-800">
+                                            <span class="text-zinc-500 font-medium">
+                                                Contenido no disponible
+                                            </span>
+                                        </div>
+                                    )
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Header (Below Player) -->
+                <header class="player-info py-6">
+                    <h1
+                        class="text-2xl md:text-3xl font-black mb-4 tracking-tight"
+                    >
+                        {entry.data.title}
+                    </h1>
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-zinc-800/50"
+                    >
+                        <div class="author-meta flex items-center gap-3">
+                            <img
+                                src="/logo.webp"
+                                alt="Veredillas FM"
+                                class="w-10 h-10 rounded-full border border-zinc-800"
+                            />
+                            <div class="flex flex-col">
+                                <p
+                                    class="font-bold text-zinc-100 leading-tight"
+                                >
+                                    {entry.data.author}
+                                </p>
+                                <p class="text-xs text-zinc-500">
+                                    {formattedDate}
+                                </p>
+                            </div>
+
+                            {
+                                episodeGuests.length > 0 && (
+                                    <div class="collaborators-mini-list flex items-center -space-x-3 ml-2 pl-4 border-l border-zinc-800/80 h-8 self-center">
+                                        {episodeGuests.map((guest, idx) => (
+                                            <div
+                                                class="relative group"
+                                                title={guest.data.name}
+                                                style={`z-index: ${episodeGuests.length - idx}`}
+                                            >
+                                                {guest.data.image ? (
+                                                    <img
+                                                        src={guest.data.image}
+                                                        alt={guest.data.name}
+                                                        class="w-8 h-8 rounded-full border-2 border-zinc-950 object-cover ring-1 ring-white/5 group-hover:scale-110 group-hover:ring-primary/50 transition-all duration-300"
+                                                    />
+                                                ) : (
+                                                    <div class="w-8 h-8 rounded-full bg-zinc-800 border-2 border-zinc-950 flex items-center justify-center ring-1 ring-white/5 group-hover:scale-110 transition-all duration-300">
+                                                        <span class="text-[9px] font-black text-zinc-500 uppercase">
+                                                            {guest.data.name.substring(
+                                                                0,
+                                                                2,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Tooltip */}
+                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-black/95 backdrop-blur-xl border border-white/10 rounded-lg text-[9px] font-black text-white opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap uppercase tracking-[0.1em] shadow-2xl z-50">
+                                                    {guest.data.name}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )
+                            }
+                        </div>
+                        <div
+                            class="flex flex-wrap items-center gap-2 mt-2 md:mt-0"
+                        >
+                            <ListenerCount onlyCurrentPath={true} />
+                            <EpisodeRating slug={entry.slug} />
+                            <FavoriteButton episodeSlug={entry.slug} />
+                            <LikeDislikeGroup episodeSlug={entry.slug} />
+                            <PlaylistManager episodeSlug={entry.slug} />
+                        </div>
+                    </div>
+
+                    <div class="flex items-center py-4">
+                        <EpisodeActions
+                            title={entry.data.title}
+                            audioUrl={entry.data.audioUrl}
+                            image={entry.data.image || relativeOgImageUrl}
+                            slug={entry.slug}
+                            guests={entry.data.participants}
+                            duration={entry.data.duration}
+                            quiz={entry.data.quiz}
+                        />
+                    </div>
+                </header>
+            </section>
+
+            <section class="description-section glass-panel p-6 mb-8">
+                <div class="mb-4">
+                    <span
+                        class="text-sm font-bold uppercase tracking-wider text-zinc-400"
+                        >Descripción</span
+                    >
+                </div>
+
+                <div class="content-body prose prose-invert max-w-none mb-8">
+                    <Content />
+                </div>
+
+                <div class="mt-8 pt-8 border-t border-zinc-800">
+                    <EpisodeSections sections={entry.data.sections} />
+                    <TranscriptionWidget
+                        transcription={entry.data.transcription}
+                    />
+                </div>
+            </section>
+
+            <!-- 3. COMMENTS AREA -->
+            <section id="comments-wrapper" class="comments-section mb-20">
+                <div class="flex items-center gap-4 mb-8">
+                    <h2 class="text-xl font-black">Comentarios</h2>
+                </div>
+                {
+                    isPremiere && !hasPremiereEnded ? (
+                        <div class="chat-integration mb-8">
+                            <LiveChat slug={entry.slug} />
+                        </div>
+                    ) : (
+                        <Comments slug={entry.slug} />
+                    )
+                }
+            </section>
+        </main>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar-column">
+            <div class="sticky top-24 space-y-6">
+                <PlaylistSidebar currentSlug={entry.slug} />
+
+                <EpisodeParticipants participants={entry.data.participants} />
+
+                <SidebarWidget title="Detalles" isOpen={true}>
+                    <ul class="details-list text-sm">
+                        <li
+                            class="flex justify-between py-2 border-b border-zinc-800/50"
+                        >
+                            <span class="text-zinc-500">Temporada</span>
+                            <span class="font-bold">{entry.data.season}</span>
+                        </li>
+                        <li
+                            class="flex justify-between py-2 border-b border-zinc-800/50"
+                        >
+                            <span class="text-zinc-500">Episodio</span>
+                            <span class="font-bold">{entry.data.episode}</span>
+                        </li>
+                        <li
+                            class="flex justify-between py-2 border-b border-zinc-800/50"
+                        >
+                            <span class="text-zinc-500">Duración</span>
+                            <span class="font-bold uppercase"
+                                >{entry.data.duration}</span
+                            >
+                        </li>
+                        {
+                            entry.data.tags && (
+                                <li class="pt-4">
+                                    <div class="flex flex-wrap gap-2">
+                                        {entry.data.tags.map((tag) => (
+                                            <a
+                                                href={`/ep?tag=${tag}`}
+                                                class="tag-chip text-[10px] font-bold uppercase px-2 py-1 bg-zinc-800 hover:bg-primary transition-colors rounded"
+                                            >
+                                                #{tag}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </li>
+                            )
+                        }
+                    </ul>
+                </SidebarWidget>
+
+                <EpisodeClips clips={entry.data.clips} />
+
+                <!-- Sidebar Discovery Widgets would go here -->
+                <div class="related-wrapper pt-4">
+                    <h3
+                        class="text-sm font-black uppercase tracking-[0.2em] text-zinc-500 mb-4"
+                    >
+                        Siguiente episodio
+                    </h3>
+                    <RelatedEpisodes
+                        currentSlug={entry.slug}
+                        tags={entry.data.tags}
+                        limit={4}
+                    />
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <SocialShare
+        isModal={true}
+        triggerId="action-share-episode"
+        title={entry.data.title}
+        image={entry.data.image || relativeOgImageUrl}
+    />
+    {
+        entry.data.quiz && (
+            <QuizModal
+                client:only="react"
+                quiz={entry.data.quiz}
+                episodeTitle={entry.data.title}
+                episodeSlug={entry.slug}
+            />
+        )
+    }
+</Layout>
+
+<style>
+    .cinema-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 3rem;
+        padding-top: 1rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        overflow-x: hidden;
+    }
+
+    @media (max-width: 1200px) {
+        .cinema-layout {
+            grid-template-columns: 1fr;
+        }
+        .sidebar-column {
+            order: 2;
+        }
+        .sidebar-column .sticky {
+            position: relative;
+            top: 0;
+        }
+    }
+
+    /* ====== SMALL DEVICES (≤768px) ====== */
+    @media (max-width: 768px) {
+        .cinema-layout {
+            gap: 1.25rem;
+            padding-top: 0.5rem;
+        }
+
+        .player-wrapper {
+            border-radius: 12px;
+        }
+
+        .player-info {
+            padding: 1rem 0;
+        }
+
+        .player-info h1 {
+            font-size: 1.35rem !important;
+            line-height: 1.25;
+            margin-bottom: 0.5rem;
+        }
+
+        .description-section.glass-panel {
+            padding: 1.25rem;
+            border-radius: 14px;
+            margin-bottom: 1.25rem;
+        }
+
+        .description-section .content-body {
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .description-section .content-body :global(h2) {
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .comments-section {
+            margin-bottom: 5rem;
+        }
+
+        .comments-section h2 {
+            font-size: 1.15rem;
+        }
+
+        /* Warning banner mobile */
+        .warning-banner {
+            padding: 1rem !important;
+            margin-bottom: 1.25rem !important;
+            border-radius: 12px;
+            gap: 0.75rem !important;
+        }
+
+        .warning-banner p {
+            font-size: 0.85rem !important;
+        }
+
+        /* Mode switch button */
+        .player-mode-switch {
+            top: 0.75rem !important;
+            right: 0.75rem !important;
+        }
+
+        .player-mode-switch button {
+            padding: 0.5rem 0.875rem !important;
+            font-size: 9px !important;
+            gap: 0.375rem !important;
+        }
+
+        .player-mode-switch .mode-icon {
+            font-size: 0.8rem !important;
+        }
+
+        /* Player info author row */
+        .player-info .author-meta img {
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .player-info .author-meta p.font-bold {
+            font-size: 0.9rem;
+        }
+
+        .collaborators-mini-list {
+            padding-left: 0.75rem;
+            margin-left: 0.5rem;
+            height: 1.5rem;
+        }
+
+        .collaborators-mini-list img,
+        .collaborators-mini-list div.rounded-full {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+        }
+
+        /* Sidebar details on mobile */
+        .sidebar-column .details-list li {
+            padding: 0.625rem 0;
+        }
+
+        .related-wrapper h3 {
+            font-size: 0.7rem;
+        }
+    }
+
+    /* ====== EXTRA SMALL DEVICES (≤480px) ====== */
+    @media (max-width: 480px) {
+        .cinema-layout {
+            gap: 1rem;
+            padding-top: 0.25rem;
+        }
+
+        .cinema-layout.container {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        .main-content {
+            overflow-x: hidden;
+            min-width: 0;
+        }
+
+        .player-info h1 {
+            font-size: 1.15rem !important;
+            word-break: break-word;
+        }
+
+        .player-info .flex.flex-wrap {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .player-info .flex.items-center.gap-2 {
+            flex-wrap: wrap;
+            gap: 0.375rem;
+        }
+
+        .description-section.glass-panel {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .description-section .flex.items-center.justify-between {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        /* Inline extras (sections, transcription) */
+        .description-section .mt-8.pt-8 {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+        }
+
+        /* Mode switch even smaller */
+        .player-mode-switch button .mode-text {
+            display: none;
+        }
+
+        .player-mode-switch button {
+            padding: 0.5rem !important;
+            border-radius: 50% !important;
+            min-width: 36px;
+            min-height: 36px;
+            justify-content: center;
+        }
+
+        .player-mode-switch .mode-icon {
+            font-size: 1rem !important;
+            margin: 0 !important;
+        }
+
+        /* Comments */
+        .comments-section .flex.items-center.gap-4 {
+            margin-bottom: 1rem;
+        }
+
+        /* Spotify embed */
+        .spotify-cinema {
+            padding: 1rem 0.5rem !important;
+        }
+
+        /* Player wrapper */
+        .player-wrapper {
+            border-radius: 10px;
+        }
+
+        /* Sidebar on very small screens */
+        .sidebar-column {
+            overflow-x: hidden;
+        }
+    }
+
+    /* ====== ULTRA SMALL DEVICES (≤400px) ====== */
+    @media (max-width: 400px) {
+        .cinema-layout.container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .player-info h1 {
+            font-size: 1.05rem !important;
+        }
+
+        .description-section.glass-panel {
+            padding: 0.75rem;
+            border-radius: 10px;
+        }
+
+        .glass-panel {
+            border-radius: 14px;
+        }
+
+        .warning-banner {
+            flex-direction: column;
+            gap: 0.5rem !important;
+        }
+    }
+
+    .player-wrapper {
+        background: #000;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .cinema-player-box {
+        min-height: 200px;
+        width: 100%;
+        position: relative;
+    }
+
+    /* Content Body Typography */
+    .content-body {
+        line-height: 1.8;
+        font-size: 1.05rem;
+        color: #d4d4d8;
+    }
+
+    .content-body :global(h2) {
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .glass-panel {
+        background: rgba(24, 24, 27, 0.4);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+    }
+
+    .tag-chip {
+        color: #a1a1aa;
+    }
+
+    .tag-chip:hover {
+        color: white;
+    }
+
+    /* Animation on enter */
+    .section-fade {
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    /* --- PLAYER PLACEHOLDER & LOADERS --- */
+    #audio-player-container,
+    #video-player-container {
+        aspect-ratio: 16 / 9;
+        min-height: 380px;
+        background: #0f0f0f;
+        border-radius: 16px;
+    }
+
+    @media (max-width: 768px) {
+        #audio-player-container,
+        #video-player-container {
+            aspect-ratio: 16 / 10;
+            min-height: 320px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        #audio-player-container {
+            aspect-ratio: 3 / 4;
+            min-height: 300px;
+        }
+        #video-player-container {
+            aspect-ratio: 16 / 9;
+            min-height: 0;
+        }
+    }
+
+    .loader-spinner {
+        width: 32px;
+        height: 32px;
+        border: 2px solid rgba(255, 255, 255, 0.05);
+        border-top: 2px solid var(--color-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Hide placeholder visual when player is interactive */
+    :global(.cinema-audio-player-react) {
+        position: relative;
+        z-index: 10;
+    }
+    :global(.plyr-video-wrapper .plyr__progress) {
+        overflow: visible !important;
+    }
+
+    :global(.plyr-section-marker) {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.3);
+        z-index: 10;
+        pointer-events: auto;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    :global(.plyr-section-marker:hover) {
+        background: white;
+        transform: scaleX(1.5);
+    }
+
+    :global(.plyr-marker-tooltip) {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 10px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        margin-bottom: 8px;
+    }
+
+    :global(.plyr-section-marker:hover .plyr-marker-tooltip) {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    :global(.marker-time) {
+        color: #8b5cf6;
+        font-weight: 900;
+        font-family: monospace;
+    }
+
+    :global(.marker-title) {
+        font-weight: 700;
+    }
+</style>
+
+<script>
+    declare var Plyr: any;
+    import {
+        syncPlaybackData,
+        recordListen,
+    } from "../../services/player/playbackSync";
+
+    const parseTime = (t: string) => {
+        const parts = t.split(":").map(Number);
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        if (parts.length === 3)
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        return 0;
+    };
+
+    const initCinemaSection = () => {
+        const playerBox = document.getElementById("episode-player-inner");
+        if (!playerBox) {
+            console.warn("[Cinema] #episode-player-inner not found in DOM.");
+            return;
+        }
+
+        const audioUrl = playerBox.getAttribute("data-audio-url");
+        const spotifyUrl = playerBox.getAttribute("data-spotify-url");
+        let videoUrl = playerBox.getAttribute("data-video-url");
+
+        console.log("[Cinema] Initializing Player Section:", {
+            audioUrl,
+            spotifyUrl,
+            videoUrl,
+        });
+
+        const title = playerBox.getAttribute("data-title") || "";
+        const image = playerBox.getAttribute("data-image") || "";
+        const author = playerBox.getAttribute("data-author") || "";
+        const transStr = playerBox.getAttribute("data-transcription");
+        const transcription = transStr ? JSON.parse(transStr) : null;
+
+        // --- HELPER: CONVERT YT URL TO EMBED ---
+        const getEmbedVideoUrl = (url: string) => {
+            if (!url) return "";
+            try {
+                const u = new URL(url);
+                if (
+                    u.hostname.includes("youtube.com") ||
+                    u.hostname.includes("youtu.be")
+                ) {
+                    if (u.pathname.includes("/embed/")) return url;
+                    let videoId = "";
+                    if (u.hostname.includes("youtu.be")) {
+                        videoId = u.pathname.slice(1);
+                    } else {
+                        videoId = u.searchParams.get("v") || "";
+                    }
+                    if (videoId)
+                        return `https://www.youtube.com/embed/${videoId}?autoplay=0&modestbranding=1&rel=0`;
+                }
+            } catch (e) {
+                console.error("[Cinema] Video URL conversion failed:", e);
+            }
+            return url;
+        };
+
+        // If it's a video, render with Plyr to hide YouTube branding
+        const videoContainer = document.getElementById(
+            "video-player-container",
+        );
+        if (videoUrl && !spotifyUrl && videoContainer) {
+            const finalVideoUrl = getEmbedVideoUrl(videoUrl);
+            console.log(
+                "[Cinema] Rendering Video Mode with Plyr:",
+                finalVideoUrl,
+            );
+
+            videoContainer.innerHTML = `
+                <div class="plyr-video-wrapper shadow-2xl rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0f0f0f] relative group">
+                    <div class="plyr__video-embed" id="video-player">
+                        <iframe 
+                            src="${finalVideoUrl}" 
+                            allowfullscreen 
+                            allowtransparency 
+                            allow="autoplay"
+                        ></iframe>
+                    </div>
+
+                    <!-- Integrated Mode Switcher for Video -->
+                    <div class="video-mode-switcher absolute top-6 right-6 z-50 flex items-center gap-1 bg-black/60 backdrop-blur-xl p-1 rounded-xl border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                         <button 
+                            class="btn-to-audio px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 transition-all"
+                         >
+                            🎧 Audio
+                         </button>
+                         <button 
+                            class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white/10 text-white shadow-sm border border-white/10 cursor-default"
+                            disabled
+                         >
+                            📺 Video
+                         </button>
+                    </div>
+                </div>
+            `;
+
+            // Attach listener for the video-mode switcher button
+            const btnToAudio = videoContainer.querySelector(".btn-to-audio");
+            if (btnToAudio) {
+                btnToAudio.addEventListener("click", () => {
+                    document.dispatchEvent(
+                        new CustomEvent("veredillas:switch-mode", {
+                            detail: { mode: "audio" },
+                        }),
+                    );
+                });
+            }
+
+            // Initialize Plyr for Video
+            const videoElement = document.getElementById("video-player");
+            let player: any = null;
+            if (videoElement) {
+                player = new Plyr(videoElement, {
+                    controls: [
+                        "play-large",
+                        "restart",
+                        "rewind",
+                        "play",
+                        "fast-forward",
+                        "progress",
+                        "current-time",
+                        "duration",
+                        "mute",
+                        "volume",
+                        "captions",
+                        "settings",
+                        "pip",
+                        "airplay",
+                        "fullscreen",
+                    ],
+                    settings: ["captions", "quality", "speed", "loop"],
+                    speed: {
+                        selected: 1,
+                        options: [0.5, 0.75, 1, 1.25, 1.5, 2, 4],
+                    },
+                    keyboard: {
+                        focused: true,
+                        global: true,
+                    },
+                    tooltips: {
+                        controls: true,
+                        seek: true,
+                    },
+                    youtube: {
+                        noCookie: true,
+                        modestbranding: 1,
+                        rel: 0,
+                        iv_load_policy: 3,
+                        showinfo: 0,
+                        autoplay: 0,
+                    },
+                });
+
+                // Hide placeholder when player is ready
+                player.on("ready", () => {
+                    const placeholder = videoContainer.querySelector(
+                        ".player-placeholder-visual",
+                    );
+                    if (placeholder) {
+                        (placeholder as HTMLElement).style.display = "none";
+                    }
+
+                    // --- CHAPTER MARKERS INJECTION ---
+                    const sectionsRaw = playerBox.getAttribute("data-sections");
+                    if (sectionsRaw && sectionsRaw !== "null") {
+                        const sections = JSON.parse(sectionsRaw);
+
+                        const injectMarkers = () => {
+                            if (!player.duration || player.duration <= 0) {
+                                // Try again if duration not yet available
+                                setTimeout(injectMarkers, 1000);
+                                return;
+                            }
+
+                            const progress =
+                                videoContainer.querySelector(".plyr__progress");
+                            if (!progress) return;
+
+                            // Remove existing if any
+                            progress
+                                .querySelectorAll(".plyr-section-marker")
+                                .forEach((m) => m.remove());
+
+                            sections.forEach((section: any) => {
+                                const time = parseTime(section.time);
+                                const percentage =
+                                    (time / player.duration) * 100;
+
+                                if (percentage > 100) return;
+
+                                const marker = document.createElement("div");
+                                marker.className = "plyr-section-marker";
+                                marker.style.left = `${percentage}%`;
+                                marker.innerHTML = `
+                                    <div class="plyr-marker-tooltip">
+                                        <span class="marker-time">${section.time}</span>
+                                        <span class="marker-title">${section.title}</span>
+                                    </div>
+                                `;
+                                marker.addEventListener("click", (e) => {
+                                    e.stopPropagation();
+                                    player.currentTime = time;
+                                });
+                                progress.appendChild(marker);
+                            });
+                        };
+
+                        // Check on ready, loadedmetadata and with a small delay
+                        setTimeout(injectMarkers, 1000);
+                        player.on("loadedmetadata", injectMarkers);
+                    }
+                });
+
+                // --- VIDEO ANALYTICS ---
+                if (playerBox && playerBox.getAttribute("data-slug")) {
+                    const slug = playerBox.getAttribute("data-slug")!;
+                    const localKey = `vfm-progress-${slug}`;
+                    let hasRestored = false;
+
+                    // Get saved progress from localStorage first (instant)
+                    let savedProgress = 0;
+                    try {
+                        savedProgress = parseFloat(
+                            localStorage.getItem(localKey) || "0",
+                        );
+                    } catch (e) {}
+
+                    // Fetch from server and apply when Plyr is ready
+                    const applyRestore = () => {
+                        if (hasRestored || savedProgress <= 0) return;
+
+                        // Don't restore if near the end
+                        if (
+                            player.duration > 0 &&
+                            savedProgress >= player.duration * 0.95
+                        ) {
+                            hasRestored = true;
+                            return;
+                        }
+
+                        console.log(
+                            `[Video] Restoring progress: ${savedProgress}s`,
+                        );
+                        player.currentTime = savedProgress;
+                        hasRestored = true;
+                        // @ts-ignore
+                        if (window.showToast) {
+                            const mins = Math.floor(savedProgress / 60);
+                            const secs = Math.floor(savedProgress % 60);
+                            // @ts-ignore
+                            window.showToast(
+                                `Progreso restaurado en ${mins}:${secs.toString().padStart(2, "0")} 📺`,
+                                "info",
+                            );
+                        }
+                    };
+
+                    // Fetch from server (may override local if bigger)
+                    fetch(`/api/user/episode-state?slug=${slug}`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                            if (
+                                data.savedProgress &&
+                                data.savedProgress > 0 &&
+                                data.savedProgress >= savedProgress
+                            ) {
+                                savedProgress = data.savedProgress;
+                            }
+                            // Try to apply if player is already ready
+                            if (player.duration > 0) applyRestore();
+                        })
+                        .catch((e) =>
+                            console.warn("[Video] Failed to fetch state:", e),
+                        );
+
+                    // Apply when Plyr signals ready
+                    player.on("ready", () => {
+                        applyRestore();
+                    });
+
+                    // Also try on loadedmetadata and canplay as fallbacks
+                    player.on("loadedmetadata", () => applyRestore());
+                    player.on("canplay", () => applyRestore());
+
+                    let lastReportedTime = 0;
+                    let lastSyncTime = Date.now();
+                    let trackingInterval: any = null;
+
+                    const sync = (isClosing = false) => {
+                        const now = Date.now();
+                        const deltaSeconds = (now - lastSyncTime) / 1000;
+                        const currentVideoTime = player.currentTime;
+
+                        // Save to localStorage immediately
+                        try {
+                            localStorage.setItem(
+                                localKey,
+                                String(currentVideoTime),
+                            );
+                        } catch (e) {}
+
+                        if (deltaSeconds > 1 || isClosing) {
+                            syncPlaybackData({
+                                slug,
+                                increment: deltaSeconds,
+                                progress: currentVideoTime,
+                                duration: player.duration || 0,
+                            });
+                            lastSyncTime = now;
+                            lastReportedTime = currentVideoTime;
+                        }
+                    };
+
+                    player.on("play", () => {
+                        recordListen(slug);
+                        lastSyncTime = Date.now();
+                        trackingInterval = setInterval(sync, 15000);
+                    });
+
+                    player.on("pause", () => {
+                        if (trackingInterval) clearInterval(trackingInterval);
+                        sync();
+                    });
+
+                    player.on("timeupdate", () => {
+                        document.dispatchEvent(
+                            new CustomEvent("veredillas:audio-timeupdate", {
+                                detail: { currentTime: player.currentTime },
+                            }),
+                        );
+                    });
+
+                    player.on("ended", () => {
+                        if (trackingInterval) clearInterval(trackingInterval);
+                        sync(true);
+
+                        // --- VIDEO END SCREEN ---
+                        const nextEpisodesRaw =
+                            playerBox.getAttribute("data-next-episodes");
+                        if (nextEpisodesRaw) {
+                            const nextEpisodes = JSON.parse(nextEpisodesRaw);
+                            const overlay = document.createElement("div");
+                            overlay.className =
+                                "video-end-overlay absolute inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center animate-vfm-fade-in";
+
+                            overlay.innerHTML = `
+                                <button class="close-overlay absolute top-4 right-4 text-white/40 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                                <div class="mb-10">
+                                    <h3 class="text-[#8b5cf6] text-[10px] font-black uppercase tracking-[0.4em] mb-3">Video finalizado</h3>
+                                    <h2 class="text-3xl font-black text-white tracking-tight">¿Qué quieres ver ahora?</h2>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full max-w-5xl">
+                                    ${nextEpisodes
+                                        .map(
+                                            (ep: any) => `
+                                        <a href="/ep/${ep.slug}" class="group/card flex flex-col bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden hover:border-[#8b5cf6] transition-all duration-500 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] hover:-translate-y-1">
+                                            <div class="aspect-video relative overflow-hidden bg-zinc-900/50">
+                                                ${
+                                                    ep.image
+                                                        ? `<img src="${ep.image}" alt="" class="w-full h-full object-cover grayscale opacity-80 group-hover/card:grayscale-0 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-700" />`
+                                                        : `<div class="w-full h-full flex items-center justify-center opacity-20"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="8" x2="16" y1="22" y2="22"/></svg></div>`
+                                                }
+                                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover/card:opacity-30 transition-opacity"></div>
+                                                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all duration-300 scale-90 group-hover/card:scale-100">
+                                                    <div class="bg-[#8b5cf6] text-white p-3 rounded-full shadow-2xl shadow-[#8b5cf6]/40">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="p-5 text-left">
+                                                <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2 flex items-center justify-between">
+                                                    <span>T${ep.season} • E${ep.episode}</span>
+                                                    ${ep.duration ? `<span class="text-zinc-600">${ep.duration}</span>` : ""}
+                                                </div>
+                                                <h4 class="text-base font-bold text-white line-clamp-2 leading-snug group-hover/card:text-[#8b5cf6] transition-colors">${ep.title}</h4>
+                                            </div>
+                                        </a>
+                                    `,
+                                        )
+                                        .join("")}
+                                </div>
+                                <div class="mt-12">
+                                    <button class="replay-btn bg-white/5 hover:bg-white/10 border border-white/10 text-white px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-3 active:scale-95">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                        Repetir video
+                                    </button>
+                                </div>
+                            `;
+
+                            const videoWrapper = videoContainer.querySelector(
+                                ".plyr-video-wrapper",
+                            );
+                            if (videoWrapper) {
+                                videoWrapper.appendChild(overlay);
+
+                                overlay
+                                    .querySelector(".close-overlay")
+                                    ?.addEventListener("click", () =>
+                                        overlay.remove(),
+                                    );
+                                overlay
+                                    .querySelector(".replay-btn")
+                                    ?.addEventListener("click", () => {
+                                        player.currentTime = 0;
+                                        player.play();
+                                        overlay.remove();
+                                    });
+                            }
+                        }
+                    });
+
+                    // Listen for sync from Audio -> Video
+                    document.addEventListener(
+                        "veredillas:sync-playback",
+                        (e: any) => {
+                            const {
+                                time,
+                                playing,
+                                slug: incomingSlug,
+                            } = e.detail;
+                            if (slug === incomingSlug && player) {
+                                console.log(
+                                    `[Video] Syncing video to ${time}s (playing: ${playing})`,
+                                );
+                                player.currentTime = time;
+                                if (playing) {
+                                    setTimeout(() => player.play(), 500); // Small delay to allow buffer
+                                } else {
+                                    player.pause();
+                                }
+                            }
+                        },
+                    );
+
+                    // Listen for direct seek from Transcript/Chapters -> Video
+                    document.addEventListener(
+                        "veredillas:audio-seek",
+                        (e: any) => {
+                            // Only respond if video is NOT hidden
+                            if (videoContainer.classList.contains("hidden"))
+                                return;
+
+                            const { time } = e.detail;
+                            if (player) {
+                                console.log(`[Video] Seeking to ${time}s`);
+                                player.currentTime = time;
+                                // Auto-play on seek for better UX
+                                player.play();
+                            }
+                        },
+                    );
+                }
+            }
+        }
+
+        // If it's Spotify, render iframe (Spotify mode usually takes over entirely)
+        if (spotifyUrl) {
+            console.log("[Cinema] Rendering Spotify Mode:", spotifyUrl);
+            let finalUrl = spotifyUrl;
+            if (!finalUrl.includes("/embed/")) {
+                try {
+                    const urlObj = new URL(finalUrl);
+                    const segments = urlObj.pathname.split("/").filter(Boolean);
+                    if (segments[0] !== "embed")
+                        finalUrl = `${urlObj.origin}/embed${urlObj.pathname}`;
+                } catch (e) {
+                    console.error("[Cinema] Spotify URL processing failed", e);
+                }
+            }
+
+            playerBox.innerHTML = `
+                <div class="spotify-cinema-wrapper relative group">
+                    <div class="spotify-cinema py-12 px-2 flex justify-center bg-zinc-950 rounded-2xl">
+                        <iframe 
+                            style="border-radius:12px" 
+                            src="${finalUrl}" 
+                            width="100%" 
+                            height="352" 
+                            frameBorder="0" 
+                            allowfullscreen="" 
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                            loading="lazy"
+                            class="max-w-4xl w-full"
+                        ></iframe>
+                    </div>
+
+                    ${
+                        videoUrl
+                            ? `
+                    <!-- Integrated Mode Switcher for Spotify/Audio -->
+                    <div class="spotify-mode-switcher absolute top-6 right-6 z-50 flex items-center gap-1 bg-black/60 backdrop-blur-xl p-1 rounded-xl border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                         <button 
+                            class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white/10 text-white shadow-sm border border-white/10 cursor-default"
+                            disabled
+                         >
+                            🎧 Audio
+                         </button>
+                         <button 
+                            class="btn-to-video px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 transition-all"
+                         >
+                            📺 Vídeo
+                         </button>
+                    </div>
+                    `
+                            : ""
+                    }
+                </div>
+             `;
+
+            const btnToVideo = playerBox.querySelector(".btn-to-video");
+            if (btnToVideo) {
+                btnToVideo.addEventListener("click", () => {
+                    document.dispatchEvent(
+                        new CustomEvent("veredillas:switch-mode", {
+                            detail: { mode: "video" },
+                        }),
+                    );
+                });
+            }
+            return;
+        }
+
+        // Use global variables or fetch them in the handler
+    };
+
+    // --- UNIFIED MODE SWITCHER LOGIC ---
+    const handleModeSwitch = (e: any) => {
+        const requestedMode = e.detail?.mode;
+        console.log("[Cinema] Global Switch Request:", requestedMode);
+
+        const videoContainer = document.getElementById(
+            "video-player-container",
+        );
+        const audioContainer = document.getElementById(
+            "audio-player-container",
+        );
+        const playerBox = document.getElementById("episode-player-inner");
+
+        if (!videoContainer || !audioContainer || !playerBox) return;
+
+        const isVideoCurrentlyVisible =
+            !videoContainer.classList.contains("hidden");
+        const targetMode =
+            requestedMode || (isVideoCurrentlyVisible ? "audio" : "video");
+
+        if (targetMode === "audio" && isVideoCurrentlyVisible) {
+            // --- SWITCH TO AUDIO ---
+            videoContainer.classList.add("hidden");
+            audioContainer.classList.remove("hidden");
+
+            // Stop video and BROADCAST time to audio
+            const iframe = videoContainer.querySelector("iframe");
+            if (iframe) {
+                const originalSrc = iframe.src;
+                iframe.src = "";
+                setTimeout(() => {
+                    iframe.src = originalSrc;
+                }, 100);
+            }
+        } else if (targetMode === "video" && !isVideoCurrentlyVisible) {
+            // --- SWITCH TO VIDEO ---
+            audioContainer.classList.add("hidden");
+            videoContainer.classList.remove("hidden");
+
+            // Sync playback state from Audio to Video
+            const audio = audioContainer.querySelector("audio");
+            if (audio) {
+                const time = audio.currentTime;
+                const playing = !audio.paused;
+                console.log("[Cinema] Switching to video. Syncing state:", {
+                    time,
+                    playing,
+                });
+
+                audio.pause();
+
+                // Fire event so Plyr can pick it up
+                document.dispatchEvent(
+                    new CustomEvent("veredillas:sync-playback", {
+                        detail: {
+                            time,
+                            playing,
+                            slug: playerBox.getAttribute("data-slug"),
+                        },
+                    }),
+                );
+            }
+        }
+    };
+
+    // Listen for internal player requests (Added once globally)
+    document.addEventListener("veredillas:switch-mode", handleModeSwitch);
+
+    // Runs on standard loads and transitions
+    document.addEventListener("DOMContentLoaded", initCinemaSection);
+    document.addEventListener("astro:page-load", initCinemaSection);
+
+    // Initial check if script runs AFTER DOMContentLoaded
+    if (
+        document.readyState === "complete" ||
+        document.readyState === "interactive"
+    ) {
+        initCinemaSection();
+    }
+
+    // Cleanup on before-preparation to stop any stray audio if navigating
+    document.addEventListener("astro:before-preparation", () => {
+        // Only stop the in-page episode audio, not the global persistent player
+        const episodeAudio = document.querySelector("#audio-player-container audio, #video-player-container audio");
+        if (episodeAudio) {
+            (episodeAudio as HTMLAudioElement).pause();
+            (episodeAudio as HTMLAudioElement).src = "";
+        }
+    });
+    // Listen for sync requests (e.g. from Video Player)
+    document.addEventListener("veredillas:sync-playback", (e: any) => {
+        const { time, slug: incomingSlug } = e.detail;
+        const playerBox = document.getElementById("episode-player-inner");
+        const currentSlug = playerBox?.getAttribute("data-slug");
+
+        if (incomingSlug === currentSlug) {
+            const audio = document.querySelector<HTMLAudioElement>("#audio-player-container audio");
+            if (audio) {
+                console.log(`[Cinema] Syncing audio to ${time}s`);
+                audio.currentTime = time;
+            }
+        }
+    });
+</script>

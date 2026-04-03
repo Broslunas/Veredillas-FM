@@ -1,0 +1,342 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+    post: CollectionEntry<"episodios">;
+    disableTransition?: boolean;
+    urlPrefix?: string;
+}
+
+const { post, disableTransition = false, urlPrefix = "/ep/" } = Astro.props;
+
+// Format date
+const formattedDate = post.data.pubDate.toLocaleDateString("es-ES", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+});
+
+const now = new Date();
+const isUpcoming = post.data.pubDate > now;
+const diffInHours =
+    (post.data.pubDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+const isAboutToPremiere = isUpcoming && diffInHours <= 2;
+---
+
+<article
+    class={`relative group flex flex-col h-full bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-primary hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] [data-theme='light']:hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] hover-3d-card ${isUpcoming ? "opacity-90 hover:opacity-100" : ""}`}
+>
+    <div class="shine"></div>
+    <div
+        class={`dynamic-upcoming-badge absolute top-4 right-4 z-10 text-white px-3 py-1.5 rounded-full text-[0.75rem] font-extrabold uppercase flex items-center gap-1.5 shadow-lg border border-white/20 animate-bounce-subtle backdrop-blur-md ${isAboutToPremiere ? "bg-red-600/90 shadow-red-600/30" : "bg-primary/90 shadow-primary/30"} ${!isUpcoming ? "hidden" : ""}`}
+        data-pub-date={post.data.pubDate.toISOString()}
+    >
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><circle cx="12" cy="12" r="10"></circle><polyline
+                points="12 6 12 12 16 14"></polyline></svg
+        >
+        <span class="badge-text"
+            >{isAboutToPremiere ? "¡Falta muy poco!" : "Próximamente"}</span
+        >
+    </div>
+
+    <div class="flex flex-col h-full text-inherit">
+        {
+            post.data.image ? (
+                <div class="w-full h-[180px] relative overflow-hidden">
+                    <img
+                        src={post.data.image}
+                        alt={post.data.title}
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        style="transform: translateZ(20px);"
+                        loading="lazy"
+                        decoding="async"
+                        transition:name={
+                            !disableTransition
+                                ? `cover-${post.slug}`
+                                : undefined
+                        }
+                    />
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
+                        <span class="w-[50px] h-[50px] bg-primary text-white rounded-full flex items-center justify-center text-2xl pl-1 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-200">
+                            ▶
+                        </span>
+                    </div>
+                </div>
+            ) : (
+                <div class="w-full h-[180px] relative overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
+                    <span class="text-5xl opacity-50 text-white">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <>
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                <line x1="12" x2="12" y1="19" y2="22" />
+                                <line x1="8" x2="16" y1="22" y2="22" />
+                            </>
+                        </svg>
+                    </span>
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
+                        <span class="w-[50px] h-[50px] bg-primary text-white rounded-full flex items-center justify-center text-2xl pl-1 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-200">
+                            ▶
+                        </span>
+                    </div>
+                </div>
+            )
+        }
+
+        <div class="p-6 flex flex-col flex-grow">
+            <div
+                class="flex justify-between text-[0.75rem] text-zinc-400 mb-2 uppercase font-semibold tracking-wider"
+            >
+                <span class="text-secondary"
+                    >Temporada {post.data.season || 1} • Ep. {
+                        post.data.episode || 1
+                    }</span
+                >
+                <time datetime={post.data.pubDate.toISOString()}
+                    >{formattedDate}</time
+                >
+            </div>
+
+            <h3
+                class="text-xl font-bold mb-3 leading-tight text-white group-hover:text-primary transition-colors"
+            >
+                {post.data.title}
+            </h3>
+
+            {
+                post.data.participants && post.data.participants.length > 0 && (
+                    <div class="flex items-center gap-2 text-[0.85rem] text-zinc-500 mb-2">
+                        <span class="opacity-70">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <>
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                </>
+                            </svg>
+                        </span>
+                        <span class="truncate">
+                            {post.data.participants.join(", ")}
+                        </span>
+                    </div>
+                )
+            }
+
+            <p
+                class="text-[0.95rem] text-zinc-400 mb-6 leading-relaxed flex-grow line-clamp-3"
+            >
+                {post.data.description}
+            </p>
+
+            <div
+                class="mt-auto flex justify-between items-center pt-4 border-t border-white/5 text-[0.875rem] text-zinc-500"
+            >
+                <div
+                    class="card-rating flex items-center gap-2"
+                    data-rating-slug={post.slug}
+                >
+                    <span
+                        class="rating-stars-mini text-[0.75rem] tracking-tighter text-white/10 [data-theme='light']:text-black/10 transition-colors duration-300"
+                        >★★★★★</span
+                    >
+                    <span
+                        class="rating-value text-[0.7rem] font-bold text-amber-500/80 hidden"
+                    ></span>
+                </div>
+                <span class="flex items-center gap-1">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><circle cx="12" cy="12" r="10"></circle><polyline
+                            points="12 6 12 12 16 14"></polyline></svg
+                    >
+                    {post.data.duration || "N/A"}
+                </span>
+                <span
+                    class="text-primary font-semibold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                    >Escuchar</span
+                >
+            </div>
+        </div>
+    </div>
+    <a
+        href={`${urlPrefix}${post.slug}`}
+        class="absolute inset-0 z-10"
+        aria-label={`Escuchar ${post.data.title}`}
+        data-cursor="play"></a>
+    {
+        !isUpcoming && post.data.audioUrl && (
+            <button
+                class="gp-quick-play absolute bottom-4 right-4 z-20 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:bg-primary/80"
+                aria-label={`Reproducir ${post.data.title}`}
+                data-audio-url={post.data.audioUrl}
+                data-title={post.data.title}
+                data-author={post.data.author}
+                data-cover={post.data.image || "/logo.webp"}
+                data-slug={post.slug}
+                data-href={`${urlPrefix}${post.slug}`}
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                >
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+            </button>
+        )
+    }
+</article>
+
+<script>
+    const loadCardRatings = async () => {
+        const ratingElements = document.querySelectorAll(
+            '.card-rating[data-rating-slug]:not([data-loaded="true"])',
+        );
+        if (ratingElements.length === 0) return;
+
+        const slugs = Array.from(ratingElements)
+            .map((el) => el.getAttribute("data-rating-slug"))
+            .filter(Boolean) as string[];
+
+        // Try to get from cache first
+        const cacheKey = "vfm_ratings_cache";
+        let cache: Record<string, any> = {};
+        try {
+            const stored = sessionStorage.getItem(cacheKey);
+            if (stored) cache = JSON.parse(stored);
+        } catch (e) {}
+
+        const slugsToFetch = slugs.filter((s) => !cache[s]);
+
+        const updateUI = (data: Record<string, any>) => {
+            ratingElements.forEach((el) => {
+                const slug = el.getAttribute("data-rating-slug");
+                if (slug && data[slug] && data[slug].count > 0) {
+                    const { average, count } = data[slug];
+                    const starsEl = el.querySelector(
+                        ".rating-stars-mini",
+                    ) as HTMLElement;
+                    const valueEl = el.querySelector(".rating-value");
+
+                    if (starsEl) {
+                        let starsHtml = "";
+                        const rounded = Math.round(average);
+                        for (let i = 1; i <= 5; i++) {
+                            starsHtml += i <= rounded ? "★" : "☆";
+                        }
+                        starsEl.textContent = starsHtml;
+                        starsEl.style.color = "#f59e0b";
+
+                        if (valueEl) {
+                            valueEl.textContent = average.toFixed(1);
+                            valueEl.classList.remove("hidden");
+                        }
+                        el.setAttribute("data-loaded", "true");
+                    }
+                } else if (slug) {
+                    el.setAttribute("data-loaded", "true");
+                }
+            });
+        };
+
+        // If all in cache, update and return
+        if (slugsToFetch.length === 0) {
+            updateUI(cache);
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/ratings/bulk", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ slugs: slugsToFetch }),
+            });
+            const json = await res.json();
+
+            if (json.success) {
+                const newData = json.data;
+                // Update cache
+                const updatedCache = { ...cache, ...newData };
+                sessionStorage.setItem(cacheKey, JSON.stringify(updatedCache));
+
+                updateUI(updatedCache);
+            }
+        } catch (e) {
+            console.error("Bulk ratings load failed", e);
+        }
+    };
+
+    // Run on load and page transitions
+    document.addEventListener("DOMContentLoaded", loadCardRatings);
+    document.addEventListener("astro:page-load", loadCardRatings);
+
+    // Quick-play buttons: fire global player without navigating
+    const initQuickPlay = () => {
+        document.querySelectorAll(".gp-quick-play").forEach((btn) => {
+            const el = btn as HTMLElement;
+            if (el.dataset.gpInited) return;
+            el.dataset.gpInited = "true";
+            el.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                document.dispatchEvent(
+                    new CustomEvent("veredillas:play-episode", {
+                        detail: {
+                            audioUrl: el.dataset.audioUrl,
+                            title: el.dataset.title,
+                            author: el.dataset.author,
+                            cover: el.dataset.cover,
+                            slug: el.dataset.slug,
+                            href: el.dataset.href,
+                            autoplay: true,
+                        },
+                    }),
+                );
+            });
+        });
+    };
+
+    document.addEventListener("DOMContentLoaded", initQuickPlay);
+    document.addEventListener("astro:page-load", initQuickPlay);
+</script>
