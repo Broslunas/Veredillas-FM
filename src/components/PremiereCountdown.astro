@@ -13,6 +13,10 @@ const isoDate = targetDate.toISOString();
         <div class="badge">Estreno Oficial</div>
         <h2>{title}</h2>
         
+        <button class="voice-toggle-btn enabled" aria-label="Activar/Desactivar voz de locutor" title="Locutor: ON">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        </button>
+        
         <div class="timer">
             <div class="time-unit">
                 <span class="value days">00</span>
@@ -88,10 +92,12 @@ const isoDate = targetDate.toISOString();
         </div>
 
         <div class="status-message">Esperando que llegue la hora...</div>
-    </div>
-</div>
+    
 
 <style>
+    .voice-settings-container, .voice-settings-panel, .settings-toggle-btn, .close-panel-btn, .panel-header, .panel-section, .section-label, .toggle-control, .control-indicator, .checkbox-grid, .check-item, .panel-actions, .test-voice-btn, .voice-grid, .voice-chip {
+        display: none !important;
+    }
     .premiere-countdown {
         display: flex;
         flex-direction: column;
@@ -145,6 +151,37 @@ const isoDate = targetDate.toISOString();
     }
 
     /* Reverted Timer Styles */
+    .voice-toggle-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 100;
+        backdrop-filter: blur(10px);
+    }
+
+    .voice-toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .voice-toggle-btn.enabled {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        background: rgba(139, 92, 246, 0.1);
+    }
+
     .timer {
         display: flex;
         align-items: center;
@@ -436,6 +473,211 @@ const isoDate = targetDate.toISOString();
             position: relative;
         }
     }
+
+    /* Voice Settings Styles */
+    .voice-settings-container {
+        margin-top: var(--spacing-xl);
+        position: relative;
+    }
+
+    .settings-toggle-btn {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 8px 16px;
+        border-radius: 100px;
+        color: var(--color-text-muted);
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .settings-toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: white;
+        border-color: var(--color-primary);
+    }
+
+    .voice-settings-panel {
+        position: absolute;
+        bottom: calc(100% + 15px);
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        width: 300px;
+        background: #0a0a0a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(139, 92, 246, 0.2);
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        text-align: left;
+    }
+
+    .voice-settings-panel.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .panel-header h3 {
+        font-size: 1rem;
+        margin: 0;
+        color: white;
+    }
+
+    .close-panel-btn {
+        background: none;
+        border: none;
+        color: var(--color-text-muted);
+        font-size: 1.5rem;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .panel-section {
+        margin-bottom: 18px;
+    }
+
+    .section-label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 10px;
+    }
+
+    .toggle-control {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: white;
+    }
+
+    .toggle-control input {
+        display: none;
+    }
+
+    .control-indicator {
+        width: 36px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 100px;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .control-indicator::after {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        background: white;
+        border-radius: 50%;
+        left: 3px;
+        top: 3px;
+        transition: all 0.3s;
+    }
+
+    input:checked + .control-indicator {
+        background: var(--color-primary);
+    }
+
+    input:checked + .control-indicator::after {
+        left: 19px;
+    }
+
+    .voice-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .voice-chip {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 6px;
+        border-radius: 8px;
+        color: var(--color-text-muted);
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .voice-chip:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .voice-chip.active {
+        background: rgba(139, 92, 246, 0.2);
+        border-color: var(--color-primary);
+        color: white;
+    }
+
+    .checkbox-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .check-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        cursor: pointer;
+    }
+
+    .check-item input {
+        accent-color: var(--color-primary);
+    }
+
+    .panel-actions {
+        margin-top: 10px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .test-voice-btn {
+        width: 100%;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: transform 0.2s, background 0.3s;
+    }
+
+    .test-voice-btn:hover {
+        background: #7c3aed;
+        transform: translateY(-2px);
+    }
+
+    .test-voice-btn:active {
+        transform: translateY(0);
+    }
 </style>
 
 <script>
@@ -460,9 +702,24 @@ const isoDate = targetDate.toISOString();
         isPlaying: boolean = false;
         currentUrl: string;
         hasPlayedTTS: boolean = false;
+        hasPlayedTenMinuteTTS: boolean = false;
+        hasPlayedOneMinuteTTS: boolean = false;
         lastDays: number | null = null;
         lastHours: number | null = null;
+        lastMinutes: number | null = null;
         title: string;
+
+        // Settings
+        ttsSettings = {
+            enabled: true,
+            voice: 'aura-2-selena-es',
+            alerts: {
+                initial: true,
+                'hour-change': true,
+                'ten-minutes': true,
+                'one-minute': true
+            }
+        };
 
         constructor(el: HTMLElement) {
             this.el = el;
@@ -487,9 +744,53 @@ const isoDate = targetDate.toISOString();
 
             this.currentUrl = "https://27833.live.streamtheworld.com/LOS40_URBAN.mp3"; // Default
             
+            this.loadSettings();
             this.setupAudio();
+            this.setupVoiceSettings();
             this.start();
             this.loadLastStation();
+        }
+
+        loadSettings() {
+            const saved = localStorage.getItem('veredillas_tts_settings');
+            if (saved) {
+                try {
+                    this.ttsSettings = JSON.parse(saved);
+                } catch(e) { console.error("Error loading TTS settings", e); }
+            }
+            this.applySettingsToUI();
+        }
+
+        saveSettings() {
+            localStorage.setItem('veredillas_tts_settings', JSON.stringify(this.ttsSettings));
+        }
+
+        setupVoiceSettings() {
+            const toggleBtn = this.el.querySelector('.voice-toggle-btn');
+            
+            toggleBtn?.addEventListener('click', () => {
+                this.ttsSettings.enabled = !this.ttsSettings.enabled;
+                this.saveSettings();
+                this.applySettingsToUI();
+                
+                // Audio feedback: play a short test phrase or just toggle
+                if (this.ttsSettings.enabled) {
+                    this.playTTS('initial', true);
+                }
+            });
+        }
+
+        applySettingsToUI() {
+            const toggleBtn = this.el.querySelector('.voice-toggle-btn');
+            if (toggleBtn) {
+                if (this.ttsSettings.enabled) {
+                    toggleBtn.classList.add('enabled');
+                    toggleBtn.setAttribute('title', 'Locutor: ON');
+                } else {
+                    toggleBtn.classList.remove('enabled');
+                    toggleBtn.setAttribute('title', 'Locutor: OFF');
+                }
+            }
         }
 
         loadLastStation() {
@@ -524,15 +825,22 @@ const isoDate = targetDate.toISOString();
             // Check for transitions (day or hour change)
             if (!isInitial && this.isPlaying) {
                 if (this.lastDays !== null && days < this.lastDays) {
-                    this.playTTS('day-change');
+                    this.playTTS('hour-change'); // We consider day change as a dramatic hour change
                 } else if (this.lastHours !== null && hours < this.lastHours) {
                     this.playTTS('hour-change');
+                } else if (days === 0 && hours === 0 && minutes === 9 && seconds === 59 && !this.hasPlayedTenMinuteTTS) {
+                    this.hasPlayedTenMinuteTTS = true;
+                    this.playTTS('ten-minutes');
+                } else if (days === 0 && hours === 0 && minutes === 0 && seconds === 59 && !this.hasPlayedOneMinuteTTS) {
+                    this.hasPlayedOneMinuteTTS = true;
+                    this.playTTS('one-minute');
                 }
             }
 
             // Update trackers
             this.lastDays = days;
             this.lastHours = hours;
+            this.lastMinutes = minutes;
 
             if(this.daysEl) this.daysEl.textContent = String(days).padStart(2, '0');
             if(this.hoursEl) this.hoursEl.textContent = String(hours).padStart(2, '0');
@@ -651,16 +959,15 @@ const isoDate = targetDate.toISOString();
             return `${parts.join(', ')} y ${lastPart}`;
         }
 
-        async playTTS(trigger: 'initial' | 'day-change' | 'hour-change' = 'initial') {
-            if (trigger === 'initial' && this.hasPlayedTTS) return;
+        async playTTS(trigger: 'initial' | 'hour-change' | 'ten-minutes' | 'one-minute' = 'initial', force = false) {
+            if (!this.ttsSettings.enabled && !force) return;
+            
+            if (trigger !== 'initial' && !this.ttsSettings.alerts[trigger as keyof typeof this.ttsSettings.alerts] && !force) return;
+
+            if (trigger === 'initial' && this.hasPlayedTTS && !force) return;
             if (trigger === 'initial') this.hasPlayedTTS = true;
 
-            const models = [
-                'aura-2-selena-es', 'aura-2-javier-es', 'aura-2-nestor-es', 
-                'aura-2-carina-es', 'aura-2-alvaro-es', 'aura-2-celeste-es'
-            ];
-            
-            const selectedModel = models[Math.floor(Math.random() * models.length)];
+            const selectedModel = force ? this.ttsSettings.voice : (this.ttsSettings.voice || 'aura-2-selena-es');
             const timeStr = this.getTimeRemainingStr();
             const stationName = this.selectionText?.textContent || "la radio";
             
@@ -711,20 +1018,26 @@ const isoDate = targetDate.toISOString();
             ];
 
             const transitionVariations = {
-                'day-change': [
-                    `¡Cambio de día, ${userName}!! Ya queda menos... estamos a tan solo [time] para el estreno de... ${this.title}. ¡Sigue con nosotros en ${stationName}!`,
-                    `Damos un paso más hacia el gran momento. Falta exactamente [time] para el estreno de... ${this.title}. ¡Veredillas efe-eme sigue contigo!`,
-                ],
                 'hour-change': [
                     `¡Atención, ${userName}!! Tachamos una hora en el calendario. Ya solo faltan [time] para el estreno de... ${this.title}. ¡No te lo pierdas en ${stationName}!`,
                     `Una hora menos de espera. En apenas [time] empezaremos el estreno de... ${this.title}. ¡Disfruta de la mejor música en ${stationName}!`,
                     `¡El tiempo vuela en Veredillas efe-eme!! Ya faltan solo [time] para que arranquemos con... ${this.title}.`
+                ],
+                'ten-minutes': [
+                    `¡Solo diez minutos, ${userName}!! Estamos en la recta final para el estreno de... ${this.title}. Asegúrate de tener los cascos bien puestos.`,
+                    `¡Esto empieza ya! Faltan 10 minutos exactos para... ${this.title}. Gracias por estar ahí en ${stationName}.`,
+                    `¡Cuenta atrás definitiva!! 10 minutos para que el episodio... ${this.title}... vea la luz. ¡Qué emoción!`
+                ],
+                'one-minute': [
+                    `¡UN MINUTO!! ${userName}, prepárate porque en 60 segundos empezamos el estreno de... ${this.title}. ¡Sube el volumen a tope!`,
+                    `¡Atención todo el mundo!! Queda solo un minuto para el gran estreno de... ${this.title}. ¡Corre, que empezamos ya mismo!`,
+                    `¡Última llamada!! En 60 segundos conectamos con la emisión oficial de... ${this.title}. ¡Gracias por elegir Veredillas efe-eme!`
                 ]
             };
 
             let phrase = "";
-            if (trigger !== 'initial' && transitionVariations[trigger]) {
-                const list = transitionVariations[trigger];
+            if (trigger !== 'initial' && transitionVariations[trigger as keyof typeof transitionVariations]) {
+                const list = transitionVariations[trigger as keyof typeof transitionVariations];
                 phrase = list[Math.floor(Math.random() * list.length)];
             } else {
                 phrase = variations[Math.floor(Math.random() * variations.length)];
