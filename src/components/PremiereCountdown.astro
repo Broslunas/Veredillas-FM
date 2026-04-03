@@ -603,7 +603,9 @@ const isoDate = targetDate.toISOString();
                 };
                 requestAnimationFrame(tick);
             });
-        }        getTimeRemainingStr(): string {
+        }
+
+        getTimeRemainingStr(): string {
             const now = new Date();
             const diff = this.targetDate.getTime() - now.getTime();
             if (diff <= 0) return "apenas unos segundos";
@@ -638,57 +640,87 @@ const isoDate = targetDate.toISOString();
             const timeStr = this.getTimeRemainingStr();
             const stationName = this.selectionText?.textContent || "la radio";
             
+            // --- PERSONALIZATION DATA ---
+            let userName = "amigo";
+            let userLevel = "oyente";
+            let cardsCount = 0;
+            let totalHours = 0;
+            let currentListeners = document.getElementById('listener-number')?.textContent || "varios";
+            
+            try {
+                // User Session
+                const sessionStr = localStorage.getItem('user-session');
+                if (sessionStr) {
+                    const session = JSON.parse(sessionStr);
+                    if (session.name) userName = session.name.split(' ')[0];
+                }
+
+                // Cards (Cromos)
+                const cardsStr = localStorage.getItem('veredillas_unlocked_cards') || '[]';
+                cardsCount = JSON.parse(cardsStr).length;
+
+                // Listening Time
+                const seconds = parseInt(localStorage.getItem('veredillas_total_listening_time') || '0');
+                totalHours = Math.round(seconds / 3600);
+
+                // Levels (Approximate logic from gamification.ts)
+                if (seconds > 90000) userLevel = "una auténtica leyenda";
+                else if (seconds > 54000) userLevel = "un adicto a Veredillas";
+                else if (seconds > 21600) userLevel = "un gran fan";
+                else if (seconds > 7200) userLevel = "un seguidor fiel";
+            } catch(e) { console.error("Error parsing user data for TTS", e); }
+
             const variations = [
-                `¡Muy buenas! Qué alegría saludarte. Estás escuchando ${stationName} en Veredillas FM. Te damos la bienvenida al estreno de [title]. Estamos a solo [time] de arrancar. ¡Quédate con nosotros!`,
-                `Sintonizas ${stationName} para amenizar la espera. En apenas [time] daremos paso a la emisión oficial de [title]. Disfruta de la mejor música en Veredillas FM.`,
-                `¡Hola, hola! Qué bueno tenerte al otro lado en ${stationName}. Falta muy poquito, exactamente [time] para que empiece [title]. ¡Sube el volumen y disfruta de Veredillas FM!`,
-                `¡Atención audiencia! En tan solo [time] el estreno de [title] será una realidad. Mientras tanto, sigue con la sintonía de ${stationName} en Veredillas FM.`,
-                `Estás en el lugar exacto, escuchando ${stationName}. En [time] abrimos micrófonos para el gran estreno de [title]. ¡No te muevas de ahí!`,
-                `¡Bienvenidos a Veredillas FM! Disfruta de ${stationName} mientras esperamos. Faltan apenas [time] para el estreno de [title]. Prepárate.`,
-                `¿Preparado para lo que viene en Veredillas FM? Estás escuchando ${stationName}. En solo [time] empezamos con [title].`,
-                `Veredillas FM, la radio del instituto. Gracias por elegir ${stationName}. El estreno de [title] arranca en apenas [time].`,
-                `¡No desconectes ni un segundo de ${stationName}! En [time] lanzamos [title]. Prepárate en Veredillas FM que empezamos en nada.`,
-                `Hola de nuevo. Quédate por aquí con ${stationName} porque en [time] el estreno de [title] entrará en el aire por todo lo alto.`,
-                `¡Atención comunidad! En apenas [time] daremos paso a [title]. Disfruta de ${stationName} en Veredillas FM antes del gran momento.`,
-                `¡Sube el audio de ${stationName}! En solo [time] el estreno de [title] va a sonar aquí mismo, en Veredillas FM. ¡Te va a encantar!`,
-                `Estamos a un suspiro. Solo [time] para el estreno oficial de [title]. Sigue en sintonía de ${stationName}.`,
-                `¡Bienvenidos todos a Veredillas FM! Gracias por acompañarnos en ${stationName}. Faltan [time] para que empiece el show oficial de [title].`,
-                `Veredillas FM siempre contigo en ${stationName}. En solo [time] comenzamos con [title]. ¡La espera va a valer la pena!`,
-                `¡Ya casi lo tenemos! Solo [time] nos separan en ${stationName} del esperado estreno de [title]. ¡Empezamos en nada!`,
-                `¡Hola! Muchísimas gracias por elegir ${stationName}. En [time] el episodio [title] se hará realidad para todos vosotros en Veredillas FM.`,
-                `¡Ey! No te vayas muy lejos de ${stationName}. En [time] el programa [title] entra en el aire con mucha fuerza en Veredillas FM.`,
+                `¡Muy buenas, ${userName}! Qué alegría saludarte. Estás escuchando ${stationName} en Veredillas FM. Te damos la bienvenida al estreno de [title]. Estamos a solo [time] de arrancar. ¡Quédate con nosotros!`,
+                `Sintonizas ${stationName} para amenizar la espera, ${userName}. En apenas [time] daremos paso a la emisión oficial de [title]. Ahora mismo hay ${currentListeners} personas conectadas con nosotros.`,
+                `¡Hola, hola! Qué bueno tenerte al otro lado en ${stationName}, ${userName}. Falta muy poquito, exactamente [time] para que empiece [title]. ¡Sube el volumen y disfruta de Veredillas FM!`,
+                `¡Atención audiencia! En tan solo [time] el estreno de [title] será una realidad. ${userName}, tú que ya eres ${userLevel}, sabes que lo bueno se hace esperar. Sigue con la sintonía de ${stationName}.`,
+                `Estás en el lugar exacto, escuchando ${stationName}. En [time] abrimos micrófonos para el gran estreno de [title]. Por cierto, ${userName}, llevas ya ${totalHours} horas disfrutando con nosotros. ¡Gracias por tu fidelidad!`,
+                `¡Bienvenidos a Veredillas FM! Disfruta de ${stationName} mientras esperamos. Faltan apenas [time] para el estreno de [title]. Somos ya ${currentListeners} oyentes esperando el momento.`,
+                `¿Preparado para lo que viene en Veredillas FM? Estás escuchando ${stationName}. ${userName}, en solo [time] empezamos con [title].`,
+                `Veredillas FM, la radio del instituto. Gracias por elegir ${stationName}, ${userName}. El estreno de [title] arranca en apenas [time].`,
+                `¡No desconectes ni un segundo de ${stationName}! En [time] lanzamos [title]. ${userName}, prepárate en Veredillas FM porque esto empieza ya mismo.`,
+                `Hola de nuevo, ${userName}. Quédate por aquí con ${stationName} porque en [time] el estreno de [title] entrará en el aire por todo lo alto.`,
+                `¡Atención comunidad! En apenas [time] daremos paso a [title]. ${userName}, con tus ${cardsCount} cromos coleccionados, seguro que no te quieres perder este episodio. ¡Disfruta de ${stationName}!`,
+                `¡Sube el audio de ${stationName}! En solo [time] el estreno de [title] va a sonar aquí mismo, en Veredillas FM. ${userName}, prepárate para disfrutar.`,
+                `Estamos a un suspiro. Solo [time] para el estreno oficial de [title]. Sigue en sintonía de ${stationName}, como buen ${userLevel} que eres.`,
+                `¡Bienvenidos todos a Veredillas FM! Gracias por acompañarnos en ${stationName}, ${userName}. Faltan [time] para que empiece el show oficial de [title].`,
+                `Veredillas FM siempre contigo en ${stationName}. En solo [time] comenzamos con [title], ${userName}. ¡La espera va a valer la pena!`,
+                `¡Ya casi lo tenemos! Solo [time] nos separan en ${stationName} del esperado estreno de [title]. Somos ${currentListeners} preparados para el lanzamiento.`,
+                `¡Hola, ${userName}! Muchísimas gracias por elegir ${stationName}. En [time] el episodio [title] se hará realidad para todos vosotros en Veredillas FM.`,
+                `¡Ey! No te vayas muy lejos de ${stationName}. En [time] el programa [title] entra en el aire con mucha fuerza. Por cierto, ${userName}, nos encanta que seas un ${userLevel} en nuestra comunidad.`,
                 `¡Atención! Estamos de estreno absoluto en Veredillas FM. Disfruta de ${stationName}. En apenas [time] arrancamos con [title].`,
-                `¡Sintonía perfecta la que tenemos hoy en ${stationName}! En [time] [title] te espera aquí, en Veredillas FM.`,
-                `¡Qué bien se siente la energía en ${stationName}! En solo [time] el estreno de [title] cobrará vida en tus oídos.`,
-                `¡Bienvenidos al canal de audio de Veredillas FM! En ${stationName}, en tan solo [time] [title] dará comienzo.`,
-                `¡Prepárate para la mejor radio escolar! Disfruta de ${stationName}. En [time] llega el gran estreno de [title].`,
-                `¡Hola a todos los oyentes fieles de ${stationName}! En [time] lanzamos lo nuevo de [title] en Veredillas FM.`,
-                `¡Veredillas FM al habla en ${stationName}! En apenas [time] [title] empezará a sonar por todo lo alto.`,
-                `¡Oye! Gracias por sintonizar ${stationName}. Faltan solo [time] para dar comienzo a [title].`,
-                `¡Qué ganas de pulsar el play en Veredillas FM! En ${stationName} la espera es mejor. En solo [time] [title] estará disponible.`,
-                `¡Atención audiencia de ${stationName}! En exactamente [time] el estreno de [title] se asomará a tus altavoces.`,
-                `¡Sube la radio al máximo! Estás escuchando ${stationName}. En solo [time] [title] entra en acción para todos vosotros.`,
-                `¡Hola! Estamos en la recta final en ${stationName}. El gran estreno de [title] empieza en apenas [time].`,
-                `¡Veredillas FM, la radio que nos une! Disfruta de ${stationName}. En [time] arranca el esperado estreno de [title].`,
-                `¡Prepárate junto a ${stationName}! En solo [time] daremos luz verde a [title]. ¡Estás invitado a escucharlo primero!`,
-                `¡No te lo vas a creer! En apenas [time] arranca [title]. Disfruta de la mejor música en ${stationName}.`,
-                `¡Hola de nuevo! Qué gran tarde tenemos en ${stationName}. En tan solo [time] [title] estará sonando con nosotros.`,
-                `¡Atención! Ya falta muy poquito. Escuchas ${stationName} en Veredillas FM y en solo [time] llega el estreno de [title].`,
-                `¡Ey, familia Veredillas! En solo [time] [title] llega con muchísima ilusión a ${stationName}.`,
-                `¡Bienvenido a la espera más apasionante en ${stationName}! En [time] el episodio [title] despega oficialmente.`,
-                `¡Atención! Estás en ${stationName}. En solo [time] el estreno de [title] se hará realidad en Veredillas FM.`,
-                `¡Veredillas FM te saluda con energía desde ${stationName}! En [time] el estreno de [title] será todo vuestro.`,
-                `¡Falta nada y menos! Sigue en ${stationName}. En [time] [title] empieza a sonar. ¡Aprovecha estos minutos!`,
-                `¡Ya está aquí lo que estabais esperando! Escuchas ${stationName}. En solo [time] lanzamos el estreno de [title].`,
-                `¡No parpadees! Sintoniza ${stationName} en Veredillas FM. En [time] arranca [title] con toda su fuerza.`,
-                `¡Hola! En apenas [time] el estreno de [title] te va a sorprender en ${stationName}. ¡No te despegues!`,
-                `¡Qué tal comunidad! En solo [time] de espera con ${stationName} comenzamos el estreno oficial de [title].`,
-                `¡Ey! Que no se te escape. Escuchas ${stationName} y en solo [time] [title] entra a escena.`,
-                `¡Qué ganas teníamos de este momento en ${stationName}! Solo [time] más para el estreno de [title].`,
-                `¡Hola, hola! Ya casi estamos listos en ${stationName}. En solo [time] [title] se hace realidad ante vosotros.`,
+                `¡Sintonía perfecta la que tenemos hoy en ${stationName}! En [time] [title] te espera aquí, en Veredillas FM, con ${currentListeners} oyentes en directo.`,
+                `¡Qué bien se siente la energía en ${stationName}, ${userName}! En solo [time] el estreno de [title] cobrará vida en tus oídos.`,
+                `¡Bienvenidos al canal de audio de Veredillas FM! En ${stationName}, en tan solo [time] [title] dará comienzo. Ponte cómodo y disfruta.`,
+                `¡Prepárate para la mejor radio escolar! Disfruta de ${stationName}. En [time] llega el gran estreno de [title], el programa que todos estábamos esperando.`,
+                `¡Hola a todos los oyentes fieles de ${stationName}! En [time] lanzamos lo nuevo de [title]. ${userName}, sigue coleccionando cromos, ¡ya llevas ${cardsCount}!`,
+                `¡Veredillas FM al habla en ${stationName}! En apenas [time] [title] empezará a sonar por todo lo alto para nuestros ${currentListeners} oyentes.`,
+                `¡Oye, ${userName}! Gracias por sintonizar ${stationName}. Faltan solo [time] para dar comienzo a [title]. Disfruta de la música.`,
+                `¡Qué ganas de pulsar el play en Veredillas FM! En ${stationName} la espera es mejor. ${userName}, en solo [time] [title] estará disponible.`,
+                `¡Atención audiencia de ${stationName}! En exactamente [time] el estreno de [title] se asomará a tus altavoces con la mejor calidad.`,
+                `¡Sube la radio al máximo! Estás escuchando ${stationName}. En solo [time] [title] entra en acción para ${userName} y todos nosotros.`,
+                `¡Hola de nuevo! Estamos en la recta final en ${stationName}. El gran estreno de [title] empieza en apenas [time]. ¡No te lo pierdas!`,
+                `¡Veredillas FM, la radio que nos une! Disfruta de ${stationName}. En [time] arranca el esperado estreno de [title] para toda la comunidad.`,
+                `¡Prepárate junto a ${stationName}, ${userName}! En solo [time] daremos luz verde a [title]. ¡Estás invitado a escucharlo antes que nadie!`,
+                `¡No te lo vas a creer! En apenas [time] arranca [title]. Disfruta de la mejor música en ${stationName} mientras llega el momento.`,
+                `¡Hola de nuevo, ${userName}! Qué gran tarde tenemos en ${stationName}. En tan solo [time] [title] estará sonando por fin.`,
+                `¡Atención! Ya falta muy poquito. Escuchas ${stationName} en Veredillas FM y en solo [time] llega el estreno de [title]. Ya somos un montón de oyentes en línea.`,
+                `¡Ey, familia Veredillas! En solo [time] [title] llega con muchísima ilusión a ${stationName}. ${userName}, prepárate para lo que viene.`,
+                `¡Bienvenido a la espera más apasionante en ${stationName}! En [time] el episodio [title] despega oficialmente para ti y tus amigos.`,
+                `¡Atención! Estás en ${stationName}. En solo [time] el estreno de [title] se hará realidad en Veredillas FM para nuestros ${currentListeners} oyentes.`,
+                `¡Veredillas FM te saluda con energía desde ${stationName}, ${userName}! En [time] el estreno de [title] será todo vuestro.`,
+                `¡Falta nada y menos! Sigue en ${stationName}. En [time] [title] empieza a sonar. ${userName}, ¡gracias por ser ${userLevel}!`,
+                `¡Ya está aquí lo que estabais esperando! Escuchas ${stationName}. En solo [time] lanzamos el estreno de [title] para toda la audiencia.`,
+                `¡No parpadees! Sintoniza ${stationName} en Veredillas FM. En [time] arranca [title] con toda su fuerza para sorprendernos a todos.`,
+                `¡Hola! En apenas [time] el estreno de [title] te va a sorprender en ${stationName}, ${userName}. ¡No te despegues de la sintonía!`,
+                `¡Qué tal comunidad! En solo [time] de espera con ${stationName} comenzamos el estreno oficial de [title], un episodio inolvidable.`,
+                `¡Ey, ${userName}! Que no se te escape. Escuchas ${stationName} y en solo [time] [title] entra a escena finalmente.`,
+                `¡Qué ganas teníamos de este momento en ${stationName}! Solo [time] más para el estreno de [title]. Somos ya una gran multitud esperando.`,
+                `¡Hola, hola! Ya casi estamos listos en ${stationName}. En solo [time] [title] se hace realidad ante los ${currentListeners} oyentes actuales.`,
                 `¡Veredillas FM, conectando con vuestras emociones a través de ${stationName}! En [time] arranca oficialmente [title].`,
-                `¡No te desconectes nunca de ${stationName}! En tan solo [time] el gran estreno de [title] te espera aquí.`,
-                `¡Aquí estamos en ${stationName}, con los nervios del estreno! En solo [time] el programa [title] comienza.`
+                `¡No te desconectes nunca de ${stationName}, ${userName}! En tan solo [time] el gran estreno de [title] te espera aquí con nosotros.`,
+                `¡Aquí estamos en ${stationName}, con los nervios del estreno! En solo [time] el magnífico programa [title] comienza. ¡Disfrútalo!`
             ];
 
             const phrase = variations[Math.floor(Math.random() * variations.length)]
