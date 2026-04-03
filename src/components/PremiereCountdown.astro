@@ -460,6 +460,8 @@ const isoDate = targetDate.toISOString();
         isPlaying: boolean = false;
         currentUrl: string;
         hasPlayedTTS: boolean = false;
+        lastDays: number | null = null;
+        lastHours: number | null = null;
         title: string;
 
         constructor(el: HTMLElement) {
@@ -518,6 +520,19 @@ const isoDate = targetDate.toISOString();
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            // Check for transitions (day or hour change)
+            if (!isInitial && this.isPlaying) {
+                if (this.lastDays !== null && days < this.lastDays) {
+                    this.playTTS('day-change');
+                } else if (this.lastHours !== null && hours < this.lastHours) {
+                    this.playTTS('hour-change');
+                }
+            }
+
+            // Update trackers
+            this.lastDays = days;
+            this.lastHours = hours;
 
             if(this.daysEl) this.daysEl.textContent = String(days).padStart(2, '0');
             if(this.hoursEl) this.hoursEl.textContent = String(hours).padStart(2, '0');
@@ -636,9 +651,9 @@ const isoDate = targetDate.toISOString();
             return `${parts.join(', ')} y ${lastPart}`;
         }
 
-        async playTTS() {
-            if (this.hasPlayedTTS) return;
-            this.hasPlayedTTS = true;
+        async playTTS(trigger: 'initial' | 'day-change' | 'hour-change' = 'initial') {
+            if (trigger === 'initial' && this.hasPlayedTTS) return;
+            if (trigger === 'initial') this.hasPlayedTTS = true;
 
             const models = [
                 'aura-2-selena-es', 'aura-2-javier-es', 'aura-2-nestor-es', 
@@ -695,9 +710,27 @@ const isoDate = targetDate.toISOString();
                 `Estamos a un suspiro. Solo [time] para el estreno oficial de... ${this.title}. Sigue en sintonía de ${stationName}, como buen ${userLevel} que eres.`
             ];
 
-            const phrase = variations[Math.floor(Math.random() * variations.length)]
-                .replace('[title]', this.title)
-                .replace('[time]', timeStr);
+            const transitionVariations = {
+                'day-change': [
+                    `¡Cambio de día, ${userName}!! Ya queda menos... estamos a tan solo [time] para el estreno de... ${this.title}. ¡Sigue con nosotros en ${stationName}!`,
+                    `Damos un paso más hacia el gran momento. Falta exactamente [time] para el estreno de... ${this.title}. ¡Veredillas efe-eme sigue contigo!`,
+                ],
+                'hour-change': [
+                    `¡Atención, ${userName}!! Tachamos una hora en el calendario. Ya solo faltan [time] para el estreno de... ${this.title}. ¡No te lo pierdas en ${stationName}!`,
+                    `Una hora menos de espera. En apenas [time] empezaremos el estreno de... ${this.title}. ¡Disfruta de la mejor música en ${stationName}!`,
+                    `¡El tiempo vuela en Veredillas efe-eme!! Ya faltan solo [time] para que arranquemos con... ${this.title}.`
+                ]
+            };
+
+            let phrase = "";
+            if (trigger !== 'initial' && transitionVariations[trigger]) {
+                const list = transitionVariations[trigger];
+                phrase = list[Math.floor(Math.random() * list.length)];
+            } else {
+                phrase = variations[Math.floor(Math.random() * variations.length)];
+            }
+
+            phrase = phrase.replace('[title]', this.title).replace('[time]', timeStr);
 
             try {
                 const response = await fetch('/api/tts', {
