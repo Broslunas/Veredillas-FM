@@ -484,6 +484,18 @@ const isoDate = targetDate.toISOString();
             
             this.setupAudio();
             this.start();
+            this.loadLastStation();
+        }
+
+        loadLastStation() {
+            const lastUrl = localStorage.getItem('veredillas_last_station');
+            if (lastUrl) {
+                const optionsArray = Array.from(this.vibeOptions);
+                const foundOption = optionsArray.find(opt => opt.dataset.value === lastUrl);
+                if (foundOption) {
+                    this.switchGenre(foundOption);
+                }
+            }
         }
 
         update(isInitial = false) {
@@ -584,6 +596,9 @@ const isoDate = targetDate.toISOString();
             if (newUrl && this.audio) {
                 this.currentUrl = newUrl;
                 this.audio.src = newUrl;
+                
+                // Save selection to localStorage
+                localStorage.setItem('veredillas_last_station', newUrl);
                 
                 if (this.isPlaying) {
                      if(this.musicLabel) this.musicLabel.textContent = `Conectando con ${genreName}...`;
