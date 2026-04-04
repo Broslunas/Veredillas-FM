@@ -49,6 +49,7 @@ export interface AchievementStats {
   differentGuestsListenedCount: number;
   bioLength: number;
   totalQuizzesCount: number;       // total quizzes completed
+  referralsCount: number;          // total users referred
   /** Sum of points from already-unlocked achievements — computed server-side before evaluating meta-achievements. */
   totalPoints: number;
 }
@@ -1125,6 +1126,52 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: s => s.listeningTime >= 18000 && s.completedEpisodesCount >= 30 && s.chatMessagesCount >= 500,
     secret: true,
   },
+  // ─── REFERIDOS (SOCIAL) ──────────────────────────────────
+  {
+    id: 'referido_uno',
+    name: 'El Boca a Boca',
+    description: 'Invita a tu primer amigo a Veredillas FM.',
+    icon: '🤝',
+    rarity: 'common',
+    category: 'social',
+    points: 30,
+    check: s => s.referralsCount >= 1,
+    progress: s => ({ current: Math.min(s.referralsCount, 1), max: 1, unit: 'amigo' }),
+  },
+  {
+    id: 'referidos_dos',
+    name: 'Doble Impacto',
+    description: 'Invita a 2 amigos a la plataforma.',
+    icon: '👯',
+    rarity: 'uncommon',
+    category: 'social',
+    points: 60,
+    check: s => s.referralsCount >= 2,
+    progress: s => ({ current: Math.min(s.referralsCount, 2), max: 2, unit: 'amigos' }),
+  },
+  {
+    id: 'referidos_cinco',
+    name: 'El Relaciones Públicas',
+    description: 'Invita a 5 amigos a Veredillas FM.',
+    icon: '📢',
+    rarity: 'rare',
+    category: 'social',
+    points: 150,
+    check: s => s.referralsCount >= 5,
+    progress: s => ({ current: Math.min(s.referralsCount, 5), max: 5, unit: 'amigos' }),
+  },
+  {
+    id: 'referidos_diez',
+    name: 'El Embajador',
+    description: 'Invita a 10 amigos a la comunidad. ¡Gracias por compartir!',
+    icon: '🌍',
+    rarity: 'epic',
+    category: 'social',
+    points: 300,
+    check: s => s.referralsCount >= 10,
+    progress: s => ({ current: Math.min(s.referralsCount, 10), max: 10, unit: 'amigos' }),
+  },
+
   // ─── DESAFÍOS (QUIZZES) ──────────────────────────────────
   {
     id: 'primer_quiz',

@@ -46,6 +46,8 @@ const createdDate = new Date(user.createdAt).toLocaleDateString('es-ES', {
 
 // Gamification Data
 const listeningTime = user.listeningTime || 0;
+const referralsCount = user.referrals ? user.referrals.length : 0;
+const referralLink = `${Astro.url.origin}/login?ref=${user._id}`;
 const currentLevel = getLevel(listeningTime);
 const nextLevel = getNextLevel(listeningTime);
 const progress = getProgressToNextLevel(listeningTime);
@@ -150,6 +152,24 @@ function formatTime(seconds: number): string {
                 </div>
 
                 <!-- Liked Clips moved to Dashboard -->
+
+                <div class="glass-panel stat-card">
+                    <div class="stat-header">
+                        <h3>Enlace de Invitación</h3>
+                        <span class="stat-icon">🤝</span>
+                    </div>
+                    <div style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.9rem;">
+                        Invita a tus amigos a Veredillas FM usando este enlace para desbloquear logros únicos.
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <input type="text" readonly value={referralLink} style="flex: 1; padding: 0.5rem 1rem; border-radius: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--color-text);" id="referral-link" />
+                        <button class="btn btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('referral-link').value); const btn = this; const ogText = btn.textContent; btn.textContent = '¡Copiado!'; setTimeout(() => btn.textContent = ogText, 2000);" style="padding: 0.5rem 1rem;">
+                            Copiar
+                        </button>
+                    </div>
+                    <div class="stat-value">{referralsCount}</div>
+                    <div class="stat-sub">amigos invitados</div>
+                </div>
 
                 <!-- Settings Form -->
                 <div class="glass-panel settings-panel">

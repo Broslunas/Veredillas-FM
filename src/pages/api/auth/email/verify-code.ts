@@ -58,6 +58,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       const avatarHash = createHash('md5').update(payload.email.trim().toLowerCase()).digest('hex');
       const userPicture = `https://www.gravatar.com/avatar/${avatarHash}?d=identicon`;
 
+      const refCookie = cookies.get('ref')?.value;
+      let referredByObjId = undefined;
+
+      if (refCookie && mongoose.Types.ObjectId.isValid(refCookie)) {
+        const referrer = await User.findById(refCookie);
+        if (referrer) {
+          referredByObjId = referrer._id;
+        }
+      }
+
       user = await User.create({
         email: payload.email,
         name: emailUsername,
@@ -65,8 +75,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         lastLogin: now,
         lastActiveAt: now,
         currentStreak: 1,
-        maxStreak: 1
+        maxStreak: 1,
+        referredBy: referredByObjId
       });
+
+      if (referredByObjId) {
+         await User.updateOne(
+           { _id: referredByObjId },
+           { $push: { referrals: user._id } }
+         );
+      }
 
       // Notificar registro a n8n
       try {
