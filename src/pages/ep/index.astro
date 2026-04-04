@@ -358,9 +358,44 @@ const buildNow = new Date();
             filterItems();
         });
 
+        // ── Optimized Filter Cache ──────────────────────────────────────
+        const episodeData = Array.from(items).map(item => {
+            const el = item as HTMLElement;
+            return {
+                el,
+                pubDate: new Date(el.getAttribute('data-pub-date') || ''),
+                searchContent: el.getAttribute('data-search-content') || '',
+                season: el.getAttribute('data-season') || '',
+                participants: (el.getAttribute('data-participants') || '').split('|').map(p => p.trim()),
+                tags: (el.getAttribute('data-tags') || '').split('|').map(t => t.trim()),
+                durationMin: parseInt(el.getAttribute('data-duration-min') || '0'),
+                schoolYear: el.getAttribute('data-school-year') || ''
+            };
+        });
+
+        // ── Intersection Observer for animations ─────────────────────────
+        const observerOptions = {
+            root: null,
+            rootMargin: '100px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target as HTMLElement;
+                    el.classList.add('is-visible');
+                    // Stop observing once visible to prevent re-triggering
+                    observer.unobserve(el);
+                }
+            });
+        }, observerOptions);
+
+        items.forEach(item => observer.observe(item));
+
         // ── Debounce function ───────────────────────────────────────────
         function debounce(func: Function, wait: number) {
-            let timeout: number | null = null;
+            let timeout: any = null;
             return function executedFunction(...args: any[]) {
                 const later = () => {
                     timeout = null;
@@ -550,36 +585,26 @@ const buildNow = new Date();
             }
 
             const updateDisplay = () => {
-                items.forEach((item) => {
-                    const itemEl = item as HTMLElement;
-                    const pubDateStr = itemEl.getAttribute('data-pub-date');
-                    if (!pubDateStr) return;
+                episodeData.forEach((data) => {
+                    const { el, pubDate, searchContent, season, participants, tags, durationMin, schoolYear } = data;
                     
-                    const pubDate = new Date(pubDateStr);
                     const isUpcoming = pubDate > now;
                     const diffInHours = (pubDate.getTime() - now.getTime()) / (1000 * 60 * 60);
                     const isAboutToPremiere = isUpcoming && diffInHours <= 2;
-
-                    const searchContent = itemEl.getAttribute('data-search-content') || '';
-                    const itemSeason = itemEl.getAttribute('data-season') || '';
-                    const participants = itemEl.getAttribute('data-participants') || '';
-                    const tags = itemEl.getAttribute('data-tags') || '';
-                    const durationMin = parseInt(itemEl.getAttribute('data-duration-min') || '0');
-                    const itemSchoolYear = itemEl.getAttribute('data-school-year') || '';
                     
-                    const matchesSeason = currentSeason === 'all' || itemSeason === currentSeason;
+                    const matchesSeason = currentSeason === 'all' || season === currentSeason;
                     const matchesUpcoming = showUpcoming || !isUpcoming || isAboutToPremiere;
                     const matchesSearch = searchTerm === '' || searchContent.includes(searchTerm);
-                    const matchesGuest = selectedGuest === '' || participants.split('|').some(p => p.trim() === selectedGuest);
+                    const matchesGuest = selectedGuest === '' || participants.includes(selectedGuest);
                     const matchesTag = (selectedSubject === '' && selectedTag === '') || 
-                                     tags.split('|').some(t => t.trim() === selectedSubject || t.trim() === selectedTag);
+                                     tags.some(t => t === selectedSubject || t === selectedTag);
                     const matchesDuration = durationMin >= selectedDuration.min && durationMin <= selectedDuration.max;
-                    const matchesSchoolYear = selectedSchoolYear === '' || itemSchoolYear === selectedSchoolYear;
+                    const matchesSchoolYear = selectedSchoolYear === '' || schoolYear === selectedSchoolYear;
 
                     if (matchesSeason && matchesUpcoming && matchesSearch && matchesGuest && matchesTag && matchesDuration && matchesSchoolYear) {
-                        itemEl.classList.remove('hidden-anim');
-                        itemEl.classList.remove('is-upcoming-hidden');
-                        const badge = itemEl.querySelector('.dynamic-upcoming-badge') as HTMLElement | null;
+                        el.classList.remove('hidden-anim');
+                        el.classList.remove('is-upcoming-hidden');
+                        const badge = el.querySelector('.dynamic-upcoming-badge') as HTMLElement | null;
                         const badgeText = badge?.querySelector('.badge-text');
                         
                         if (badge) {
@@ -595,15 +620,11 @@ const buildNow = new Date();
                             }
                         }
 
-                        itemEl.style.display = 'block';
-                        // Add a small delay for staggered appearance if it was hidden
-                        if (itemEl.style.opacity === '0') {
-                            itemEl.style.opacity = '1';
-                        }
+                        el.style.display = 'block';
                         visibleCount++;
                     } else {
-                        itemEl.classList.add('hidden-anim');
-                        itemEl.style.display = 'none';
+                        el.classList.add('hidden-anim');
+                        el.style.display = 'none';
                     }
                 });
 
@@ -623,7 +644,7 @@ const buildNow = new Date();
             }
         }
 
-        const debouncedFilter = debounce(filterItems, 300);
+        const debouncedFilter = debounce(filterItems, 150);
 
         // Season Buttons Logic
         seasonBtns.forEach(btn => {
@@ -1367,29 +1388,31 @@ const buildNow = new Date();
 
     .episode-item {
         transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
-        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        animation-delay: calc(var(--delay) * 0.08s);
         opacity: 0;
         height: 100%;
         contain: layout;
         will-change: transform, opacity;
+        content-visibility: auto;
+        contain-intrinsic-size: 320px 500px;
+    }
+
+    .episode-item.is-visible {
+        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
 
     @keyframes fadeInUp {
         from { 
             opacity: 0; 
             transform: translateY(40px) scale(0.95); 
-            filter: blur(10px);
         }
         to { 
             opacity: 1; 
             transform: translateY(0) scale(1);
-            filter: blur(0);
         }
     }
 
     ::view-transition-group(*) {
-        animation-duration: 0.5s;
+        animation-duration: 0.3s;
         animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
