@@ -142,24 +142,28 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
     // 4. Generar el JWT Token y la respuesta HTML
     const jwtToken = generateToken(user);
     
-    // Usamos el propio callback como página de éxito para evitar pérdidas de contexto por saltos 302
+    // Usamos el propio callback como página de éxito para evitar pérdidas de contexto
     
     console.log('[Auth Canarian] Finalizing session on host:', url.host);
 
     const maxAge = 60 * 60 * 24 * 30; // 30 días
-    
+    const host = url.host;
+    // Si estamos en el dominio real, compartimos la cookie entre www y apex
+    const domain = host.includes('veredillasfm.es') ? '.veredillasfm.es' : undefined;
+
     // --- COOKIES (Native Astro API for Vercel/Prod reliability) ---
-    // Usamos Astro.cookies.set para que el motor de Astro gestione las cabeceras correctamente
     cookies.set('auth-token', jwtToken, {
       path: '/',
+      domain: domain,
       maxAge: maxAge,
       httpOnly: true,
-      secure: true, // Producción siempre es HTTPS
+      secure: true, 
       sameSite: 'lax'
     });
 
     cookies.set('user-session', 'true', {
       path: '/',
+      domain: domain,
       maxAge: maxAge,
       httpOnly: false,
       secure: true,
@@ -171,34 +175,52 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       <html lang="es">
       <head>
           <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Autenticación Exitosa - Veredillas FM</title>
           <style>
-              body { background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui; text-align: center; margin: 0; }
-              .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem; }
+              body { background: #0a0a0a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif; text-align: center; margin: 0; padding: 2rem; box-sizing: border-box; }
+              .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 3rem; border-radius: 2rem; backdrop-filter: blur(20px); max-width: 400px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+              .spinner { width: 48px; height: 48px; border: 4px solid rgba(139,92,246,0.1); border-left-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem; }
+              h1 { font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 800; background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+              p { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 2rem; }
               @keyframes spin { to { transform: rotate(360deg); } }
+              .btn { background: #7c3aed; color: white; border: none; padding: 1rem 2rem; border-radius: 1rem; font-weight: 800; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; box-shadow: 0 10px 20px -5px rgba(139,92,246,0.5); width: 100%; box-sizing: border-box; }
+              .btn:hover { background: #8b5cf6; transform: translateY(-2px); shadow: 0 15px 25px -5px rgba(139,92,246,0.6); }
+              .btn:active { transform: translateY(0); }
           </style>
       </head>
       <body>
-          <div>
+          <div class="card">
               <div class="spinner"></div>
               <h1>¡Bienvenido, ${user.name}!</h1>
-              <p>Sesión confirmada. Redirigiendo...</p>
+              <p>Tu sesión se ha iniciado correctamente. La ventana se cerrará sola.</p>
+              <button onclick="finish()" class="btn">Entrar al Dashboard</button>
           </div>
           <script>
             // Notificar al padre via localStorage (Señal universal)
             localStorage.setItem('canarian_auth_done', Date.now().toString());
 
-            // Intentar postMessage por si el opener sigue vivo
-            try {
+            function finish() {
               if (window.opener) {
-                window.opener.postMessage({ type: 'auth_success' }, '*');
+                try {
+                  window.opener.postMessage({ type: 'auth_success' }, '*');
+                  // Forzamos el cambio de página en el padre si sigue vivo
+                  window.opener.location.href = '/dashboard';
+                } catch (e) {
+                  console.warn('Opener not accessible');
+                }
               }
-            } catch (e) {
-              console.warn('Opener not accessible');
+              // Cerramos este popup
+              window.close();
+              
+              // Si por alguna razón sigue abierto, redirigimos esta ventana como plan C
+              setTimeout(() => {
+                if (!window.closed) window.location.href = '/dashboard';
+              }, 400);
             }
 
-            // Cierre incondicional después de saludar
-            setTimeout(() => window.close(), 1000);
+            // Automatización después de 1.5 segundos
+            setTimeout(finish, 1500);
           </script>
       </body>
       </html>
