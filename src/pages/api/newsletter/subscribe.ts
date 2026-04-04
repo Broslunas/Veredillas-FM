@@ -14,6 +14,13 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
+    if (email.endsWith('@canariaseducacion.es')) {
+      return new Response(
+        JSON.stringify({ message: "El dominio @canariaseducacion.es no está permitido para la newsletter. Por favor, usa otro correo." }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Determine the origin to send to n8n, so it can construct the confirmation link correctly
     const origin = request.headers.get('origin') || import.meta.env.SITE || 'https://veredillasfm.es';
     

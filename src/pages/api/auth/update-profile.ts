@@ -55,6 +55,15 @@ export const POST: APIRoute = async ({ request }) => {
     let newsletterChanged = false;
     if (newsletter !== undefined) {
         const newStatus = Boolean(newsletter);
+
+        // Block subscription if user has @canariaseducacion.es email
+        if (newStatus && currentUser.email.endsWith('@canariaseducacion.es')) {
+          return new Response(JSON.stringify({ error: 'El dominio @canariaseducacion.es no está permitido para la newsletter' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
         if (currentUser.newsletter !== newStatus) {
             updateData.newsletter = newStatus;
             newsletterChanged = true;
