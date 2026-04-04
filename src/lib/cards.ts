@@ -30,11 +30,11 @@ export async function checkAndUnlockCards(userId: string | mongoose.Types.Object
     const guests = await getCollection('guests');
 
     // 3. Map participants to guest slugs
+    const guestMap = new Map(guests.map(g => [normalize(g.data.name), g]));
     const guestMatches: { slug: string; name: string }[] = [];
+
     for (const participant of participants) {
-      const matched = guests.find(
-        (g) => normalize(g.data.name) === normalize(participant)
-      );
+      const matched = guestMap.get(normalize(participant));
       if (matched) {
         guestMatches.push({ slug: matched.slug, name: matched.data.name });
       }
@@ -92,15 +92,18 @@ export async function syncAllUserCards(userId: string | mongoose.Types.ObjectId)
     const existingUnlocks = await UnlockedCard.find({ userId });
     const unlockedSlugs = new Set(existingUnlocks.map(u => u.guestSlug));
 
+    const episodeMap = new Map(episodes.map(ep => [ep.slug, ep]));
+    const guestMap = new Map(guests.map(g => [normalize(g.data.name), g]));
+
     let newlyUnlockedCount = 0;
     const cardsToUnlock = [];
 
     for (const episodeSlug of user.completedEpisodes) {
-      const episode = episodes.find(ep => ep.slug === episodeSlug);
+      const episode = episodeMap.get(episodeSlug);
       if (!episode || !episode.data.participants) continue;
 
       for (const participant of episode.data.participants) {
-        const matchedGuest = guests.find(g => normalize(g.data.name) === normalize(participant));
+        const matchedGuest = guestMap.get(normalize(participant));
         if (matchedGuest && !unlockedSlugs.has(matchedGuest.slug)) {
           // Add to pending unlocks
           cardsToUnlock.push({
