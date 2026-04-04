@@ -1002,19 +1002,47 @@ const isoDate = targetDate.toISOString();
             } catch(e) { console.error("Error parsing user data for TTS", e); }
 
             const variations = [
-                `¡Muy buenas, ${userName}!! Qué alegría saludarte. Estás escuchando ${stationName} en Veredillas efe-eme. Te damos la bienvenida al estreno de... ${this.title}. Estamos a solo [time] de arrancar. ¡Quédate con nosotros!`,
-                `Sintonizas ${stationName} para amenizar la espera, ${userName}. En apenas [time] daremos paso a la emisión oficial de... ${this.title}. Ahora mismo hay ${currentListeners} personas conectadas con nosotros.`,
-                `¡Hola, hola!! Qué bueno tenerte al otro lado en ${stationName}, ${userName}. Falta muy poquito... exactamente [time] para que empiece... ${this.title}. ¡Sube el volumen y disfruta de Veredillas efe-eme!`,
-                `¡Atención audiencia!! En tan solo [time] el estreno de... ${this.title}... será una realidad. ${userName}, tú que ya eres ${userLevel}, sabes que lo bueno se hace esperar. Sigue con la sintonía de ${stationName}.`,
-                `Estás en el lugar exacto... escuchando ${stationName}. En [time] abrimos micrófonos para el gran estreno de... ${this.title}. Por cierto, ${userName}, llevas ya ${totalHours} horas disfrutando con nosotros. ¡Gracias por tu fidelidad!`,
-                `¡Bienvenidos a Veredillas efe-eme!! Disfruta de ${stationName} mientras esperamos. Faltan apenas [time] para el estreno de... ${this.title}. Somos ya ${currentListeners} oyentes esperando el momento.`,
-                `¿Preparado para lo que viene en Veredillas efe-eme? Estás escuchando ${stationName}. ${userName}, en solo [time] empezamos con... ${this.title}.`,
-                `Veredillas efe-eme... la radio del instituto. Gracias por elegir ${stationName}, ${userName}. El estreno de... ${this.title}... arranca en apenas [time].`,
-                `¡No desconectes ni un segundo de ${stationName}!! En [time] lanzamos... ${this.title}. ${userName}, prepárate en Veredillas porque esto empieza ya mismo.`,
-                `Hola de nuevo, ${userName}. Quédate por aquí con ${stationName} porque en [time] el estreno de... ${this.title}... entrará en el aire por todo lo alto.`,
-                `¡Atención comunidad!! En apenas [time] daremos paso a... ${this.title}. ${userName}, con tus ${cardsCount} cromos coleccionados, seguro que no te quieres perder este episodio. ¡Disfruta de ${stationName}!`,
-                `¡Sube el audio de ${stationName}!! En solo [time] el estreno de... ${this.title}... va a sonar aquí mismo, en Veredillas efe-eme. ${userName}, prepárate para disfrutar.`,
-                `Estamos a un suspiro. Solo [time] para el estreno oficial de... ${this.title}. Sigue en sintonía de ${stationName}, como buen ${userLevel} que eres.`
+                // --- LORE Y EVENTOS CANÓNICOS ---
+                `${userName}, estar en ${stationName} es parte del lore, pero el evento canónico empieza en [time] con el estreno de... ${this.title} en Veredillas efe-eme. ¡Prepárate!`,
+                `Tienes energía de main character, ${userName}. Sigue de chill en ${stationName} porque en [time] rompemos la matrix con... ${this.title} en Veredillas efe-eme.`,
+                `Han intentado nerfearnos pero no pueden. Sigue con la sintonía de ${stationName}, que en [time] estrenamos... ${this.title} en Veredillas efe-eme y venimos chetadísimos.`,
+                
+                // --- AURA, RENT FREE Y SLANG DE TIKTOK ---
+                `Tu aura aumenta +10000 solo por estar esperando aquí en ${stationName}. En [time] Veredillas efe-eme estrena... ${this.title}. ¡Sube el volumen, ${userName}!`,
+                `Te aviso ya: este programa va a vivir rent free en tu cabeza. Faltan [time] en ${stationName} antes de que Veredillas efe-eme emita... ${this.title}.`,
+                `Perderse este estreno daría muchísimo cringe. Menos mal que estás en ${stationName}, ${userName}. En [time] arranca... ${this.title} en Veredillas efe-eme.`,
+                `Veredillas efe-eme no vino a jugar, vino a devorar y a no dejar ni las migas. Haz tiempo con ${stationName} porque en [time] estrenamos... ${this.title}.`,
+                `Escuchar ${stationName} ahora mismo renta muchísimo, pero en [time] te vas a quedar loco con el estreno de... ${this.title} en Veredillas efe-eme. ¡Puro fuego, ${userName}!`,
+                
+                // --- TRYHARDS Y GAMERS ---
+                `Has spawneado en el momento y lugar perfectos, ${userName}. Faltan [time] para que... ${this.title} aterrice en Veredillas efe-eme. Sigue en ${stationName} mientras tanto.`,
+                `Nada de ir a tocar césped, hoy toca radio. Ya hay ${currentListeners} personas esperando en la sala. En [time] pasamos de ${stationName} al estreno de... ${this.title} en Veredillas.`,
+                `Irse ahora del directo sería muy sus. Quédate en ${stationName}, ${userName}, porque en [time] Veredillas efe-eme estrena... ${this.title} y hay impostores sueltos.`,
+                `¡Wazaaaa, ${userName}! Estás de chill en ${stationName}, pero en [time] nos ponemos modo tryhard en Veredillas efe-eme con el estreno de... ${this.title}.`,
+                
+                // --- ESTADÍSTICAS DEL USUARIO ---
+                `Con ${cardsCount} cromos en tu inventario, tienes el pase VIP para esto. Quedan [time] de ${stationName} antes de cruzar a Veredillas efe-eme para... ${this.title}.`,
+                `Acumular ${totalHours} horas escuchando... ¡Eres de los reales, ${userName}! Sigue calentando en ${stationName}, que en [time] estrenamos... ${this.title} en Veredillas efe-eme.`,
+                `Solo un auténtico giga chad nivel ${userLevel} como tú aguantaría la espera. En [time] pasamos de ${stationName} a Veredillas efe-eme con... ${this.title}.`,
+                `Estando en el nivel ${userLevel}, sabes que aquí no vendemos humo. Quédate en ${stationName}, porque en [time] arranca... ${this.title} en Veredillas efe-eme.`,
+                `Si coleccionar ${cardsCount} cromos no es ser un verdadero tryhard, ya no sé qué es. Relájate en ${stationName}, en [time] empieza... ${this.title} en Veredillas.`,
+                
+                // --- COMUNIDAD Y HYPE ---
+                `Que hoy vamos a romperla en Veredillas efe-eme ni cotiza. Sigue de previa en ${stationName} porque en [time] soltamos el estreno de... ${this.title}.`,
+                `Ya somos ${currentListeners} tryhards en la sala de espera. En [time] dejamos ${stationName} y nos pasamos a Veredillas efe-eme para el estreno de... ${this.title}.`,
+                `El que critique este estreno, directamente a la llorería. Sigue en ${stationName}, ${userName}, porque en [time] Veredillas efe-eme emite... ${this.title}.`,
+                `Ver a ${currentListeners} personas esperando el estreno es de ser una comunidad muy basada. En [time] saltamos de ${stationName} a Veredillas efe-eme con... ${this.title}.`,
+                `Eh, bro, avisa por el grupo de clase porque esto es hoy. En [time] pasamos de ${stationName} al estreno brutal de... ${this.title} en Veredillas efe-eme.`,
+                `Las vibes ahora mismo en ${stationName} son inmaculadas, pero Veredillas efe-eme va a otro nivel. En [time] arranca... ${this.title}, ${userName}.`,
+                
+                // --- PADREADAS Y EXCLUSIVAS ---
+                `Se viene el peak content del instituto, literal. Haz la previa en ${stationName}, porque en [time] arranca el estreno de... ${this.title} en Veredillas efe-eme.`,
+                `El verdadero glow up de la radio escolar está aquí. Escucha ${stationName} un ratito más, que en [time] damos paso a... ${this.title} en Veredillas efe-eme.`,
+                `Hoy venimos a dar una masterclass. Calienta con ${stationName}, que en [time] estrenamos... ${this.title} en Veredillas efe-eme y va a ser una padreada histórica.`,
+                `Estamos en modo diablo preparándolo todo en cabina. Aguanta en ${stationName}, ${userName}, que en [time] Veredillas efe-eme lanza en exclusiva... ${this.title}.`,
+                `Atentos al drop, familia. Sigue con la sintonía de ${stationName}, porque en [time] soltamos en Veredillas efe-eme el episodio de... ${this.title}. ¡A romperla!`,
+                `Deja la chamba un momento, ${userName}, y disfruta de la música en ${stationName}. En [time] empieza lo serio en Veredillas efe-eme: el estreno de... ${this.title}.`,
+                `Cero bromas, ${userName}, esto que se viene va a ser muy épico. Sigue de tranquis con ${stationName} que en [time] encendemos Veredillas efe-eme con... ${this.title}.`
             ];
 
             const transitionVariations = {
@@ -1043,7 +1071,8 @@ const isoDate = targetDate.toISOString();
                 phrase = variations[Math.floor(Math.random() * variations.length)];
             }
 
-            phrase = phrase.replace('[title]', this.title).replace('[time]', timeStr);
+            const cleanTitle = this.title.replace(/\s*ft\..*/i, '').trim();
+phrase = phrase.replace('[title]', cleanTitle).replace('[time]', timeStr);
 
             try {
                 const response = await fetch('/api/tts', {
