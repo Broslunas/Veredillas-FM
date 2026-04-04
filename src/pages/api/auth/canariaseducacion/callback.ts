@@ -139,21 +139,32 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       await user.save();
     }
 
-    // Generar JWT token y la respuesta HTML que pone las cookies y avisa al opener
+    // 4. Generar el JWT Token y la respuesta HTML
     const jwtToken = generateToken(user);
     
     // Usamos el propio callback como página de éxito para evitar pérdidas de contexto por saltos 302
-    const host = url.host;
-    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
-
-    console.log('[Auth Canarian] Finalizing session on host:', host, { isLocalhost });
+    
+    console.log('[Auth Canarian] Finalizing session on host:', url.host);
 
     const maxAge = 60 * 60 * 24 * 30; // 30 días
-    const secureFlag = isLocalhost ? '' : (import.meta.env.PROD ? '; Secure' : '');
     
-    // Ponemos las cookies de forma ultra-compatible sin SameSite explícito si es Localhost
-    // para que Chrome no se queje de la falta de HTTPS
-    const sameSiteFlag = isLocalhost ? '' : '; SameSite=Lax';
+    // --- COOKIES (Native Astro API for Vercel/Prod reliability) ---
+    // Usamos Astro.cookies.set para que el motor de Astro gestione las cabeceras correctamente
+    cookies.set('auth-token', jwtToken, {
+      path: '/',
+      maxAge: maxAge,
+      httpOnly: true,
+      secure: true, // Producción siempre es HTTPS
+      sameSite: 'lax'
+    });
+
+    cookies.set('user-session', 'true', {
+      path: '/',
+      maxAge: maxAge,
+      httpOnly: false,
+      secure: true,
+      sameSite: 'lax'
+    });
 
     const responseHTML = `
       <!DOCTYPE html>
@@ -174,11 +185,10 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
               <p>Sesión confirmada. Redirigiendo...</p>
           </div>
           <script>
-            // Prioridad 1: Notificar al padre via localStorage (más fiable que window.opener)
-            // Esto lo detectará el 'watchdog' en la página de login
+            // Notificar al padre via localStorage (Señal universal)
             localStorage.setItem('canarian_auth_done', Date.now().toString());
 
-            // Prioridad 2: Intentar postMessage por si el opener sigue vivo
+            // Intentar postMessage por si el opener sigue vivo
             try {
               if (window.opener) {
                 window.opener.postMessage({ type: 'auth_success' }, '*');
@@ -187,31 +197,18 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
               console.warn('Opener not accessible');
             }
 
-            // Prioridad 3: Cierre forzado e incondicional
-            // No redirigimos el popup (nos lo ha pedido el usuario: que se cierre sin llevarle al dashboard)
-            function closePopup() {
-                window.close();
-                // Si tras 500ms sigue abierta, intentamos redirigir al dashboard como fallback extremo
-                setTimeout(() => {
-                    if (!window.closed) window.location.href = '/dashboard';
-                }, 500);
-            }
-            
-            setTimeout(closePopup, 1000);
+            // Cierre incondicional después de saludar
+            setTimeout(() => window.close(), 1000);
           </script>
       </body>
       </html>
     `;
 
-    const headers = new Headers();
-    headers.set('Content-Type', 'text/html');
-    // Ponemos las cookies via headers también para HttpOnly
-    headers.append('Set-Cookie', `auth-token=${jwtToken}; Path=/; Max-Age=${maxAge}; HttpOnly${sameSiteFlag}${secureFlag}`);
-    headers.append('Set-Cookie', `user-session=true; Path=/; Max-Age=${maxAge}${sameSiteFlag}${secureFlag}`);
-
     return new Response(responseHTML, {
       status: 200,
-      headers
+      headers: {
+        'Content-Type': 'text/html'
+      }
     });
 
   } catch (error) {
