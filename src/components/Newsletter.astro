@@ -98,6 +98,14 @@ const { standalone = false } = Astro.props;
         return;
       }
 
+      if (email.endsWith('@canariaseducacion.es')) {
+        messageEl!.textContent = 'El dominio @canariaseducacion.es no está permitido. Por favor, usa otro correo para la newsletter.';
+        messageEl!.classList.remove('hidden');
+        messageEl!.classList.add('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/20');
+        submitBtn?.classList.remove('loading');
+        return;
+      }
+
       const data = {
         name,
         email

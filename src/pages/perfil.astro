@@ -189,12 +189,17 @@ function formatTime(seconds: number): string {
 
                         <div class="form-group checkbox-group">
                             <label class="switch">
-                                <input type="checkbox" id="newsletter" name="newsletter" checked={user.newsletter !== false} />
+                                <input type="checkbox" id="newsletter" name="newsletter" checked={user.newsletter !== false && !user.email.endsWith('@canariaseducacion.es')} disabled={user.email.endsWith('@canariaseducacion.es')} />
                                 <span class="slider round"></span>
                             </label>
                             <div class="checkbox-text">
                                 <label for="newsletter" class="checkbox-label">Suscribirse a la newsletter</label>
                                 <span class="checkbox-sub">Recibe notificaciones sobre nuevos episodios y novedades.</span>
+                                {user.email.endsWith('@canariaseducacion.es') && (
+                                    <span class="text-red-400 text-sm mt-1 block">
+                                        El dominio @canariaseducacion.es no está permitido para la newsletter. Por favor, usa otro correo.
+                                    </span>
+                                )}
                             </div>
                         </div>
 
