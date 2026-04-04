@@ -20,52 +20,111 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
   imageAlt="Blog Veredillas FM - Noticias y actualidad del IES Veredillas"
   tags={['blog', 'noticias escolares', 'IES Veredillas', 'actualidad estudiantil', 'vida escolar']}
 >
-    <div class="container page-header">
-        <h1>Blog Veredillas</h1>
-        <p class="subtitle">Noticias, historias y el día a día de nuestro instituto.</p>
+    <!-- Modern Hero Header -->
+    <div class="relative py-24 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-primary/10 via-background to-background text-center">
+        <!-- Subtle background elements -->
+        <div class="absolute inset-0 z-0 opacity-30 pointer-events-none">
+            <div class="absolute top-0 left-1/4 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob-float"></div>
+            <div class="absolute top-20 right-1/4 w-72 h-72 bg-secondary/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob-float-reverse"></div>
+        </div>
 
-        <!-- Filter System -->
-        <div class="filter-container fade-in-up">
-            {allTags.map(tag => (
-                <button 
-                    class={`filter-btn ${tag === 'Todos' ? 'active' : ''}`} 
-                    data-filter={tag}
-                >
-                    {tag}
-                </button>
-            ))}
+        <div class="relative z-10 max-w-4xl mx-auto">
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-6 drop-shadow-sm">
+                Blog Veredillas
+            </h1>
+            <p class="mt-4 text-xl md:text-2xl text-white/80 max-w-2xl mx-auto font-medium leading-relaxed">
+                Noticias, historias y el día a día de nuestro instituto contado por los propios estudiantes.
+            </p>
+
+            <!-- Filter System -->
+            <div class="mt-12 flex flex-wrap justify-center gap-3 animate-fade-in-up">
+                {allTags.map(tag => (
+                    <button
+                        class={`filter-btn group relative px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ease-out border overflow-hidden
+                                ${tag === 'Todos'
+                                    ? 'active bg-primary border-primary text-white shadow-[0_0_15px_rgba(139,92,246,0.4)] hover:bg-primary/90 hover:border-primary/90'
+                                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20'}`}
+                        data-filter={tag}
+                    >
+                        <span class="relative z-10">{tag}</span>
+                        {/* Glow effect on hover for non-active buttons */}
+                        <div class="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -translate-x-full group-hover:translate-x-full"></div>
+                    </button>
+                ))}
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="blog-grid" id="blog-grid">
-            {sortedPosts.map(post => (
+    <!-- Blog Grid Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10" id="blog-grid">
+            {sortedPosts.map((post, index) => (
                 <article 
-                    class="blog-card glass-panel post-item" 
+                    class="post-item group relative flex flex-col h-full bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50"
                     data-tags={post.data.tags?.join(',') || ''}
+                    style={`animation-delay: ${index * 100}ms`}
                 >
-                    <a href={`/blog/${post.slug}`} class="card-link">
-                        {post.data.image && (
-                             <div class="card-image-wrapper">
-                                <img src={post.data.image} alt={post.data.title} loading="lazy" />
+                    <a href={`/blog/${post.slug}`} class="flex flex-col h-full">
+                        {post.data.image ? (
+                             <div class="relative w-full aspect-[16/9] overflow-hidden bg-black/20">
+                                <img
+                                    src={post.data.image}
+                                    alt={post.data.title}
+                                    loading="lazy"
+                                    class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
+                                />
+                                {/* Overlay gradient */}
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
+                            </div>
+                        ) : (
+                            <div class="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                                <span class="text-white/40 font-semibold tracking-widest uppercase">Veredillas FM</span>
                             </div>
                         )}
-                        <div class="card-content">
-                            <div class="meta">
-                                <time>{post.data.pubDate.toLocaleDateString('es-ES', { dateStyle: 'long' })}</time>
+
+                        <div class="flex flex-col flex-grow p-6 md:p-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <time class="text-xs font-semibold tracking-wider text-primary uppercase">
+                                    {post.data.pubDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </time>
+                                {post.data.tags && post.data.tags[0] && (
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/5">
+                                        {post.data.tags[0]}
+                                    </span>
+                                )}
                             </div>
-                            <h2>{post.data.title}</h2>
-                            <p>{post.data.description}</p>
-                            <span class="read-more">Leer más &rarr;</span>
+
+                            <h2 class="text-xl md:text-2xl font-bold text-white mb-3 leading-snug group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                                {post.data.title}
+                            </h2>
+
+                            <p class="text-white/60 mb-6 line-clamp-3 leading-relaxed flex-grow">
+                                {post.data.description}
+                            </p>
+
+                            <div class="mt-auto flex items-center text-sm font-bold text-primary group-hover:text-white transition-colors duration-300">
+                                Leer artículo
+                                <svg class="ml-2 w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </div>
                         </div>
                     </a>
                 </article>
             ))}
         </div>
         
-        <div id="no-results" class="no-results hidden">
-            <p>No se encontraron artículos en esta categoría.</p>
-            <button id="reset-filter" class="btn btn-outline btn-sm">Ver todos</button>
+        <div id="no-results" class="hidden flex-col items-center justify-center py-20 text-center animate-fade-in-up">
+            <div class="w-24 h-24 mb-6 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                <svg class="w-12 h-12 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">No hay resultados</h3>
+            <p class="text-white/60 mb-8 max-w-md">No hemos encontrado ningún artículo que coincida con esta categoría. Prueba a seleccionar otra.</p>
+            <button id="reset-filter" class="px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                Ver todos los artículos
+            </button>
         </div>
     </div>
 </Layout>
@@ -76,6 +135,10 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
         const items = document.querySelectorAll('.post-item');
         const noResults = document.getElementById('no-results');
         const resetBtn = document.getElementById('reset-filter');
+
+        // Classes for active state
+        const activeClasses = ['active', 'bg-primary', 'border-primary', 'text-white', 'shadow-[0_0_15px_rgba(139,92,246,0.4)]', 'hover:bg-primary/90', 'hover:border-primary/90'];
+        const inactiveClasses = ['bg-white/5', 'border-white/10', 'text-white/70', 'hover:bg-white/10', 'hover:text-white', 'hover:border-white/20'];
 
         // Helper to get current tag from URL
         function getTagFromUrl() {
@@ -100,10 +163,14 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
 
             // Update Active State
             filterBtns.forEach(btn => {
-                if (btn.getAttribute('data-filter') === category) {
-                    btn.classList.add('active');
+                const isSelected = btn.getAttribute('data-filter') === category;
+
+                if (isSelected) {
+                    btn.classList.add(...activeClasses);
+                    btn.classList.remove(...inactiveClasses);
                 } else {
-                    btn.classList.remove('active');
+                    btn.classList.remove(...activeClasses);
+                    btn.classList.add(...inactiveClasses);
                 }
             });
 
@@ -114,17 +181,23 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
                 
                 if (category === 'Todos' || tags.includes(category)) {
                     itemEl.style.display = '';
+                    // Trigger reflow to restart animation if needed
+                    void itemEl.offsetWidth;
+                    itemEl.classList.add('animate-fade-in-up');
                     visibleCount++;
                 } else {
                     itemEl.style.display = 'none';
+                    itemEl.classList.remove('animate-fade-in-up');
                 }
             });
 
             // Empty State
             if (visibleCount === 0) {
                 noResults?.classList.remove('hidden');
+                noResults?.classList.add('flex');
             } else {
                 noResults?.classList.add('hidden');
+                noResults?.classList.remove('flex');
             }
         }
 
@@ -148,148 +221,3 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
         });
     });
 </script>
-
-<style>
-    .page-header {
-        padding: var(--spacing-2xl) var(--spacing-md);
-        text-align: center;
-    }
-
-    h1 {
-        font-size: 3rem;
-        margin-bottom: var(--spacing-sm);
-    }
-    
-    .subtitle {
-        color: var(--color-text-muted);
-        font-size: 1.25rem;
-    }
-
-    .blog-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: var(--spacing-lg);
-        padding-bottom: var(--spacing-2xl);
-    }
-
-    .blog-card {
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        transition: transform 0.3s ease;
-    }
-
-    .blog-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--color-primary);
-    }
-
-    .card-link {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .card-image-wrapper {
-        aspect-ratio: 16/9;
-        overflow: hidden;
-    }
-
-    .card-image-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s ease;
-    }
-
-    .blog-card:hover img {
-        transform: scale(1.05);
-    }
-
-    .card-content {
-        padding: var(--spacing-lg);
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-
-    .meta {
-        font-size: 0.875rem;
-        color: var(--color-text-muted);
-        margin-bottom: var(--spacing-sm);
-    }
-
-    h2 {
-        font-size: 1.5rem;
-        margin-bottom: var(--spacing-sm);
-        line-height: 1.2;
-    }
-
-    p {
-        color: var(--color-text-muted);
-        margin-bottom: var(--spacing-lg);
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .read-more {
-        margin-top: auto;
-        color: var(--color-primary);
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    /* Filter Styles */
-    .filter-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.75rem;
-        margin-top: 2rem;
-    }
-
-    .filter-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--color-text-muted);
-        padding: 0.5rem 1.25rem;
-        border-radius: 100px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .filter-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--color-text-main);
-        transform: translateY(-2px);
-    }
-
-    .filter-btn.active {
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-    }
-
-    /* No Results */
-    .no-results {
-        text-align: center;
-        padding: 4rem 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    .no-results p {
-        color: var(--color-text-muted);
-        font-size: 1.2rem;
-    }
-
-    .hidden {
-        display: none !important;
-    }
-</style>

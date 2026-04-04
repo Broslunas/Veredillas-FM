@@ -33,33 +33,83 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
   author={entry.data.author}
   tags={entry.data.tags || []}
 >
-    <article class="blog-post container-sm">
-        <header class="post-header">
-             <div class="meta">
-                <time>{formattedDate}</time>
-                <span class="dot">•</span>
-                <span class="author">{entry.data.author}</span>
+    <!-- Post Header Hero Section -->
+    <header class="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-background">
+        <!-- Optional Background Image Blur -->
+        {entry.data.image && (
+            <div class="absolute inset-0 z-0">
+                <img src={entry.data.image} alt="" class="w-full h-full object-cover opacity-10 filter blur-3xl scale-110" />
+                <div class="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
             </div>
-            {entry.data.tags && (
-                <div class="tags-container">
+        )}
+
+        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <!-- Meta Info -->
+            <div class="flex items-center justify-center space-x-3 text-sm md:text-base font-semibold tracking-wider text-primary uppercase mb-6 animate-fade-in-up">
+                <time>{formattedDate}</time>
+                <span class="text-white/30">•</span>
+                <span class="text-secondary">{entry.data.author}</span>
+            </div>
+
+            <!-- Tags -->
+            {entry.data.tags && entry.data.tags.length > 0 && (
+                <div class="flex flex-wrap justify-center gap-2 mb-8 animate-fade-in-up" style="animation-delay: 100ms;">
                     {entry.data.tags.map((tag: string) => (
-                        <a href={`/blog?tag=${tag}`} class="tag-pill">#{tag}</a>
+                        <a
+                            href={`/blog?tag=${tag}`}
+                            class="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-[0_0_15px_rgba(139,92,246,0.4)]"
+                        >
+                            #{tag}
+                        </a>
                     ))}
                 </div>
             )}
-            <h1>{entry.data.title}</h1>
+
+            <!-- Title -->
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-10 leading-tight md:leading-tight lg:leading-tight drop-shadow-lg animate-fade-in-up" style="animation-delay: 200ms;">
+                {entry.data.title}
+            </h1>
+
+            <!-- Featured Image -->
             {entry.data.image && (
-                <div class="featured-image">
-                    <img src={entry.data.image} alt={entry.data.title} />
+                <div class="relative max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl shadow-primary/20 ring-1 ring-white/10 animate-fade-in-up" style="animation-delay: 300ms;">
+                    <div class="aspect-w-16 aspect-h-9 md:aspect-video">
+                        <img
+                            src={entry.data.image}
+                            alt={entry.data.title}
+                            class="w-full h-full object-cover hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                    </div>
                 </div>
             )}
-        </header>
-
-        <div class="post-content">
-            <Content />
         </div>
+    </header>
 
-        <SocialShare title={entry.data.title} image={entry.data.image || "/logo.webp"} />
+    <!-- Post Content Container -->
+    <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 relative z-10">
+        <div class="bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 p-6 md:p-10 lg:p-12 shadow-xl">
+            <!-- Content Styling using Tailwind child selectors since @tailwindcss/typography might not be available -->
+            <div class="prose-content text-lg md:text-xl leading-relaxed text-white/80
+                        [&>p]:mb-8 [&>p:last-child]:mb-0
+                        [&>h2]:text-3xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-14 [&>h2]:mb-6 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-2
+                        [&>h3]:text-2xl [&>h3]:font-bold [&>h3]:text-white/90 [&>h3]:mt-10 [&>h3]:mb-4
+                        [&>ul]:mb-8 [&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:mb-2 [&>ul>li]:pl-2 [&>ul>li::marker]:text-primary
+                        [&>ol]:mb-8 [&>ol]:list-decimal [&>ol]:pl-6 [&>ol>li]:mb-2 [&>ol>li]:pl-2 [&>ol>li::marker]:text-primary
+                        [&>a]:text-primary [&>a]:underline [&>a]:underline-offset-4 [&>a]:decoration-primary/40 hover:[&>a]:decoration-primary [&>a]:transition-colors
+                        [&>blockquote]:border-l-4 [&>blockquote]:border-primary [&>blockquote]:pl-6 [&>blockquote]:italic [&>blockquote]:text-white/60 [&>blockquote]:my-8 [&>blockquote]:bg-primary/5 [&>blockquote]:py-3 [&>blockquote]:pr-4 [&>blockquote]:rounded-r-lg
+                        [&>img]:rounded-2xl [&>img]:shadow-lg [&>img]:my-10 [&>img]:mx-auto [&>img]:max-w-full
+                        [&>strong]:text-white [&>strong]:font-semibold
+                        [&>code]:text-secondary [&>code]:bg-white/10 [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:rounded-md [&>code]:text-sm
+                        [&>pre]:bg-black/40 [&>pre]:border [&>pre]:border-white/10 [&>pre]:p-6 [&>pre]:rounded-xl [&>pre]:overflow-x-auto [&>pre]:my-8 [&>pre>code]:text-white/90 [&>pre>code]:bg-transparent [&>pre>code]:p-0">
+                <Content />
+            </div>
+
+            <!-- Share Section -->
+            <div class="mt-16 pt-8 border-t border-white/10 flex flex-col items-center">
+                <h3 class="text-xl font-bold text-white mb-6">¿Te ha gustado este artículo?</h3>
+                <SocialShare title={entry.data.title} image={entry.data.image || "/logo.webp"} />
+            </div>
+        </div>
     </article>
 
     <ShareCardGenerator 
@@ -68,118 +118,3 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
         triggerId="blog-story-trigger" 
     />
 </Layout>
-
-<style>
-    .container-sm {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 0 var(--spacing-md);
-    }
-
-    .post-header {
-        padding: var(--spacing-2xl) 0 var(--spacing-lg);
-        text-align: center;
-    }
-
-    .meta {
-        color: var(--color-text-muted);
-        font-size: 0.9rem;
-        margin-bottom: var(--spacing-md);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .tags-container {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .tag-pill {
-        color: var(--color-primary);
-        background: rgba(139, 92, 246, 0.1);
-        padding: 4px 12px;
-        border-radius: 100px;
-        font-size: 0.8rem;
-        text-decoration: none;
-        transition: all 0.2s;
-        border: 1px solid rgba(139, 92, 246, 0.2);
-    }
-
-    .tag-pill:hover {
-        background: var(--color-primary);
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .dot { margin: 0 var(--spacing-sm); }
-
-    h1 {
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        margin-bottom: var(--spacing-xl);
-        line-height: 1.1;
-    }
-
-    .featured-image {
-        margin: 0 -2rem var(--spacing-2xl);
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
-    }
-
-    .featured-image img {
-        width: 100%;
-        height: auto;
-    }
-
-    .post-content {
-        font-size: 1.125rem;
-        line-height: 1.8;
-        color: var(--color-text-main);
-        padding-bottom: var(--spacing-2xl);
-    }
-
-    /* Markdown Typography */
-    .post-content :global(p) {
-        margin-bottom: var(--spacing-lg);
-    }
-
-    .post-content :global(h2) {
-        font-size: 1.75rem;
-        margin-top: var(--spacing-2xl);
-        margin-bottom: var(--spacing-md);
-    }
-
-    .post-content :global(h3) {
-        font-size: 1.4rem;
-        margin-top: var(--spacing-xl);
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .post-content :global(ul), .post-content :global(ol) {
-        margin-bottom: var(--spacing-lg);
-        padding-left: var(--spacing-lg);
-    }
-    
-    .post-content :global(li) {
-        margin-bottom: 0.5rem;
-    }
-
-    .post-content :global(a) {
-        color: var(--color-primary);
-        text-decoration: underline;
-    }
-    
-    .post-content :global(img) {
-        border-radius: var(--radius-md);
-        margin: var(--spacing-lg) 0;
-    }
-    
-    @media (max-width: 768px) {
-        .featured-image {
-            margin: 0 0 var(--spacing-xl);
-        }
-    }
-</style>
