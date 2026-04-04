@@ -41,6 +41,8 @@ export interface IUser extends mongoose.Document {
       auth: string;
     };
   }[];
+  referredBy?: mongoose.Types.ObjectId;
+  referrals: mongoose.Types.ObjectId[];
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -133,6 +135,14 @@ const userSchema = new mongoose.Schema<IUser>({
     }],
     default: []
   },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  referrals: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
 }, {
   timestamps: true,
   strict: true,

@@ -75,6 +75,8 @@ export const GET: APIRoute = async ({ request }) => {
 
     const unlockedCards = await UnlockedCard.countDocuments({ userId: user._id });
 
+    const referralsCount = user.referrals ? user.referrals.length : 0;
+
     const stats: AchievementStats = {
       listeningTime: user.listeningTime || 0,
       favoritesCount: (user.favorites || []).length,
@@ -102,6 +104,7 @@ export const GET: APIRoute = async ({ request }) => {
       totalCardsCount,
       differentGuestsListenedCount: unlockedCards, // simplified mapping
       totalQuizzesCount,
+      referralsCount,
       totalPoints: 0,
     };
 

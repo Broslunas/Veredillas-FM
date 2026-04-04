@@ -69,6 +69,16 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
     const getDayStr = (d: Date) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
 
     if (!user) {
+      const refCookie = cookies.get('ref')?.value;
+      let referredByObjId = undefined;
+
+      if (refCookie && mongoose.Types.ObjectId.isValid(refCookie)) {
+        const referrer = await User.findById(refCookie);
+        if (referrer) {
+          referredByObjId = referrer._id;
+        }
+      }
+
       // Crear nuevo usuario
       user = await User.create({
         googleId: googleUser.id,
@@ -78,9 +88,17 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         lastLogin: now,
         lastActiveAt: now,
         currentStreak: 1,
-        maxStreak: 1
+        maxStreak: 1,
+        referredBy: referredByObjId
       });
       
+      if (referredByObjId) {
+         await User.updateOne(
+           { _id: referredByObjId },
+           { $push: { referrals: user._id } }
+         );
+      }
+
       // Notificar registro a n8n
       try {
         await fetch('https://n8n.broslunas.com/webhook/veredillasfm-new-user', {
