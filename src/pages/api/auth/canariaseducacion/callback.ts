@@ -68,15 +68,13 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(emailAddr)}&background=8b5cf6&color=fff`;
     };
 
-    // Buscar usuario por email o por ID virtual educativo
-    // Esto evita el error de duplicados de Google al no dejar googleId como null
-    const virtualGoogleId = `edu_${email}`;
-    let user = await User.findOne({ 
-      $or: [
-        { email: email },
-        { googleId: virtualGoogleId }
-      ]
-    });
+    // 3. Generar un ID numérico único basado en el email para evitar conflictos en GoogleId
+    // Algunos navegadores y lógica interna pueden esperar un ID numérico que no sea "edu_..."
+    const hashInt = parseInt(createHash('md5').update(email).digest('hex').substring(0, 12), 16);
+    const virtualGoogleId = `${hashInt}`;
+
+    // Buscar usuario por email prioritariamente
+    let user = await User.findOne({ email: email });
 
     const now = new Date();
     const getDayStr = (d: Date) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
@@ -128,6 +126,11 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         user.maxStreak = Math.max(user.maxStreak || 0, user.currentStreak);
       }
 
+      // Limpiar googleId si es null o problemático para evitar errores E11000
+      if (!user.googleId) {
+        user.googleId = virtualGoogleId;
+      }
+      
       user.lastLogin = now;
       user.lastActiveAt = now;
       if (!user.picture || user.picture.includes('ui-avatars')) {
