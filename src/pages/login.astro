@@ -556,57 +556,80 @@ if (errorParam === 'InvalidToken') {
         if (btnEducacion) {
             btnEducacion.addEventListener('click', (e) => {
                 e.preventDefault();
-                const width = 500;
-                const height = 600;
+
+                // ── Polling flow ──────────────────────────────────────────────────
+                // Apps Script no puede navegar fuera de su iframe sandbox.
+                // En su lugar, el script llama a nuestra API server-to-server
+                // (UrlFetchApp, sin restricciones de sandbox), registra un pendiente,
+                // y esta pestaña principal hace polling hasta detectar el auth completo.
+
+                // 1. Generar un ID único para esta sesión de autenticación
+                const authId = crypto.randomUUID();
+
+                // 2. Abrir popup a nuestra bridge page con el authId
+                const width = 500, height = 600;
                 const left = (window.innerWidth - width) / 2 + window.screenLeft;
-                const top = (window.innerHeight - height) / 2 + window.screenTop;
-                
-                // Abrimos una página interna que luego gestiona la redirección al script
-                // Esto ayuda a mantener el contexto del navegador y el window.opener
-                const internalLoginUrl = "/auth/canariaseducacion/login"; 
-
-                // 1. Limpiamos cualquier señal previa
-                localStorage.removeItem('canarian_auth_done');
-
-                // 2. Escuchamos por mensaje directo del popup (caso ideal, mismo origen)
-                window.addEventListener('message', (event) => {
-                    if (event.origin === window.location.origin && event.data?.type === 'canarian_auth_success') {
-                        clearInterval(storageWatcher);
-                        window.location.href = '/dashboard';
-                    }
-                });
-
-                // 3. Vigilante de localStorage — fallback cuando postMessage no llega
-                //    (e.g. popup bloqueado por CORS o el popup redirige a dominio externo)
-                const storageWatcher = setInterval(() => {
-                    if (localStorage.getItem('canarian_auth_done')) {
-                        clearInterval(storageWatcher);
-                        localStorage.removeItem('canarian_auth_done');
-                        window.location.href = '/dashboard';
-                    }
-                }, 500);
+                const top2 = (window.innerHeight - height) / 2 + window.screenTop;
 
                 const popup = window.open(
-                    internalLoginUrl,
+                    `/auth/canariaseducacion/login?authId=${authId}`,
                     'canarias_educacion_popup',
-                    `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
+                    `width=${width},height=${height},top=${top2},left=${left},status=no,menubar=no,toolbar=no`
                 );
 
-                // 4. Vigilante de cierre manual del popup
-                if (popup) {
-                    const timer = setInterval(() => {
-                        if (popup.closed) {
-                            clearInterval(timer);
-                            clearInterval(storageWatcher);
-                            // Damos un pequeño margen por si el storageWatcher aún no ha saltado
-                            setTimeout(() => {
-                                if (window.location.pathname !== '/dashboard') {
-                                    window.location.href = '/dashboard';
-                                }
-                            }, 600);
+                // 3. Mostrar estado de espera en el botón
+                const originalHtml = btnEducacion.innerHTML;
+                btnEducacion.setAttribute('disabled', 'true');
+                btnEducacion.innerHTML = `<div class="btn-canarian-content">
+                    <div style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.9s linear infinite;flex-shrink:0;"></div>
+                    <div class="btn-text-wrapper">
+                        <span class="btn-main-text">Esperando autenticación…</span>
+                        <span class="btn-sub-text">Completa el proceso en la ventana emergente</span>
+                    </div>
+                </div>`;
+
+                const resetBtn = () => {
+                    btnEducacion.removeAttribute('disabled');
+                    btnEducacion.innerHTML = originalHtml;
+                };
+
+                // 4. Polling: preguntar cada 1.5 s si el auth ya fue registrado
+                const TIMEOUT_MS = 3 * 60 * 1000; // 3 minutos máximo
+                const started = Date.now();
+
+                const poller = setInterval(async () => {
+                    // Timeout de seguridad
+                    if (Date.now() - started > TIMEOUT_MS) {
+                        clearInterval(poller);
+                        resetBtn();
+                        if (popup && !popup.closed) popup.close();
+                        alert('El tiempo de autenticación ha expirado. Inténtalo de nuevo.');
+                        return;
+                    }
+
+                    // Si el usuario cerró el popup manualmente, paramos
+                    if (popup && popup.closed) {
+                        clearInterval(poller);
+                        resetBtn();
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`/api/auth/canariaseducacion/poll?id=${authId}`);
+                        if (!res.ok) return; // Error temporal, seguimos intentando
+                        const data = await res.json();
+
+                        if (data.ready) {
+                            clearInterval(poller);
+                            if (popup && !popup.closed) popup.close();
+                            // 5. Navegar a /claim para que el servidor establezca las cookies
+                            //    en el contexto de la pestaña principal (evita problemas de SameSite)
+                            window.location.href = `/api/auth/canariaseducacion/claim?id=${authId}`;
                         }
-                    }, 1000);
-                }
+                    } catch {
+                        // Error de red puntual, ignoramos y seguimos
+                    }
+                }, 1500);
             });
         }
 

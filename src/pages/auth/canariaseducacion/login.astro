@@ -2,25 +2,16 @@
 /**
  * /auth/canariaseducacion/login
  *
- * Intermediate "trust bridge" page opened as a popup from the main login page.
- *
- * Why this page exists:
- *   - Opening the Google Apps Script URL directly from the main window would
- *     leave us without a reliable `window.opener` reference.
- *   - Some browsers also strip `SameSite=Lax` cookies when the redirect
- *     crosses origins mid-flight. By going through our own domain first we
- *     keep the opener alive and avoid cookie loss.
- *
- * What it does:
- *   - Shows a branded loading screen for ~800 ms (good UX: user sees something
- *     happening instead of a blank flash).
- *   - Then redirects the popup to the Apps Script bridge via `window.location.replace`
- *     so there is no "back" entry to this intermediate page.
+ * Popup bridge page. Receives ?authId=UUID from the main tab and
+ * forwards it to the Apps Script URL so the script can associate
+ * the server-to-server register-pending call with this auth session.
  */
-
 export const prerender = false;
 
 import { BRIDGE_SCRIPT_URL } from '../../../lib/canariaseducacion-auth';
+
+const authId = Astro.url.searchParams.get('authId') ?? '';
+const scriptUrl = `${BRIDGE_SCRIPT_URL}?authId=${encodeURIComponent(authId)}`;
 ---
 
 <!DOCTYPE html>
@@ -31,7 +22,6 @@ import { BRIDGE_SCRIPT_URL } from '../../../lib/canariaseducacion-auth';
     <title>Conectando con @canariaseducacion.es — Veredillas FM</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             background: #0a0a14;
             color: #fff;
@@ -41,7 +31,6 @@ import { BRIDGE_SCRIPT_URL } from '../../../lib/canariaseducacion-auth';
             min-height: 100vh;
             font-family: system-ui, -apple-system, sans-serif;
         }
-
         .card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -50,74 +39,30 @@ import { BRIDGE_SCRIPT_URL } from '../../../lib/canariaseducacion-auth';
             text-align: center;
             max-width: 360px;
             width: 90%;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
         }
-
-        .logo {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            background: #000;
-            padding: 4px;
-            margin: 0 auto 1.5rem;
-            display: block;
-        }
-
-        .spinner-wrap {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-
+        .flag { font-size: 2rem; margin-bottom: 1.25rem; display: block; }
         .spinner {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border: 3px solid rgba(0, 173, 239, 0.15);
             border-top-color: #00adef;
             border-radius: 50%;
             animation: spin 0.9s linear infinite;
+            margin: 0 auto 1.5rem;
         }
-
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        h1 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 0.5rem;
-        }
-
-        p {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.45);
-            line-height: 1.5;
-        }
-
-        .flag {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
+        h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+        p  { font-size: 0.85rem; color: rgba(255,255,255,0.45); }
     </style>
 </head>
 <body>
     <div class="card">
         <span class="flag">🏝️</span>
-        <div class="spinner-wrap">
-            <div class="spinner"></div>
-        </div>
+        <div class="spinner"></div>
         <h1>Verificando cuenta educativa</h1>
-        <p>Conectando de forma segura con <strong>@canariaseducacion.es</strong>…</p>
+        <p>Conectando con <strong>@canariaseducacion.es</strong>…</p>
     </div>
-
-    <script define:vars={{ bridgeUrl: BRIDGE_SCRIPT_URL }}>
-        // Short delay so the user sees the branded screen (better UX),
-        // then we hand off to the Apps Script bridge.
-        setTimeout(() => {
-            window.location.replace(bridgeUrl);
-        }, 800);
+    <script define:vars={{ scriptUrl }}>
+        setTimeout(() => { window.location.replace(scriptUrl); }, 800);
     </script>
 </body>
 </html>
