@@ -1,53 +1,122 @@
 ---
+/**
+ * /auth/canariaseducacion/login
+ *
+ * Intermediate "trust bridge" page opened as a popup from the main login page.
+ *
+ * Why this page exists:
+ *   - Opening the Google Apps Script URL directly from the main window would
+ *     leave us without a reliable `window.opener` reference.
+ *   - Some browsers also strip `SameSite=Lax` cookies when the redirect
+ *     crosses origins mid-flight. By going through our own domain first we
+ *     keep the opener alive and avoid cookie loss.
+ *
+ * What it does:
+ *   - Shows a branded loading screen for ~800 ms (good UX: user sees something
+ *     happening instead of a blank flash).
+ *   - Then redirects the popup to the Apps Script bridge via `window.location.replace`
+ *     so there is no "back" entry to this intermediate page.
+ */
+
 export const prerender = false;
 
-// Esta página sirve como puente de confianza para evitar pérdida de contexto 'opener'
-// y problemas de cookies SameSite en navegadores estrictos.
-const scriptUrl = "https://script.google.com/a/macros/canariaseducacion.es/s/AKfycbxKmcO1ylCFiw-R9FGNQ9CeO1tjCGJkhxR9XIp7BLEITmCWlQWzDkMsd7WPi3W_uvlR/exec";
+import { BRIDGE_SCRIPT_URL } from '../../../lib/canariaseducacion-auth';
 ---
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Conectando con @canariaseducacion.es</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conectando con @canariaseducacion.es — Veredillas FM</title>
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            background-color: #0f172a;
-            color: white;
+            background: #0a0a14;
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
             font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+            padding: 3rem 2.5rem;
             text-align: center;
+            max-width: 360px;
+            width: 90%;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
         }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #00adef;
+
+        .logo {
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: #000;
+            padding: 4px;
             margin: 0 auto 1.5rem;
+            display: block;
         }
+
+        .spinner-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 173, 239, 0.15);
+            border-top-color: #00adef;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
         @keyframes spin { to { transform: rotate(360deg); } }
-        .logo { width: 80px; height: 80px; margin-bottom: 20px; border-radius: 12px; }
+
+        h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.45);
+            line-height: 1.5;
+        }
+
+        .flag {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <div class="spinner"></div>
-        <h2>Verificando cuenta educativa...</h2>
-        <p style="opacity: 0.7;">Redirigiéndote de forma segura a Google</p>
+        <span class="flag">🏝️</span>
+        <div class="spinner-wrap">
+            <div class="spinner"></div>
+        </div>
+        <h1>Verificando cuenta educativa</h1>
+        <p>Conectando de forma segura con <strong>@canariaseducacion.es</strong>…</p>
     </div>
 
-    <script define:vars={{ scriptUrl }}>
-        // Esperamos un segundo para que el usuario sepa qué pasa (mejor UX)
-        // y luego redirigimos al script de Apps Script
+    <script define:vars={{ bridgeUrl: BRIDGE_SCRIPT_URL }}>
+        // Short delay so the user sees the branded screen (better UX),
+        // then we hand off to the Apps Script bridge.
         setTimeout(() => {
-            window.location.replace(scriptUrl);
+            window.location.replace(bridgeUrl);
         }, 800);
     </script>
 </body>

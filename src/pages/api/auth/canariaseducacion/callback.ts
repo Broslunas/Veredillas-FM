@@ -1,246 +1,356 @@
+/**
+ * GET /api/auth/canariaseducacion/callback
+ *
+ * Receives the authenticated user data from the Google Apps Script bridge
+ * and establishes a Veredillas FM session.
+ *
+ * Expected query params (sent by the Apps Script):
+ *   - email  — The user's @canariaseducacion.es email address
+ *   - token  — HMAC-SHA256(email, CANARIAS_EDUCACION_BRIDGE_SECRET)
+ *
+ * On success: returns an HTML page that sets session cookies, signals the
+ * opener (parent window) that authentication is complete, and closes itself.
+ *
+ * On failure: redirects to /login with a descriptive error code.
+ */
+
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { createHmac, createHash } from 'crypto';
 import User from '../../../../models/User';
 import { generateToken } from '../../../../lib/auth';
+import {
+  isValidToken,
+  isAllowedDomain,
+  generateVirtualGoogleId,
+  nameFromEmail,
+  resolveProfilePicture,
+  calculateStreak,
+} from '../../../../lib/canariaseducacion-auth';
 
 export const prerender = false;
 
-const SECRET_KEY = import.meta.env.CANARIAS_EDUCACION_BRIDGE_SECRET || "vFm_Radio_2026_x9K2pQ7nLz4WvR8sB";
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-export const GET: APIRoute = async ({ url, redirect, cookies }) => {
+async function connectDB(): Promise<void> {
+  if (mongoose.connection.readyState === 1) return;
+  const uri = import.meta.env.MONGODB_URI;
+  if (!uri) throw new Error('MONGODB_URI is not configured');
+  await mongoose.connect(uri);
+}
+
+function getSharedDomain(host: string): string | undefined {
+  // Share the session cookie across www.veredillasfm.es and veredillasfm.es
+  return host.includes('veredillasfm.es') ? '.veredillasfm.es' : undefined;
+}
+
+// ─── Route handler ────────────────────────────────────────────────────────────
+
+export const GET: APIRoute = async ({ url, cookies }) => {
   const rawEmail = url.searchParams.get('email');
   const token = url.searchParams.get('token');
 
+  // ── 1. Presence check ──────────────────────────────────────────────────────
   if (!rawEmail || !token) {
-    console.error('[Auth Canarian] Missing parameters:', { rawEmail, token });
-    return redirect('/login?error=MissingParams');
+    return Response.redirect(new URL('/login?error=MissingParams', url));
   }
 
   const email = rawEmail.trim().toLowerCase();
+  const secret = import.meta.env.CANARIAS_EDUCACION_BRIDGE_SECRET;
 
-  // 1. Validar el token con HMAC-SHA256
-  // IMPORTANTE: El script de Apps Script debe haber usado el email original o el mismo formato
-  // Probamos con el email tal cual vino (case sensitive) si el de arriba falla, 
-  // pero lo normal es que sea el email de sesión de Google.
-  
-  const verifyToken = (emailToHash: string) => {
-    const hmac = createHmac('sha256', SECRET_KEY);
-    hmac.update(emailToHash);
-    return hmac.digest('hex');
-  };
-
-  const expectedToken = verifyToken(rawEmail); // Probamos con el original primero
-  const expectedTokenLower = verifyToken(email); // Probamos con lowercase por si acaso
-
-  if (token !== expectedToken && token !== expectedTokenLower) {
-    console.error('[Auth Canarian] Invalid token for email:', email, { 
-        received: token, 
-        expected: expectedToken,
-        expectedLower: expectedTokenLower 
-    });
-    return redirect('/login?error=InvalidToken');
+  if (!secret) {
+    console.error('[CanariasAuth] CANARIAS_EDUCACION_BRIDGE_SECRET is not set');
+    return Response.redirect(new URL('/login?error=ServerConfig', url));
   }
 
-  // 2. Validar dominio (doble check de seguridad)
-  if (!email.endsWith('@canariaseducacion.es')) {
-    return redirect('/login?error=InvalidDomain');
+  // ── 2. Domain check (first so we fail fast before crypto) ──────────────────
+  if (!isAllowedDomain(email)) {
+    console.warn('[CanariasAuth] Rejected non-educational email:', email);
+    return Response.redirect(new URL('/login?error=InvalidDomain', url));
   }
 
+  // ── 3. HMAC token validation ───────────────────────────────────────────────
+  if (!isValidToken(rawEmail, token, secret)) {
+    console.error('[CanariasAuth] Invalid HMAC token for:', email);
+    return Response.redirect(new URL('/login?error=InvalidToken', url));
+  }
+
+  // ── 4. Database operations ─────────────────────────────────────────────────
   try {
-    // Conectar a MongoDB
-    if (mongoose.connection.readyState !== 1) {
-      const MONGODB_URI = import.meta.env.MONGODB_URI;
-      if (!MONGODB_URI) throw new Error('MONGODB_URI not configured');
-      await mongoose.connect(MONGODB_URI);
-    }
-
-    // Helper to determine the best profile picture
-    const getProfilePicture = async (emailAddr: string) => {
-        try {
-          const hash = createHash('md5').update(emailAddr.trim().toLowerCase()).digest('hex');
-          const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=404`;
-          const response = await fetch(gravatarUrl, { method: 'HEAD' });
-          if (response.ok) return `https://www.gravatar.com/avatar/${hash}`; 
-        } catch (e) {
-          console.warn('Failed to check Gravatar:', e);
-        }
-        return `https://ui-avatars.com/api/?name=${encodeURIComponent(emailAddr)}&background=8b5cf6&color=fff`;
-    };
-
-    // 3. Generar un ID numérico único basado en el email para evitar conflictos en GoogleId
-    // Algunos navegadores y lógica interna pueden esperar un ID numérico que no sea "edu_..."
-    const hashInt = parseInt(createHash('md5').update(email).digest('hex').substring(0, 12), 16);
-    const virtualGoogleId = `${hashInt}`;
-
-    // Buscar usuario por email prioritariamente
-    let user = await User.findOne({ email: email });
+    await connectDB();
 
     const now = new Date();
-    const getDayStr = (d: Date) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-    const userPicture = await getProfilePicture(email);
+    const virtualGoogleId = generateVirtualGoogleId(email);
+    const picture = await resolveProfilePicture(email);
+
+    let user = await User.findOne({ email });
 
     if (!user) {
-      // Crear nuevo usuario
-      const nameFromEmail = email.split('@')[0].replace(/\./g, ' ');
-      const capitalizedName = nameFromEmail.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-
+      // ── New user ────────────────────────────────────────────────────────────
       user = await User.create({
-        googleId: virtualGoogleId, // Evitamos el error Duplicate Key: null
-        email: email,
-        name: capitalizedName,
-        picture: userPicture,
+        googleId: virtualGoogleId,
+        email,
+        name: nameFromEmail(email),
+        picture,
         lastLogin: now,
         lastActiveAt: now,
         currentStreak: 1,
         maxStreak: 1,
-        role: 'user'
+        role: 'user',
       });
 
-      // Notificar registro a n8n
-      try {
-        await fetch('https://n8n.broslunas.com/webhook/veredillasfm-new-user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: user.name, email: user.email, source: 'canariaseducacion' }),
-        });
-      } catch (webhookError) {
-        console.error('Error sending webhook notification:', webhookError);
-      }
+      // Notify n8n webhook about new registration (non-blocking)
+      fetch('https://n8n.broslunas.com/webhook/veredillasfm-new-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: user.name,
+          email: user.email,
+          source: 'canariaseducacion',
+        }),
+      }).catch((err) => console.error('[CanariasAuth] Webhook error:', err));
     } else {
-      // Actualizar streak logic
-      const todayStr = getDayStr(now);
-      const lastActiveStr = user.lastActiveAt ? getDayStr(new Date(user.lastActiveAt)) : null;
+      // ── Returning user ──────────────────────────────────────────────────────
+      const { currentStreak: newStreak, maxStreak: newMax } = calculateStreak(
+        now,
+        user.lastActiveAt,
+        user.currentStreak ?? 0,
+        user.maxStreak ?? 0
+      );
 
-      if (!lastActiveStr) {
-        user.currentStreak = 1;
-        user.maxStreak = Math.max(user.maxStreak || 0, 1);
-      } else if (todayStr !== lastActiveStr) {
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (lastActiveStr === getDayStr(yesterday)) {
-          user.currentStreak = (user.currentStreak || 0) + 1;
-        } else {
-          user.currentStreak = 1;
-        }
-        user.maxStreak = Math.max(user.maxStreak || 0, user.currentStreak);
-      }
+      user.currentStreak = newStreak;
+      user.maxStreak = newMax;
+      user.lastLogin = now;
+      user.lastActiveAt = now;
 
-      // Limpiar googleId si es null o problemático para evitar errores E11000
+      // Back-fill googleId if it was never set (avoids future E11000 duplicate key errors)
       if (!user.googleId) {
         user.googleId = virtualGoogleId;
       }
-      
-      user.lastLogin = now;
-      user.lastActiveAt = now;
-      if (!user.picture || user.picture.includes('ui-avatars')) {
-          user.picture = userPicture;
+
+      // Only update picture if the user still has an auto-generated avatar
+      if (!user.picture || user.picture.includes('ui-avatars.com')) {
+        user.picture = picture;
       }
+
       await user.save();
     }
 
-    // 4. Generar el Token y preparar respuesta
+    // ── 5. Issue JWT session cookies ──────────────────────────────────────────
     const jwtToken = generateToken(user);
-    
-    // Usamos el propio callback como página de éxito para evitar pérdidas de contexto
-    
-    console.log('[Auth Canarian] Finalizing session on host:', url.host);
+    const maxAge = 60 * 60 * 24 * 30; // 30 days in seconds
+    const domain = getSharedDomain(url.host);
 
-    const maxAge = 60 * 60 * 24 * 30; // 30 días
-    const host = url.host;
-    // Si estamos en el dominio real, compartimos la cookie entre www y apex
-    const domain = host.includes('veredillasfm.es') ? '.veredillasfm.es' : undefined;
-
-    // --- COOKIES (Native Astro API for Vercel/Prod reliability) ---
-    // Astro gestionará las cabeceras Set-Cookie en el objeto Response generado al final
     cookies.set('auth-token', jwtToken, {
       path: '/',
-      domain: domain,
-      maxAge: maxAge,
+      domain,
+      maxAge,
       httpOnly: true,
-      secure: true, 
-      sameSite: 'lax'
+      secure: true,
+      sameSite: 'lax',
     });
 
+    // A non-httpOnly flag so client JS can detect an active session without
+    // reading the sensitive JWT directly.
     cookies.set('user-session', 'true', {
       path: '/',
-      domain: domain,
-      maxAge: maxAge,
+      domain,
+      maxAge,
       httpOnly: false,
       secure: true,
-      sameSite: 'lax'
+      sameSite: 'lax',
     });
 
-    const responseHTML = `
-      <!DOCTYPE html>
-      <html lang="es">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Autenticación - Veredillas FM</title>
-          <script>
-            // --- FRAME BREAKER CRÍTICO ---
-            // Si Google Apps Script nos ha metido en un iframe, las cookies y el opener fallarán.
-            // Forzamos a que la ventana entera sea de nuestro dominio.
-            if (window.top !== window.self) {
-                window.top.location.href = window.location.href;
-            }
-          </script>
-          <style>
-              body { background: #0a0a0a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif; text-align: center; margin: 0; padding: 2rem; box-sizing: border-box; }
-              .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 3rem; border-radius: 2rem; backdrop-filter: blur(20px); max-width: 400px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-              .spinner { width: 48px; height: 48px; border: 4px solid rgba(139,92,246,0.1); border-left-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem; }
-              h1 { font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 800; background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-              p { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 2rem; }
-              @keyframes spin { to { transform: rotate(360deg); } }
-              .btn { background: #7c3aed; color: white; border: none; padding: 1rem 2rem; border-radius: 1rem; font-weight: 800; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; box-shadow: 0 10px 20px -5px rgba(139,92,246,0.5); width: 100%; box-sizing: border-box; }
-              .btn:hover { background: #8b5cf6; transform: translateY(-2px); shadow: 0 15px 25px -5px rgba(139,92,246,0.6); }
-              .btn:active { transform: translateY(0); }
-          </style>
-      </head>
-      <body>
-          <div class="card">
-              <div class="spinner"></div>
-              <h1>¡Bienvenido, ${user.name}!</h1>
-              <p>Tu sesión se ha iniciado correctamente. La ventana se cerrará sola.</p>
-              <button onclick="finish()" class="btn">Confirmar y Entrar</button>
-          </div>
-          <script>
-            // Solo ejecutamos esto si estamos en la ventana superior (fuera de iframes)
-            if (window.top === window.self) {
-                // Notificar al padre via localStorage (Señal universal)
-                localStorage.setItem('canarian_auth_done', Date.now().toString());
+    console.log(`[CanariasAuth] Session established for ${email} on ${url.host}`);
 
-                function finish() {
-                  if (window.opener) {
-                    try {
-                      window.opener.postMessage({ type: 'auth_success' }, '*');
-                      window.opener.location.href = '/dashboard';
-                    } catch (e) {
-                      console.warn('Opener not accessible');
-                    }
-                  }
-                  window.close();
-                  setTimeout(() => { if (!window.closed) window.location.href = '/dashboard'; }, 400);
-                }
+    // ── 6. Return success HTML ────────────────────────────────────────────────
+    //
+    // We return HTML instead of a redirect so we can:
+    //   a) Break out of any potential iframe the Apps Script may have used
+    //   b) Signal the opener window via postMessage + localStorage
+    //   c) Auto-close the popup and redirect the main tab to /dashboard
 
-                // Automatización después de 1.5 segundos
-                setTimeout(finish, 1500);
-            }
-          </script>
-      </body>
-      </html>
-    `;
+    const html = buildSuccessPage(user.name);
 
-    return new Response(responseHTML, {
+    return new Response(html, {
       status: 200,
-      headers: {
-        'Content-Type': 'text/html'
-      }
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
-
   } catch (error) {
-    console.error('Error in Canariaseducacion auth callback:', error);
-    return new Response(`Error: ${error instanceof Error ? error.message : 'Unknown'}. Intenta de nuevo.`, { status: 500 });
+    console.error('[CanariasAuth] Unexpected error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return Response.redirect(new URL(`/login?error=ServerError&detail=${encodeURIComponent(message)}`, url));
   }
 };
+
+// ─── HTML builder ─────────────────────────────────────────────────────────────
+
+function buildSuccessPage(userName: string): string {
+  // Escape the name to prevent XSS (name comes from the email local part, but
+  // let's be safe in case the DB record has been tampered with).
+  const safeName = userName.replace(/[<>&"']/g, (c) =>
+    ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c] ?? c)
+  );
+
+  return /* html */ `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sesión iniciada — Veredillas FM</title>
+    <!--
+      FRAME-BREAKER (critical):
+      If the Apps Script placed us inside an iframe, cookies with SameSite=Lax
+      won't be sent by the browser on subsequent requests. We force the top-level
+      window to replace its URL with ours so the page runs in a proper top-level
+      browsing context.
+    -->
+    <script>
+      if (window.top !== window.self) {
+        window.top.location.replace(window.location.href);
+      }
+    <\/script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: #0a0a14;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, sans-serif;
+        padding: 2rem;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 3rem 2.5rem;
+        text-align: center;
+        max-width: 380px;
+        width: 100%;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+        animation: fade-in 0.4s ease both;
+      }
+
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .icon {
+        font-size: 2.5rem;
+        margin-bottom: 1.25rem;
+        display: block;
+        animation: pop 0.5s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes pop {
+        from { transform: scale(0.5); opacity: 0; }
+        to   { transform: scale(1); opacity: 1; }
+      }
+
+      .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid rgba(139, 92, 246, 0.15);
+        border-top-color: #8b5cf6;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin: 0 auto 1.5rem;
+      }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      h1 {
+        font-size: 1.35rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.4);
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+
+      .btn {
+        display: block;
+        width: 100%;
+        padding: 0.85rem 1.5rem;
+        background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: filter 0.2s, transform 0.2s;
+        box-shadow: 0 8px 20px -6px rgba(124, 58, 237, 0.5);
+        text-decoration: none;
+      }
+
+      .btn:hover {
+        filter: brightness(1.1);
+        transform: translateY(-2px);
+      }
+    </style>
+</head>
+<body>
+  <div class="card">
+    <span class="icon">✅</span>
+    <div class="spinner"></div>
+    <h1>¡Bienvenido, ${safeName}!</h1>
+    <p>Tu sesión se ha iniciado correctamente. Esta ventana se cerrará automáticamente.</p>
+    <button class="btn" onclick="finish()">Entrar al dashboard</button>
+  </div>
+
+  <script>
+    // Only run the opener-communication logic when we are the top-level frame
+    // (the frame-breaker script above ensures this by the time we reach here).
+    if (window.top === window.self) {
+
+      /**
+       * Signal the parent window and close the popup.
+       *
+       * We use two mechanisms for maximum cross-browser reliability:
+       *   1. postMessage  — works reliably when opener is same-origin.
+       *   2. localStorage — works even when postMessage is blocked.
+       */
+      function finish() {
+        // Write the "done" signal before attempting to communicate
+        try { localStorage.setItem('canarian_auth_done', String(Date.now())); } catch (_) {}
+
+        if (window.opener && !window.opener.closed) {
+          try {
+            window.opener.postMessage({ type: 'canarian_auth_success' }, window.location.origin);
+            window.opener.location.href = '/dashboard';
+          } catch (_) {
+            // Opener is cross-origin or inaccessible — the localStorage watcher
+            // in the main page will handle the redirect instead.
+          }
+        }
+
+        window.close();
+
+        // Fallback: if window.close() is blocked (user opened page directly),
+        // redirect this tab to the dashboard.
+        setTimeout(() => {
+          if (!window.closed) window.location.href = '/dashboard';
+        }, 500);
+      }
+
+      // Auto-finish after 1.5 s so the user can read the success message
+      setTimeout(finish, 1500);
+    }
+  <\/script>
+</body>
+</html>`;
+}

@@ -568,17 +568,20 @@ if (errorParam === 'InvalidToken') {
                 // 1. Limpiamos cualquier señal previa
                 localStorage.removeItem('canarian_auth_done');
 
-                // 2. Escuchamos por mensaje directo (caso ideal)
+                // 2. Escuchamos por mensaje directo del popup (caso ideal, mismo origen)
                 window.addEventListener('message', (event) => {
-                    if (event.data.type === 'auth_success') {
+                    if (event.origin === window.location.origin && event.data?.type === 'canarian_auth_success') {
+                        clearInterval(storageWatcher);
                         window.location.href = '/dashboard';
                     }
                 });
 
-                // 3. Vigilante de almacenamiento (Tanque contra fallos de comunicación entre ventanas)
+                // 3. Vigilante de localStorage — fallback cuando postMessage no llega
+                //    (e.g. popup bloqueado por CORS o el popup redirige a dominio externo)
                 const storageWatcher = setInterval(() => {
                     if (localStorage.getItem('canarian_auth_done')) {
                         clearInterval(storageWatcher);
+                        localStorage.removeItem('canarian_auth_done');
                         window.location.href = '/dashboard';
                     }
                 }, 500);
@@ -589,17 +592,18 @@ if (errorParam === 'InvalidToken') {
                     `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
                 );
 
-                // 4. Vigilante de cierre manual
+                // 4. Vigilante de cierre manual del popup
                 if (popup) {
                     const timer = setInterval(() => {
                         if (popup.closed) {
                             clearInterval(timer);
-                            // Damos un pequeño margen por si el storageWatcher no ha saltado aún
+                            clearInterval(storageWatcher);
+                            // Damos un pequeño margen por si el storageWatcher aún no ha saltado
                             setTimeout(() => {
                                 if (window.location.pathname !== '/dashboard') {
                                     window.location.href = '/dashboard';
                                 }
-                            }, 500);
+                            }, 600);
                         }
                     }, 1000);
                 }
