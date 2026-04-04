@@ -1071,9 +1071,9 @@ const isoDate = targetDate.toISOString();
                 phrase = variations[Math.floor(Math.random() * variations.length)];
             }
 
-            const cleanTitle = this.title.replace(/\s*ft\..*/i, '').trim();
-phrase = phrase.replace('[title]', cleanTitle).replace('[time]', timeStr);
-
+            const cleanTitle = this.title.split('ft.')[0].trim();
+            phrase = phrase.replace('[title]', cleanTitle).replace('[time]', timeStr);
+            
             try {
                 const response = await fetch('/api/tts', {
                     method: 'POST',
