@@ -139,7 +139,7 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       await user.save();
     }
 
-    // 4. Generar el JWT Token y la respuesta HTML
+    // 4. Generar el Token y preparar respuesta
     const jwtToken = generateToken(user);
     
     // Usamos el propio callback como página de éxito para evitar pérdidas de contexto
@@ -152,6 +152,7 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
     const domain = host.includes('veredillasfm.es') ? '.veredillasfm.es' : undefined;
 
     // --- COOKIES (Native Astro API for Vercel/Prod reliability) ---
+    // Astro gestionará las cabeceras Set-Cookie en el objeto Response generado al final
     cookies.set('auth-token', jwtToken, {
       path: '/',
       domain: domain,
@@ -176,7 +177,15 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Autenticación Exitosa - Veredillas FM</title>
+          <title>Autenticación - Veredillas FM</title>
+          <script>
+            // --- FRAME BREAKER CRÍTICO ---
+            // Si Google Apps Script nos ha metido en un iframe, las cookies y el opener fallarán.
+            // Forzamos a que la ventana entera sea de nuestro dominio.
+            if (window.top !== window.self) {
+                window.top.location.href = window.location.href;
+            }
+          </script>
           <style>
               body { background: #0a0a0a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif; text-align: center; margin: 0; padding: 2rem; box-sizing: border-box; }
               .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 3rem; border-radius: 2rem; backdrop-filter: blur(20px); max-width: 400px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
@@ -194,33 +203,30 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
               <div class="spinner"></div>
               <h1>¡Bienvenido, ${user.name}!</h1>
               <p>Tu sesión se ha iniciado correctamente. La ventana se cerrará sola.</p>
-              <button onclick="finish()" class="btn">Entrar al Dashboard</button>
+              <button onclick="finish()" class="btn">Confirmar y Entrar</button>
           </div>
           <script>
-            // Notificar al padre via localStorage (Señal universal)
-            localStorage.setItem('canarian_auth_done', Date.now().toString());
+            // Solo ejecutamos esto si estamos en la ventana superior (fuera de iframes)
+            if (window.top === window.self) {
+                // Notificar al padre via localStorage (Señal universal)
+                localStorage.setItem('canarian_auth_done', Date.now().toString());
 
-            function finish() {
-              if (window.opener) {
-                try {
-                  window.opener.postMessage({ type: 'auth_success' }, '*');
-                  // Forzamos el cambio de página en el padre si sigue vivo
-                  window.opener.location.href = '/dashboard';
-                } catch (e) {
-                  console.warn('Opener not accessible');
+                function finish() {
+                  if (window.opener) {
+                    try {
+                      window.opener.postMessage({ type: 'auth_success' }, '*');
+                      window.opener.location.href = '/dashboard';
+                    } catch (e) {
+                      console.warn('Opener not accessible');
+                    }
+                  }
+                  window.close();
+                  setTimeout(() => { if (!window.closed) window.location.href = '/dashboard'; }, 400);
                 }
-              }
-              // Cerramos este popup
-              window.close();
-              
-              // Si por alguna razón sigue abierto, redirigimos esta ventana como plan C
-              setTimeout(() => {
-                if (!window.closed) window.location.href = '/dashboard';
-              }, 400);
-            }
 
-            // Automatización después de 1.5 segundos
-            setTimeout(finish, 1500);
+                // Automatización después de 1.5 segundos
+                setTimeout(finish, 1500);
+            }
           </script>
       </body>
       </html>
