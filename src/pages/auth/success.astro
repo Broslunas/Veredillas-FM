@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 ---
 
 <!DOCTYPE html>
@@ -21,30 +21,68 @@ export const prerender = true;
         }
         .message {
             text-align: center;
-            animation: fade 1s infinite alternate;
         }
-        @keyframes fade { from { opacity: 0.6; } to { opacity: 1; } }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="message">
-        <h3>¡Bienvenido!</h3>
-        <p>Cerrando ventana...</p>
+        <div id="auth-status">
+            <div class="spinner"></div>
+            <h3>¡Bienvenido!</h3>
+            <p>Iniciando sesión correctamente...</p>
+        </div>
+        <div id="cookie-error" style="display: none; color: #ef4444; border: 1px dashed #ef4444; padding: 1rem; border-radius: 1rem; margin-top: 1rem;">
+             <p>⚠️ Error: Cookies no detectadas.</p>
+             <p style="font-size: 0.8rem; opacity: 0.8;">Tu navegador bloqueó la sesión. Revisa si bloqueas cookies de terceros o usa modo normal.</p>
+        </div>
     </div>
     <script>
-        // Check if opened in popup
-        if (window.opener) {
-            // Notify opener to reload/redirect
-            try {
-                window.opener.location.href = '/dashboard';
-            } catch (e) {
-                console.error(e);
+        function finishAuth() {
+            // Comprobamos si la cookie de sesión está presente
+            // No podemos ver auth-token (HttpOnly) pero sí user-session
+            const hasSession = document.cookie.includes('user-session=true');
+            console.log('[SuccessPage] Cookie check:', { hasSession, all: document.cookie });
+
+            if (!hasSession) {
+                const statusDiv = document.getElementById('auth-status');
+                const errorDiv = document.getElementById('cookie-error');
+                if (statusDiv) statusDiv.style.opacity = '0.5';
+                if (errorDiv) errorDiv.style.display = 'block';
+                // No cerramos la ventana para que el usuario vea el error
+                return;
             }
-            window.close();
-        } else {
-            // Fallback if opened directly
-            window.location.href = '/dashboard';
+
+            // 1. Intentar comunicarse con window.opener
+            if (window.opener) {
+                try {
+                    window.opener.postMessage({ type: 'auth_success' }, '*');
+                    window.opener.location.href = '/dashboard';
+                    setTimeout(() => window.close(), 1000);
+                    return;
+                } catch (e) {
+                    console.error('Error al acceder al opener:', e);
+                    window.close();
+                }
+            }
+            
+            // 2. Si no hay opener, redirigimos aquí mismo
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
         }
+
+        // Delay para dar tiempo al navegador a digerir las cookies del 302
+        setTimeout(finishAuth, 800);
     </script>
 </body>
 </html>

@@ -13,9 +13,15 @@ if (userPayload) {
 const errorParam = Astro.url.searchParams.get('error');
 let errorMessage = '';
 if (errorParam === 'InvalidToken') {
-    errorMessage = 'El enlace de acceso es inválido o está mal formado.';
+    errorMessage = 'El token de seguridad es inválido. Por favor, intenta de nuevo.';
 } else if (errorParam === 'ExpiredOrInvalid') {
-    errorMessage = 'El enlace de acceso ha expirado u ocurrido un error interno. Intenta de nuevo.';
+    errorMessage = 'La sesión de acceso ha expirado. Intenta de nuevo.';
+} else if (errorParam === 'InvalidDomain') {
+    errorMessage = 'Solo se permiten cuentas del dominio @canariaseducacion.es.';
+} else if (errorParam === 'MissingParams') {
+    errorMessage = 'Faltan parámetros de autenticación. Contacta con soporte.';
+} else if (errorParam === 'ServerBootstrap') {
+    errorMessage = 'Error en el servidor al procesar el login. Revisa tu conexión.';
 } else if (errorParam) {
     errorMessage = 'Ocurrió un error al iniciar sesión. Intenta de nuevo.';
 }
@@ -99,6 +105,16 @@ if (errorParam === 'InvalidToken') {
                             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                         </svg>
                         Continuar con Google
+                    </a>
+
+                    <a href="#" id="btn-educacion" class="btn btn-canarian btn-xl">
+                        <div class="btn-canarian-content">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_the_Canary_Islands.svg/1200px-Flag_of_the_Canary_Islands.svg.png" width="24" height="16" alt="Canarias" />
+                            <div class="btn-text-wrapper">
+                                <span class="btn-main-text">Acceso @canariaseducacion.es</span>
+                                <span class="btn-sub-text">Estudiantes y Profesores de Canarias</span>
+                            </div>
+                        </div>
                     </a>
                     
                     <div class="divider">
@@ -343,6 +359,55 @@ if (errorParam === 'InvalidToken') {
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 
+    .btn-canarian {
+        background: linear-gradient(135deg, #00adef 0%, #007bb6 100%);
+        color: white;
+        border: none;
+        width: 100%;
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        display: block;
+    }
+
+    .btn-canarian:hover {
+        filter: brightness(1.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 173, 239, 0.4);
+    }
+
+    .btn-canarian-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-align: left;
+    }
+
+    .btn-canarian-content img {
+        border-radius: 3px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        flex-shrink: 0;
+    }
+
+    .btn-text-wrapper {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .btn-main-text {
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    .btn-sub-text {
+        font-size: 0.7rem;
+        opacity: 0.8;
+        font-weight: 400;
+    }
+
     .divider {
         display: flex;
         align-items: center;
@@ -485,6 +550,60 @@ if (errorParam === 'InvalidToken') {
         const btn = document.querySelector('.btn-google');
         if (btn) {
             btn.addEventListener('click', openGoogleLogin);
+        }
+
+        const btnEducacion = document.getElementById('btn-educacion');
+        if (btnEducacion) {
+            btnEducacion.addEventListener('click', (e) => {
+                e.preventDefault();
+                const width = 500;
+                const height = 600;
+                const left = (window.innerWidth - width) / 2 + window.screenLeft;
+                const top = (window.innerHeight - height) / 2 + window.screenTop;
+                
+                // Abrimos una página interna que luego gestiona la redirección al script
+                // Esto ayuda a mantener el contexto del navegador y el window.opener
+                const internalLoginUrl = "/auth/canariaseducacion/login"; 
+
+                // 1. Limpiamos cualquier señal previa
+                localStorage.removeItem('canarian_auth_done');
+
+                // 2. Escuchamos por mensaje directo (caso ideal)
+                window.addEventListener('message', (event) => {
+                    if (event.data.type === 'auth_success') {
+                        window.location.href = '/dashboard';
+                    }
+                });
+
+                // 3. Vigilante de almacenamiento (Tanque contra fallos de comunicación entre ventanas)
+                const storageWatcher = setInterval(() => {
+                    if (localStorage.getItem('canarian_auth_done')) {
+                        clearInterval(storageWatcher);
+                        window.location.href = '/dashboard';
+                    }
+                }, 500);
+
+                const popup = window.open(
+                    internalLoginUrl,
+                    'canarias_educacion_popup',
+                    `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
+                );
+
+                // 4. Vigilante de cierre manual
+                if (popup) {
+                    const timer = setInterval(() => {
+                        if (popup.closed) {
+                            clearInterval(timer);
+                            // Damos un pequeño margen por si el storageWatcher no ha saltado aún
+                            setTimeout(() => {
+                                if (window.location.pathname !== '/dashboard') {
+                                    window.location.href = '/dashboard';
+                                }
+                            }, 500);
+                        }
+                    }, 1000);
+                }
+            });
         }
 
         const authForm = document.getElementById('auth-form') as HTMLFormElement;

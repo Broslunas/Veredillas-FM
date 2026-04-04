@@ -13,6 +13,12 @@ export const GET: APIRoute = async ({ request }) => {
     const cookieHeader = request.headers.get('cookie');
     const userPayload = getUserFromCookie(cookieHeader);
 
+    console.log('[API auth/me] Cookie check:', { 
+        hasCookieHeader: !!cookieHeader, 
+        hasPayload: !!userPayload,
+        email: userPayload?.email 
+    });
+
     if (!userPayload) {
       return new Response(JSON.stringify({ user: null }), {
         status: 200,

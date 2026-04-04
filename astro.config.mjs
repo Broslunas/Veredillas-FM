@@ -61,10 +61,6 @@ export default defineConfig({
   security: {
     checkOrigin: false
   },
-  prefetch: {
-    prefetchAll: true,
-    defaultStrategy: 'viewport'
-  },
 
   integrations: [
     react(),

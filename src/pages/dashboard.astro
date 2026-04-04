@@ -14,17 +14,23 @@ import EpisodeReaction from '../models/EpisodeReaction';
 export const prerender = false;
 
 // Auth Check
-const userPayload = getUserFromCookie(Astro.request.headers.get('cookie'));
+const token = Astro.cookies.get('auth-token');
+console.log('[Dashboard] Cookie check:', { hasToken: !!token, tokenName: token?.name });
+
+if (!token) {
+  console.log('[Dashboard] No auth-token cookie found');
+  return Astro.redirect('/?auth_error=no_token');
+}
+
+const userPayload = getUserFromCookie(`auth-token=${token.value}`);
 if (!userPayload) {
-  return Astro.redirect('/'); 
+  console.log('[Dashboard] Token verification failed');
+  return Astro.redirect('/?auth_error=invalid_token'); 
 }
 
 // DB Connect
-if (mongoose.connection.readyState !== 1) {
-   const MONGODB_URI = import.meta.env.MONGODB_URI;
-   if (!MONGODB_URI) throw new Error('MONGODB_URI not configured');
-   await mongoose.connect(MONGODB_URI);
-}
+import dbConnect from '../lib/mongodb';
+await dbConnect();
 
 // Fetch User
 const user = await User.findById(userPayload.userId) as IUser;
