@@ -3,239 +3,186 @@ export const prerender = true;
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="404 - Página no encontrada">
-  <section class="error-section">
-    <div class="container">
-      <div class="error-content fade-in-up">
-        <!-- Animated 404 -->
-        <div class="error-code">
-          <span class="digit">4</span>
-          <span class="digit vinyl-spin">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="vinyl-icon">
-              <!-- Vinyl Record -->
-              <circle cx="100" cy="100" r="90" fill="#1a1a1a"/>
-              <circle cx="100" cy="100" r="85" fill="#0a0a0a"/>
-              
-              <!-- Grooves -->
-              <circle cx="100" cy="100" r="75" fill="none" stroke="#2a2a2a" stroke-width="1"/>
-              <circle cx="100" cy="100" r="65" fill="none" stroke="#2a2a2a" stroke-width="1"/>
-              <circle cx="100" cy="100" r="55" fill="none" stroke="#2a2a2a" stroke-width="1"/>
-              <circle cx="100" cy="100" r="45" fill="none" stroke="#2a2a2a" stroke-width="1"/>
-              
-              <!-- Label -->
-              <circle cx="100" cy="100" r="35" fill="#8b5cf6"/>
-              <circle cx="100" cy="100" r="30" fill="#7c3aed"/>
-              
-              <!-- Center hole -->
-              <circle cx="100" cy="100" r="8" fill="#0a0a0a"/>
-            </svg>
-          </span>
-          <span class="digit">4</span>
-        </div>
+<Layout title="404 - Sintonía Perdida | Veredillas FM">
+  <div class="relative min-h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,#0a0a0c_0%,var(--color-bg)_100%)]">
+    <!-- Dynamic Background Elements -->
+    <div id="mouse-glow" class="fixed w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(139,92,246,0.1)_0%,transparent_70%)] blur-[60px] pointer-events-none z-0 -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-100 ease-out"></div>
+    
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
+      <div class="wave"></div>
+      <div class="wave"></div>
+      <div class="wave"></div>
+    </div>
 
-        <!-- Error Message -->
-        <h1 class="error-title">Página no encontrada</h1>
-        <p class="error-description">
-          Parece que esta pista no existe en nuestra biblioteca. 
-          El contenido que buscas puede haber sido movido o eliminado.
-        </p>
+    <section class="relative z-10 w-full py-20 px-4">
+      <div class="container mx-auto">
+        <div class="max-w-[750px] mx-auto p-12 md:p-16 bg-surface/40 backdrop-blur-[32px] border border-white/5 rounded-[2rem] text-center shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] fade-in-up">
+          
+          <div class="mb-12">
+            <div class="flex items-center justify-center gap-6 md:gap-10 text-8xl md:text-9xl font-extrabold font-display leading-none">
+              <span class="digit glitch" data-text="4">4</span>
+              
+              <div class="relative w-[120px] h-[120px] md:w-[160px] md:h-[160px] group">
+                <!-- Vinyl Disc -->
+                <div class="w-full h-full bg-[#080808] rounded-full relative shadow-2xl animate-spin-slow border-4 border-[#111] overflow-hidden">
+                  <div class="absolute inset-[5px] rounded-full bg-[repeating-radial-gradient(circle_at_center,transparent_0,transparent_1.5px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_2.5px)]"></div>
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[38%] h-[38%] bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-inner">
+                    <div class="w-[20%] h-[20%] bg-black rounded-full"></div>
+                  </div>
+                </div>
+                
+                <!-- Tonearm -->
+                <div class="absolute -top-5 -right-8 w-24 md:w-32 h-32 md:h-40 z-10 rotate-[20deg] group-hover:rotate-[35deg] transition-transform duration-700 cubic-bezier(0.34,1.56,0.64,1) origin-top-right">
+                  <div class="absolute top-0 right-0 w-8 h-8 bg-zinc-800 rounded-full shadow-lg"></div>
+                  <div class="absolute top-4 right-3.5 w-1.5 h-24 md:h-28 bg-gradient-to-b from-zinc-600 to-zinc-800 rounded-full origin-top transform"></div>
+                  <div class="absolute -bottom-1 -left-2 w-6 h-4 bg-zinc-900 rounded-sm shadow-md"></div>
+                </div>
+              </div>
+              
+              <span class="digit glitch" data-text="4">4</span>
+            </div>
+          </div>
 
-        <!-- Action Buttons -->
-        <div class="error-actions">
-          <a href="/" class="btn btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-            Volver al inicio
-          </a>
-          <a href="/ep" class="btn btn-outline">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" x2="12" y1="19" y2="22"/>
-              <line x1="8" x2="16" y1="22" y2="22"/>
-            </svg>
-            Ver episodios
-          </a>
-        </div>
+          <div class="space-y-6">
+            <h1 class="text-5xl md:text-6xl font-extrabold bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent tracking-tight">
+              Sintonía Perdida
+            </h1>
+            <p class="text-lg md:text-xl text-zinc-400 max-w-[500px] mx-auto leading-relaxed">
+              Parece que nos hemos salido de frecuencia. La pista que buscas no está en nuestra lista de reproducción actual.
+            </p>
 
-        <!-- Suggestions -->
-        <div class="suggestions">
-          <p class="suggestions-title">También puedes explorar:</p>
-          <div class="suggestions-links">
-            <a href="/blog">Blog</a>
-            <span class="separator">•</span>
-            <a href="/about">Equipo</a>
-            <span class="separator">•</span>
-            <a href="/calendario">Calendario</a>
-            <span class="separator">•</span>
-            <a href="/contacto">Contacto</a>
+            <div class="flex flex-col md:flex-row gap-6 justify-center pt-4">
+              <a href="/" class="btn-glow group relative px-8 py-4 bg-primary text-white rounded-full font-bold text-lg flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Sintonizar Inicio
+                <div class="absolute inset-[-4px] bg-gradient-to-r from-primary via-secondary to-accent blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500 -z-10 rounded-full"></div>
+              </a>
+              <a href="/ep" class="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white rounded-full font-bold text-lg flex items-center justify-center gap-3 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" x2="12" y1="19" y2="22"/>
+                  <line x1="8" x2="16" y1="22" y2="22"/>
+                </svg>
+                Explorar Episodios
+              </a>
+            </div>
+
+            <div class="mt-16 pt-12 border-t border-white/5">
+              <p class="text-xs md:text-sm text-zinc-500 font-bold uppercase tracking-[0.2em] mb-6">
+                O prueba estos canales
+              </p>
+              <div class="flex flex-wrap justify-center gap-x-12 gap-y-4">
+                <a href="/blog" class="text-zinc-400 hover:text-primary transition-colors text-base font-medium hover:-translate-y-1 translate-y-0 transition-transform">Blog</a>
+                <a href="/about" class="text-zinc-400 hover:text-primary transition-colors text-base font-medium hover:-translate-y-1 translate-y-0 transition-transform">Equipo</a>
+                <a href="/calendario" class="text-zinc-400 hover:text-primary transition-colors text-base font-medium hover:-translate-y-1 translate-y-0 transition-transform">Calendario</a>
+                <a href="/contacto" class="text-zinc-400 hover:text-primary transition-colors text-base font-medium hover:-translate-y-1 translate-y-0 transition-transform">Contacto</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </Layout>
 
+<script is:inline>
+  // Mouse Glow Tracking
+  const mouseGlow = document.getElementById('mouse-glow');
+  document.addEventListener('mousemove', (e) => {
+    if (mouseGlow) {
+      const x = e.clientX;
+      const y = e.clientY;
+      mouseGlow.style.left = `${x}px`;
+      mouseGlow.style.top = `${y}px`;
+    }
+  });
+
+  // Random glitch effect trigger
+  const digits = document.querySelectorAll('.glitch');
+  setInterval(() => {
+    digits.forEach(digit => {
+      if (Math.random() > 0.97) {
+        digit.classList.add('trigger-glitch');
+        setTimeout(() => digit.classList.remove('trigger-glitch'), 500);
+      }
+    });
+  }, 1500);
+</script>
+
 <style>
-  .error-section {
-    min-height: calc(100vh - 100px); /* Fill remaining viewport height */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
+  .wave {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    border-radius: 50%;
+    animation: ripple 6s linear infinite;
   }
+  .wave:nth-child(1) { animation-delay: 0s; }
+  .wave:nth-child(2) { animation-delay: 2s; }
+  .wave:nth-child(3) { animation-delay: 4s; }
 
-  .container {
-    max-width: 800px;
-    text-align: center;
-  }
-
-  .error-content {
-    opacity: 0;
-    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  }
-
-  /* 404 Code */
-  .error-code {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: var(--spacing-xl);
-    font-size: 8rem;
-    font-weight: 800;
-    font-family: var(--font-display);
-    line-height: 1;
+  @keyframes ripple {
+    0% { width: 300px; height: 300px; opacity: 0.8; }
+    100% { width: 1200px; height: 1200px; opacity: 0; }
   }
 
   .digit {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.1));
+    position: relative;
   }
 
-  .vinyl-spin {
-    display: inline-block;
-    width: 8rem;
-    height: 8rem;
-    animation: spin 3s linear infinite;
-  }
-
-  .vinyl-icon {
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    filter: drop-shadow(0 10px 30px rgba(139, 92, 246, 0.3));
+    opacity: 0.8;
+  }
+
+  .glitch:hover::before, .trigger-glitch::before {
+    animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+    color: var(--color-primary);
+    z-index: -1;
+  }
+
+  .glitch:hover::after, .trigger-glitch::after {
+    animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) reverse both infinite;
+    color: var(--color-secondary);
+    z-index: -2;
+  }
+
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-3px, 3px); }
+    40% { transform: translate(-3px, -3px); }
+    60% { transform: translate(3px, 3px); }
+    80% { transform: translate(3px, -3px); }
+    100% { transform: translate(0); }
+  }
+
+  .animate-spin-slow {
+    animation: spin 6s linear infinite;
   }
 
   @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 
-  /* Text */
-  .error-title {
-    font-size: 2.5rem;
-    margin-bottom: var(--spacing-md);
-    color: var(--color-text-main);
-  }
-
-  .error-description {
-    font-size: 1.125rem;
-    color: var(--color-text-muted);
-    line-height: 1.6;
-    margin-bottom: var(--spacing-2xl);
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* Actions */
-  .error-actions {
-    display: flex;
-    gap: var(--spacing-md);
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: var(--spacing-2xl);
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: 0.875rem 1.75rem;
-    font-size: 1rem;
-  }
-
-  /* Suggestions */
-  .suggestions {
-    padding-top: var(--spacing-xl);
-    border-top: 1px solid var(--color-border);
-  }
-
-  .suggestions-title {
-    color: var(--color-text-muted);
-    font-size: 0.95rem;
-    margin-bottom: var(--spacing-md);
-  }
-
-  .suggestions-links {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-md);
-    flex-wrap: wrap;
-  }
-
-  .suggestions-links a {
-    color: var(--color-primary);
-    font-weight: 500;
-    transition: color 0.2s;
-  }
-
-  .suggestions-links a:hover {
-    color: var(--color-secondary);
-    text-decoration: underline;
-  }
-
-  .separator {
-    color: var(--color-text-dim);
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .error-code {
-      font-size: 5rem;
-      gap: 0.5rem;
-    }
-
-    .vinyl-spin {
-      width: 5rem;
-      height: 5rem;
-    }
-
-    .error-title {
-      font-size: 2rem;
-    }
-
-    .error-description {
-      font-size: 1rem;
-    }
-
-    .error-actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .btn {
-      width: 100%;
-      justify-content: center;
-    }
+  .cubic-bezier\(0\.34\,1\.56\,0\.64\,1\) {
+    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 </style>
+/style>
