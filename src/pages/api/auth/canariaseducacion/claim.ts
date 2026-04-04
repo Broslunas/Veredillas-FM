@@ -32,7 +32,7 @@ async function connectDB() {
 
 export const GET: APIRoute = async ({ url, cookies }) => {
   const authId = url.searchParams.get('id');
-  if (!authId) return Response.redirect(new URL('/login?error=MissingParams', url));
+  if (!authId) return new Response(null, { status: 302, headers: { Location: '/login?error=MissingParams' } });
 
   try {
     await connectDB();
@@ -41,7 +41,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     const pending = await PendingCanariasAuth.findOneAndDelete({ authId });
     if (!pending) {
       console.warn('[CanariasAuth] claim: no pending auth for id', authId);
-      return Response.redirect(new URL('/login?error=ExpiredOrInvalid', url));
+      return new Response(null, { status: 302, headers: { Location: '/login?error=ExpiredOrInvalid' } });
     }
 
     const email = pending.email as string;
@@ -91,10 +91,10 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     cookies.set('user-session', 'true',  { path: '/', domain, maxAge, httpOnly: false, secure: true, sameSite: 'lax' });
 
     console.log(`[CanariasAuth] claim: session established for ${email}`);
-    return Response.redirect(new URL('/dashboard', url));
+    return new Response(null, { status: 302, headers: { Location: '/dashboard' } });
 
   } catch (err) {
     console.error('[CanariasAuth] claim error:', err);
-    return Response.redirect(new URL('/login?error=ServerError', url));
+    return new Response(null, { status: 302, headers: { Location: '/login?error=ServerError' } });
   }
 };
