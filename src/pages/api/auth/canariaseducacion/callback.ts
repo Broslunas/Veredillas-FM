@@ -68,8 +68,15 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(emailAddr)}&background=8b5cf6&color=fff`;
     };
 
-    // Buscar o crear usuario
-    let user = await User.findOne({ email });
+    // Buscar usuario por email o por ID virtual educativo
+    // Esto evita el error de duplicados de Google al no dejar googleId como null
+    const virtualGoogleId = `edu_${email}`;
+    let user = await User.findOne({ 
+      $or: [
+        { email: email },
+        { googleId: virtualGoogleId }
+      ]
+    });
 
     const now = new Date();
     const getDayStr = (d: Date) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
@@ -81,6 +88,7 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       const capitalizedName = nameFromEmail.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
 
       user = await User.create({
+        googleId: virtualGoogleId, // Evitamos el error Duplicate Key: null
         email: email,
         name: capitalizedName,
         picture: userPicture,
