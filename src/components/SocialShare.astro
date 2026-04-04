@@ -103,7 +103,7 @@ const shareTitle = encodeURIComponent(title);
   </div>
 ) : (
 
-<aside class="social-share-floating">
+<aside class="social-share-floating" data-title={title} data-image={image}>
   <div class="share-buttons">
     <!-- WhatsApp -->
     <a href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" class="share-btn whatsapp" aria-label="Compartir en WhatsApp">
@@ -128,6 +128,11 @@ const shareTitle = encodeURIComponent(title);
     <!-- Copy Link -->
     <button class="share-btn copy-link" id="copy-link-btn" aria-label="Copiar enlace">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+    </button>
+
+    <!-- Instagram Stories / Story Generator -->
+    <button class="share-btn story-btn" id="blog-story-trigger" aria-label="Diseñar Historia">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
     </button>
 
     <!-- Embed Widget -->
@@ -351,12 +356,15 @@ const shareTitle = encodeURIComponent(title);
 
       // Story Generator Integration
       const storyTrigger = document.getElementById('modal-story-trigger');
-      storyTrigger?.addEventListener('click', () => {
+      const blogStoryTrigger = document.getElementById('blog-story-trigger');
+      
+      const handleStoryClick = () => {
+          const dataSource = document.getElementById('social-share-modal') || document.querySelector('.social-share-floating');
           shareModal?.classList.remove('visible');
           
           const storyData = {
-              title: shareModal?.getAttribute('data-title') || document.title,
-              image: shareModal?.getAttribute('data-image') || '',
+              title: dataSource?.getAttribute('data-title') || document.title,
+              image: dataSource?.getAttribute('data-image') || '',
           };
           
           if (typeof (window as any).openStoryGenerator === 'function') {
@@ -366,7 +374,10 @@ const shareTitle = encodeURIComponent(title);
               const localStoryBtn = document.getElementById('action-create-story');
               localStoryBtn?.click();
           }
-      });
+      };
+
+      storyTrigger?.addEventListener('click', handleStoryClick);
+      blogStoryTrigger?.addEventListener('click', handleStoryClick);
 
       // Embed Modal Logic
       const modal = document.getElementById('embed-modal');
@@ -872,6 +883,7 @@ const shareTitle = encodeURIComponent(title);
   .facebook:hover { background: #1877F2; border-color: #1877F2; }
   .twitter:hover { background: #000; border-color: #333; }
   .embed-btn:hover { background: #8b5cf6; border-color: #8b5cf6; }
+  .story-btn:hover { background: #E1306C; border-color: #E1306C; }
   .copy-link:hover { background: var(--color-primary); border-color: var(--color-primary); }
 
   /* Desktop Sticky Layout */
@@ -930,6 +942,7 @@ const shareTitle = encodeURIComponent(title);
       .facebook:hover { background: #1877F2 !important; border-color: #1877F2 !important; color: white !important; }
       .twitter:hover { background: #000 !important; border-color: #333 !important; color: white !important; }
       .embed-btn:hover { background: #8b5cf6 !important; border-color: #8b5cf6 !important; color: white !important; }
+      .story-btn:hover { background: #E1306C !important; border-color: #E1306C !important; color: white !important; }
       .copy-link:hover { background: var(--color-primary) !important; border-color: var(--color-primary) !important; color: white !important; }
   }
 

@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import SocialShare from '../../components/SocialShare.astro';
+import ShareCardGenerator from '../../components/ShareCardGenerator.astro';
 
 export const prerender = true;
 
@@ -58,8 +59,14 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
             <Content />
         </div>
 
-        <SocialShare title={entry.data.title} />
+        <SocialShare title={entry.data.title} image={entry.data.image || "/logo.webp"} />
     </article>
+
+    <ShareCardGenerator 
+        title={entry.data.title} 
+        image={entry.data.image || "/logo.webp"} 
+        triggerId="blog-story-trigger" 
+    />
 </Layout>
 
 <style>

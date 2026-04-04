@@ -47,7 +47,7 @@ const createdDate = new Date(user.createdAt).toLocaleDateString('es-ES', {
 // Gamification Data
 const listeningTime = user.listeningTime || 0;
 const referralsCount = user.referrals ? user.referrals.length : 0;
-const referralLink = `${Astro.url.origin}/login?ref=${user._id}`;
+const referralLink = `https://veredillasfm.es/login?ref=${user._id}`;
 const currentLevel = getLevel(listeningTime);
 const nextLevel = getNextLevel(listeningTime);
 const progress = getProgressToNextLevel(listeningTime);
