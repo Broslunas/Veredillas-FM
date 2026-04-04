@@ -25,7 +25,7 @@ export const ALLOWED_DOMAIN = '@canariaseducacion.es';
  * when signing the HMAC-SHA256 token it sends back.
  */
 export const BRIDGE_SCRIPT_URL =
-  'https://script.google.com/a/macros/canariaseducacion.es/s/AKfycbxKmcO1ylCFiw-R9FGNQ9CeO1tjCGJkhxR9XIp7BLEITmCWlQWzDkMsd7WPi3W_uvlR/exec';
+  'https://script.google.com/a/macros/canariaseducacion.es/s/AKfycbyXTGdEateZoay7AIKsklLDbwwuVuIMzJ7dZwy94Bnd7GHjyjzgiP0LSBw_h0c5Vhet/exec';
 
 // ─── Token Validation ──────────────────────────────────────────────────────────
 
