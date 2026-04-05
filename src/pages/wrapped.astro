@@ -27,6 +27,10 @@ const year = wrappedSettings.year || new Date().getFullYear();
 const startOfYear = new Date(year, 0, 1);
 const endOfYear = new Date(year, 11, 31, 23, 59, 59);
 
+import mongoose from 'mongoose';
+import Comment from '../models/Comment';
+import ChatMessage from '../models/ChatMessage';
+
 const yearHistory = (user.playbackHistory || []).filter(h => {
     if (!h.listenedAt) return false;
     const d = new Date(h.listenedAt);
@@ -41,6 +45,20 @@ let topEpisodeInfo = null;
 let archetype = "El Nuevo";
 let totalSessions = yearHistory.length;
 
+// New Analytics Variables
+let bestHour = 12;
+let bestDayIndex = 0;
+let dayTimeMsg = "Eres un fan todoterreno";
+let bestDayName = "Días";
+let topTag = "Variado";
+let firstEpisodeInfo: any = null;
+let percentile = 100;
+let mostRepeatsCount = 0;
+let commentsCount = 0;
+let chatCount = 0;
+let totalInteractions = 0;
+const maxStreak = user.maxStreak || 0;
+
 if (yearHistory.length > 0) {
     uniqueEpisodes = new Set(yearHistory.map(h => h.episodeSlug)).size;
     const yearListeningSeconds = yearHistory.reduce((acc, h) => acc + (h.progress || 0), 0);
@@ -48,25 +66,72 @@ if (yearHistory.length > 0) {
     if(yearListeningMinutes === 0) yearListeningMinutes = Math.floor((user.listeningTime || 0) / 60);
 
     const monthCounts = new Array(12).fill(0);
+    const hours = new Array(24).fill(0);
+    const days = new Array(7).fill(0);
+    const episodeCounts:any = {};
+    const allTags: Record<string, number> = {};
+
+    const allEpisodes = await getCollection('episodios');
+
     yearHistory.forEach(h => {
-        const month = new Date(h.listenedAt).getMonth();
-        monthCounts[month]++;
+        const d = new Date(h.listenedAt);
+        monthCounts[d.getMonth()]++;
+        hours[d.getHours()]++;
+        days[d.getDay()]++;
+        
+        if (!episodeCounts[h.episodeSlug]) episodeCounts[h.episodeSlug] = 0;
+        episodeCounts[h.episodeSlug]++;
+
+        const ep = allEpisodes.find(e => e.slug === h.episodeSlug);
+        if (ep && ep.data.tags) {
+            ep.data.tags.forEach(tag => {
+                allTags[tag] = (allTags[tag] || 0) + 1;
+            });
+        }
     });
+
     const bestMonthIndex = monthCounts.indexOf(Math.max(...monthCounts));
     const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     bestMonth = monthNames[bestMonthIndex] || "Enero";
 
-    const episodeCounts:any = {};
-    yearHistory.forEach(h => {
-       if (!episodeCounts[h.episodeSlug]) episodeCounts[h.episodeSlug] = 0;
-       episodeCounts[h.episodeSlug]++;
-    });
-    const topEpisodeSlug = Object.entries(episodeCounts).sort((a:any,b:any) => b[1] - a[1])[0]?.[0];
+    // Day/Time
+    bestHour = hours.indexOf(Math.max(...hours));
+    bestDayIndex = days.indexOf(Math.max(...days));
+    const dayNames = ["Domingos", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábados"];
+    bestDayName = dayNames[bestDayIndex] || "Días";
 
-    const allEpisodes = await getCollection('episodios');
+    if (bestHour >= 5 && bestHour < 12) dayTimeMsg = "Empiezas las mañanas con energía";
+    else if (bestHour >= 12 && bestHour < 17) dayTimeMsg = "Tus tardes son de Veredillas FM";
+    else if (bestHour >= 17 && bestHour < 22) dayTimeMsg = "Desconectas por la tarde-noche";
+    else dayTimeMsg = "Eres un búho nocturno";
+
+    // Tag
+    const sortedTags = Object.entries(allTags).sort((a:any,b:any) => b[1] - a[1]);
+    topTag = sortedTags.length > 0 ? sortedTags[0][0] : "Variados";
+
+    // Top Episode & Recicla
+    const sortedEpisodes = Object.entries(episodeCounts).sort((a:any,b:any) => b[1] - a[1]);
+    const topEpisodeSlug = sortedEpisodes[0]?.[0];
+    mostRepeatsCount = sortedEpisodes[0]?.[1] as number;
+
     const topEpisode = allEpisodes.find(e => e.slug === topEpisodeSlug);
     if (topEpisode) {
         topEpisodeInfo = { title: topEpisode.data.title, image: topEpisode.data.image, counts: episodeCounts[topEpisodeSlug as string] };
+    }
+
+    // First Episode
+    const yearHistorySorted = [...yearHistory].sort((a,b) => new Date(a.listenedAt).getTime() - new Date(b.listenedAt).getTime());
+    const firstPlay = yearHistorySorted[0];
+    if (firstPlay) {
+        firstEpisodeInfo = allEpisodes.find(e => e.slug === firstPlay.episodeSlug);
+    }
+
+    // Percentile
+    const totalUsers = await User.countDocuments({});
+    const usersWithLessTime = await User.countDocuments({ listeningTime: { $lt: user.listeningTime } });
+    if(totalUsers > 0) {
+        percentile = 100 - Math.round((usersWithLessTime / totalUsers) * 100);
+        if(percentile < 1) percentile = 1;
     }
 
     if (uniqueEpisodes > 20) archetype = "El Explorador Cósmico";
@@ -78,6 +143,15 @@ if (yearHistory.length > 0) {
     yearListeningMinutes = Math.floor((user.listeningTime || 0) / 60);
     uniqueEpisodes = user.favorites?.length || 0;
 }
+
+// Community Interactions
+try {
+    commentsCount = await Comment.countDocuments({ email: user.email.toLowerCase() });
+    chatCount = await ChatMessage.countDocuments({ 'user.userId': user._id.toString() });
+    totalInteractions = commentsCount + chatCount + (user.likedClips?.length || 0);
+} catch (e) {
+    console.error("Error fetching community stats", e);
+}
 ---
 
 <Layout title={`Tu Veredillas Wrapped ${year}`} robots="noindex, nofollow">
@@ -87,11 +161,9 @@ if (yearHistory.length > 0) {
         
         <!-- Controls -->
         <div class="absolute top-6 left-6 right-6 z-40 flex gap-2 story-progress">
-            <div class="progress-bar"><div class="fill"></div></div>
-            <div class="progress-bar"><div class="fill"></div></div>
-            <div class="progress-bar"><div class="fill"></div></div>
-            <div class="progress-bar"><div class="fill"></div></div>
-            <div class="progress-bar"><div class="fill"></div></div>
+            {[...Array(8)].map(() => (
+                <div class="progress-bar"><div class="fill"></div></div>
+            ))}
             <button class="absolute -top-2 right-0 text-white/50 hover:text-white pb-2" onclick="window.location.href='/dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
 
@@ -114,46 +186,117 @@ if (yearHistory.length > 0) {
                 </div>
             </div>
 
-            <!-- Slide 2: Minutes -->
+            <!-- Slide 2: Primer Episodio -->
+            <div class="story-slide bg-gradient-to-br from-blue-900 via-sky-800 to-indigo-900">
+                <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+                    <p class="text-xl font-bold text-sky-200 mb-8 slide-fade tracking-widest uppercase">El comienzo</p>
+                    <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">Todo empezó con un click</h2>
+                    {firstEpisodeInfo ? (
+                        <>
+                            <div class="relative w-48 h-48 mx-auto mb-6 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-sky-400">
+                                <img src={firstEpisodeInfo.data.image} alt={firstEpisodeInfo.data.title} class="w-full h-full object-cover" crossorigin="anonymous" />
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2 slide-fade-up">{firstEpisodeInfo.data.title}</h3>
+                            <p class="text-sky-200 slide-fade-up">Tu primera escucha del año</p>
+                        </>
+                    ) : (
+                        <h2 class="text-xl font-bold text-white slide-pop">Tu viaje apenas comienza</h2>
+                    )}
+                </div>
+            </div>
+
+            <!-- Slide 3: Minutos & Percentile -->
             <div class="story-slide bg-gradient-to-tr from-pink-600 via-rose-500 to-orange-500">
                 <div class="absolute inset-0 bg-[url('/noise.png')] opacity-30 mix-blend-overlay"></div>
                 <div class="slide-content text-center p-8 flex flex-col justify-center h-full relative z-10">
                     <p class="text-2xl font-bold text-white mb-4 slide-fade">Pasamos juntos</p>
                     <div class="text-8xl font-black text-white mb-2 slide-pop text-shadow-glow">{yearListeningMinutes}</div>
                     <p class="text-2xl font-bold text-white/90 slide-fade mb-8">minutos de tu vida</p>
-                    <p class="text-lg text-white/80 slide-fade-up">Eso es como escuchar tu canción favorita {(yearListeningMinutes / 3.5).toFixed(0)} veces seguidas. ¡Wow!</p>
+                    <div class="bg-black/20 backdrop-blur-md rounded-2xl p-6 slide-fade-up border border-white/20">
+                         <h3 class="text-sm font-bold text-orange-200 uppercase tracking-widest mb-2">Nivel de Lealtad</h3>
+                         <p class="text-4xl font-black text-white">Top {percentile}%</p>
+                         <p class="text-sm font-medium text-white/80 mt-1">de todos los oyentes globales</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Slide 3: Diversity -->
+            <!-- Slide 4: Día/Hora/Racha -->
+            <div class="story-slide bg-gradient-to-tr from-amber-600 via-orange-600 to-red-700">
+                <div class="slide-content text-center p-8 flex flex-col justify-center h-full relative z-10">
+                    <p class="text-xl font-bold text-orange-200 mb-6 slide-fade tracking-widest uppercase">{dayTimeMsg}</p>
+                    <h2 class="text-4xl font-black text-white mb-8 slide-pop text-shadow-glow">Los <span class="underline decoration-wavy decoration-orange-300">{bestDayName}</span> no son lo mismo sin ti.</h2>
+                    {maxStreak >= 3 && (
+                        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 slide-fade-up border border-white/20 relative overflow-hidden">
+                            <div class="absolute -right-4 -top-4 text-6xl opacity-30">🔥</div>
+                            <h3 class="text-sm font-bold text-amber-200 uppercase tracking-widest mb-2 relative z-10">Racha Imparable</h3>
+                            <p class="text-4xl font-black text-white relative z-10">{maxStreak} días</p>
+                            <p class="text-sm font-medium text-white/80 mt-1 relative z-10">escuchándonos sin interrupción</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <!-- Slide 5: Exploración & Categoria -->
             <div class="story-slide bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-900">
-                 <div class="slide-content p-8 flex flex-col justify-center h-full">
+                 <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
                     <div class="w-full flex justify-center mb-8 slide-pop">
                         <div class="w-32 h-32 rounded-full bg-white/20 backdrop-blur border border-white/50 flex items-center justify-center text-6xl shadow-2xl">
                             🎧
                         </div>
                     </div>
-                    <h2 class="text-4xl font-black text-white mb-4 text-center slide-fade leading-tight">Exploraste <span class="text-emerald-300">{uniqueEpisodes}</span> episodios únicos</h2>
-                    <p class="text-center text-xl text-emerald-100 slide-fade-up mt-4">Y tu mes más intenso fue <strong class="text-white text-2xl block mt-2">{bestMonth}</strong></p>
+                    <h2 class="text-4xl font-black text-white mb-4 slide-fade leading-tight">Exploraste <span class="text-emerald-300">{uniqueEpisodes}</span> episodios únicos</h2>
+                    <div class="bg-black/20 backdrop-blur-md rounded-2xl p-6 slide-fade-up border border-white/20 mt-6">
+                         <h3 class="text-sm font-bold text-emerald-200 uppercase tracking-widest mb-2">Tu Categoría Reina</h3>
+                         <p class="text-2xl font-black text-white capitalize">{topTag}</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Slide 4: Top Episode -->
+            <!-- Slide 6: Top Podcast & Recicla -->
             <div class="story-slide bg-gradient-to-tl from-purple-900 via-fuchsia-800 to-pink-700">
                  <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
-                    <p class="text-xl font-bold text-pink-200 mb-8 slide-fade tracking-widest uppercase">El número uno</p>
+                    <p class="text-xl font-bold text-pink-200 mb-8 slide-fade tracking-widest uppercase">Obsesión Pura</p>
                     {topEpisodeInfo ? (
                         <>
-                            <h2 class="text-4xl font-black text-white mb-8 slide-pop leading-tight">Hubo un episodio que no te podías quitar de la cabeza</h2>
-                            <div class="relative w-48 h-48 mx-auto mb-8 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-pink-400 ring-offset-4 ring-offset-fuchsia-800">
+                            <h2 class="text-4xl font-black text-white mb-6 slide-pop leading-tight">Te enganchaste perdidamente a</h2>
+                            <div class="relative w-40 h-40 mx-auto mb-6 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-pink-400 ring-offset-4 ring-offset-fuchsia-800">
                                 <img src={topEpisodeInfo.image} alt={topEpisodeInfo.title} class="w-full h-full object-cover" crossorigin="anonymous" />
                             </div>
-                            <h3 class="text-2xl font-bold text-white mb-2 slide-fade-up">{topEpisodeInfo.title}</h3>
-                            <p class="text-pink-200 slide-fade-up">Lo reprodujiste {topEpisodeInfo.counts} veces</p>
+                            <h3 class="text-xl font-bold text-white mb-4 slide-fade-up">{topEpisodeInfo.title}</h3>
+                            
+                            {mostRepeatsCount > 1 ? (
+                                <p class="text-pink-100 slide-fade-up font-medium text-lg bg-black/20 p-4 rounded-xl">O te quedaste dormido, o te encantó: lo repetiste <span class="font-bold text-white text-2xl">{mostRepeatsCount}</span> veces.</p>
+                            ) : (
+                                <p class="text-pink-100 slide-fade-up font-medium text-lg bg-black/20 p-4 rounded-xl">Tu absoluto favorito del año.</p>
+                            )}
                         </>
                     ) : (
                         <h2 class="text-4xl font-black text-white slide-pop">¡El misterio! Tus reproducciones están tan repartidas que todos son tus favoritos.</h2>
                     )}
+                </div>
+            </div>
+
+            <!-- Slide 7: Comunidad -->
+            <div class="story-slide bg-gradient-to-bl from-indigo-900 via-indigo-700 to-blue-800">
+                 <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+                    <p class="text-xl font-bold text-indigo-200 mb-8 slide-fade tracking-widest uppercase">Echando Humo</p>
+                    <h2 class="text-4xl font-black text-white mb-8 slide-pop leading-tight">No fuiste un oyente fantasma.</h2>
+                    
+                    <div class="grid grid-cols-2 gap-4 slide-fade-up">
+                        <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-black text-white block mb-1">{commentsCount}</span>
+                            <span class="text-[10px] font-bold text-indigo-200 uppercase">Comentarios</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-black text-white block mb-1">{chatCount}</span>
+                            <span class="text-[10px] font-bold text-indigo-200 uppercase">Msjs en Chat</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 col-span-2 flex flex-col items-center justify-center relative overflow-hidden">
+                            <span class="text-5xl font-black text-white block mb-1 relative z-10">{totalInteractions}</span>
+                            <span class="text-xs font-bold text-indigo-200 uppercase relative z-10">Interacciones Totales</span>
+                            <div class="absolute -right-4 -bottom-4 text-7xl opacity-20">💬</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -204,15 +347,16 @@ if (yearHistory.length > 0) {
                     <p class="text-zinc-400 mt-6 text-center slide-fade-up download-ui-elements">Elige qué recuerdo llevarte</p>
                     
                     <div class="flex flex-col gap-3 mt-4 w-full max-w-sm slide-fade-up relative z-[60] download-ui-elements">
-                        <button data-download="4" class="download-btn w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-400 hover:to-violet-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg">
+                        <button data-download="7" class="download-btn w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-400 hover:to-violet-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             <span>Descargar Resumen Completo</span>
                         </button>
                         
-                        <div class="grid grid-cols-3 gap-2">
-                            <button data-download="1" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-xs font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">⌚ Minutos</button>
-                            <button data-download="2" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-xs font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">🎧 Episodios</button>
-                            <button data-download="3" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-xs font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">⭐ Top #1</button>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button data-download="2" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[10px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">⌚ Minutos</button>
+                            <button data-download="3" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[10px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">🔥 Racha</button>
+                            <button data-download="5" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[10px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">⭐ Top #1</button>
+                            <button data-download="6" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[10px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">💬 Social</button>
                         </div>
                     </div>
 

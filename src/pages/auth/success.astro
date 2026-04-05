@@ -51,7 +51,6 @@ export const prerender = false;
             // Comprobamos si la cookie de sesión está presente
             // No podemos ver auth-token (HttpOnly) pero sí user-session
             const hasSession = document.cookie.includes('user-session=true');
-            console.log('[SuccessPage] Cookie check:', { hasSession, all: document.cookie });
 
             if (!hasSession) {
                 const statusDiv = document.getElementById('auth-status');
