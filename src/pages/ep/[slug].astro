@@ -1085,12 +1085,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
         const spotifyUrl = playerBox.getAttribute("data-spotify-url");
         let videoUrl = playerBox.getAttribute("data-video-url");
 
-        console.log("[Cinema] Initializing Player Section:", {
-            audioUrl,
-            spotifyUrl,
-            videoUrl,
-        });
-
         const title = playerBox.getAttribute("data-title") || "";
         const image = playerBox.getAttribute("data-image") || "";
         const author = playerBox.getAttribute("data-author") || "";
@@ -1128,10 +1122,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
         );
         if (videoUrl && !spotifyUrl && videoContainer) {
             const finalVideoUrl = getEmbedVideoUrl(videoUrl);
-            console.log(
-                "[Cinema] Rendering Video Mode with Plyr:",
-                finalVideoUrl,
-            );
 
             videoContainer.innerHTML = `
                 <div class="plyr-video-wrapper shadow-2xl rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0f0f0f] relative group">
@@ -1305,9 +1295,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
                             return;
                         }
 
-                        console.log(
-                            `[Video] Restoring progress: ${savedProgress}s`,
-                        );
                         player.currentTime = savedProgress;
                         hasRestored = true;
                         // @ts-ignore
@@ -1488,9 +1475,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
                                 slug: incomingSlug,
                             } = e.detail;
                             if (slug === incomingSlug && player) {
-                                console.log(
-                                    `[Video] Syncing video to ${time}s (playing: ${playing})`,
-                                );
                                 player.currentTime = time;
                                 if (playing) {
                                     setTimeout(() => player.play(), 500); // Small delay to allow buffer
@@ -1511,7 +1495,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
 
                             const { time } = e.detail;
                             if (player) {
-                                console.log(`[Video] Seeking to ${time}s`);
                                 player.currentTime = time;
                                 // Auto-play on seek for better UX
                                 player.play();
@@ -1524,7 +1507,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
 
         // If it's Spotify, render iframe (Spotify mode usually takes over entirely)
         if (spotifyUrl) {
-            console.log("[Cinema] Rendering Spotify Mode:", spotifyUrl);
             let finalUrl = spotifyUrl;
             if (!finalUrl.includes("/embed/")) {
                 try {
@@ -1595,7 +1577,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     // --- UNIFIED MODE SWITCHER LOGIC ---
     const handleModeSwitch = (e: any) => {
         const requestedMode = e.detail?.mode;
-        console.log("[Cinema] Global Switch Request:", requestedMode);
 
         const videoContainer = document.getElementById(
             "video-player-container",
@@ -1636,10 +1617,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
             if (audio) {
                 const time = audio.currentTime;
                 const playing = !audio.paused;
-                console.log("[Cinema] Switching to video. Syncing state:", {
-                    time,
-                    playing,
-                });
 
                 audio.pause();
 
@@ -1690,7 +1667,6 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
         if (incomingSlug === currentSlug) {
             const audio = document.querySelector<HTMLAudioElement>("#audio-player-container audio");
             if (audio) {
-                console.log(`[Cinema] Syncing audio to ${time}s`);
                 audio.currentTime = time;
             }
         }

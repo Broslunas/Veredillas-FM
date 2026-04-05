@@ -120,7 +120,6 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                 return;
             }
             
-            console.log(`[Audio] Restoring saved progress: ${savedProgressRef.current}s`);
             audio.currentTime = savedProgressRef.current;
             setCurrentTime(savedProgressRef.current);
             hasRestoredRef.current = true;
@@ -192,7 +191,6 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         const handleSync = (e: any) => {
             const { time, slug: incomingSlug } = e.detail;
             if (slug === incomingSlug && audioRef.current) {
-                console.log(`[Audio] Syncing audio to ${time}s (from video)`);
                 audioRef.current.currentTime = time;
                 setCurrentTime(time);
             }
@@ -210,7 +208,6 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
 
             const { time } = e.detail;
             if (audioRef.current) {
-                console.log(`[Audio] Seeking to ${time}s`);
                 audioRef.current.currentTime = time;
                 setCurrentTime(time);
                 // Auto-play when seeking from transcript/sections to improve UX
@@ -592,7 +589,7 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         request.currentTime = audioRef.current?.currentTime || 0;
 
         castSession.loadMedia(request).then(
-            () => console.log('Media cargado con éxito en Cast'),
+            () => {},
             (errorCode: any) => console.error('Error al cargar media en Cast:', errorCode)
         );
     };

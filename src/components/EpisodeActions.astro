@@ -100,22 +100,18 @@ const normImage = image ? (image.startsWith('http') || image.startsWith('/') ? i
 
     const setupActions = () => {
         const shareBtn = document.getElementById('action-share-episode');
-        console.log('[EpisodeActions] Setup. Share button found:', !!shareBtn);
         
         if (shareBtn) {
             shareBtn.addEventListener('click', (e) => {
                  e.preventDefault();
-                 console.log('[EpisodeActions] Share button clicked. Dispatching event.');
                  window.dispatchEvent(new CustomEvent('veredillas:open-share-modal'));
             });
         }
 
         const quizBtn = document.getElementById('action-open-quiz');
         if (quizBtn) {
-            console.log('[EpisodeActions] Quiz button found. Adding listener.');
             quizBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('[EpisodeActions] Quiz button clicked. Triggering modal via event and backup.');
                 
                 // 1. Event (Recommended)
                 const event = new CustomEvent('veredillas:open-quiz-modal', { 

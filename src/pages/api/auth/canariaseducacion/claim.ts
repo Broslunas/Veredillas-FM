@@ -90,7 +90,6 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     cookies.set('auth-token', jwtToken, { path: '/', domain, maxAge, httpOnly: true, secure: true, sameSite: 'lax' });
     cookies.set('user-session', 'true',  { path: '/', domain, maxAge, httpOnly: false, secure: true, sameSite: 'lax' });
 
-    console.log(`[CanariasAuth] claim: session established for ${email}`);
     return new Response(null, { status: 302, headers: { Location: '/dashboard' } });
 
   } catch (err) {

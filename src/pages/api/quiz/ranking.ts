@@ -15,7 +15,6 @@ export const GET: APIRoute = async ({ url }) => {
 
     // Clean and normalize slug for reliable matching
     slug = slug.toLowerCase().split('?')[0].replace(/\/$/, '');
-    console.log(`[Ranking API] Fetching for normalized slug: ${slug}`);
 
     if (mongoose.connection.readyState !== 1) {
       const MONGODB_URI = import.meta.env.MONGODB_URI;
@@ -59,7 +58,6 @@ export const GET: APIRoute = async ({ url }) => {
       }
     ]);
 
-    console.log(`[Ranking API] Found ${leaderboard.length} entries for ${slug}`);
     return new Response(JSON.stringify({ leaderboard }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

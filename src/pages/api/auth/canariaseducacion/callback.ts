@@ -160,8 +160,6 @@ export const GET: APIRoute = async ({ url, cookies }) => {
       sameSite: 'lax',
     });
 
-    console.log(`[CanariasAuth] Session established for ${email} on ${url.host}`);
-
     // ── 6. Return success HTML ────────────────────────────────────────────────
     //
     // We return HTML instead of a redirect so we can:

@@ -56,7 +56,6 @@ export const GET: APIRoute = async ({ request }) => {
 
     if (!lastActiveStr) {
       // First time tracking activity or missing field
-      console.log(`[Streak] Initializing for user ${user._id}`);
       user.currentStreak = 1;
       user.maxStreak = Math.max(user.maxStreak || 0, 1);
       user.lastActiveAt = now;
@@ -67,8 +66,6 @@ export const GET: APIRoute = async ({ request }) => {
       const diffTime = now.getTime() - lastDate.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-      console.log(`[Streak] Day change detected. Diff days: ${diffDays}`);
-
       if (diffDays <= 1) {
         // Consecutive or near-consecutive (considering timezone shifts)
         // We verify if it was exactly 1 day ago
@@ -76,16 +73,13 @@ export const GET: APIRoute = async ({ request }) => {
         yesterday.setDate(now.getDate() - 1);
         if (lastActiveStr === getDayStr(yesterday)) {
           user.currentStreak = (user.currentStreak || 0) + 1;
-          console.log(`[Streak] +1! New streak: ${user.currentStreak}`);
         } else {
           // More than 24h gap
           user.currentStreak = 1;
-          console.log(`[Streak] Gap too large, reset to 1`);
         }
       } else {
         // Definitely more than 1 day gap
         user.currentStreak = 1;
-        console.log(`[Streak] Reset to 1 (gap > 1 day)`);
       }
 
       if (user.currentStreak > (user.maxStreak || 0)) {

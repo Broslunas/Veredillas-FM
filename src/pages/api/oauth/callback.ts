@@ -8,9 +8,6 @@ export async function GET({ request }: APIContext) {
     return new Response('No code provided', { status: 400 });
   }
 
-  // Debug payload
-  console.log('Exchanging code for token...');
-
   try {
     const response = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
@@ -26,7 +23,6 @@ export async function GET({ request }: APIContext) {
     });
 
     const data = await response.json();
-    console.log('GitHub Token Response:', data);
 
     if (data.error) {
        return new Response(`Error from GitHub: ${data.error_description}`, { status: 400 });
@@ -50,8 +46,6 @@ export async function GET({ request }: APIContext) {
             const data = ${JSON.stringify(content)};
             const msg = "authorization:github:success:" + JSON.stringify(data);
             
-            console.log("Sending message to opener:", msg);
-
             function sendMessage() {
                if (window.opener) {
                   window.opener.postMessage(msg, "*");

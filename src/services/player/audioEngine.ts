@@ -95,7 +95,7 @@ export class AudioEngine {
                 this.startVisualizer();
 
             } catch(e) {
-                console.log("Audio Context Error (CORS?):", e);
+                console.error("Audio Context Error (CORS?):", e);
             }
         }
     }

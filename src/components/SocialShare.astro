@@ -216,18 +216,15 @@ const shareTitle = encodeURIComponent(title);
 
   // Global listener for opening the share modal - outside setup to avoid duplicates
   window.addEventListener('veredillas:open-share-modal', () => {
-      console.log('[SocialShare] Global event received.');
       const modal = document.getElementById('social-share-modal');
       if (modal) {
           modal.classList.add('visible');
-          console.log('[SocialShare] Modal visibility set to true.');
       } else {
           console.warn('[SocialShare] Modal element not found in DOM.');
       }
   });
 
   const setup = () => {
-      console.log('[SocialShare] Setup running.');
       // Copy Link Logic
       const copyBtn = document.getElementById('copy-link-btn');
       if (copyBtn) {

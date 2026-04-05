@@ -17,12 +17,9 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 2. Process the newsletter
-    console.log('[Newsletter] Starting weekly process...');
     const startTime = Date.now();
     const results = await processWeeklyNewsletter();
     const duration = Date.now() - startTime;
-
-    console.log(`[Newsletter] Finished. Sent: ${results.sent}, Errors: ${results.errors.length}, Duration: ${duration}ms`);
 
     return new Response(
       JSON.stringify({ 

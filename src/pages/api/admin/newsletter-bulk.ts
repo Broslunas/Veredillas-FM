@@ -44,7 +44,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 2. Process the newsletter for all users
-    console.log(`[Admin] Bulk newsletter triggered by ${currentUser.name}`);
     const results = await processWeeklyNewsletter();
 
     return new Response(JSON.stringify({ 
