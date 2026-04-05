@@ -1,0 +1,534 @@
+---
+// src/components/CarnetVeredillas.astro
+import QRCode from 'qrcode';
+
+interface Props {
+  user: {
+    _id: string;
+    name: string;
+    picture?: string;
+    createdAt: Date;
+    role?: string;
+  };
+  level: {
+    name: string;
+    icon: string;
+    color: string;
+  };
+}
+
+const { user, level } = Astro.props;
+
+// Format join date
+const joinDate = new Date(user.createdAt).toLocaleDateString('es-ES', {
+  year: 'numeric',
+  month: 'short',
+});
+
+// Generate QR Code data URL
+const profileUrl = `https://veredillasfm.es/perfil/${user._id}`;
+let qrCodeDataUrl = '';
+try {
+  qrCodeDataUrl = await QRCode.toDataURL(profileUrl, {
+    width: 200,
+    margin: 1,
+    color: {
+      dark: '#000000',
+      light: '#ffffff'
+    }
+  });
+} catch (err) {
+  console.error('Error generating QR code:', err);
+}
+
+// Ensure the profile picture is a valid URL
+const pictureUrl = user.picture || '';
+---
+
+<div class="carnet-section">
+  <div class="carnet-header">
+    <h3>Carnet de Oyente Virtual</h3>
+    <p>Tu identificación oficial de Veredillas FM. Descárgala o compártela.</p>
+  </div>
+
+  <div class="carnet-container-wrapper">
+    <div id="carnet-container" class="carnet-card">
+      <div class="carnet-bg"></div>
+      <div class="carnet-content">
+
+        <!-- Top Bar -->
+        <div class="carnet-top">
+          <div class="carnet-logo">
+            <img src="/logo.webp" alt="Veredillas FM Logo" crossorigin="anonymous" />
+            <span class="carnet-brand">VEREDILLAS FM</span>
+          </div>
+          <div class="carnet-type">OYENTE VIRTUAL</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="carnet-body">
+          <div class="carnet-avatar-box">
+             <div class="carnet-avatar-ring" style={`--level-color: ${level.color}`}>
+               {pictureUrl ? (
+                 <img src={pictureUrl} alt={user.name} class="carnet-avatar-img" crossorigin="anonymous" />
+               ) : (
+                 <div class="carnet-avatar-placeholder" style={`background: ${level.color}`}>
+                   {user.name.charAt(0).toUpperCase()}
+                 </div>
+               )}
+             </div>
+             <div class="carnet-level-badge" style={`background: ${level.color}; color: #fff;`}>
+               {level.icon} {level.name}
+             </div>
+          </div>
+
+          <div class="carnet-info">
+            <div class="info-group">
+              <label>NOMBRE / NAME</label>
+              <div class="info-value name-value">{user.name}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-group">
+                <label>ID USUARIO</label>
+                <div class="info-value id-value">#{user._id.toString().substring(user._id.toString().length - 6).toUpperCase()}</div>
+              </div>
+              <div class="info-group">
+                <label>MIEMBRO DESDE</label>
+                <div class="info-value">{joinDate.toUpperCase()}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer / QR -->
+        <div class="carnet-footer">
+          <div class="carnet-id-barcode">
+            <div class="barcode">||| || ||| | || ||| || ||</div>
+            <div class="barcode-text">VF-{user._id.toString().toUpperCase()}</div>
+          </div>
+          <div class="carnet-qr">
+            {qrCodeDataUrl ? (
+               <img src={qrCodeDataUrl} alt="QR Code Profile" class="qr-img" crossorigin="anonymous" />
+            ) : (
+              <div class="qr-placeholder">QR</div>
+            )}
+            <span class="qr-label">ESCANEA</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="carnet-actions">
+    <button id="download-carnet-btn" class="btn btn-primary carnet-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Descargar Carnet
+    </button>
+    <button class="wallet-btn gpay" title="Añadir a Google Wallet" onclick="alert('La integración con Google Wallet estará disponible pronto. Se requiere implementación en el backend para generar los pases.')">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="Google Wallet" class="wallet-icon" />
+      Google Wallet
+    </button>
+    <a href="#" class="wallet-btn apple" title="Añadir a Apple Wallet" onclick="alert('Función de Apple Wallet en desarrollo. Por favor descarga la imagen para guardarla.')">
+       <svg class="wallet-icon" viewBox="0 0 384 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+      Apple Wallet
+    </a>
+  </div>
+</div>
+
+<style>
+  .carnet-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .carnet-header {
+    margin-bottom: 2rem;
+  }
+
+  .carnet-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff, #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .carnet-header p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+  }
+
+  .carnet-container-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    perspective: 1000px;
+  }
+
+  /* Carnet Card Styles */
+  .carnet-card {
+    width: 350px;
+    height: 550px;
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #0a0a0f;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    font-family: 'Outfit', 'Inter', sans-serif;
+    color: white;
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
+  }
+
+  .carnet-card:hover {
+    transform: translateY(-5px) rotateX(2deg) rotateY(-2deg);
+    box-shadow: 0 30px 50px rgba(0,0,0,0.6), 0 0 20px rgba(139, 92, 246, 0.2);
+  }
+
+  .carnet-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+    opacity: 0.8;
+  }
+
+  .carnet-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: center;
+    opacity: 0.5;
+  }
+
+  .carnet-content {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+  }
+
+  /* Top */
+  .carnet-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+  }
+
+  .carnet-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .carnet-logo img {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .carnet-brand {
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+  }
+
+  .carnet-type {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Body */
+  .carnet-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .carnet-avatar-box {
+    position: relative;
+    margin-bottom: 24px;
+    align-self: center;
+  }
+
+  .carnet-avatar-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    padding: 4px;
+    background: linear-gradient(135deg, var(--level-color), rgba(255,255,255,0.1));
+    position: relative;
+  }
+
+  .carnet-avatar-img,
+  .carnet-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #0a0a0f;
+  }
+
+  .carnet-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 800;
+    color: white;
+  }
+
+  .carnet-level-badge {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 800;
+    border: 2px solid #0a0a0f;
+    white-space: nowrap;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .carnet-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .info-group label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .name-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+  }
+
+  .id-value {
+    font-family: monospace;
+    color: var(--color-primary);
+  }
+
+  /* Footer */
+  .carnet-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 20px;
+  }
+
+  .carnet-id-barcode {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .barcode {
+    font-family: monospace;
+    font-size: 18px;
+    letter-spacing: -1px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1;
+  }
+
+  .barcode-text {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .carnet-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .qr-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    padding: 4px;
+    background: white;
+  }
+
+  .qr-placeholder {
+    width: 64px;
+    height: 64px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-weight: bold;
+  }
+
+  .qr-label {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Actions */
+  .carnet-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .carnet-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .wallet-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .wallet-btn.gpay {
+    background: #1f1f1f;
+    color: white;
+  }
+
+  .wallet-btn.gpay:hover {
+    background: #2d2d2d;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .wallet-btn.apple {
+    background: #000000;
+    color: white;
+  }
+
+  .wallet-btn.apple:hover {
+    background: #1a1a1a;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .wallet-icon {
+    width: 20px;
+    height: 20px;
+  }
+</style>
+
+<script>
+  import { toPng } from 'html-to-image';
+
+  const downloadBtn = document.getElementById('download-carnet-btn');
+  const carnetNode = document.getElementById('carnet-container');
+
+  if (downloadBtn && carnetNode) {
+    downloadBtn.addEventListener('click', async () => {
+      const originalText = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = `
+        <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="2" x2="12" y2="6"></line>
+          <line x1="12" y1="18" x2="12" y2="22"></line>
+          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+          <line x1="2" y1="12" x2="6" y2="12"></line>
+          <line x1="18" y1="12" x2="22" y2="12"></line>
+          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+        </svg>
+        Generando...
+      `;
+      downloadBtn.style.pointerEvents = 'none';
+      downloadBtn.style.opacity = '0.7';
+
+      try {
+        // A little delay to ensure fonts/images are loaded if necessary
+        await new Promise(r => setTimeout(r, 100));
+
+        const dataUrl = await toPng(carnetNode, {
+          quality: 0.95,
+          pixelRatio: 2, // Higher resolution
+          style: {
+            transform: 'scale(1)',
+          }
+        });
+
+        const link = document.createElement('a');
+        link.download = 'carnet-veredillas-fm.png';
+        link.href = dataUrl;
+        link.click();
+      } catch (error) {
+        console.error('Error generating carnet image:', error);
+        alert('Hubo un error al generar el carnet. Inténtalo de nuevo.');
+      } finally {
+        downloadBtn.innerHTML = originalText;
+        downloadBtn.style.pointerEvents = 'auto';
+        downloadBtn.style.opacity = '1';
+      }
+    });
+  }
+</script>

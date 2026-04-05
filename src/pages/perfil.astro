@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import User, { type IUser } from '../models/User';
 import { getLevel, getNextLevel, getProgressToNextLevel } from '../lib/gamification';
 import LevelsModal from '../components/LevelsModal.astro';
+import CarnetVeredillas from '../components/CarnetVeredillas.astro';
 import { getCollection } from 'astro:content';
 const allEpisodes = await getCollection('episodios');
 
@@ -171,8 +172,12 @@ function formatTime(seconds: number): string {
                     <div class="stat-sub">amigos invitados</div>
                 </div>
 
+                <div class="glass-panel">
+                    <CarnetVeredillas user={user} level={currentLevel} />
+                </div>
+
                 <!-- Settings Form -->
-                <div class="glass-panel settings-panel">
+                <div class="glass-panel settings-panel" style="margin-top: 2rem;">
                     <div class="panel-header">
                         <h2>Editar Perfil</h2>
                         <p>Actualiza tu información personal</p>
