@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import SocialShare from '../../components/SocialShare.astro';
 import ShareCardGenerator from '../../components/ShareCardGenerator.astro';
+import Comments from '../../components/Comments.astro';
+import SidebarWidget from '../../components/SidebarWidget.astro';
 
 export const prerender = true;
 
@@ -14,6 +16,7 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
+const { slug } = Astro.params;
 const { Content } = await entry.render();
 
 const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
@@ -21,6 +24,8 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
 	month: 'long',
 	day: 'numeric',
 });
+
+const relativeOgImageUrl = entry.data.image || `/logo.webp`;
 ---
 
 <Layout 
@@ -33,88 +38,400 @@ const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {
   author={entry.data.author}
   tags={entry.data.tags || []}
 >
-    <!-- Post Header Hero Section -->
-    <header class="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-background">
-        <!-- Optional Background Image Blur -->
-        {entry.data.image && (
-            <div class="absolute inset-0 z-0">
-                <img src={entry.data.image} alt="" class="w-full h-full object-cover opacity-10 filter blur-3xl scale-110" />
-                <div class="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
-            </div>
-        )}
+    <!-- Post Cinema Layout Container -->
+    <div class="page-bg"></div>
 
-        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <!-- Meta Info -->
-            <div class="flex items-center justify-center space-x-3 text-sm md:text-base font-semibold tracking-wider text-primary uppercase mb-6 animate-fade-in-up">
-                <time>{formattedDate}</time>
-                <span class="text-white/30">•</span>
-                <span class="text-secondary">{entry.data.author}</span>
-            </div>
+    <div class="cinema-layout container">
+        <main class="main-content" style="overflow-x: hidden; min-width: 0;">
+            <!-- HERO / BANNER -->
+            <section class="player-section section-fade">
+                {entry.data.image && (
+                    <div class="player-wrapper shadow-2xl relative mb-6">
+                        <div class="cinema-player-box group">
+                            <div class="aspect-video bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5 relative">
+                                <img
+                                    src={entry.data.image}
+                                    alt={entry.data.title}
+                                    class="absolute inset-0 w-full h-full object-cover"
+                                />
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80"></div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
-            <!-- Tags -->
-            {entry.data.tags && entry.data.tags.length > 0 && (
-                <div class="flex flex-wrap justify-center gap-2 mb-8 animate-fade-in-up" style="animation-delay: 100ms;">
-                    {entry.data.tags.map((tag: string) => (
-                        <a
-                            href={`/blog?tag=${tag}`}
-                            class="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-[0_0_15px_rgba(139,92,246,0.4)]"
-                        >
-                            #{tag}
-                        </a>
-                    ))}
+                <!-- Info Header -->
+                <header class="player-info py-6">
+                    <h1 class="text-2xl md:text-4xl font-black mb-4 tracking-tight">
+                        {entry.data.title}
+                    </h1>
+                    <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-zinc-800/50">
+                        <div class="author-meta flex items-center gap-3">
+                            <img
+                                src="/logo.webp"
+                                alt="Veredillas FM"
+                                class="w-10 h-10 rounded-full border border-zinc-800"
+                            />
+                            <div class="flex flex-col">
+                                <p class="font-bold text-zinc-100 leading-tight">{entry.data.author}</p>
+                                <p class="text-xs text-zinc-500">{formattedDate}</p>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            </section>
+
+            <!-- CONTENT -->
+            <section class="description-section glass-panel p-6 mb-8 section-fade">
+                <div class="mb-4">
+                    <span class="text-sm font-bold uppercase tracking-wider text-zinc-400">Contenido</span>
                 </div>
-            )}
 
-            <!-- Title -->
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-10 leading-tight md:leading-tight lg:leading-tight drop-shadow-lg animate-fade-in-up" style="animation-delay: 200ms;">
-                {entry.data.title}
-            </h1>
+                <div class="content-body prose prose-invert max-w-none mb-8">
+                    <Content />
+                </div>
+            </section>
 
-            <!-- Featured Image -->
-            {entry.data.image && (
-                <div class="relative max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl shadow-primary/20 ring-1 ring-white/10 animate-fade-in-up" style="animation-delay: 300ms;">
-                    <div class="aspect-w-16 aspect-h-9 md:aspect-video">
-                        <img
-                            src={entry.data.image}
-                            alt={entry.data.title}
-                            class="w-full h-full object-cover hover:scale-105 transition-transform duration-700 ease-out"
+            <!-- COMMENTS AREA -->
+            <section id="comments-wrapper" class="comments-section mb-20 section-fade">
+                <div class="flex items-center gap-4 mb-8">
+                    <h2 class="text-xl font-black">Comentarios</h2>
+                </div>
+                <Comments slug={`blog-${slug}`} />
+            </section>
+        </main>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar-column">
+            <div class="sticky top-24 space-y-6">
+
+                <SidebarWidget title="Detalles" isOpen={true}>
+                    <ul class="details-list text-sm">
+                        <li class="flex justify-between py-2 border-b border-zinc-800/50">
+                            <span class="text-zinc-500">Publicado</span>
+                            <span class="font-bold">{formattedDate}</span>
+                        </li>
+                        <li class="flex justify-between py-2 border-b border-zinc-800/50">
+                            <span class="text-zinc-500">Autor</span>
+                            <span class="font-bold">{entry.data.author}</span>
+                        </li>
+                        {entry.data.tags && entry.data.tags.length > 0 && (
+                            <li class="pt-4">
+                                <div class="flex flex-wrap gap-2">
+                                    {entry.data.tags.map((tag: string) => (
+                                        <a
+                                            href={`/blog?tag=${tag}`}
+                                            class="tag-chip text-[10px] font-bold uppercase px-2 py-1 bg-zinc-800 hover:bg-primary transition-colors rounded"
+                                        >
+                                            #{tag}
+                                        </a>
+                                    ))}
+                                </div>
+                            </li>
+                        )}
+                    </ul>
+                </SidebarWidget>
+
+                <!-- Share Widget in Sidebar -->
+                <SidebarWidget title="Compartir" isOpen={true}>
+                    <div class="py-2 flex justify-center">
+                        <SocialShare
+                            title={entry.data.title}
+                            image={entry.data.image || relativeOgImageUrl}
                         />
                     </div>
-                </div>
-            )}
-        </div>
-    </header>
+                </SidebarWidget>
 
-    <!-- Post Content Container -->
-    <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 relative z-10">
-        <div class="bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 p-6 md:p-10 lg:p-12 shadow-xl">
-            <!-- Content Styling using Tailwind child selectors since @tailwindcss/typography might not be available -->
-            <div class="prose-content text-lg md:text-xl leading-relaxed text-white/80
-                        [&>p]:mb-8 [&>p:last-child]:mb-0
-                        [&>h2]:text-3xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-14 [&>h2]:mb-6 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-2
-                        [&>h3]:text-2xl [&>h3]:font-bold [&>h3]:text-white/90 [&>h3]:mt-10 [&>h3]:mb-4
-                        [&>ul]:mb-8 [&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:mb-2 [&>ul>li]:pl-2 [&>ul>li::marker]:text-primary
-                        [&>ol]:mb-8 [&>ol]:list-decimal [&>ol]:pl-6 [&>ol>li]:mb-2 [&>ol>li]:pl-2 [&>ol>li::marker]:text-primary
-                        [&>a]:text-primary [&>a]:underline [&>a]:underline-offset-4 [&>a]:decoration-primary/40 hover:[&>a]:decoration-primary [&>a]:transition-colors
-                        [&>blockquote]:border-l-4 [&>blockquote]:border-primary [&>blockquote]:pl-6 [&>blockquote]:italic [&>blockquote]:text-white/60 [&>blockquote]:my-8 [&>blockquote]:bg-primary/5 [&>blockquote]:py-3 [&>blockquote]:pr-4 [&>blockquote]:rounded-r-lg
-                        [&>img]:rounded-2xl [&>img]:shadow-lg [&>img]:my-10 [&>img]:mx-auto [&>img]:max-w-full
-                        [&>strong]:text-white [&>strong]:font-semibold
-                        [&>code]:text-secondary [&>code]:bg-white/10 [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:rounded-md [&>code]:text-sm
-                        [&>pre]:bg-black/40 [&>pre]:border [&>pre]:border-white/10 [&>pre]:p-6 [&>pre]:rounded-xl [&>pre]:overflow-x-auto [&>pre]:my-8 [&>pre>code]:text-white/90 [&>pre>code]:bg-transparent [&>pre>code]:p-0">
-                <Content />
             </div>
-
-            <!-- Share Section -->
-            <div class="mt-16 pt-8 border-t border-white/10 flex flex-col items-center">
-                <h3 class="text-xl font-bold text-white mb-6">¿Te ha gustado este artículo?</h3>
-                <SocialShare title={entry.data.title} image={entry.data.image || "/logo.webp"} />
-            </div>
-        </div>
-    </article>
+        </aside>
+    </div>
 
     <ShareCardGenerator 
         title={entry.data.title} 
-        image={entry.data.image || "/logo.webp"} 
+        image={entry.data.image || relativeOgImageUrl}
         triggerId="blog-story-trigger" 
     />
 </Layout>
+
+<style>
+    .page-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15), transparent 70%),
+                    #09090b;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .cinema-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 3rem;
+        padding-top: 1rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        overflow-x: hidden;
+    }
+
+    @media (max-width: 1200px) {
+        .cinema-layout {
+            grid-template-columns: 1fr;
+        }
+        .sidebar-column {
+            order: 2;
+        }
+        .sidebar-column .sticky {
+            position: relative;
+            top: 0;
+        }
+    }
+
+    /* ====== SMALL DEVICES (≤768px) ====== */
+    @media (max-width: 768px) {
+        .cinema-layout {
+            gap: 1.25rem;
+            padding-top: 0.5rem;
+        }
+
+        .player-wrapper {
+            border-radius: 12px;
+        }
+
+        .player-info {
+            padding: 1rem 0;
+        }
+
+        .player-info h1 {
+            font-size: 1.5rem !important;
+            line-height: 1.25;
+            margin-bottom: 0.5rem;
+        }
+
+        .description-section.glass-panel {
+            padding: 1.25rem;
+            border-radius: 14px;
+            margin-bottom: 1.25rem;
+        }
+
+        .description-section .content-body {
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .description-section .content-body :global(h2) {
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .comments-section {
+            margin-bottom: 5rem;
+        }
+
+        .comments-section h2 {
+            font-size: 1.15rem;
+        }
+
+        /* Player info author row */
+        .player-info .author-meta img {
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .player-info .author-meta p.font-bold {
+            font-size: 0.9rem;
+        }
+
+        /* Sidebar details on mobile */
+        .sidebar-column .details-list li {
+            padding: 0.625rem 0;
+        }
+    }
+
+    /* ====== EXTRA SMALL DEVICES (≤480px) ====== */
+    @media (max-width: 480px) {
+        .cinema-layout {
+            gap: 1rem;
+            padding-top: 0.25rem;
+        }
+
+        .cinema-layout.container {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        .main-content {
+            overflow-x: hidden;
+            min-width: 0;
+        }
+
+        .player-info h1 {
+            font-size: 1.25rem !important;
+            word-break: break-word;
+        }
+
+        .description-section.glass-panel {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        /* Comments */
+        .comments-section .flex.items-center.gap-4 {
+            margin-bottom: 1rem;
+        }
+
+        /* Player wrapper */
+        .player-wrapper {
+            border-radius: 10px;
+        }
+
+        /* Sidebar on very small screens */
+        .sidebar-column {
+            overflow-x: hidden;
+        }
+    }
+
+    .player-wrapper {
+        background: #000;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .cinema-player-box {
+        width: 100%;
+        position: relative;
+    }
+
+    /* Content Body Typography */
+    .content-body {
+        line-height: 1.8;
+        font-size: 1.05rem;
+        color: #d4d4d8;
+    }
+
+    .content-body :global(h2) {
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        color: #fff;
+    }
+    .content-body :global(h3) {
+        font-weight: 700;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.25rem;
+        color: rgba(255,255,255,0.9);
+    }
+    .content-body :global(a) {
+        color: var(--color-primary);
+        text-decoration: underline;
+        text-decoration-color: rgba(139, 92, 246, 0.4);
+        text-underline-offset: 4px;
+        transition: all 0.2s ease;
+    }
+    .content-body :global(a:hover) {
+        text-decoration-color: var(--color-primary);
+    }
+    .content-body :global(ul) {
+        list-style-type: disc;
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .content-body :global(ol) {
+        list-style-type: decimal;
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .content-body :global(li) {
+        margin-bottom: 0.5rem;
+    }
+    .content-body :global(li::marker) {
+        color: var(--color-primary);
+    }
+    .content-body :global(p) {
+        margin-bottom: 1.5rem;
+    }
+    .content-body :global(blockquote) {
+        border-left: 4px solid var(--color-primary);
+        padding-left: 1.5rem;
+        font-style: italic;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 2rem 0;
+        background: rgba(139, 92, 246, 0.05);
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        padding-right: 1rem;
+        border-radius: 0 8px 8px 0;
+    }
+    .content-body :global(img) {
+        border-radius: 16px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        margin: 2.5rem auto;
+        max-width: 100%;
+    }
+
+    .glass-panel {
+        background: rgba(24, 24, 27, 0.4);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+    }
+
+    .tag-chip {
+        color: #a1a1aa;
+    }
+
+    .tag-chip:hover {
+        color: white;
+    }
+
+    /* Animation on enter */
+    .section-fade {
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        animation-fill-mode: both;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+    const initCinemaSection = () => {
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                    entry.target.classList.remove('opacity-0', 'translate-y-8');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.section-fade').forEach((el) => {
+            observer.observe(el);
+        });
+    };
+
+    document.addEventListener("DOMContentLoaded", initCinemaSection);
+    document.addEventListener("astro:page-load", initCinemaSection);
+</script>

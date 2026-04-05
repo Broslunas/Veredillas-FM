@@ -20,49 +20,43 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
   imageAlt="Blog Veredillas FM - Noticias y actualidad del IES Veredillas"
   tags={['blog', 'noticias escolares', 'IES Veredillas', 'actualidad estudiantil', 'vida escolar']}
 >
-    <!-- Modern Hero Header -->
-    <div class="relative py-24 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-primary/10 via-background to-background text-center">
-        <!-- Subtle background elements -->
-        <div class="absolute inset-0 z-0 opacity-30 pointer-events-none">
-            <div class="absolute top-0 left-1/4 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob-float"></div>
-            <div class="absolute top-20 right-1/4 w-72 h-72 bg-secondary/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob-float-reverse"></div>
-        </div>
+    <!-- Background Decor from ep/index.astro -->
+    <div class="page-bg"></div>
 
-        <div class="relative z-10 max-w-4xl mx-auto">
-            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-6 drop-shadow-sm">
-                Blog Veredillas
-            </h1>
-            <p class="mt-4 text-xl md:text-2xl text-white/80 max-w-2xl mx-auto font-medium leading-relaxed">
+    <div class="container page-wrapper">
+        <header class="page-header fade-in">
+            <h1>Blog de <br><span class="text-gradient">Veredillas FM</span></h1>
+            <p class="mt-4 text-xl md:text-2xl text-white/80 max-w-2xl mx-auto font-medium leading-relaxed mb-12">
                 Noticias, historias y el día a día de nuestro instituto contado por los propios estudiantes.
             </p>
 
-            <!-- Filter System -->
-            <div class="mt-12 flex flex-wrap justify-center gap-3 animate-fade-in-up">
-                {allTags.map(tag => (
-                    <button
-                        class={`filter-btn group relative px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ease-out border overflow-hidden
-                                ${tag === 'Todos'
-                                    ? 'active bg-primary border-primary text-white shadow-[0_0_15px_rgba(139,92,246,0.4)] hover:bg-primary/90 hover:border-primary/90'
-                                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20'}`}
-                        data-filter={tag}
-                    >
-                        <span class="relative z-10">{tag}</span>
-                        {/* Glow effect on hover for non-active buttons */}
-                        <div class="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -translate-x-full group-hover:translate-x-full"></div>
-                    </button>
-                ))}
-            </div>
-        </div>
-    </div>
+            <div class="controls-wrapper">
+                <!-- Search + Category Toggles -->
+                <div class="controls-row controls-row--bottom" style="padding-top: 1.5rem; padding-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
 
-    <!-- Blog Grid Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10" id="blog-grid">
+                    <div class="flex flex-wrap justify-center gap-3 animate-fade-in-up" id="blog-category-filters">
+                        {allTags.map(tag => (
+                            <button
+                                class={`filter-btn season-btn
+                                        ${tag === 'Todos' ? 'active' : ''}`}
+                                data-filter={tag}
+                            >
+                                {tag}
+                            </button>
+                        ))}
+                    </div>
+
+                </div>
+            </div>
+        </header>
+
+        <!-- Blog Grid Content using ep/index.astro layout patterns -->
+        <div class="episodes-grid" id="blog-grid">
             {sortedPosts.map((post, index) => (
                 <article 
-                    class="post-item group relative flex flex-col h-full bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50"
+                    class="episode-item post-item fade-in-up group relative flex flex-col h-full bg-[#131313] backdrop-blur-md rounded-[20px] border border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] hover:border-primary/50"
                     data-tags={post.data.tags?.join(',') || ''}
-                    style={`animation-delay: ${index * 100}ms`}
+                    style={`--delay: ${index % 6}; view-transition-name: blog-${post.slug};`}
                 >
                     <a href={`/blog/${post.slug}`} class="flex flex-col h-full">
                         {post.data.image ? (
@@ -74,7 +68,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
                                     class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
                                 />
                                 {/* Overlay gradient */}
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#131313] via-[#131313]/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
                             </div>
                         ) : (
                             <div class="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
@@ -82,31 +76,30 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
                             </div>
                         )}
 
-                        <div class="flex flex-col flex-grow p-6 md:p-8">
-                            <div class="flex items-center justify-between mb-4">
-                                <time class="text-xs font-semibold tracking-wider text-primary uppercase">
+                        <div class="flex flex-col flex-grow p-6">
+                            <div class="flex items-center justify-between mb-3 text-[0.75rem] text-zinc-400 uppercase font-semibold tracking-wider">
+                                <time datetime={post.data.pubDate.toISOString()}>
                                     {post.data.pubDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </time>
                                 {post.data.tags && post.data.tags[0] && (
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/5">
+                                    <span class="text-secondary">
                                         {post.data.tags[0]}
                                     </span>
                                 )}
                             </div>
 
-                            <h2 class="text-xl md:text-2xl font-bold text-white mb-3 leading-snug group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                            <h3 class="text-xl font-bold text-white mb-3 leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2">
                                 {post.data.title}
-                            </h2>
+                            </h3>
 
-                            <p class="text-white/60 mb-6 line-clamp-3 leading-relaxed flex-grow">
+                            <p class="text-[0.95rem] text-zinc-400 mb-6 line-clamp-3 leading-relaxed flex-grow">
                                 {post.data.description}
                             </p>
 
-                            <div class="mt-auto flex items-center text-sm font-bold text-primary group-hover:text-white transition-colors duration-300">
-                                Leer artículo
-                                <svg class="ml-2 w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
+                            <div class="mt-auto flex justify-between items-center pt-4 border-t border-white/5 text-[0.875rem] text-zinc-500 font-semibold">
+                                <span class="text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                    Leer artículo
+                                </span>
                             </div>
                         </div>
                     </a>
@@ -129,6 +122,127 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
     </div>
 </Layout>
 
+<style>
+    /* Add missing Episode Player styles to match ep/index.astro exactly */
+    .page-bg {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100vh;
+        background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.08), transparent 60%);
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .page-wrapper {
+        padding: 2rem var(--spacing-md) 6rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        text-align: center;
+        max-width: 1100px;
+        margin: 0 auto 3.5rem;
+        position: relative;
+        z-index: 200;
+    }
+
+    h1 {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        line-height: 1.1;
+        margin-bottom: 2.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .controls-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        width: 100%;
+        margin: 0 auto;
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+        overflow: visible;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .controls-wrapper:hover {
+        box-shadow:
+            0 15px 40px rgba(0, 0, 0, 0.3),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .controls-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+    }
+
+    .season-btn {
+        background: transparent;
+        border: none;
+        color: var(--color-text-muted);
+        padding: 0.45rem 1.1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 9px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        white-space: nowrap;
+    }
+
+    .season-btn:hover { color: var(--color-text-main); }
+
+    .season-btn.active {
+        color: white;
+        background: var(--color-primary);
+        box-shadow: 0 2px 10px rgba(139, 92, 246, 0.35);
+    }
+
+    .episodes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2.5rem;
+        margin-bottom: var(--spacing-2xl);
+        min-height: 800px;
+        align-items: stretch;
+        isolation: isolate;
+    }
+
+    .episode-item {
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+        opacity: 0;
+        height: 100%;
+        contain: layout;
+        will-change: transform, opacity;
+        content-visibility: auto;
+        contain-intrinsic-size: 320px 500px;
+    }
+
+    .episode-item.is-visible {
+        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(40px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+</style>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const filterBtns = document.querySelectorAll('.filter-btn');
@@ -136,9 +250,22 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
         const noResults = document.getElementById('no-results');
         const resetBtn = document.getElementById('reset-filter');
 
-        // Classes for active state
-        const activeClasses = ['active', 'bg-primary', 'border-primary', 'text-white', 'shadow-[0_0_15px_rgba(139,92,246,0.4)]', 'hover:bg-primary/90', 'hover:border-primary/90'];
-        const inactiveClasses = ['bg-white/5', 'border-white/10', 'text-white/70', 'hover:bg-white/10', 'hover:text-white', 'hover:border-white/20'];
+        // Add intersection observer matching ep/index.astro logic
+        const observerOptions = { root: null, rootMargin: '100px', threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target as HTMLElement;
+                    el.classList.add('is-visible');
+                    observer.unobserve(el);
+                }
+            });
+        }, observerOptions);
+        items.forEach(item => observer.observe(item));
+
+        // Simplified active logic for the 'season-btn' style
+        const activeClasses = ['active'];
+        const inactiveClasses = [];
 
         // Helper to get current tag from URL
         function getTagFromUrl() {
@@ -166,11 +293,9 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
                 const isSelected = btn.getAttribute('data-filter') === category;
 
                 if (isSelected) {
-                    btn.classList.add(...activeClasses);
-                    btn.classList.remove(...inactiveClasses);
+                    btn.classList.add('active');
                 } else {
-                    btn.classList.remove(...activeClasses);
-                    btn.classList.add(...inactiveClasses);
+                    btn.classList.remove('active');
                 }
             });
 
@@ -183,11 +308,11 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
                     itemEl.style.display = '';
                     // Trigger reflow to restart animation if needed
                     void itemEl.offsetWidth;
-                    itemEl.classList.add('animate-fade-in-up');
+                    itemEl.classList.add('is-visible'); // We use is-visible from intersection observer pattern
                     visibleCount++;
                 } else {
                     itemEl.style.display = 'none';
-                    itemEl.classList.remove('animate-fade-in-up');
+                    itemEl.classList.remove('is-visible');
                 }
             });
 
