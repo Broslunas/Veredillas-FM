@@ -143,7 +143,12 @@ import Layout from '../layouts/Layout.astro';
       this.canvas.addEventListener('mousedown', jump, { signal });
       this.canvas.addEventListener('touchstart', jump, { passive: false, signal });
 
-      document.getElementById('start-btn')?.addEventListener('click', () => this.start(), { signal });
+      const startBtn = document.getElementById('start-btn');
+      console.log('Start button found:', !!startBtn);
+      startBtn?.addEventListener('click', () => {
+        console.log('Start button clicked!');
+        this.start();
+      }, { signal });
       document.getElementById('restart-btn')?.addEventListener('click', () => this.reset(), { signal });
     }
 
@@ -499,15 +504,30 @@ import Layout from '../layouts/Layout.astro';
 
   // Initialize game when DOM is ready
   let gameInstance: Game | null = null;
-  document.addEventListener('astro:page-load', () => {
+  console.log("Runner script executing");
+
+  const initGame = () => {
+    console.log("initGame called");
     const canvas = document.getElementById('game-canvas');
     if (canvas) {
+      console.log("Canvas found, initializing Game");
       if (gameInstance) {
         gameInstance.destroy();
       }
       gameInstance = new Game();
+    } else {
+      console.log("Canvas not found");
     }
-  });
+  };
+
+  document.addEventListener('astro:page-load', initGame);
+
+  // also run immediately if not intercepted by view transition
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initGame();
+  } else {
+    document.addEventListener('DOMContentLoaded', initGame);
+  }
 
   document.addEventListener('astro:before-swap', () => {
     if (gameInstance) {
