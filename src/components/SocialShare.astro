@@ -7,9 +7,10 @@ interface Props {
   url?: URL | string;
   isModal?: boolean;
   triggerId?: string;
+  variant?: 'floating' | 'sidebar' | 'inline';
 }
 
-const { title, image, url = Astro.url, isModal = false, triggerId } = Astro.props;
+const { title, image, url = Astro.url, isModal = false, triggerId, variant = 'floating' } = Astro.props;
 const shortUrl = getShortLink(url);
 const shareUrl = encodeURIComponent(shortUrl);
 const shareTitle = encodeURIComponent(title);
@@ -103,7 +104,7 @@ const shareTitle = encodeURIComponent(title);
   </div>
 ) : (
 
-<aside class="social-share-floating" data-title={title} data-image={image}>
+<aside class:list={["social-share-area", variant]} data-title={title} data-image={image}>
   <div class="share-buttons">
     <!-- WhatsApp -->
     <a href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" class="share-btn whatsapp" aria-label="Compartir en WhatsApp">
@@ -841,14 +842,37 @@ const shareTitle = encodeURIComponent(title);
       font-size: 0.85rem;
   }
 
-  /* Mobile Layout (Default - Before Comments) */
-  .social-share-floating {
+  /* --- Area Variants --- */
+  .social-share-area {
       margin: 2rem 0;
       padding: 1.5rem 0;
       border-top: 1px dashed rgba(255,255,255,0.1);
       border-bottom: 1px dashed rgba(255,255,255,0.1);
       display: flex;
       justify-content: center;
+  }
+
+  /* Sidebar variant: more compact, no borders, no margins */
+  .social-share-area.sidebar {
+      margin: 0;
+      padding: 0;
+      border: none;
+      width: 100%;
+  }
+
+  .social-share-area.sidebar .share-buttons {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      width: 100%;
+  }
+
+  .social-share-area.sidebar .share-btn {
+      width: auto;
+      aspect-ratio: 1/1;
+      height: auto;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
   }
 
   .share-buttons {
@@ -877,7 +901,7 @@ const shareTitle = encodeURIComponent(title);
       transform: translateY(-5px) scale(1.1);
   }
 
-  /* Specific Colors on Hover and Desktop */
+  /* Specific Colors on Hover */
   .whatsapp:hover { background: #25D366; border-color: #25D366; }
   .telegram:hover { background: #0088cc; border-color: #0088cc; }
   .facebook:hover { background: #1877F2; border-color: #1877F2; }
@@ -886,9 +910,9 @@ const shareTitle = encodeURIComponent(title);
   .story-btn:hover { background: #E1306C; border-color: #E1306C; }
   .copy-link:hover { background: var(--color-primary); border-color: var(--color-primary); }
 
-  /* Desktop Sticky Layout */
+  /* Desktop Sticky Layout (Only for 'floating' variant) */
   @media (min-width: 1200px) {
-      .social-share-floating {
+      .social-share-area.floating {
           position: fixed;
           top: 50%;
           left: 2rem; /* Stick to left edge */
@@ -901,17 +925,16 @@ const shareTitle = encodeURIComponent(title);
           width: auto;
       }
 
-      .share-buttons {
+      .social-share-area.floating .share-buttons {
           flex-direction: column;
           gap: 0.75rem;
-          /* Remove pill container styles */
           background: transparent;
           padding: 0;
           border: none;
           backdrop-filter: none;
       }
       
-      .share-btn {
+      .social-share-area.floating .share-btn {
           width: 50px;
           height: 50px;
           border-radius: 14px; /* Squircle */
@@ -922,28 +945,37 @@ const shareTitle = encodeURIComponent(title);
           box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
 
-      :global([data-theme="light"]) .share-btn {
+      :global([data-theme="light"]) .social-share-area.floating .share-btn {
           background: #ffffff;
           border: 1px solid #e2e8f0;
           color: #475569;
           box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       }
       
-      .share-btn:hover {
+      .social-share-area.floating .share-btn:hover {
           transform: translateX(5px); /* Slide out slightly */
           background: rgba(255,255,255,0.1);
           color: white;
           border-color: rgba(255,255,255,0.3);
       }
 
-       /* Keep hover specific colors but ensure text is white */
-      .whatsapp:hover { background: #25D366 !important; border-color: #25D366 !important; color: white !important; }
-      .telegram:hover { background: #0088cc !important; border-color: #0088cc !important; color: white !important; }
-      .facebook:hover { background: #1877F2 !important; border-color: #1877F2 !important; color: white !important; }
-      .twitter:hover { background: #000 !important; border-color: #333 !important; color: white !important; }
-      .embed-btn:hover { background: #8b5cf6 !important; border-color: #8b5cf6 !important; color: white !important; }
-      .story-btn:hover { background: #E1306C !important; border-color: #E1306C !important; color: white !important; }
-      .copy-link:hover { background: var(--color-primary) !important; border-color: var(--color-primary) !important; color: white !important; }
+      /* Hover specific colors for floating buttons */
+      .social-share-area.floating .whatsapp:hover { background: #25D366 !important; border-color: #25D366 !important; color: white !important; }
+      .social-share-area.floating .telegram:hover { background: #0088cc !important; border-color: #0088cc !important; color: white !important; }
+      .social-share-area.floating .facebook:hover { background: #1877F2 !important; border-color: #1877F2 !important; color: white !important; }
+      .social-share-area.floating .twitter:hover { background: #000 !important; border-color: #333 !important; color: white !important; }
+      .social-share-area.floating .embed-btn:hover { background: #8b5cf6 !important; border-color: #8b5cf6 !important; color: white !important; }
+      .social-share-area.floating .story-btn:hover { background: #E1306C !important; border-color: #E1306C !important; color: white !important; }
+      .social-share-area.floating .copy-link:hover { background: var(--color-primary) !important; border-color: var(--color-primary) !important; color: white !important; }
+
+      /* Sidebar in desktop remains in its container */
+      .social-share-area.sidebar {
+          position: relative;
+          top: 0;
+          left: 0;
+          transform: none;
+          margin-bottom: 1rem;
+      }
   }
 
   /* --- Share Modal Styles --- */
