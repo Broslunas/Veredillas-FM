@@ -512,6 +512,8 @@ const pictureUrl = user.picture || '';
         const dataUrl = await toPng(carnetNode, {
           quality: 0.95,
           pixelRatio: 2, // Higher resolution
+          useCORS: true,
+          cacheBust: true,
           style: {
             transform: 'scale(1)',
           }
