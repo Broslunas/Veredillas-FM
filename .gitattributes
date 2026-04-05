@@ -1,0 +1,25 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Keep important files with platform-independent line endings
+*.sh text eol=lf
+*.zsh text eol=lf
+
+# Explicitly mark binary files to avoid corruption during git operations
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg text
+*.mp3 binary
+*.mp4 binary
+*.pdf binary
+
+# GitHub-specific attributes
+# Mark some files as generated / minified to hide them from diffs by default
+package-lock.json -diff
+dist/** -diff
+.vercel/** -diff
+.astro/** -diff
