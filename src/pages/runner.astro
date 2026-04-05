@@ -1,0 +1,518 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Veredillas Runner | Veredillas FM" description="¡Esquiva libros y auriculares en este minijuego exclusivo!" robots="noindex, nofollow">
+  <div class="runner-container min-h-[calc(100vh-80px)] flex flex-col items-center justify-center bg-[#0a0a0c] px-4 relative overflow-hidden">
+    <!-- Ambient background similar to 404/logros -->
+    <div class="absolute inset-0 z-0 opacity-20 pointer-events-none">
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary rounded-full mix-blend-screen filter blur-[128px] animate-pulse"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary rounded-full mix-blend-screen filter blur-[128px] animate-pulse" style="animation-delay: 2s;"></div>
+    </div>
+
+    <div class="z-10 text-center mb-8 fade-in-up">
+      <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent tracking-tight mb-2">
+        Veredillas Runner
+      </h1>
+      <p class="text-zinc-400">Pulsa Espacio, Flecha Arriba o Toca la pantalla para saltar.</p>
+    </div>
+
+    <div class="game-wrapper z-10 relative bg-surface/40 backdrop-blur-[32px] border border-white/5 rounded-2xl p-4 md:p-6 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)]">
+      <div class="score-board absolute top-6 right-8 md:top-8 md:right-10 flex gap-6 text-zinc-300 font-mono text-lg z-20 pointer-events-none">
+        <div>HI <span id="high-score" class="text-white font-bold">00000</span></div>
+        <div id="score" class="text-white font-bold">00000</div>
+      </div>
+
+      <canvas id="game-canvas" width="800" height="250" class="block bg-zinc-900/50 rounded-lg cursor-pointer touch-none max-w-full h-auto" style="aspect-ratio: 800 / 250;"></canvas>
+
+      <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm rounded-2xl hidden z-30">
+        <h2 class="text-3xl font-bold text-white mb-2">¡Juego Terminado!</h2>
+        <p class="text-zinc-300 mb-6">Puntuación: <span id="final-score" class="font-bold text-white">0</span></p>
+        <button id="restart-btn" class="px-6 py-3 bg-primary hover:bg-primary/80 text-white rounded-full font-bold transition-transform hover:scale-105 active:scale-95 flex items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Jugar de nuevo
+        </button>
+      </div>
+
+      <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm rounded-2xl z-30">
+        <button id="start-btn" class="px-8 py-4 bg-primary hover:bg-primary/80 text-white rounded-full font-bold text-xl transition-transform hover:scale-105 active:scale-95 animate-pulse">
+          Iniciar Juego
+        </button>
+      </div>
+    </div>
+
+    <div class="z-10 mt-8">
+      <a href="/" class="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Volver al inicio
+      </a>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Game Logic
+  class Game {
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    width: number;
+    height: number;
+
+    // Game state
+    isRunning: boolean = false;
+    isGameOver: boolean = false;
+    score: number = 0;
+    highScore: number = 0;
+    speed: number = 5;
+    frames: number = 0;
+
+    // Entities
+    player: Player;
+    obstacles: Obstacle[] = [];
+    particles: Particle[] = [];
+    ground: Ground;
+
+    // DOM Elements
+    scoreEl: HTMLElement;
+    highScoreEl: HTMLElement;
+    gameOverScreen: HTMLElement;
+    startScreen: HTMLElement;
+    finalScoreEl: HTMLElement;
+    abortController: AbortController;
+
+    constructor() {
+      this.abortController = new AbortController();
+      this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+      if (!this.canvas) return; // Exit if canvas not found
+
+      this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+
+      this.width = this.canvas.width;
+      this.height = this.canvas.height;
+
+      this.player = new Player(this);
+      this.ground = new Ground(this);
+
+      this.scoreEl = document.getElementById('score') as HTMLElement;
+      this.highScoreEl = document.getElementById('high-score') as HTMLElement;
+      this.gameOverScreen = document.getElementById('game-over-screen') as HTMLElement;
+      this.startScreen = document.getElementById('start-screen') as HTMLElement;
+      this.finalScoreEl = document.getElementById('final-score') as HTMLElement;
+
+      // Load high score
+      const savedHighScore = localStorage.getItem('veredillasRunnerHighScore');
+      if (savedHighScore) {
+        this.highScore = parseInt(savedHighScore, 10);
+        this.updateScoreDisplay();
+      }
+
+      this.setupInputs();
+
+      // Initial render
+      this.clear();
+      this.ground.draw(this.ctx);
+      this.player.draw(this.ctx);
+    }
+
+    setupInputs() {
+      const jump = (e?: Event) => {
+        if (e && e.type === 'keydown') {
+            const kbEvent = e as KeyboardEvent;
+            // Prevent default scrolling for Space and UpArrow
+            if (kbEvent.code === 'Space' || kbEvent.code === 'ArrowUp') {
+                e.preventDefault();
+            } else {
+                return;
+            }
+        } else if (e) {
+            e.preventDefault(); // prevent touch/click default
+        }
+
+        if (this.isGameOver) {
+          // Do nothing or restart (we have a button for restart)
+        } else if (!this.isRunning) {
+          this.start();
+        } else {
+          this.player.jump();
+        }
+      };
+
+      const { signal } = this.abortController;
+
+      window.addEventListener('keydown', jump, { signal });
+      this.canvas.addEventListener('mousedown', jump, { signal });
+      this.canvas.addEventListener('touchstart', jump, { passive: false, signal });
+
+      document.getElementById('start-btn')?.addEventListener('click', () => this.start(), { signal });
+      document.getElementById('restart-btn')?.addEventListener('click', () => this.reset(), { signal });
+    }
+
+    destroy() {
+      this.isRunning = false;
+      this.abortController.abort();
+    }
+
+    start() {
+      if (this.isRunning) return;
+      this.isRunning = true;
+      this.isGameOver = false;
+      this.startScreen.classList.add('hidden');
+      this.loop();
+
+      if (typeof (window as any).unlockAchievement === 'function') {
+         (window as any).unlockAchievement('secret_runner'); // Desbloqueamos logro si existe
+      }
+    }
+
+    reset() {
+      this.isRunning = true;
+      this.isGameOver = false;
+      this.score = 0;
+      this.speed = 5;
+      this.frames = 0;
+      this.obstacles = [];
+      this.particles = [];
+      this.player.reset();
+
+      this.gameOverScreen.classList.add('hidden');
+      this.updateScoreDisplay();
+      this.loop();
+    }
+
+    gameOver() {
+      this.isRunning = false;
+      this.isGameOver = true;
+
+      if (this.score > this.highScore) {
+        this.highScore = Math.floor(this.score);
+        localStorage.setItem('veredillasRunnerHighScore', this.highScore.toString());
+      }
+
+      this.finalScoreEl.innerText = Math.floor(this.score).toString();
+      this.gameOverScreen.classList.remove('hidden');
+    }
+
+    updateScoreDisplay() {
+      const pad = (num: number, size: number) => {
+        let s = num + "";
+        while (s.length < size) s = "0" + s;
+        return s;
+      };
+
+      this.scoreEl.innerText = pad(Math.floor(this.score), 5);
+      this.highScoreEl.innerText = pad(Math.floor(this.highScore), 5);
+    }
+
+    spawnObstacle() {
+      // Incrementar dificultad
+      if (this.frames % 1000 === 0) {
+        this.speed += 0.5;
+      }
+
+      // Spawn random: cada 60-150 frames
+      if (this.frames % Math.floor(Math.random() * 90 + 60) === 0) {
+        const type = Math.random() > 0.5 ? 'book' : 'headphone';
+        this.obstacles.push(new Obstacle(this, type));
+      }
+    }
+
+    createParticles(x: number, y: number, color: string) {
+      for(let i=0; i<5; i++) {
+        this.particles.push(new Particle(x, y, color));
+      }
+    }
+
+    clear() {
+      this.ctx.clearRect(0, 0, this.width, this.height);
+    }
+
+    update() {
+      this.frames++;
+      this.score += 0.1; // 10 puntos por cada 100 frames
+
+      if (this.frames % 10 === 0) {
+        this.updateScoreDisplay();
+      }
+
+      this.player.update();
+      this.ground.update();
+
+      this.spawnObstacle();
+
+      // Update and filter obstacles
+      for (let i = this.obstacles.length - 1; i >= 0; i--) {
+        let obs = this.obstacles[i];
+        obs.update();
+
+        // Collision check
+        if (this.player.checkCollision(obs)) {
+          this.gameOver();
+        }
+
+        if (obs.x + obs.width < 0) {
+          this.obstacles.splice(i, 1);
+        }
+      }
+
+      // Update particles
+      for(let i = this.particles.length - 1; i >= 0; i--) {
+        this.particles[i].update();
+        if(this.particles[i].alpha <= 0) {
+          this.particles.splice(i, 1);
+        }
+      }
+    }
+
+    draw() {
+      this.clear();
+
+      this.ground.draw(this.ctx);
+
+      for (let obs of this.obstacles) {
+        obs.draw(this.ctx);
+      }
+
+      for(let p of this.particles) {
+        p.draw(this.ctx);
+      }
+
+      this.player.draw(this.ctx);
+    }
+
+    loop = () => {
+      if (!this.isRunning) return;
+
+      this.update();
+      this.draw();
+
+      requestAnimationFrame(this.loop);
+    }
+  }
+
+  class Player {
+    game: Game;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    vy: number;
+    gravity: number;
+    jumpPower: number;
+    isGrounded: boolean;
+    yBase: number;
+
+    emoji: string = "🏃‍♂️";
+
+    constructor(game: Game) {
+      this.game = game;
+      this.width = 40;
+      this.height = 40;
+      this.x = 50;
+      this.yBase = this.game.height - 30 - this.height; // ground is at height-30
+      this.y = this.yBase;
+      this.vy = 0;
+      this.gravity = 0.8;
+      this.jumpPower = -12.5;
+      this.isGrounded = true;
+    }
+
+    reset() {
+      this.y = this.yBase;
+      this.vy = 0;
+      this.isGrounded = true;
+    }
+
+    jump() {
+      if (this.isGrounded) {
+        this.vy = this.jumpPower;
+        this.isGrounded = false;
+        this.game.createParticles(this.x + this.width/2, this.y + this.height, '#fff');
+      }
+    }
+
+    update() {
+      this.vy += this.gravity;
+      this.y += this.vy;
+
+      if (this.y >= this.yBase) {
+        this.y = this.yBase;
+        this.vy = 0;
+        if (!this.isGrounded) {
+          this.isGrounded = true;
+          this.game.createParticles(this.x + this.width/2, this.y + this.height, '#8b5cf6'); // dust on land
+        }
+      }
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.font = "40px Arial";
+      ctx.textBaseline = "top";
+
+      // Simple bobbing animation while running
+      let drawY = this.y;
+      if (this.isGrounded && this.game.frames % 10 < 5) {
+        drawY -= 3;
+      }
+
+      ctx.fillText(this.emoji, this.x, drawY);
+    }
+
+    checkCollision(obstacle: Obstacle) {
+      // Hitbox mas indulgente (reducida)
+      const buffer = 10;
+      return (
+        this.x + buffer < obstacle.x + obstacle.width &&
+        this.x + this.width - buffer > obstacle.x &&
+        this.y + buffer < obstacle.y + obstacle.height &&
+        this.y + this.height - buffer > obstacle.y
+      );
+    }
+  }
+
+  class Obstacle {
+    game: Game;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    type: 'book' | 'headphone';
+    emoji: string;
+
+    constructor(game: Game, type: 'book' | 'headphone') {
+      this.game = game;
+      this.type = type;
+      this.x = this.game.width;
+
+      if (type === 'book') {
+        this.width = 30;
+        this.height = 30;
+        this.emoji = "📚";
+        this.y = this.game.height - 30 - this.height;
+      } else {
+        this.width = 30;
+        this.height = 30;
+        this.emoji = "🎧";
+        // Floating headphones or ground headphones? Let's make them floating slightly sometimes
+        this.y = Math.random() > 0.5 ? this.game.height - 30 - this.height - 35 : this.game.height - 30 - this.height;
+      }
+    }
+
+    update() {
+      this.x -= this.game.speed;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.font = "30px Arial";
+      ctx.textBaseline = "top";
+      ctx.fillText(this.emoji, this.x, this.y);
+    }
+  }
+
+  class Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color: string;
+    alpha: number;
+    size: number;
+
+    constructor(x: number, y: number, color: string) {
+      this.x = x;
+      this.y = y;
+      this.vx = (Math.random() - 0.5) * 4;
+      this.vy = (Math.random() - 1) * 3;
+      this.color = color;
+      this.alpha = 1;
+      this.size = Math.random() * 3 + 1;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= 0.05;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  class Ground {
+    game: Game;
+    y: number;
+    x1: number;
+    x2: number;
+    width: number;
+
+    constructor(game: Game) {
+      this.game = game;
+      this.y = this.game.height - 30;
+      this.width = this.game.width;
+      this.x1 = 0;
+      this.x2 = this.width;
+    }
+
+    update() {
+      this.x1 -= this.game.speed;
+      this.x2 -= this.game.speed;
+
+      if (this.x1 <= -this.width) {
+        this.x1 = this.x2 + this.width;
+      }
+      if (this.x2 <= -this.width) {
+        this.x2 = this.x1 + this.width;
+      }
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(this.x1, this.y);
+      ctx.lineTo(this.x1 + this.width, this.y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(this.x2, this.y);
+      ctx.lineTo(this.x2 + this.width, this.y);
+      ctx.stroke();
+
+      // Draw some dust/dots for texture
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+      for(let i=0; i<10; i++) {
+        const dotX1 = this.x1 + (i * this.width/10) % this.width;
+        ctx.fillRect(dotX1, this.y + 5 + Math.sin(i)*10, 2, 2);
+
+        const dotX2 = this.x2 + (i * this.width/10) % this.width;
+        ctx.fillRect(dotX2, this.y + 5 + Math.cos(i)*10, 2, 2);
+      }
+    }
+  }
+
+  // Initialize game when DOM is ready
+  let gameInstance: Game | null = null;
+  document.addEventListener('astro:page-load', () => {
+    const canvas = document.getElementById('game-canvas');
+    if (canvas) {
+      if (gameInstance) {
+        gameInstance.destroy();
+      }
+      gameInstance = new Game();
+    }
+  });
+
+  document.addEventListener('astro:before-swap', () => {
+    if (gameInstance) {
+      gameInstance.destroy();
+      gameInstance = null;
+    }
+  });
+</script>

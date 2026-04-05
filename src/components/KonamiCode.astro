@@ -9,7 +9,9 @@
     import confetti from 'canvas-confetti';
 
     const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-    let cursor = 0;
+    const runnerCode = ['r', 'u', 'n', 'n', 'e', 'r'];
+    let konamiCursor = 0;
+    let runnerCursor = 0;
     let partyAudio: HTMLAudioElement | null = null;
     let isPartyActive = false;
 
@@ -83,14 +85,26 @@
     }
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === konamiCode[cursor]) {
-            cursor++;
-            if (cursor === konamiCode.length) {
+        // Konami Code check
+        if (e.key === konamiCode[konamiCursor]) {
+            konamiCursor++;
+            if (konamiCursor === konamiCode.length) {
                 togglePartyMode();
-                cursor = 0;
+                konamiCursor = 0;
             }
         } else {
-            cursor = (e.key === konamiCode[0]) ? 1 : 0;
+            konamiCursor = (e.key === konamiCode[0]) ? 1 : 0;
+        }
+
+        // Runner Code check
+        if (e.key.toLowerCase() === runnerCode[runnerCursor]) {
+            runnerCursor++;
+            if (runnerCursor === runnerCode.length) {
+                window.location.href = '/runner';
+                runnerCursor = 0;
+            }
+        } else {
+            runnerCursor = (e.key.toLowerCase() === runnerCode[0]) ? 1 : 0;
         }
     });
 </script>
