@@ -16,16 +16,13 @@ export const prerender = false;
 
 // Auth Check
 const token = Astro.cookies.get('auth-token');
-console.log('[Dashboard] Cookie check:', { hasToken: !!token, tokenName: token?.name });
 
 if (!token) {
-  console.log('[Dashboard] No auth-token cookie found');
   return Astro.redirect('/?auth_error=no_token');
 }
 
 const userPayload = getUserFromCookie(`auth-token=${token.value}`);
 if (!userPayload) {
-  console.log('[Dashboard] Token verification failed');
   return Astro.redirect('/?auth_error=invalid_token'); 
 }
 

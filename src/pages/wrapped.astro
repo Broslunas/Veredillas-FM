@@ -146,7 +146,7 @@ if (yearHistory.length > 0) {
                         <>
                             <h2 class="text-4xl font-black text-white mb-8 slide-pop leading-tight">Hubo un episodio que no te podías quitar de la cabeza</h2>
                             <div class="relative w-48 h-48 mx-auto mb-8 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-pink-400 ring-offset-4 ring-offset-fuchsia-800">
-                                <img src={topEpisodeInfo.image} alt={topEpisodeInfo.title} class="w-full h-full object-cover" />
+                                <img src={topEpisodeInfo.image} alt={topEpisodeInfo.title} class="w-full h-full object-cover" crossorigin="anonymous" />
                             </div>
                             <h3 class="text-2xl font-bold text-white mb-2 slide-fade-up">{topEpisodeInfo.title}</h3>
                             <p class="text-pink-200 slide-fade-up">Lo reprodujiste {topEpisodeInfo.counts} veces</p>
@@ -162,7 +162,12 @@ if (yearHistory.length > 0) {
                 <div class="absolute inset-0 bg-gradient-to-b from-transparent via-violet-900/30 to-violet-900 opacity-80"></div>
                  <div class="slide-content p-6 flex flex-col items-center justify-center h-full relative z-10 w-full">
                     
-                    <div id="share-card" class="bg-gradient-to-br from-zinc-900 border border-white/20 to-black p-8 rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(139,92,246,0.3)] slide-pop mx-auto">
+                    <div id="share-card" class="bg-gradient-to-br from-zinc-900 border border-white/20 to-black p-8 rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(139,92,246,0.3)] slide-pop mx-auto relative overflow-hidden">
+                        <!-- Watermark ONLY visible internally during capture of full slide -->
+                        <div class="watermark-overlay absolute bottom-4 right-4 flex items-center gap-2 opacity-0 pointer-events-none">
+                            <img src="/logo.webp" class="w-4 h-4 object-contain brightness-0 invert" crossorigin="anonymous" />
+                            <span class="text-[10px] font-bold text-white/50 tracking-widest">VEREDILLAS FM</span>
+                        </div>
                         <div class="flex items-center gap-3 mb-6">
                             <img src="/logo.webp" class="w-8 h-8 object-contain" />
                             <span class="text-sm font-bold tracking-widest text-white">WRAPPED {year}</span>
@@ -191,13 +196,27 @@ if (yearHistory.length > 0) {
                         </div>
                         
                         <div class="flex items-center gap-3">
-                            <img src={user.picture || '/logo.webp'} class="w-10 h-10 rounded-full border border-white/20" />
+                            <img src={user.picture || '/logo.webp'} class="w-10 h-10 rounded-full border border-white/20" crossorigin="anonymous" />
                             <p class="text-sm font-bold text-white">{user.name}</p>
                         </div>
                     </div>
 
-                    <p class="text-zinc-400 mt-8 text-center slide-fade-up">Gracias por ser parte de la familia.</p>
-                    <button onclick="window.location.href='/dashboard'" class="mt-6 px-8 py-3 bg-white text-black font-bold rounded-full slide-fade-up hover:scale-105 transition-transform">
+                    <p class="text-zinc-400 mt-6 text-center slide-fade-up download-ui-elements">Elige qué recuerdo llevarte</p>
+                    
+                    <div class="flex flex-col gap-3 mt-4 w-full max-w-sm slide-fade-up relative z-[60] download-ui-elements">
+                        <button data-download="4" class="download-btn w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-400 hover:to-violet-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>Descargar Resumen Completo</span>
+                        </button>
+                        
+                        <div class="grid grid-cols-3 gap-2">
+                            <button data-download="1" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-xs font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">⌚ Minutos</button>
+                            <button data-download="2" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-xs font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">🎧 Episodios</button>
+                            <button data-download="3" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-xs font-bold text-white transition-colors flex flex-col items-center justify-center gap-1">⭐ Top #1</button>
+                        </div>
+                    </div>
+
+                    <button onclick="window.location.href='/dashboard'" class="mt-8 px-8 py-3 bg-white text-black font-bold rounded-full slide-fade-up hover:scale-105 transition-transform w-full max-w-sm z-20 download-ui-elements">
                         Volver al Dashboard
                     </button>
                 </div>
@@ -208,11 +227,14 @@ if (yearHistory.length > 0) {
 </Layout>
 
 <script>
+    import * as htmlToImage from 'html-to-image';
+
     document.addEventListener('DOMContentLoaded', () => {
         const slides = document.querySelectorAll('.story-slide');
         const progressFills = document.querySelectorAll('.fill');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
+        const downloadBtn = document.getElementById('download-btn');
         let currentSlide = 0;
         const totalSlides = slides.length;
         const SLIDE_DURATION = 5000; // 5 seconds per slide
@@ -239,6 +261,15 @@ if (yearHistory.length > 0) {
                 }
             });
 
+            // Handle touch areas so they don't block buttons on final slide
+            if (index === totalSlides - 1) {
+                if(nextBtn) nextBtn.style.display = 'none';
+                if(prevBtn) prevBtn.style.width = '15%'; // small area on the left to go back
+            } else {
+                if(nextBtn) nextBtn.style.display = 'block';
+                if(prevBtn) prevBtn.style.width = '33.333333%';
+            }
+
             progressFills.forEach((fill, i) => {
                 (fill as HTMLElement).style.transition = 'none';
                 if (i < index) {
@@ -260,6 +291,7 @@ if (yearHistory.length > 0) {
         }
 
         function startTimer() {
+            if(isPaused) return;
             startTime = Date.now();
             slideTimer = setTimeout(() => {
                 nextSlide();
@@ -334,6 +366,97 @@ if (yearHistory.length > 0) {
 
         // Init
         setTimeout(() => showSlide(0), 100);
+
+        // Download logic
+        const downloadBtns = document.querySelectorAll('.download-btn');
+        downloadBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation(); // Prevent trigger touch next slide
+                isPaused = true;
+                clearTimeout(slideTimer);
+                
+                const originalText = btn.innerHTML;
+                btn.innerHTML = 'Generando...';
+                
+                const targetIndex = parseInt(btn.getAttribute('data-download') || '4');
+                const targetSlide = slides[targetIndex] as HTMLElement;
+                
+                if (!targetSlide) return;
+
+                // Temporarily hide elements not wanted in the download
+                const container = document.querySelector('.stories-container') as HTMLElement;
+                const oldRadius = container.style.borderRadius;
+                container.style.borderRadius = '0'; // Flat edges look better for exports
+
+                // Prep slide specifically for capture without breaking animation state
+                targetSlide.classList.add('capture-override');
+                targetSlide.style.opacity = '1';
+                targetSlide.style.visibility = 'visible';
+                targetSlide.style.zIndex = '999';
+
+                // Add dynamic watermark
+                const wm = document.createElement('div');
+                wm.className = "absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 opacity-60 z-[100] capture-watermark";
+                wm.innerHTML = `<img src="/logo.webp" class="w-5 h-5 object-contain" crossorigin="anonymous" /><span class="text-xs font-bold text-white tracking-[0.2em] uppercase" style="color: white; font-family: sans-serif;">VEREDILLAS FM</span>`;
+                targetSlide.appendChild(wm);
+
+                // Hide top progress bar if it's there
+                const progress = document.querySelector('.story-progress') as HTMLElement;
+                const oldProgressDisplay = progress?.style.display;
+                if (progress) progress.style.display = 'none';
+
+                try {
+                    // Use html-to-image
+                    const dataUrl = await htmlToImage.toPng(targetSlide, {
+                        quality: 0.95,
+                        pixelRatio: 2, // High res
+                        backgroundColor: '#000000',
+                        skipFonts: true, // Fixes known Firefox crash "font is undefined"
+                        filter: (node: any) => {
+                            // Exclude UI elements from the generated image natively
+                            if (node?.classList?.contains('download-ui-elements')) {
+                                return false;
+                            }
+                            return true;
+                        }
+                    });
+
+                    // Download
+                    const link = document.createElement('a');
+                    link.download = `Veredillas_Wrapped_${targetIndex === 4 ? 'Resumen' : 'Slide_' + (targetIndex + 1)}.png`;
+                    link.href = dataUrl;
+                    link.click();
+
+                    btn.innerHTML = '¡Descargado!';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+
+                } catch (err) {
+                    console.error('Error generating image', err);
+                    btn.innerHTML = 'Error';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                } finally {
+                    // Revert styles
+                    const wmToRemove = targetSlide.querySelector('.capture-watermark');
+                    if (wmToRemove) wmToRemove.remove();
+                    
+                    if (progress) progress.style.display = oldProgressDisplay;
+
+                    targetSlide.classList.remove('capture-override');
+                    targetSlide.style.opacity = '';
+                    targetSlide.style.visibility = '';
+                    targetSlide.style.zIndex = '';
+                    container.style.borderRadius = oldRadius;
+
+                    // Resume timer
+                    isPaused = false;
+                    startTimer();
+                }
+            });
+        });
     });
 </script>
 
@@ -398,6 +521,19 @@ if (yearHistory.length > 0) {
 
     .text-shadow-glow {
         text-shadow: 0 0 40px rgba(255,255,255,0.5);
+    }
+
+    /* Force visibility and disable animations for screenshots */
+    .capture-override, .capture-override * {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: visible !important;
+    }
+
+    .capture-override .download-ui-elements {
+        display: none !important;
     }
 
     /* 3D Wireframe Cube for bg */
