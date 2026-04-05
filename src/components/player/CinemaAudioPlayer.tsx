@@ -67,6 +67,13 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     const [isCasting, setIsCasting] = useState(false);
     const [castAvailable, setCastAvailable] = useState(false);
     const [showEndOverlay, setShowEndOverlay] = useState(false);
+    const [isPipActive, setIsPipActive] = useState(false);
+    const pipAvailable = typeof document !== 'undefined' && !!(document as any).pictureInPictureEnabled;
+
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const videoPipRef = useRef<HTMLVideoElement>(null);
+    const coverImgRef = useRef<HTMLImageElement | null>(null);
+    const wavesDataRef = useRef<number[]>(new Array(40).fill(10));
 
     // Refs for restore logic
     const savedProgressRef = useRef<number>(0);
@@ -134,6 +141,23 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
             }
         }
     };
+
+    // Load cover image for PiP
+    useEffect(() => {
+        if (cover) {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = cover;
+            img.onload = () => {
+                coverImgRef.current = img;
+            };
+        }
+    }, [cover]);
+
+    // Sync waves data ref for PiP canvas
+    useEffect(() => {
+        wavesDataRef.current = wavesData;
+    }, [wavesData]);
 
     // Handle initial load and core metadata
     useEffect(() => {
@@ -313,6 +337,147 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         frameId = requestAnimationFrame(sync);
         return () => cancelAnimationFrame(frameId);
     }, [isPlaying, showCC, transcription]);
+
+    // PiP Logic
+    const togglePiP = async () => {
+        if (!pipAvailable) return;
+
+        const video = videoPipRef.current;
+        const canvas = canvasRef.current;
+        if (!video || !canvas) return;
+
+        try {
+            if (document.pictureInPictureElement === video) {
+                await document.exitPictureInPicture();
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const drawFrame = () => {
+                if (document.pictureInPictureElement !== video && video.paused) return; // Stop drawing if not active
+
+                ctx.fillStyle = '#0f0f0f';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw background blur
+                if (coverImgRef.current && coverImgRef.current.complete) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.2;
+                    ctx.filter = 'blur(20px)';
+                    ctx.drawImage(coverImgRef.current, 0, 0, canvas.width, canvas.height);
+                    ctx.restore();
+
+                    // Draw main image
+                    const size = 200;
+                    const x = (canvas.width - size) / 2;
+                    const y = (canvas.height - size) / 2 - 40;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, size, size, 16);
+                    ctx.clip();
+                    ctx.drawImage(coverImgRef.current, x, y, size, size);
+                    ctx.restore();
+                }
+
+                // Draw Title
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 24px "Outfit", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(title, canvas.width / 2, canvas.height - 70);
+
+                // Draw Author
+                ctx.fillStyle = '#a1a1aa';
+                ctx.font = '16px "Outfit", sans-serif';
+                ctx.fillText(author, canvas.width / 2, canvas.height - 40);
+
+                // Draw Waves
+                if (wavesDataRef.current) {
+                    const waves = wavesDataRef.current;
+                    const barWidth = 4;
+                    const gap = 4;
+                    const totalWidth = waves.length * (barWidth + gap);
+                    const startX = (canvas.width - totalWidth) / 2;
+
+                    ctx.fillStyle = '#8b5cf6';
+                    waves.forEach((h, i) => {
+                        const barH = Math.max(2, h * 0.4);
+                        ctx.beginPath();
+                        ctx.roundRect(startX + i * (barWidth + gap), canvas.height - 110 - barH, barWidth, barH, 2);
+                        ctx.fill();
+                    });
+                }
+
+                if (document.pictureInPictureElement === video) {
+                    requestAnimationFrame(drawFrame);
+                }
+            };
+
+            // Capture stream and set to video
+            const stream = canvas.captureStream(30);
+            video.srcObject = stream;
+            await video.play();
+
+            // Request PiP
+            drawFrame(); // Draw first frame
+            await video.requestPictureInPicture();
+            setIsPipActive(true);
+            requestAnimationFrame(drawFrame);
+
+        } catch (error) {
+            console.error('Error toggling PiP:', error);
+        }
+    };
+
+    // Listen for PiP events
+    useEffect(() => {
+        const video = videoPipRef.current;
+        if (!video) return;
+
+        const handleEnter = () => setIsPipActive(true);
+        const handleLeave = () => {
+            setIsPipActive(false);
+            video.pause();
+        };
+
+        const handlePlay = () => {
+            if (audioRef.current && audioRef.current.paused) {
+                audioRef.current.play();
+            }
+        };
+
+        const handlePause = () => {
+            if (audioRef.current && !audioRef.current.paused) {
+                audioRef.current.pause();
+            }
+        };
+
+        video.addEventListener('enterpictureinpicture', handleEnter);
+        video.addEventListener('leavepictureinpicture', handleLeave);
+        video.addEventListener('play', handlePlay);
+        video.addEventListener('pause', handlePause);
+
+        return () => {
+            video.removeEventListener('enterpictureinpicture', handleEnter);
+            video.removeEventListener('leavepictureinpicture', handleLeave);
+            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('pause', handlePause);
+        };
+    }, []);
+
+    // Sync PiP video play state with main audio state
+    useEffect(() => {
+        const video = videoPipRef.current;
+        if (!video || !isPipActive) return;
+
+        if (isPlaying && video.paused) {
+            video.play().catch(e => console.warn('PiP play failed', e));
+        } else if (!isPlaying && !video.paused) {
+            video.pause();
+        }
+    }, [isPlaying, isPipActive]);
 
     // INITIALIZE WEB AUDIO ANALYSER & COMPRESSOR (Auto-boost)
     const initAnalyser = () => {
@@ -770,6 +935,17 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
                             </button>
 
+                            {/* Picture-in-Picture */}
+                            {pipAvailable && (
+                                <button
+                                    onClick={togglePiP}
+                                    className={`transition-colors ${isPipActive ? 'text-primary' : 'text-white/60 hover:text-white'}`}
+                                    aria-label="Picture in Picture"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="11" y="11" width="8" height="6" rx="1" ry="1"></rect></svg>
+                                </button>
+                            )}
+
                             {/* Google Cast Button */}
                             {castAvailable && (
                                 <button 
@@ -905,8 +1081,10 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                 </div>
             )}
 
-            {/* 4. HIDDEN ENGINE */}
+            {/* 4. HIDDEN ENGINE & PIP Canvas */}
             <div className="hidden-plyr hidden invisible opacity-0 pointer-events-none">
+                <canvas ref={canvasRef} width="600" height="400" />
+                <video ref={videoPipRef} playsInline muted />
                 <audio 
                     key={`${finalAudioUrl}-audio`}
                     ref={audioRef} 
