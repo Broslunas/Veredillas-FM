@@ -1,0 +1,201 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import WrappedSettings from '../../../models/WrappedSettings';
+import dbConnect from '../../../lib/mongodb';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/404');
+}
+
+await dbConnect();
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404'); 
+}
+
+let settings = await WrappedSettings.findOne();
+if (!settings) {
+    settings = await WrappedSettings.create({
+        isActive: false,
+        year: new Date().getFullYear()
+    });
+}
+---
+
+<Layout title="Control de Wrapped" robots="noindex, nofollow">
+  <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="grid-overlay"></div>
+  </div>
+
+  <div class="admin-container fade-in-up">
+    <div class="admin-header">
+      <div class="header-content">
+        <h1>Wrapped Panel</h1>
+        <p>Configura la experiencia de recopilación anual</p>
+      </div>
+    </div>
+
+    <AdminNav />
+
+    <div class="max-w-2xl mx-auto mt-8 relative">
+        <div class="glass-panel p-8 md:p-12">
+            <div class="mb-10 text-center">
+                <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-pink-500 to-violet-500 rounded-3xl flex items-center justify-center text-4xl mb-4 shadow-[0_0_40px_rgba(217,70,239,0.3)] transform rotate-3 hover:rotate-6 transition-transform">
+                    🎁
+                </div>
+                <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">Veredillas Wrapped</h2>
+                <p class="text-zinc-400 mt-2">Activa o desactiva la experiencia para todos los usuarios.</p>
+            </div>
+
+            <form id="wrappedForm" class="flex flex-col gap-8">
+                <div class="flex items-center justify-between p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-colors">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-1">Estado del Wrapped</h3>
+                        <p class="text-sm text-zinc-400">Cuando está activo, los usuarios verán un banner en su dashboard para acceder a sus estadísticas de este año.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="isActive" class="sr-only peer" checked={settings.isActive}>
+                        <div class="w-14 h-7 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-pink-500"></div>
+                    </label>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-colors">
+                    <label class="block text-xl font-bold text-white mb-2" for="year">Año del Recap</label>
+                    <p class="text-sm text-zinc-400 mb-4">El año para el cual se calcularán las estadísticas.</p>
+                    <input 
+                        type="number" 
+                        id="year" 
+                        value={settings.year} 
+                        class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 text-lg transition-all"
+                    />
+                </div>
+
+                <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(217,70,239,0.3)] mt-2">
+                    Guardar Configuración
+                </button>
+            </form>
+        </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+    const form = document.getElementById('wrappedForm');
+    const btn = form?.querySelector('button[type="submit"]');
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (btn) {
+            btn.innerHTML = '<span class="animate-pulse">Guardando...</span>';
+            (btn as HTMLButtonElement).disabled = true;
+        }
+
+        const isActive = (document.getElementById('isActive') as HTMLInputElement).checked;
+        const year = parseInt((document.getElementById('year') as HTMLInputElement).value);
+
+        try {
+            const res = await fetch('/api/admin/wrapped', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ isActive, year })
+            });
+
+            if (res.ok) {
+                alert('Configuración guardada correctamente');
+            } else {
+                alert('Error al guardar la configuración');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error de conexión');
+        } finally {
+            if (btn) {
+                btn.innerHTML = 'Guardar Configuración';
+                (btn as HTMLButtonElement).disabled = false;
+            }
+        }
+    });
+</script>
+
+<style>
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--color-text-main);
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  /* Header */
+  .admin-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .admin-header h1 {
+    font-size: 3rem;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(to right, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  .admin-header p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 2rem;
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Background Blobs */
+  .blob {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.08;
+    z-index: -1;
+  }
+  
+  .blob-1 { top: -200px; left: -200px; background: var(--color-primary); }
+  .blob-2 { bottom: -200px; right: -200px; background: var(--color-secondary); }
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

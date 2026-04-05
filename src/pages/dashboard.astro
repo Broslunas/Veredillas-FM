@@ -10,6 +10,7 @@ import { getLevel, getNextLevel, getProgressToNextLevel } from '../lib/gamificat
 import LevelsModal from '../components/LevelsModal.astro';
 import AchievementsPanel from '../components/AchievementsPanel.astro';
 import EpisodeReaction from '../models/EpisodeReaction';
+import WrappedSettings from '../models/WrappedSettings';
 
 export const prerender = false;
 
@@ -76,6 +77,11 @@ const currentLevel = getLevel(user.listeningTime || 0);
 const nextLevel = getNextLevel(user.listeningTime || 0);
 const progressPercent = getProgressToNextLevel(user.listeningTime || 0);
 const hoursToNext = nextLevel ? Math.ceil((nextLevel.minSeconds - (user.listeningTime || 0)) / 3600) : 0;
+
+// Get Wrapped Settings
+const wrappedSettings = await WrappedSettings.findOne();
+const isWrappedActive = wrappedSettings?.isActive;
+const wrappedYear = wrappedSettings?.year || new Date().getFullYear();
 ---
 
 <Layout title="Dashboard" robots="noindex, nofollow">
@@ -112,6 +118,27 @@ const hoursToNext = nextLevel ? Math.ceil((nextLevel.minSeconds - (user.listenin
                     </div>
                 </div>
             </header>
+
+            {isWrappedActive && (
+                <div class="mb-12 rounded-[32px] overflow-hidden relative group cursor-pointer" onclick="window.location.href='/wrapped'">
+                    <div class="absolute inset-0 bg-gradient-to-r from-pink-500 to-violet-600 opacity-90 transition-opacity group-hover:opacity-100"></div>
+                    <div class="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay"></div>
+                    <div class="relative z-10 p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex items-center gap-6">
+                            <div class="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-4xl shadow-xl backdrop-blur-sm border border-white/30 transform group-hover:scale-110 group-hover:rotate-6 transition-all">
+                                🎁
+                            </div>
+                            <div>
+                                <h2 class="text-3xl font-black text-white mb-1 drop-shadow-md">Tu Wrapped {wrappedYear} está aquí</h2>
+                                <p class="text-white/80 font-medium">Descubre tus estadísticas, episodios favoritos y cómo ha sido tu año en Veredillas FM.</p>
+                            </div>
+                        </div>
+                        <a href="/wrapped" class="px-8 py-4 bg-white text-violet-900 font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transition-all whitespace-nowrap">
+                            Descubre tu Recap
+                        </a>
+                    </div>
+                </div>
+            )}
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
                 <!-- Progress Card -->

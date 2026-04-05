@@ -1,0 +1,436 @@
+---
+import Layout from '../layouts/Layout.astro';
+import User from '../models/User';
+import WrappedSettings from '../models/WrappedSettings';
+import dbConnect from '../lib/mongodb';
+import { getUserFromCookie } from '../lib/auth';
+import { getCollection } from 'astro:content';
+
+export const prerender = false;
+
+const token = Astro.cookies.get('auth-token');
+if (!token) return Astro.redirect('/login');
+
+const userPayload = getUserFromCookie(`auth-token=${token.value}`);
+if (!userPayload) return Astro.redirect('/login');
+
+await dbConnect();
+const user = await User.findById(userPayload.userId);
+if (!user) return Astro.redirect('/');
+
+const wrappedSettings = await WrappedSettings.findOne();
+if (!wrappedSettings || !wrappedSettings.isActive) {
+    return Astro.redirect('/dashboard');
+}
+
+const year = wrappedSettings.year || new Date().getFullYear();
+const startOfYear = new Date(year, 0, 1);
+const endOfYear = new Date(year, 11, 31, 23, 59, 59);
+
+const yearHistory = (user.playbackHistory || []).filter(h => {
+    if (!h.listenedAt) return false;
+    const d = new Date(h.listenedAt);
+    return d >= startOfYear && d <= endOfYear;
+});
+
+// Safe defaults if empty
+let yearListeningMinutes = 0;
+let uniqueEpisodes = 0;
+let bestMonth = "Enero";
+let topEpisodeInfo = null;
+let archetype = "El Nuevo";
+let totalSessions = yearHistory.length;
+
+if (yearHistory.length > 0) {
+    uniqueEpisodes = new Set(yearHistory.map(h => h.episodeSlug)).size;
+    const yearListeningSeconds = yearHistory.reduce((acc, h) => acc + (h.progress || 0), 0);
+    yearListeningMinutes = Math.floor(yearListeningSeconds / 60);
+    if(yearListeningMinutes === 0) yearListeningMinutes = Math.floor((user.listeningTime || 0) / 60);
+
+    const monthCounts = new Array(12).fill(0);
+    yearHistory.forEach(h => {
+        const month = new Date(h.listenedAt).getMonth();
+        monthCounts[month]++;
+    });
+    const bestMonthIndex = monthCounts.indexOf(Math.max(...monthCounts));
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    bestMonth = monthNames[bestMonthIndex] || "Enero";
+
+    const episodeCounts:any = {};
+    yearHistory.forEach(h => {
+       if (!episodeCounts[h.episodeSlug]) episodeCounts[h.episodeSlug] = 0;
+       episodeCounts[h.episodeSlug]++;
+    });
+    const topEpisodeSlug = Object.entries(episodeCounts).sort((a:any,b:any) => b[1] - a[1])[0]?.[0];
+
+    const allEpisodes = await getCollection('episodios');
+    const topEpisode = allEpisodes.find(e => e.slug === topEpisodeSlug);
+    if (topEpisode) {
+        topEpisodeInfo = { title: topEpisode.data.title, image: topEpisode.data.image, counts: episodeCounts[topEpisodeSlug as string] };
+    }
+
+    if (uniqueEpisodes > 20) archetype = "El Explorador Cósmico";
+    else if (yearHistory.length > 30) archetype = "El Fanático Incondicional";
+    else if (yearListeningMinutes > 500) archetype = "El Maratonista";
+    else archetype = "El Oyente Selecto";
+} else {
+    // If no history matching the year but they clicked the banner...
+    yearListeningMinutes = Math.floor((user.listeningTime || 0) / 60);
+    uniqueEpisodes = user.favorites?.length || 0;
+}
+---
+
+<Layout title={`Tu Veredillas Wrapped ${year}`} robots="noindex, nofollow">
+    <div class="wrapped-experience fixed inset-0 z-50 bg-black overflow-hidden flex items-center justify-center font-sans">
+        
+        <!-- Background Audio (optional, user interaction needed usually, so we skip or add small ambient) -->
+        
+        <!-- Controls -->
+        <div class="absolute top-6 left-6 right-6 z-40 flex gap-2 story-progress">
+            <div class="progress-bar"><div class="fill"></div></div>
+            <div class="progress-bar"><div class="fill"></div></div>
+            <div class="progress-bar"><div class="fill"></div></div>
+            <div class="progress-bar"><div class="fill"></div></div>
+            <div class="progress-bar"><div class="fill"></div></div>
+            <button class="absolute -top-2 right-0 text-white/50 hover:text-white pb-2" onclick="window.location.href='/dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+
+        <!-- Touch areas -->
+        <div class="absolute inset-y-0 left-0 w-1/3 z-30" id="prev-btn"></div>
+        <div class="absolute inset-y-0 right-0 w-2/3 z-30" id="next-btn"></div>
+
+        <!-- Stories Container -->
+        <div class="stories-container relative w-full h-full max-w-md mx-auto aspect-[9/16] bg-[#121212] flex overflow-hidden lg:rounded-3xl lg:h-[85vh] lg:my-auto lg:shadow-2xl">
+            
+            <!-- Slide 1: Intro -->
+            <div class="story-slide active bg-gradient-to-br from-violet-900 via-indigo-900 to-black">
+                <div class="cube-wrap absolute inset-0 opacity-20 pointer-events-none">
+                    <div class="cube"><div class="face front"></div><div class="face back"></div><div class="face right"></div><div class="face left"></div><div class="face top"></div><div class="face bottom"></div></div>
+                </div>
+                <div class="slide-content text-center p-8 flex flex-col justify-center h-full">
+                    <h2 class="text-xl font-bold text-violet-300 mb-8 slide-title tracking-widest uppercase">Veredillas FM</h2>
+                    <h1 class="text-5xl font-black text-white mb-6 slide-pop leading-tight">¿Listo para viajar al inicio de <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">{year}</span>?</h1>
+                    <p class="text-lg text-white/70 slide-fade">Este año la radio fue más que ruido. Fue compañía.</p>
+                </div>
+            </div>
+
+            <!-- Slide 2: Minutes -->
+            <div class="story-slide bg-gradient-to-tr from-pink-600 via-rose-500 to-orange-500">
+                <div class="absolute inset-0 bg-[url('/noise.png')] opacity-30 mix-blend-overlay"></div>
+                <div class="slide-content text-center p-8 flex flex-col justify-center h-full relative z-10">
+                    <p class="text-2xl font-bold text-white mb-4 slide-fade">Pasamos juntos</p>
+                    <div class="text-8xl font-black text-white mb-2 slide-pop text-shadow-glow">{yearListeningMinutes}</div>
+                    <p class="text-2xl font-bold text-white/90 slide-fade mb-8">minutos de tu vida</p>
+                    <p class="text-lg text-white/80 slide-fade-up">Eso es como escuchar tu canción favorita {(yearListeningMinutes / 3.5).toFixed(0)} veces seguidas. ¡Wow!</p>
+                </div>
+            </div>
+
+            <!-- Slide 3: Diversity -->
+            <div class="story-slide bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-900">
+                 <div class="slide-content p-8 flex flex-col justify-center h-full">
+                    <div class="w-full flex justify-center mb-8 slide-pop">
+                        <div class="w-32 h-32 rounded-full bg-white/20 backdrop-blur border border-white/50 flex items-center justify-center text-6xl shadow-2xl">
+                            🎧
+                        </div>
+                    </div>
+                    <h2 class="text-4xl font-black text-white mb-4 text-center slide-fade leading-tight">Exploraste <span class="text-emerald-300">{uniqueEpisodes}</span> episodios únicos</h2>
+                    <p class="text-center text-xl text-emerald-100 slide-fade-up mt-4">Y tu mes más intenso fue <strong class="text-white text-2xl block mt-2">{bestMonth}</strong></p>
+                </div>
+            </div>
+
+            <!-- Slide 4: Top Episode -->
+            <div class="story-slide bg-gradient-to-tl from-purple-900 via-fuchsia-800 to-pink-700">
+                 <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+                    <p class="text-xl font-bold text-pink-200 mb-8 slide-fade tracking-widest uppercase">El número uno</p>
+                    {topEpisodeInfo ? (
+                        <>
+                            <h2 class="text-4xl font-black text-white mb-8 slide-pop leading-tight">Hubo un episodio que no te podías quitar de la cabeza</h2>
+                            <div class="relative w-48 h-48 mx-auto mb-8 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-pink-400 ring-offset-4 ring-offset-fuchsia-800">
+                                <img src={topEpisodeInfo.image} alt={topEpisodeInfo.title} class="w-full h-full object-cover" />
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-2 slide-fade-up">{topEpisodeInfo.title}</h3>
+                            <p class="text-pink-200 slide-fade-up">Lo reprodujiste {topEpisodeInfo.counts} veces</p>
+                        </>
+                    ) : (
+                        <h2 class="text-4xl font-black text-white slide-pop">¡El misterio! Tus reproducciones están tan repartidas que todos son tus favoritos.</h2>
+                    )}
+                </div>
+            </div>
+
+            <!-- Slide 5: Summary -->
+            <div class="story-slide bg-black">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-violet-900/30 to-violet-900 opacity-80"></div>
+                 <div class="slide-content p-6 flex flex-col items-center justify-center h-full relative z-10 w-full">
+                    
+                    <div id="share-card" class="bg-gradient-to-br from-zinc-900 border border-white/20 to-black p-8 rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(139,92,246,0.3)] slide-pop mx-auto">
+                        <div class="flex items-center gap-3 mb-6">
+                            <img src="/logo.webp" class="w-8 h-8 object-contain" />
+                            <span class="text-sm font-bold tracking-widest text-white">WRAPPED {year}</span>
+                        </div>
+                        
+                        <div class="mb-8">
+                            <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-1">Perfil de Oyente</p>
+                            <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">{archetype}</h2>
+                        </div>
+                        
+                        <div class="space-y-4 mb-8">
+                            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                                <span class="text-white/60">Minutos totales</span>
+                                <span class="text-white font-bold text-xl">{yearListeningMinutes}</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                                <span class="text-white/60">Episodios diferentes</span>
+                                <span class="text-white font-bold text-xl">{uniqueEpisodes}</span>
+                            </div>
+                            {topEpisodeInfo && (
+                                <div class="flex justify-between items-center pb-2">
+                                    <span class="text-white/60">Top Podcast</span>
+                                    <span class="text-white font-bold w-32 truncate text-right">{topEpisodeInfo.title}</span>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <img src={user.picture || '/logo.webp'} class="w-10 h-10 rounded-full border border-white/20" />
+                            <p class="text-sm font-bold text-white">{user.name}</p>
+                        </div>
+                    </div>
+
+                    <p class="text-zinc-400 mt-8 text-center slide-fade-up">Gracias por ser parte de la familia.</p>
+                    <button onclick="window.location.href='/dashboard'" class="mt-6 px-8 py-3 bg-white text-black font-bold rounded-full slide-fade-up hover:scale-105 transition-transform">
+                        Volver al Dashboard
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</Layout>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const slides = document.querySelectorAll('.story-slide');
+        const progressFills = document.querySelectorAll('.fill');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+        const SLIDE_DURATION = 5000; // 5 seconds per slide
+        let slideTimer:any;
+        let startTime:number;
+        let remainingTime = SLIDE_DURATION;
+        let isPaused = false;
+
+        function resetAnimations(slide: Element) {
+            const animatedEls = slide.querySelectorAll('.slide-pop, .slide-fade, .slide-fade-up');
+            animatedEls.forEach(el => {
+                (el as HTMLElement).style.animation = 'none';
+                (el as HTMLElement).offsetHeight; /* trigger reflow */
+                (el as HTMLElement).style.animation = '';
+            });
+        }
+
+        function showSlide(index: number) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === index) {
+                    slide.classList.add('active');
+                    resetAnimations(slide);
+                }
+            });
+
+            progressFills.forEach((fill, i) => {
+                (fill as HTMLElement).style.transition = 'none';
+                if (i < index) {
+                    (fill as HTMLElement).style.width = '100%';
+                } else if (i === index) {
+                    (fill as HTMLElement).style.width = '0%';
+                    // Slight delay to allow transition to apply after zeroing
+                    setTimeout(() => {
+                        (fill as HTMLElement).style.transition = `width ${SLIDE_DURATION}ms linear`;
+                        (fill as HTMLElement).style.width = '100%';
+                    }, 50);
+                } else {
+                    (fill as HTMLElement).style.width = '0%';
+                }
+            });
+
+            clearTimeout(slideTimer);
+            startTimer();
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            slideTimer = setTimeout(() => {
+                nextSlide();
+            }, remainingTime);
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                remainingTime = SLIDE_DURATION;
+                showSlide(currentSlide);
+            } else {
+                // If at the end, maybe stay there or redirect
+                const lastFill = progressFills[currentSlide] as HTMLElement;
+                if(lastFill) lastFill.style.width = '100%';
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                remainingTime = SLIDE_DURATION;
+                showSlide(currentSlide);
+            } else {
+                // Reset first slide
+                remainingTime = SLIDE_DURATION;
+                showSlide(currentSlide);
+            }
+        }
+
+        prevBtn?.addEventListener('click', () => {
+            prevSlide();
+        });
+
+        nextBtn?.addEventListener('click', () => {
+            nextSlide();
+        });
+
+        // Touch hold to pause
+        document.addEventListener('mousedown', () => { isPaused = true; clearTimeout(slideTimer); const fill = progressFills[currentSlide] as HTMLElement; if(fill) { const computed = window.getComputedStyle(fill).width; fill.style.transition = 'none'; fill.style.width = computed; } });
+        document.addEventListener('mouseup', () => { 
+            if(isPaused) {
+                isPaused = false; 
+                // calculate remaining
+                const fill = progressFills[currentSlide] as HTMLElement;
+                const parent = fill.parentElement;
+                if(fill && parent) {
+                    const pct = parseFloat(fill.style.width) / parseFloat(window.getComputedStyle(parent).width) || 0;
+                    remainingTime = SLIDE_DURATION * (1 - pct);
+                    fill.style.transition = `width ${remainingTime}ms linear`;
+                    fill.style.width = '100%';
+                }
+                startTimer();
+            }
+        });
+        
+        document.addEventListener('touchstart', () => { isPaused = true; clearTimeout(slideTimer); const fill = progressFills[currentSlide] as HTMLElement; if(fill) { const computed = window.getComputedStyle(fill).width; fill.style.transition = 'none'; fill.style.width = computed; } });
+        document.addEventListener('touchend', () => { 
+             if(isPaused) {
+                isPaused = false; 
+                const fill = progressFills[currentSlide] as HTMLElement;
+                const parent = fill.parentElement;
+                if(fill && parent) {
+                    const pct = parseFloat(fill.style.width) / parseFloat(window.getComputedStyle(parent).width) || 0;
+                    remainingTime = SLIDE_DURATION * (1 - pct);
+                    fill.style.transition = `width ${remainingTime}ms linear`;
+                    fill.style.width = '100%';
+                }
+                startTimer();
+            }
+        });
+
+        // Init
+        setTimeout(() => showSlide(0), 100);
+    });
+</script>
+
+<style>
+    .story-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+    }
+    .story-slide.active {
+        opacity: 1;
+        visibility: visible;
+        z-index: 20;
+    }
+
+    .story-progress {
+        display: flex;
+    }
+    .progress-bar {
+        flex: 1;
+        height: 3px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    .progress-bar .fill {
+        height: 100%;
+        width: 0%;
+        background: white;
+    }
+
+    /* Animations */
+    .slide-pop {
+        opacity: 0;
+        transform: scale(0.8);
+        animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        animation-delay: 0.3s;
+    }
+    .slide-fade {
+        opacity: 0;
+        animation: fadeIn 1s ease forwards;
+        animation-delay: 0.8s;
+    }
+    .slide-fade-up {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeUp 0.8s ease forwards;
+        animation-delay: 1.2s;
+    }
+
+    @keyframes popIn {
+        to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes fadeIn {
+        to { opacity: 1; }
+    }
+    @keyframes fadeUp {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .text-shadow-glow {
+        text-shadow: 0 0 40px rgba(255,255,255,0.5);
+    }
+
+    /* 3D Wireframe Cube for bg */
+    .cube-wrap {
+        perspective: 800px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .cube {
+        width: 200px;
+        height: 200px;
+        position: relative;
+        transform-style: preserve-3d;
+        animation: spin 20s infinite linear;
+    }
+    .face {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.1);
+        box-shadow: 0 0 20px rgba(255,255,255,0.1) inset;
+    }
+    .front  { transform: translateZ(100px); }
+    .back   { transform: rotateY(180deg) translateZ(100px); }
+    .right  { transform: rotateY(90deg) translateZ(100px); }
+    .left   { transform: rotateY(-90deg) translateZ(100px); }
+    .top    { transform: rotateX(90deg) translateZ(100px); }
+    .bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+    @keyframes spin {
+        from { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+        to { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+    }
+</style>
