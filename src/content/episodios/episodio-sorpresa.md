@@ -14,7 +14,7 @@ participants:
   - ░░░░░░░░
   - ░░░░░░░░
 season: 2
-episode: 6
+episode: 8
 duration: ░░░ min
 pubDate: '2026-04-10T16:00:00.000Z'
 ---
