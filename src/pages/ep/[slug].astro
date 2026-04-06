@@ -268,6 +268,85 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     />
 
     <div class="cinema-layout container">
+        {
+            isPremiere && !hasPremiereEnded && (
+                /* 0. PREMIERE STAGE (Player + Chat side-by-side) */
+                <div class="premiere-stage section-fade">
+                    <div class="player-stage-wrapper shadow-2xl relative">
+                        {
+                            isUpcoming && (
+                                <div id="premiere-countdown-wrapper">
+                                    <PremiereCountdown
+                                        targetDate={entry.data.pubDate}
+                                        title={entry.data.title}
+                                    />
+                                </div>
+                            )
+                        }
+
+                        <div
+                            id="premiere-player-wrapper"
+                            class:list={{ hidden: isUpcoming }}
+                            style={isUpcoming ? "display:none;" : ""}
+                        >
+                            <div
+                                id="episode-player-inner"
+                                class="cinema-player-box group"
+                                data-audio-url={entry.data.audioUrl}
+                                data-spotify-url={entry.data.spotifyUrl}
+                                data-title={entry.data.title}
+                                data-image={entry.data.image}
+                                data-author={entry.data.author}
+                                data-slug={entry.slug}
+                                data-is-premiere={isPremiere}
+                                data-video-url={entry.data.videoUrl}
+                                data-transcription={entry.data.transcription
+                                    ? JSON.stringify(entry.data.transcription)
+                                    : null}
+                                data-sections={entry.data.sections
+                                    ? JSON.stringify(entry.data.sections)
+                                    : null}
+                                data-next-episodes={JSON.stringify(nextEpisodes)}
+                            >
+                                <div id="audio-player-container" class={entry.data.videoUrl ? "hidden" : "block relative"}>
+                                    <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5">
+                                        <div class="loader-vfm flex flex-col items-center gap-4">
+                                            <div class="loader-spinner"></div>
+                                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Sintonizando...</span>
+                                        </div>
+                                    </div>
+                                    <CinemaAudioPlayer
+                                        client:load
+                                        audioUrl={entry.data.audioUrl || ""}
+                                        title={entry.data.title || ""}
+                                        cover={entry.data.image || ""}
+                                        author={entry.data.author || "Veredillas FM"}
+                                        transcription={formattedTranscription}
+                                        slug={entry.slug}
+                                        videoUrl={entry.data.videoUrl}
+                                        sections={entry.data.sections}
+                                        nextEpisodes={nextEpisodes}
+                                    />
+                                </div>
+
+                                <div id="video-player-container" class={!entry.data.videoUrl ? "hidden" : "block relative"}>
+                                    <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5">
+                                        <div class="loader-vfm flex flex-col items-center gap-4">
+                                            <div class="loader-spinner !border-t-red-500"></div>
+                                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Iniciando Video...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-stage-wrapper">
+                        <LiveChat slug={entry.slug} />
+                    </div>
+                </div>
+            )
+        }
+
         <main class="main-content" style="overflow-x: hidden; min-width: 0;">
             {
                 entry.data.warningMessage && (
@@ -299,263 +378,162 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
                     </div>
                 )
             }
-            <!-- 1. THE PLAYER AREA -->
-            <section class="player-section section-fade">
-                <div class="player-wrapper shadow-2xl relative">
-                    {
-                        /* 1. MODE SWITCHER - Now integrated into the players' own controls but held in a coordinated div if needed */
-                    }
-
-                    {
-                        isUpcoming && (
-                            <div id="premiere-countdown-wrapper">
-                                <PremiereCountdown
-                                    targetDate={entry.data.pubDate}
-                                    title={entry.data.title}
-                                />
-                            </div>
-                        )
-                    }
-
-                    <div
-                        id="premiere-player-wrapper"
-                        class:list={{ hidden: isUpcoming }}
-                        style={isUpcoming ? "display:none;" : ""}
-                    >
-                        <!-- We'll use a direct player placement here -->
-                        <div
-                            id="episode-player-inner"
-                            class="cinema-player-box group"
-                            data-audio-url={entry.data.audioUrl}
-                            data-spotify-url={entry.data.spotifyUrl}
-                            data-title={entry.data.title}
-                            data-image={entry.data.image}
-                            data-author={entry.data.author}
-                            data-slug={entry.slug}
-                            data-is-premiere={isPremiere}
-                            data-video-url={entry.data.videoUrl}
-                            data-transcription={entry.data.transcription
-                                ? JSON.stringify(entry.data.transcription)
-                                : null}
-                            data-sections={entry.data.sections
-                                ? JSON.stringify(entry.data.sections)
-                                : null}
-                            data-next-episodes={JSON.stringify(nextEpisodes)}
-                        >
+            {
+                (!isPremiere || hasPremiereEnded) && (
+                    /* 1. THE PLAYER AREA (Non-premiere) */
+                    <section class="player-section section-fade">
+                        <div class="player-wrapper shadow-2xl relative">
                             {
-                                /* Standard Audio Player Section (Hidden if video mode by default) */
-                            }
-                            <div
-                                id="audio-player-container"
-                                class={entry.data.videoUrl
-                                    ? "hidden"
-                                    : "block relative"}
-                            >
-                                {
-                                    /* Static Placeholder to prevent layout shift during hydration */
-                                }
-                                <div
-                                    class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5"
-                                >
-                                    <div
-                                        class="loader-vfm flex flex-col items-center gap-4"
-                                    >
-                                        <div class="loader-spinner"></div>
-                                        <span
-                                            class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse"
-                                            >Sintonizando...</span
-                                        >
-                                    </div>
-                                    {
-                                        entry.data.image && (
-                                            <img
-                                                src={entry.data.image}
-                                                alt=""
-                                                class="absolute inset-0 w-full h-full object-cover opacity-[0.03] blur-xl grayscale"
-                                            />
-                                        )
-                                    }
-                                </div>
-
-                                <CinemaAudioPlayer
-                                    client:load
-                                    audioUrl={entry.data.audioUrl || ""}
-                                    title={entry.data.title || ""}
-                                    cover={entry.data.image || ""}
-                                    author={entry.data.author ||
-                                        "Veredillas FM"}
-                                    transcription={formattedTranscription}
-                                    slug={entry.slug}
-                                    videoUrl={entry.data.videoUrl}
-                                    sections={entry.data.sections}
-                                    nextEpisodes={nextEpisodes}
-                                />
-                            </div>
-
-                            {/* Video Player Section */}
-                            <div
-                                id="video-player-container"
-                                class={!entry.data.videoUrl
-                                    ? "hidden"
-                                    : "block relative"}
-                            >
-                                {/* Video Placeholder */}
-                                <div
-                                    class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5"
-                                >
-                                    <div
-                                        class="loader-vfm flex flex-col items-center gap-4"
-                                    >
-                                        <div
-                                            class="loader-spinner !border-t-red-500"
-                                        >
-                                        </div>
-                                        <span
-                                            class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse"
-                                            >Iniciando Video...</span
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-
-                            {
-                                !entry.data.audioUrl &&
-                                    !entry.data.spotifyUrl &&
-                                    !entry.data.videoUrl && (
-                                        <div class="player-skeleton bg-zinc-900 rounded-xl aspect-video flex items-center justify-center border border-zinc-800">
-                                            <span class="text-zinc-500 font-medium">
-                                                Contenido no disponible
-                                            </span>
-                                        </div>
-                                    )
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Info Header (Below Player) -->
-                <header class="player-info py-6">
-                    <h1
-                        class="text-2xl md:text-3xl font-black mb-4 tracking-tight"
-                    >
-                        {entry.data.title}
-                    </h1>
-                    <div
-                        class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-zinc-800/50"
-                    >
-                        <div class="author-meta flex items-center gap-3">
-                            <img
-                                src="/logo.webp"
-                                alt="Veredillas FM"
-                                class="w-10 h-10 rounded-full border border-zinc-800"
-                            />
-                            <div class="flex flex-col">
-                                <p
-                                    class="font-bold text-zinc-100 leading-tight"
-                                >
-                                    {entry.data.author}
-                                </p>
-                                <p class="text-xs text-zinc-500">
-                                    {formattedDate}
-                                </p>
-                            </div>
-
-                            {
-                                episodeGuests.length > 0 && (
-                                    <div class="collaborators-mini-list flex items-center -space-x-3 ml-2 pl-4 border-l border-zinc-800/80 h-8 self-center">
-                                        {episodeGuests.map((guest, idx) => (
-                                            <div
-                                                class="relative group"
-                                                title={guest.data.name}
-                                                style={`z-index: ${episodeGuests.length - idx}`}
-                                            >
-                                                {guest.data.image ? (
-                                                    <img
-                                                        src={guest.data.image}
-                                                        alt={guest.data.name}
-                                                        class="w-8 h-8 rounded-full border-2 border-zinc-950 object-cover ring-1 ring-white/5 group-hover:scale-110 group-hover:ring-primary/50 transition-all duration-300"
-                                                    />
-                                                ) : (
-                                                    <div class="w-8 h-8 rounded-full bg-zinc-800 border-2 border-zinc-950 flex items-center justify-center ring-1 ring-white/5 group-hover:scale-110 transition-all duration-300">
-                                                        <span class="text-[9px] font-black text-zinc-500 uppercase">
-                                                            {guest.data.name.substring(
-                                                                0,
-                                                                2,
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                )}
-
-                                                {/* Tooltip */}
-                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-black/95 backdrop-blur-xl border border-white/10 rounded-lg text-[9px] font-black text-white opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap uppercase tracking-[0.1em] shadow-2xl z-50">
-                                                    {guest.data.name}
-                                                </div>
-                                            </div>
-                                        ))}
+                                isUpcoming && (
+                                    <div id="countdown-wrapper">
+                                        <PremiereCountdown
+                                            targetDate={entry.data.pubDate}
+                                            title={entry.data.title}
+                                        />
                                     </div>
                                 )
                             }
-                        </div>
-                        <div
-                            class="flex flex-wrap items-center gap-2 mt-2 md:mt-0"
-                        >
-                            <ListenerCount onlyCurrentPath={true} />
-                            <EpisodeRating slug={entry.slug} />
-                            <FavoriteButton episodeSlug={entry.slug} />
-                            <LikeDislikeGroup episodeSlug={entry.slug} />
-                            <PlaylistManager episodeSlug={entry.slug} />
-                        </div>
-                    </div>
 
-                    <div class="flex items-center py-4">
-                        <EpisodeActions
-                            title={entry.data.title}
-                            audioUrl={entry.data.audioUrl}
-                            image={entry.data.image || relativeOgImageUrl}
-                            slug={entry.slug}
-                            guests={entry.data.participants}
-                            duration={entry.data.duration}
-                            quiz={entry.data.quiz}
-                        />
+                            <div
+                                id="static-player-wrapper"
+                                class:list={{ hidden: isUpcoming }}
+                                style={isUpcoming ? "display:none;" : ""}
+                            >
+                                <div
+                                    id="episode-player-inner"
+                                    class="cinema-player-box group"
+                                    data-audio-url={entry.data.audioUrl}
+                                    data-spotify-url={entry.data.spotifyUrl}
+                                    data-title={entry.data.title}
+                                    data-image={entry.data.image}
+                                    data-author={entry.data.author}
+                                    data-slug={entry.slug}
+                                    data-is-premiere={isPremiere}
+                                    data-video-url={entry.data.videoUrl}
+                                    data-transcription={entry.data.transcription
+                                        ? JSON.stringify(entry.data.transcription)
+                                        : null}
+                                    data-sections={entry.data.sections
+                                        ? JSON.stringify(entry.data.sections)
+                                        : null}
+                                    data-next-episodes={JSON.stringify(nextEpisodes)}
+                                >
+                                    <div id="audio-player-container" class={entry.data.videoUrl ? "hidden" : "block relative"}>
+                                        <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5">
+                                            <div class="loader-vfm flex flex-col items-center gap-4">
+                                                <div class="loader-spinner"></div>
+                                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Sintonizando...</span>
+                                            </div>
+                                        </div>
+                                        <CinemaAudioPlayer
+                                            client:load
+                                            audioUrl={entry.data.audioUrl || ""}
+                                            title={entry.data.title || ""}
+                                            cover={entry.data.image || ""}
+                                            author={entry.data.author || "Veredillas FM"}
+                                            transcription={formattedTranscription}
+                                            slug={entry.slug}
+                                            videoUrl={entry.data.videoUrl}
+                                            sections={entry.data.sections}
+                                            nextEpisodes={nextEpisodes}
+                                        />
+                                    </div>
+
+                                    <div id="video-player-container" class={!entry.data.videoUrl ? "hidden" : "block relative"}>
+                                        <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5">
+                                            <div class="loader-vfm flex flex-col items-center gap-4">
+                                                <div class="loader-spinner !border-t-red-500"></div>
+                                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Iniciando Video...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                )
+            }
+
+            <header class="player-info py-6">
+                <h1 class="text-2xl md:text-3xl font-black mb-4 tracking-tight">
+                    {entry.data.title}
+                </h1>
+                <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-zinc-800/50">
+                    <div class="author-meta flex items-center gap-3">
+                        <img src="/logo.webp" alt="Veredillas FM" class="w-10 h-10 rounded-full border border-zinc-800" />
+                        <div class="flex flex-col">
+                            <p class="font-bold text-zinc-100 leading-tight">{entry.data.author}</p>
+                            <p class="text-xs text-zinc-500">{formattedDate}</p>
+                        </div>
+
+                        {
+                            episodeGuests.length > 0 && (
+                                <div class="collaborators-mini-list flex items-center -space-x-3 ml-2 pl-4 border-l border-zinc-800/80 h-8 self-center">
+                                    {episodeGuests.map((guest, idx) => (
+                                        <div class="relative group" title={guest.data.name} style={`z-index: ${episodeGuests.length - idx}`}>
+                                            {guest.data.image ? (
+                                                <img src={guest.data.image} alt={guest.data.name} class="w-8 h-8 rounded-full border-2 border-zinc-950 object-cover ring-1 ring-white/5 group-hover:scale-110 group-hover:ring-primary/50 transition-all duration-300" />
+                                            ) : (
+                                                <div class="w-8 h-8 rounded-full bg-zinc-800 border-2 border-zinc-950 flex items-center justify-center ring-1 ring-white/5 group-hover:scale-110 transition-all duration-300">
+                                                    <span class="text-[9px] font-black text-zinc-500 uppercase">{guest.data.name.substring(0, 2)}</span>
+                                                </div>
+                                            )}
+                                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-black/95 backdrop-blur-xl border border-white/10 rounded-lg text-[9px] font-black text-white opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap uppercase tracking-[0.1em] shadow-2xl z-50">
+                                                {guest.data.name}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )
+                        }
                     </div>
-                </header>
-            </section>
+                    <div class="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+                        <ListenerCount onlyCurrentPath={true} />
+                        <EpisodeRating slug={entry.slug} />
+                        <FavoriteButton episodeSlug={entry.slug} />
+                        <LikeDislikeGroup episodeSlug={entry.slug} />
+                        <PlaylistManager episodeSlug={entry.slug} />
+                    </div>
+                </div>
+
+                <div class="flex items-center py-4">
+                    <EpisodeActions
+                        title={entry.data.title}
+                        audioUrl={entry.data.audioUrl}
+                        image={entry.data.image || relativeOgImageUrl}
+                        slug={entry.slug}
+                        guests={entry.data.participants}
+                        duration={entry.data.duration}
+                        quiz={entry.data.quiz}
+                    />
+                </div>
+            </header>
 
             <section class="description-section glass-panel p-6 mb-8">
                 <div class="mb-4">
-                    <span
-                        class="text-sm font-bold uppercase tracking-wider text-zinc-400"
-                        >Descripción</span
-                    >
+                    <span class="text-sm font-bold uppercase tracking-wider text-zinc-400">Descripción</span>
                 </div>
-
                 <div class="content-body prose prose-invert max-w-none mb-8">
                     <Content />
                 </div>
-
                 <div class="mt-8 pt-8 border-t border-zinc-800">
                     <EpisodeSections sections={entry.data.sections} />
-                    <TranscriptionWidget
-                        transcription={entry.data.transcription}
-                    />
+                    <TranscriptionWidget transcription={entry.data.transcription} />
                 </div>
             </section>
 
             <!-- 3. COMMENTS AREA -->
             <section id="comments-wrapper" class="comments-section mb-20">
-                <div class="flex items-center gap-4 mb-8">
-                    <h2 class="text-xl font-black">Comentarios</h2>
-                </div>
                 {
-                    isPremiere && !hasPremiereEnded ? (
-                        <div class="chat-integration mb-8">
-                            <LiveChat slug={entry.slug} />
+                    (!isPremiere || hasPremiereEnded) && (
+                        <div class="flex items-center gap-4 mb-8">
+                            <h2 class="text-xl font-black">Comentarios</h2>
                         </div>
-                    ) : (
                         <Comments slug={entry.slug} />
                     )
                 }
             </section>
+
         </main>
 
         <!-- SIDEBAR -->
@@ -654,9 +632,32 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
         overflow-x: hidden;
     }
 
+    /* PREMIERE STAGE LAYOUT */
+    .premiere-stage {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 3rem;
+        margin-bottom: 2rem;
+    }
+
+    .chat-stage-wrapper {
+        height: 100%;
+        min-height: 480px;
+    }
+
+    :global(#live-chat-widget) {
+        height: 100% !important;
+        min-height: 480px;
+    }
+
     @media (max-width: 1200px) {
         .cinema-layout {
             grid-template-columns: 1fr;
+        }
+        .premiere-stage {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
         }
         .sidebar-column {
             order: 2;
