@@ -4,14 +4,15 @@
 
 ![Veredillas FM Logo](public/logo.webp)
 
-**El podcast oficial del IES Veredillas**
+**La plataforma digital oficial del IES Veredillas**
 
-Una plataforma de radio estudiantil moderna, hecha por alumnos, para alumnos.
+Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por alumnos, para el mundo.
 
-[![Astro](https://img.shields.io/badge/Astro-5.16-BC52EE?style=for-the-badge&logo=astro&logoColor=white)](https://astro.build)
+[![Astro](https://img.shields.io/badge/Astro-5.18-BC52EE?style=for-the-badge&logo=astro&logoColor=white)](https://astro.build)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deploys-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
 
 [Ver Demo](https://veredillasfm.es) · [Reportar Bug](https://github.com/Broslunas/veredillas-fm/issues) · [Solicitar Feature](https://github.com/Broslunas/veredillas-fm/issues)
 
@@ -22,125 +23,126 @@ Una plataforma de radio estudiantil moderna, hecha por alumnos, para alumnos.
 ## 📖 Tabla de Contenidos
 
 - [🎯 Sobre el Proyecto](#-sobre-el-proyecto)
-- [✨ Características](#-características)
-- [🛠️ Tecnologías](#️-tecnologías)
+- [✨ Características Principales](#-características-principales)
+- [🛠️ Stack Tecnológico](#️-stack-tecnológico)
 - [🚀 Comenzando](#-comenzando)
 - [📂 Estructura del Proyecto](#-estructura-del-proyecto)
-- [🎨 Desarrollo](#-desarrollo)
-- [📱 PWA](#-pwa)
-- [🔍 SEO](#-seo)
+- [🎨 Guía de Desarrollo](#-guía-de-desarrollo)
+- [📱 PWA & Mobile](#-pwa--mobile)
+- [🔍 SEO & Open Graph](#-seo--open-graph)
 - [🤝 Contribuir](#-contribuir)
 - [👥 Equipo](#-equipo)
 - [📄 Licencia](#-licencia)
-- [🙏 Agradecimientos](#-agradecimientos)
 
 ---
 
 ## 🎯 Sobre el Proyecto
 
-**Veredillas FM** es una plataforma de radio estudiantil moderna desarrollada íntegramente por estudiantes de 2º de Bachillerato B del IES Veredillas. Nuestro objetivo es crear un espacio dinámico y abierto para la libre expresión, donde cada estudiante tenga una voz y cada historia merezca ser contada.
+**Veredillas FM** ha evolucionado de ser un simple podcast escolar a una plataforma digital completa de medios estudiantiles. Desarrollada por estudiantes de 2º de Bachillerato del IES Veredillas, integra audio, video, interactividad social y gamificación en una experiencia web premium de alto rendimiento.
 
-### ¿Qué nos hace especiales?
+### ¿Qué nos hace diferentes?
 
-- 🎓 **Hecho por estudiantes**: Todo el contenido es producido, grabado y editado por alumnos
-- 🚀 **Tecnología moderna**: Utilizamos las últimas herramientas web para llevar la radio escolar al siglo XXI
-- 🌍 **Sin fronteras**: Transmisión digital que alcanza todo el mundo a través de streaming
-- 🎨 **Diseño premium**: Interfaz moderna y atractiva con animaciones fluidas
-- 📱 **PWA Ready**: Instalable en móviles como una app nativa
-
----
-
-## ✨ Características
-
-### 🎧 Contenido
-- 📻 **Episodios de Podcast**: Escucha todos nuestros episodios con player integrado de Spotify
-- 📝 **Blog Estudiantil**: Noticias, historias y el día a día del instituto
-- 🗓️ **Calendario**: Programación de eventos y próximos episodios
-- 👥 **Equipo**: Conoce a los creadores detrás del micrófono
-
-### 💫 Experiencia de Usuario
-- 🌗 **Modo Oscuro/Claro**: Tema adaptable según preferencias
-- 🎵 **Reproductor Persistente**: Player flotante que no se interrumpe al navegar
-- ⚡ **SPA Navigation**: Navegación ultra-rápida sin recargas
-- 📱 **Responsive**: Diseño adaptado a todos los dispositivos
-- ✨ **Animaciones GSAP**: Transiciones suaves y profesionales
-- 🎠 **Carruseles Swiper**: Navegación intuitiva de episodios
-
-### 🔐 Usuarios y Comunidad
-- 👤 **Perfiles de Usuario**: Área personal con estadísticas detalladas de escucha
-- 🔑 **Autenticación Multi-método**: Acceso seguro mediante Google OAuth o Magic Link (Email)
-- 🔔 **Notificaciones Push**: Alertas en tiempo real sobre nuevos episodios y anuncios
-
-### 🔧 Características Técnicas
-- 🔍 **SEO Optimizado**: OpenGraph, Twitter Cards, Schema.org
-- 📊 **Métricas Integradas**: Monitoreo de tráfico en tiempo real con Vercel Analytics
-- 🤖 **Robots.txt & Sitemap**: Configuración completa para crawlers
-- 🍪 **Gestión de Cookies**: Banner de consentimiento GDPR compliant
-- 📄 **Páginas Legales**: Política de privacidad, términos, cookies
-- 🔐 **TypeScript**: Type-safety en todo el proyecto
+- 🎓 **Identidad propia**: No usamos soluciones de terceros para el contenido; construimos nuestra propia plataforma.
+- 🚀 **Enfoque en Rendimiento**: Gracias a Astro y SSR, la carga es instantánea en cualquier dispositivo.
+- 🤝 **Comunidad Activa**: Los usuarios pueden interactuar, comentar, participar en quizzes y seguir su progreso.
+- 🎨 **Estética de Vanguardia**: Diseño oscuro moderno con animaciones fluidas, efectos de glassmorphism y transiciones profesionales.
 
 ---
 
-## 🛠️ Tecnologías
+## ✨ Características Principales
 
-### Core
-- **[Astro](https://astro.build)** - Framework web moderno y ultra-rápido
-- **[TypeScript](https://www.typescriptlang.org/)** - JavaScript con tipos estáticos
+### 🎧 Ecosistema de Contenido
+- 📻 **Podcast & Vídeo**: Reproductor avanzado con soporte para Spotify (audio/video), HLS y archivos directos.
+- 📝 **Blog Dinámico**: Artículos de opinión, noticias del instituto y reportajes especiales.
+- 👥 **Directorio de Invitados**: Fichas detalladas de cada persona que pasa por nuestros micrófonos.
+- 📸 **Galería Multimedia**: Colecciones visuales de los mejores momentos y eventos.
+- 🗓️ **Calendario de Emisiones**: Agenda integrada para no perderse ningún estreno.
 
-### Estilos & Animaciones
-- **CSS Variables** - Sistema de diseño consistente
-- **[GSAP](https://greensock.com/gsap/)** - Animaciones profesionales
-- **[Swiper](https://swiperjs.com/)** - Carruseles táctiles
+### 👤 Experiencia de Usuario (Social & Gamificación)
+- 🔐 **Auth Premium**: Login con Google OAuth o Magic Link (Email) sin contraseñas.
+- 📊 **Perfil Personal**: Estadísticas de escucha detalladas, historial y gestión de favoritos.
+- 🏆 **Logros & Medallas**: Sistema de gamificación que premia la fidelidad de los oyentes.
+- 🃏 **Cromos Digitales**: Coleccionables únicos basados en los hitos del proyecto.
+- 💬 **Interacción en Vivo**: Chat integrado en tiempo real para emisiones en directo y comentarios verificables en posts.
 
-### Integraciones
-- **[@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/)** - Generación de sitemap automático
-- **[@astrojs/rss](https://docs.astro.build/en/guides/rss/)** - Feed RSS
-- **[Lucide Icons](https://lucide.dev/)** - Iconos SVG modernos
+### 🛠️ Herramientas Pro
+- 🔍 **Búsqueda Inteligente**: Motor de búsqueda ultrarrápido con Fuse.js.
+- 📧 **Newsletter Semanal**: Envío automatizado de novedades vía Mailjet.
+- 🔔 **Web Push Notifications**: Alertas instantáneas en el navegador sobre nuevos episodios.
+- 🤖 **IA & Accesibilidad**: Text-to-Speech (TTS) integrado para mayor accesibilidad del contenido.
+- 🎬 **Studio Mode**: Espacio dedicado para la gestión y creación de contenido.
 
-### Content
-- **Astro Content Collections** - Sistema de gestión de contenido type-safe
-- **Markdown** - Escritura de artículos y episodios
-- **Spotify Embed** - Integración de reproductor
+---
+
+## 🛠️ Stack Tecnológico
+
+### Frontend & UI
+- **[Astro 5+](https://astro.build)** - Framework principal con arquitectura de islas.
+- **[React](https://reactjs.org/)** - Para componentes interactivos y estados complejos.
+- **[Tailwind CSS](https://tailwindcss.com/)** - Estilizado moderno y utilitario.
+- **[GSAP](https://greensock.com/gsap/)** & **[Three.js](https://threejs.org/)** - Animaciones 2D/3D y efectos visuales.
+- **[Lucide Astro](https://lucide.dev/)** - Iconografía SVG coherente.
+
+### Backend & Datos
+- **[Vercel SSR](https://vercel.com/docs/frameworks/astro)** - Adaptador para renderizado en servidor.
+- **[MongoDB & Mongoose](https://www.mongodb.com/)** - Base de datos NoSQL para usuarios, comentarios y analíticas.
+- **[JWT](https://jwt.io/)** - Gestión de sesiones seguras mediante cookies HTTP-only.
+- **[Zod](https://zod.dev/)** - Validación rigurosa de esquemas de contenido y APIs.
+
+### Servicios & APIs
+- **[Mailjet](https://www.mailjet.com/)** - Gestión de newsletter y correos transaccionales.
+- **[Google OAuth](https://developers.google.com/identity/protocols/oauth2)** - Autenticación de terceros.
+- **[Satori](https://github.com/vercel/satori)** - Generación dinámica de imágenes Open Graph (OG).
+- **[Web Push API](https://developer.mozilla.org/es/docs/Web/API/Push_API)** - Notificaciones nativas del navegador.
 
 ---
 
 ## 🚀 Comenzando
 
-### Prerequisitos
+### Prerrequisitos
 
-- **Node.js** v18 o superior
-- **npm** v9 o superior
+- **Node.js** v18+ 
+- **MongoDB** (Instancia local o Atlas)
+- **Cuentas de Servicio**: Google Cloud (Auth), Mailjet (Emails), Vercel (Hosting).
 
-### Instalación
+### Instalación Rápida
 
-1. **Clona el repositorio**
+1. **Clonar y Entrar**
    ```bash
    git clone https://github.com/Broslunas/veredillas-fm.git
    cd veredillas-fm
    ```
 
-2. **Instala las dependencias**
+2. **Instalar Dependencias**
    ```bash
    npm install
    ```
 
-3. **Inicia el servidor de desarrollo**
+3. **Variables de Entorno**
+   Crea un archivo `.env` basado en `.env.example`:
+   ```bash
+   MONGODB_URI="tu_url_de_mongo"
+   GOOGLE_CLIENT_ID="tu_id"
+   GOOGLE_CLIENT_SECRET="tu_secret"
+   JWT_SECRET="una_clave_larga_y_segura"
+   MJ_APIKEY_PUBLIC="tu_mailjet_key"
+   MJ_API_SECRET="tu_mailjet_secret"
+   # ... ver .env.example para la lista completa
+   ```
+
+4. **Ejecutar Desarrollo**
    ```bash
    npm run dev
    ```
 
-4. **Abre tu navegador**
-   
-   Navega a `http://localhost:4321`
-
 ### Scripts Disponibles
 
-```bash
-npm run dev        # Inicia servidor de desarrollo
-npm run build      # Construye para producción
-npm run preview    # Previsualiza build de producción
-npm run astro      # CLI de Astro
-```
+| Script | Descripción |
+| :--- | :--- |
+| `npm run dev` | Servidor de desarrollo con HMR (`localhost:4321`) |
+| `npm run build` | Limpia, valida y construye para producción |
+| `npm run preview` | Previsualiza localmente el build de producción |
+| `npm run send:newsletter` | Trigger manual para el envío de la newsletter |
 
 ---
 
@@ -148,188 +150,105 @@ npm run astro      # CLI de Astro
 
 ```
 veredillas-fm/
-├── .agent/                    # Documentación y workflows
-│   └── SEO-IMPROVEMENTS.md
-├── public/                    # Archivos estáticos
-│   ├── favicon.ico
-│   ├── logo.webp
-│   ├── robots.txt
-│   ├── humans.txt
-│   └── manifest.json
 ├── src/
-│   ├── components/           # Componentes reutilizables
-│   │   ├── Header.astro
-│   │   ├── Footer.astro
-│   │   ├── MiniPlayer.astro
-│   │   ├── EpisodeCard.astro
-│   │   ├── PostCard.astro
-│   │   └── ...
-│   ├── content/              # Colecciones de contenido
-│   │   ├── blog/            # Artículos del blog
-│   │   ├── episodios/       # Episodios del podcast
-│   │   └── config.ts        # Schemas de validación
-│   ├── layouts/             # Layouts de página
-│   │   └── Layout.astro
-│   ├── pages/               # Rutas del sitio
-│   │   ├── api/             # Endpoints (Auth, Push, etc.)
-│   │   ├── dashboard/       # Panel de administración
-│   │   ├── index.astro
-│   │   ├── about.astro
-│   │   ├── blog/
-│   │   ├── ep/
-│   │   ├── perfil.astro     # Perfil de usuario y estadísticas
-│   │   ├── contacto.astro
-│   │   ├── calendario.astro
-│   │   └── rss.xml.js
-│   └── styles/              # Estilos globales
-│       └── global.css
-├── astro.config.mjs         # Configuración de Astro
-├── tsconfig.json            # Configuración de TypeScript
-└── package.json             # Dependencias del proyecto
+│   ├── components/       # Componentes Astro/React (UI, Player, Auth)
+│   ├── content/          # Colecciones: blog, episodios, guests, gallery
+│   ├── layouts/          # Plantillas base (SEO, HTML tags)
+│   ├── lib/              # Utilidades: auth, mongodb, utils
+│   ├── models/           # Esquemas Mongoose (User, Achievement, Card)
+│   ├── pages/            # Enrutado SSR y endpoints de la API
+│   │   ├── api/          # Backend: auth, clips, comments, push, etc.
+│   │   ├── auth/         # Vistas de login/registro
+│   │   ├── dashboard/    # Panel de administración/usuario
+│   │   └── ...           # Vistas públicas (index, ep, blog, clips)
+│   └── styles/           # Configuración global de CSS y temas
+├── public/               # Assets estáticos, PWA manifest, service worker
+├── scripts/              # Herramientas de automatización (newsletter, etc.)
+├── astro.config.mjs      # Configuración central (integraciones, SSR)
+└── package.json          # El corazón del proyecto
 ```
 
 ---
 
-## 🎨 Desarrollo
+## 🎨 Guía de Desarrollo
 
-### Añadir un Nuevo Episodio
+### Añadir Contenido (Content Collections)
 
-1. Crea un archivo `.md` en `src/content/episodios/`
-2. Usa este frontmatter:
+Para añadir nuevos episodios, posts o invitados, crea un archivo `.md` en la carpeta correspondiente de `src/content/`. 
 
+#### Ejemplo: Nuevo Episodio
 ```markdown
 ---
-title: "Título del Episodio"
-description: "Descripción breve"
-pubDate: 2026-03-03
-author: "Nombre del Autor"
-image: "URL de la imagen"
-spotifyUrl: "URL del episodio en Spotify"
-season: 1
-episode: 1
-duration: "45 min"
-tags: ["tag1", "tag2"]
+title: "Nuestra Gran Entrevista"
+description: "Un repaso a..."
+pubDate: 2026-04-10
+audioUrl: "https://..."
+spotifyUrl: "https://..."
+season: 2
+episode: 5
+tags: ["Entrevista", "Especial"]
+quiz: [
+  { question: "¿Quién fue el invitado?", options: ["A", "B", "C"], correctAnswer: 1 }
+]
 ---
-
-Contenido del episodio...
-```
-
-### Añadir un Artículo al Blog
-
-1. Crea un archivo `.md` en `src/content/blog/`
-2. Usa este frontmatter:
-
-```markdown
----
-title: "Título del Artículo"
-description: "Descripción breve"
-pubDate: 2026-03-03
-author: "Nombre del Autor"
-image: "URL de la imagen"
-tags: ["tag1", "tag2"]
----
-
-Contenido del artículo...
+Cuerpo del episodio...
 ```
 
 ### Sistema de Temas
-
-El sitio usa CSS variables para un sistema de temas consistente:
-
-```css
-:root {
-  --color-primary: #8b5cf6;
-  --color-secondary: #ec4899;
-  --color-background: #0a0a0f;
-  /* ... más variables */
-}
-```
+Utilizamos variables CSS centralizadas en `src/styles/global.css` para mantener la consistencia visual ("Theming System"), permitiendo cambios de color en caliente y soporte para modo oscuro avanzado.
 
 ---
 
-## 📱 PWA
+## 📱 PWA & Mobile
 
-El sitio es una **Progressive Web App** (PWA) completamente funcional:
+Veredillas FM es una **Progressive Web App** diseñada con un enfoque *mobile-first*:
 
-- ✅ Instalable en dispositivos móviles
-- ✅ Funciona offline (service worker)
-- ✅ Ícono de app personalizado
-- ✅ Splash screen
-- ✅ Theme color adaptado
-
-El archivo `manifest.json` está configurado para una experiencia nativa.
+- 🔋 **Offline Ready**: Almacenamiento en caché de recursos críticos.
+- 📲 **App Experience**: Instalable en Android e iOS sin pasar por la App Store.
+- 🎨 **Tema Nativo**: Color de barra de estado y splash screen personalizadas.
+- 🔊 **Background Playback**: Optimizado para seguir escuchando mientras usas otras apps.
 
 ---
 
-## 🔍 SEO
+## 🔍 SEO & Open Graph
 
-### Metadatos Implementados
+Nuestra plataforma está optimizada para ser encontrada y compartida:
 
-- ✅ **Open Graph** para Facebook, WhatsApp, LinkedIn
-- ✅ **Twitter Cards** para previews enriquecidos
-- ✅ **Schema.org JSON-LD** para datos estructurados
-- ✅ **Canonical URLs** para evitar duplicados
-- ✅ **Meta tags completos** en todas las páginas
-- ✅ **Sitemap XML** generado automáticamente
-- ✅ **RSS Feed** para suscripciones
-- ✅ **Robots.txt** optimizado
-
-### Validar SEO
-
-```bash
-# Herramientas recomendadas:
-# - Google Search Console
-# - Facebook Sharing Debugger
-# - Twitter Card Validator
-# - Google Rich Results Test
-```
-
-Ver [SEO-IMPROVEMENTS.md](.agent/SEO-IMPROVEMENTS.md) para más detalles.
+- 📊 **Metadatos Automáticos**: Cada página genera sus propios tags SEO (títulos, descripciones).
+- 🖼️ **OG Image Gen**: Usamos **Satori** para crear previsualizaciones dinámicas en redes sociales (Twitter, WhatsApp, etc.) que incluyen el título y la imagen del post en tiempo real.
+- 🗺️ **Sitemap & RSS**: Sitemap manual para contenido dinámico SSR y feed RSS actualizado para podcatchers.
 
 ---
 
 ## 🤝 Contribuir
 
-¡Las contribuciones son lo que hace que la comunidad de código abierto sea un lugar increíble para aprender, inspirar y crear! Cualquier contribución que hagas será **muy apreciada**.
+¿Quieres mejorar Veredillas FM? ¡Eres bienvenido!
 
-Por favor, lee nuestro [CONTRIBUTING.md](CONTRIBUTING.md) para conocer el proceso de contribución.
+1. **Fork** el repo.
+2. Crea una **rama** para tu mejora (`git checkout -b feature/MejoraIncreible`).
+3. Haz **commit** de tus cambios (`git commit -m 'Añade: Tal funcionalidad'`).
+4. Haz **push** a la rama (`git push origin feature/MejoraIncreible`).
+5. Abre un **Pull Request**.
 
-### Proceso Rápido
-
-1. Fork el proyecto
-2. Crea tu rama de feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add: AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para más detalles.
 
 ---
 
 ## 👥 Equipo
 
-### Creadores de Veredillas FM
-
 - **Abel Fernández** - Guionista
-- **Pablo Luna** - Web, Sonido y Programación - [broslunas.com](https://broslunas.com)
-- **Pablo Santamaría** - Diseño Web y Sonido - [@pabl0.sp](https://www.instagram.com/pabl0.sp/)
-- **Omar Reyes** - Diseñador Web - [@ereyes_magos](https://www.instagram.com/ereyes_magos/)
+- **Pablo Luna** - Web, Sonido y Programación
+- **Pablo Santamaría** - Diseño Web y Sonido
+- **Omar Reyes** - Diseñador Web
 - **Dylan Jorge** - Redactor Jefe
-- **Pablo Pérez** - Integrante del Podcast - [@__pabloprz](https://www.instagram.com/__pabloprz/)
-- **Miguel Salazar** - Estrategia Digital - [@miguelslzzz](https://www.instagram.com/miguelslzzz/)
+- **Pablo Pérez** - Integrante del Podcast
+- **Miguel Salazar** - Estrategia Digital
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
----
-
-## 🙏 Agradecimientos
-
-- **IES Veredillas** por el apoyo al proyecto
-- **Profesorado** por fomentar la creatividad estudiantil
-- **Comunidad de Astro** por el increíble framework
-- **Todos los oyentes** que hacen posible este proyecto
+Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 
