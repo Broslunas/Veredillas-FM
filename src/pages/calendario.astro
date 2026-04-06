@@ -16,7 +16,7 @@ const maxResults = 25;
 
 const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=${maxResults}`;
 
-let events = [];
+let events: any[] = [];
 try {
   const response = await fetch(url);
   if (response.ok) {
@@ -31,7 +31,7 @@ try {
 
 const episodios = await getCollection('episodios');
 
-const formatDateObj = (startObj) => {
+const formatDateObj = (startObj: any) => {
     const d = new Date(startObj.dateTime || startObj.date);
     const day = d.getDate();
     const monthRaw = d.toLocaleString('es-ES', { month: 'short' }).replace('.', '');
@@ -233,18 +233,20 @@ const nextEvent = events.find(event => {
         }
 
         // Búsqueda en tiempo real
-        const searchInput = document.getElementById('search-events');
+        const searchInput = document.getElementById('search-events') as HTMLInputElement | null;
         const eventCards = document.querySelectorAll('.event-card');
         
         if (searchInput && eventCards.length > 0) {
             searchInput.addEventListener('input', (e) => {
-                const term = e.target.value.toLowerCase();
+                const target = e.target as HTMLInputElement;
+                const term = target.value.toLowerCase();
                 eventCards.forEach(card => {
-                    const text = card.innerText.toLowerCase();
+                    const htmlCard = card as HTMLElement;
+                    const text = (htmlCard.textContent || '').toLowerCase();
                     if (text.includes(term)) {
-                        card.style.display = '';
+                        htmlCard.style.display = '';
                     } else {
-                        card.style.display = 'none';
+                        htmlCard.style.display = 'none';
                     }
                 });
             });
@@ -273,13 +275,13 @@ const nextEvent = events.find(event => {
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                 
                 const dayEl = countdownEl.querySelector('.cd-d');
-                if(dayEl) dayEl.innerText = days.toString().padStart(2, '0');
+                if(dayEl) dayEl.textContent = days.toString().padStart(2, '0');
                 const hourEl = countdownEl.querySelector('.cd-h');
-                if(hourEl) hourEl.innerText = hours.toString().padStart(2, '0');
+                if(hourEl) hourEl.textContent = hours.toString().padStart(2, '0');
                 const minEl = countdownEl.querySelector('.cd-m');
-                if(minEl) minEl.innerText = minutes.toString().padStart(2, '0');
+                if(minEl) minEl.textContent = minutes.toString().padStart(2, '0');
                 const secEl = countdownEl.querySelector('.cd-s');
-                if(secEl) secEl.innerText = seconds.toString().padStart(2, '0');
+                if(secEl) secEl.textContent = seconds.toString().padStart(2, '0');
             };
             
             updateTimer();
