@@ -1,11 +1,9 @@
 ---
 title: '░░░░░░░░ ft. ░░░░░░, ░░░░░░░░ & ░░░░░░░░'
 tags:
-  - ░░░░░░
-  - ░░░░░░░░
-  - ░░░░░░░░░░░░░░
-  - ░░░░░░░░
-  - ░░░░░░░░
+  - Misterio
+  - Sorpresa
+  - Contenido Oculto
 description: ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/f1d02c44-eca3-4281-8bf6-17a07468dea5.webp'

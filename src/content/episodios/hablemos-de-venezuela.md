@@ -1,10 +1,13 @@
 ---
 title: 'Hablemos sobre Venezuela ft. Christopher, Diego & Jezael'
 tags:
-  - Venezuela
   - Política
-  - Economía
+  - Venezuela
+  - Geopolítica
+  - Migración
+  - Derechos Humanos
   - Actualidad
+  - Economía
   - Debate
 transcription:
   - time: '00:00'

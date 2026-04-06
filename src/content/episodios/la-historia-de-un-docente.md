@@ -1,12 +1,14 @@
 ---
 title: La HISTORIA de un Docente ft. Dulce
 tags:
-  - Podcast Educativo
   - Educación
-  - Docentes
-  - Inspiración
   - Vocación
-  - Vida Escolar
+  - Docencia
+  - Historia de España
+  - Bullying
+  - Pandemia
+  - Selectividad
+  - Relaciones Humanas
 transcription:
   - time: '00:02'
     text: >-

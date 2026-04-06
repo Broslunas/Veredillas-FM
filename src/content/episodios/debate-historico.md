@@ -1,14 +1,14 @@
 ---
 title: 'Debate Histórico: Profesor vs. Alumno ft. Prof. Ulises & Gustavo'
 tags:
-  - historia
-  - debate
-  - educación
-  - profesor
-  - alumno
-  - generaciones
-  - perspectivas
-  - análisis histórico
+  - Historia
+  - Historia de España
+  - Debate
+  - Guerra Civil
+  - Franquismo
+  - Segunda República
+  - Educación
+  - Cultura
 description: >-
   Un apasionante debate sobre la historia entre el Profesor Ulises, un
   experimentado historiador, y Gustavo, un alumno de primer año de bachillerato.

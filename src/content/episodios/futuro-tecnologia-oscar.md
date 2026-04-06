@@ -4,7 +4,9 @@ tags:
   - Profesorado
   - Tecnología
   - Innovación
-  - Profesorado
+  - Futuro
+  - Informática
+  - Educación
 transcription:
   - time: '00:00'
     text: (pausa de cinco segundos)

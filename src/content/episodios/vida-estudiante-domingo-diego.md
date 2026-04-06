@@ -1,8 +1,15 @@
 ---
 title: La vida del estudiante ft. Domingo & Diego
 tags:
+  - Educación
   - Bachillerato
-  - Vida Estudiantil
+  - PAU
+  - Selectividad
+  - Física
+  - Orientación Académica
+  - Música
+  - Viajes
+  - Ocio
 transcription:
   - time: '00:00'
     text: Vamos. Nada en verdad ha cambiado.

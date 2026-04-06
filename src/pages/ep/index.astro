@@ -229,9 +229,9 @@ const buildNow = new Date();
 
                         <!-- Subject/Tag Filter -->
                         <div class="adv-filter-group">
-                            <label>Asignatura / Tema</label>
+                            <label>Temática</label>
                             <select id="subject-filter" class="adv-select">
-                                <option value="">Todas las asignaturas</option>
+                                <option value="">Todas las temáticas</option>
                                 {uniqueSubjects.map(subject => (
                                     <option value={subject.toLowerCase()}>{subject}</option>
                                 ))}

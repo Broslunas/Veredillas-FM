@@ -1,16 +1,13 @@
 ---
 title: El Cálculo de la Experiencia ft. Prof. Carmen
 tags:
-  - matemáticas
-  - podcast
-  - educación
-  - elcálculodelaexperiencia
-  - profcarmen
-  - liderazgo
-  - vida
-  - geometría
-  - decisiones
-  - experiencias
+  - Educación
+  - Profesorado
+  - Matemáticas
+  - Bachillerato
+  - Experiencia
+  - Vocación
+  - Inspiración
 transcription:
   - time: '00:02'
     text: >-

@@ -1,8 +1,15 @@
 ---
 title: El Pulso de la Vida ft. Diego
 tags:
+  - Juventud
+  - Relaciones
+  - Amor
+  - Redes Sociales
+  - Salud Mental
+  - Adicciones
+  - Tecnología
   - Reflexión
-  - Vida Estudiantil
+  - Estilo de Vida
 transcription:
   - time: '00:05'
     text: >-

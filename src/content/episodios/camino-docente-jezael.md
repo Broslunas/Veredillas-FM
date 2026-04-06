@@ -1,9 +1,13 @@
 ---
 title: El camino de un docente ft. Jezael Goya
 tags:
+  - Educación
   - Profesorado
   - Matemáticas
   - Bachillerato
+  - Ingeniería
+  - Estilo de Vida
+  - Inspiración
 transcription:
   - time: '00:00'
     text: >-

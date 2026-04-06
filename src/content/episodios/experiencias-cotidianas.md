@@ -1,10 +1,12 @@
 ---
 title: Charlas del día a día ft. Carlos & Gustavo
 tags:
+  - Estilo de Vida
   - Experiencias
-  - Vida Diaria
-  - Charla
+  - Juventud
   - Anécdotas
+  - Relaciones
+  - Reflexión
 transcription:
   - time: '00:00'
     text: >-

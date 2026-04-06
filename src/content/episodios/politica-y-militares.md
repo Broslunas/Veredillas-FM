@@ -2,11 +2,13 @@
 title: Política y Militares ft. Elio & Gustavo
 tags:
   - Geopolítica
-  - Defensa Nacional
-  - Seguridad
-  - Estrategia
-  - Análisis Militar
-  - Estado Y Fuerza
+  - Política
+  - Guerra
+  - Armas Nucleares
+  - Defensa
+  - Oriente Medio
+  - Actualidad
+  - Relaciones Internacionales
 transcription:
   - time: '00:01'
     text: >-

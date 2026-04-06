@@ -1,9 +1,12 @@
 ---
 title: 'Amor Sin Filtros ft. Saray, Antonieta & Diego'
 tags:
-  - Amor
   - Relaciones
-  - Sin filtros
+  - Amor
+  - Juventud
+  - Citas
+  - Amistad
+  - Reflexión
 transcription:
   - time: '00:02'
     text: >-

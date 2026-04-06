@@ -1,10 +1,14 @@
 ---
 title: El Biólogo que nos guía en la Informática ft. Alejandro
 tags:
+  - Educación
   - Profesorado
   - Informática
   - Ciencia
-  - Profesorado
+  - IA
+  - Tecnología
+  - Biología
+  - Carrera Profesional
 transcription:
   - time: '00:00'
     text: >-

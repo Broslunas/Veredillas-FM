@@ -1,7 +1,12 @@
 ---
 title: 'El Mercadillo ft. Carlos, Anaysa & Gisselle'
 tags:
-  - Eventos
+  - Cultura
+  - Evento Escolar
+  - Comunidad
+  - Ocio
+  - Canarias
+  - Solidaridad
 transcription:
   - time: '00:01'
     text: >-

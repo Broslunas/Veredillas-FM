@@ -1,12 +1,13 @@
 ---
 title: 'Humo y Tinta ft. Dylan, Eric, Alejandro & Joan'
 tags:
-  - tatuajes
-  - vaper
-  - cultura
-  - estilo de vida
-  - subculturas
-  - tatuajes significativos
+  - Cultura
+  - Estilo de Vida
+  - Tatuajes
+  - Vapeo
+  - Subculturas
+  - Juventud
+  - Identidad
 transcription:
   - time: '00:03'
     text: >-

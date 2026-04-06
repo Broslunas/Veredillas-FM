@@ -1,14 +1,18 @@
 ---
 title: 'Sociedad Limitada: Ministros, Pagas y Cadenas ft. Samuel, Hugo & Carlos'
 tags:
-  - sociedad limitada
-  - samuel machin
-  - hugo calero
-  - carlos ramos
-  - politica economica
-  - dia internacional de la mujer
-  - 8m
-  - soberania individual
+  - Sociedad
+  - Política
+  - Economía
+  - Impuestos
+  - Emprendimiento
+  - Migración
+  - Canarias
+  - 8M
+  - Feminismo
+  - Justicia
+  - Debate
+  - Actualidad
 transcription:
   - time: '00:02'
     text: >-
