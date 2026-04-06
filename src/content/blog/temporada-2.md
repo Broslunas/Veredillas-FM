@@ -1,14 +1,12 @@
 ---
 title: ¡Nueva Temporada! Estreno con Dulce
 tags:
-  - veredillas fm
-  - podcast
-  - historia de españa
-  - nueva temporada
-  - segunda temporada
-  - instituto
-  - radio escolar
-  - dulce
+  - Nueva Temporada
+  - IES Las Veredillas
+  - Radio Escolar
+  - Historia de España
+  - Entrevista
+  - Pódcast
 description: >-
   ¡Veredillas FM regresa! Entrevista a Dulce, vicedirectora y profesora de
   Historia. Descubre la vida del instituto y la historia de España. ¡No te lo

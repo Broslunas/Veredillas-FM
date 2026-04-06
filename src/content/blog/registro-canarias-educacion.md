@@ -1,15 +1,12 @@
 ---
 title: ¡Regístrate en Veredillas FM con @canariaseducacion.es!
 tags:
-  - veredillas fm
-  - canariaseducacion.es
-  - integración
-  - educación
-  - alumnos
-  - profesores
-  - registro seguro
-  - privacidad
-  - acceso fácil
+  - Tecnología
+  - Educación
+  - Privacidad
+  - Tutorial
+  - Canarias Educación
+  - IES Las Veredillas
 description: >-
   Veredillas FM se integra con las cuentas de @canariaseducacion.es, permitiendo
   a alumnos y profesores registrarse y acceder fácilmente, salvaguardando su

@@ -4,7 +4,7 @@ description: "¡Prepárate! Muy pronto tendremos una entrevista con un profesor 
 pubDate: 2026-01-13
 author: "Redacción Veredillas"
 image: "https://blogger.googleusercontent.com/img/a/AVvXsEitipnmLcMJrCJ54CBOzl1MvbPI82RGIH2KTANhueGlP3R1Hk4LOcenpk7olp4dsbGz2XBeGw4UQfeonYQuzo4cX-fCRJ7BzAhNNBFHCLMnW2P8lc5GrdwzYbJfa1IlTC5I2r-jFB2_lLpz8SAREvzg3Rf6S-Tc3fTGkATfp-9q9SOIw_XmLXVIcHxnyV0"
-tags: ["Próximamente", "Sorpresa"]
+tags: ["Próximamente", "Entrevista", "Profesorado", "Sorpresa", "IES Las Veredillas"]
 ---
 
 ¡Atención a todos los oyentes de Veredillas FM!

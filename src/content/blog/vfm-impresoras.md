@@ -2,10 +2,11 @@
 title: Veredillas FM Impresiones - Impresión 3D al Alcance de tu Mano
 tags:
   - Impresión 3D
-  - Nuevo Servicio
-  - Impresoras
-  - Presupuesto
+  - Tecnología
+  - Servicios
   - Innovación
+  - IES Las Veredillas
+  - Tutorial
 description: >-
   Descubre Veredillas FM Impresiones: ¡prototipos rápidos, piezas personalizadas
   y más! Solicita presupuesto online y obtén tus impresiones en 24-72 horas.
