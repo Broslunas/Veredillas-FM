@@ -710,12 +710,15 @@ const buildNow = new Date();
                         
                         filterItems(true);
                         
-                        // Scroll top to the grid, but maintaining a bit of padding for the fixed navbar
-                        const grid = document.getElementById('episodes-grid');
-                        if (grid) {
-                            const y = grid.getBoundingClientRect().top + window.scrollY - 120;
-                            window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-                        }
+                        // Scroll top to the grid with a slight delay 
+                        // to allow ViewTransitions and DOM updates to complete
+                        setTimeout(() => {
+                            const grid = document.getElementById('episodes-grid');
+                            if (grid) {
+                                const y = grid.getBoundingClientRect().top + window.scrollY - 120;
+                                window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                            }
+                        }, 150);
                     });
                 });
             }
