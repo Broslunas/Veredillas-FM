@@ -22,6 +22,7 @@ import EpisodeActions from "../../components/EpisodeActions.astro";
 import CinemaAudioPlayer from "../../components/player/CinemaAudioPlayer.tsx";
 import EpisodeQuiz from "../../components/EpisodeQuiz.tsx";
 import QuizModal from "../../components/QuizModal.tsx";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
 
 export const prerender = true;
 
@@ -78,7 +79,7 @@ let favoriteEpisodes: string[] = [];
 
 // --- Schema.org data ---
 const siteUrl =
-    Astro.site?.href?.replace(/\/$/, "") ?? "https://veredillasfm.es";
+    Astro.site?.href?.replace(/\/$/, "") ?? "https://www.veredillasfm.es";
 const canonicalEpisodeUrl = `${siteUrl}/ep/${slug}`;
 const ogImageUrl = `${siteUrl}/og/${slug}.png`;
 const relativeOgImageUrl = `/og/${slug}.png`;
@@ -268,6 +269,7 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     />
 
     <div class="cinema-layout container">
+        <Breadcrumbs className="col-span-full mb-4" customLabel={entry.data.title} />
         {
             isPremiere && !hasPremiereEnded && (
                 /* 0. PREMIERE STAGE (Player + Chat side-by-side) */

@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://veredillasfm.es/sitemap-index.xml
+Sitemap: https://www.veredillasfm.es/sitemap-index.xml
 
 # Crawl Delay
 Crawl-delay: 10
