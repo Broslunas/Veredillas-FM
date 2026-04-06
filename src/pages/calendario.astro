@@ -85,12 +85,18 @@ const formatDateObj = (startObj) => {
                                epDate.getDate() === dateInfo.dateObj.getDate();
                     });
 
+                    let displayTime = dateInfo.time;
+                    if (relatedEpisode && displayTime === 'Todo el día') {
+                        const epDate = new Date(relatedEpisode.data.pubDate);
+                        displayTime = epDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                    }
+
                     return (
                         <div class="event-card glass-panel">
                             <div class="event-date">
                                 <span class="day">{dateInfo.day}</span>
                                 <span class="month">{dateInfo.month}</span>
-                                <span class="time">{dateInfo.time}</span>
+                                <span class="time">{displayTime}</span>
                             </div>
                             <div class="event-details">
                                 <h3>{event.summary || 'Evento sin título'}</h3>
