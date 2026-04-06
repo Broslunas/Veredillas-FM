@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 
@@ -18,7 +19,13 @@ const featuredEpisodes = allEpisodes
                 <div class="swiper-slide w-full h-full [&:not(.swiper-slide-active)]:pointer-events-none">
                     <div class="relative w-full h-full">
                         {post.data.image ? (
-                            <img src={post.data.image} alt={post.data.title} class="w-full h-full object-cover" />
+                            <Image 
+                                src={post.data.image} 
+                                alt={post.data.title} 
+                                width={1000}
+                                height={500}
+                                class="w-full h-full object-cover" 
+                            />
                         ) : (
                             <div class="w-full h-full bg-gradient-to-br from-zinc-900 to-zinc-800"></div>
                         )}

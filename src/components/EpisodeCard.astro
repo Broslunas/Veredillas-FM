@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
 
 interface Props {
     post: CollectionEntry<"episodios">;
@@ -53,9 +54,11 @@ const isAboutToPremiere = isUpcoming && diffInHours <= 2;
         {
             post.data.image ? (
                 <div class="w-full h-[180px] relative overflow-hidden">
-                    <img
+                    <Image
                         src={post.data.image}
                         alt={post.data.title}
+                        width={600}
+                        height={338}
                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         style="transform: translateZ(20px);"
                         loading="lazy"

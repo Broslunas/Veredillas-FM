@@ -138,5 +138,14 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@resvg/resvg-js']
     }
+  },
+
+  image: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'cdn.veredillasfm.es' },
+      { protocol: 'https', hostname: 'ui-avatars.com' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'upload.wikimedia.org' },
+    ],
   }
 });

@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import SocialShare from '../../components/SocialShare.astro';
 import ShareCardGenerator from '../../components/ShareCardGenerator.astro';
@@ -51,9 +52,11 @@ const relativeOgImageUrl = entry.data.image || `/logo.webp`;
                     <div class="player-wrapper shadow-2xl relative mb-6">
                         <div class="cinema-player-box group">
                             <div class="aspect-video bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5 relative">
-                                <img
+                                <Image
                                     src={entry.data.image}
                                     alt={entry.data.title}
+                                    width={1280}
+                                    height={720}
                                     class="absolute inset-0 w-full h-full object-cover"
                                 />
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80"></div>
@@ -77,9 +80,11 @@ const relativeOgImageUrl = entry.data.image || `/logo.webp`;
                     <div class="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-white/5">
                         <div class="author-meta flex items-center gap-4">
                             <div class="relative">
-                                <img
+                                <Image
                                     src="/logo.webp"
                                     alt="Veredillas FM"
+                                    width={48}
+                                    height={48}
                                     class="w-12 h-12 rounded-2xl border border-white/10 shadow-lg object-cover"
                                 />
                                 <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-[#121212] flex items-center justify-center">
