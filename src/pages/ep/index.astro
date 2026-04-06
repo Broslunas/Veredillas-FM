@@ -271,6 +271,8 @@ const buildNow = new Date();
             })}
         </div>
         
+        <div id="pagination-container" class="pagination-container"></div>
+
         <div id="no-results" class="no-results hidden">
             <span class="no-results-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -317,6 +319,9 @@ const buildNow = new Date();
         let selectedDurationLabel = 'Cualquiera';
         let selectedSchoolYear = '';
         let selectedSubject = '';
+        
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 12;
 
         // Initial setup for tag if present
         if (selectedTag) {
@@ -344,18 +349,18 @@ const buildNow = new Date();
                     max: parseInt(chip.getAttribute('data-max') || '999')
                 };
                 selectedDurationLabel = chip.textContent || 'Cualquiera';
-                filterItems();
+                filterItems(false);
             });
         });
 
         schoolYearFilter?.addEventListener('change', () => {
             selectedSchoolYear = schoolYearFilter.value;
-            filterItems();
+            filterItems(false);
         });
 
         subjectFilter?.addEventListener('change', () => {
             selectedSubject = subjectFilter.value;
-            filterItems();
+            filterItems(false);
         });
 
         // ── Optimized Filter Cache ──────────────────────────────────────
@@ -474,12 +479,15 @@ const buildNow = new Date();
                 }
 
                 closeDropdown();
-                filterItems();
+                filterItems(false);
             });
         });
 
         // ── Main filter function ───────────────────────────────────────
-        function filterItems() {
+        function filterItems(fromPagination = false) {
+            if (fromPagination !== true) {
+                currentPage = 1;
+            }
             const now = new Date();
             const showUpcoming = upcomingToggle.checked;
             const searchTerm = searchInput.value.toLowerCase().trim();
@@ -556,7 +564,7 @@ const buildNow = new Date();
                         selectedSubject = '';
                         if (subjectFilter) subjectFilter.value = '';
                         window.history.replaceState({}, '', window.location.pathname);
-                        filterItems();
+                        filterItems(false);
                     });
                     document.getElementById('clear-guest-chip')?.addEventListener('click', () => {
                         selectedGuest = '';
@@ -566,18 +574,18 @@ const buildNow = new Date();
                         document.querySelector('.guest-option--all')?.classList.add('active');
                         if (guestTriggerLabel) guestTriggerLabel.textContent = 'Invitado';
                         guestTrigger?.classList.remove('has-selection');
-                        filterItems();
+                        filterItems(false);
                     });
                     document.getElementById('clear-school-year')?.addEventListener('click', () => {
                         selectedSchoolYear = '';
                         if (schoolYearFilter) schoolYearFilter.value = '';
-                        filterItems();
+                        filterItems(false);
                     });
                     document.getElementById('clear-duration')?.addEventListener('click', () => {
                         selectedDuration = { min: 0, max: 999 };
                         durationChips.forEach(c => c.classList.remove('active'));
                         document.querySelector('.duration-chip[data-min="0"][data-max="999"]')?.classList.add('active');
-                        filterItems();
+                        filterItems(false);
                     });
                 } else {
                     activeFiltersContainer.classList.add('hidden');
@@ -585,6 +593,7 @@ const buildNow = new Date();
             }
 
             const updateDisplay = () => {
+                const matchedItems: any[] = [];
                 episodeData.forEach((data) => {
                     const { el, pubDate, searchContent, season, participants, tags, durationMin, schoolYear } = data;
                     
@@ -602,15 +611,33 @@ const buildNow = new Date();
                     const matchesSchoolYear = selectedSchoolYear === '' || schoolYear === selectedSchoolYear;
 
                     if (matchesSeason && matchesUpcoming && matchesSearch && matchesGuest && matchesTag && matchesDuration && matchesSchoolYear) {
+                        matchedItems.push({ data, isUpcoming, isAboutToPremiere });
+                    } else {
+                        el.classList.add('hidden-anim');
+                        el.style.display = 'none';
+                    }
+                });
+
+                visibleCount = matchedItems.length;
+                const totalPages = Math.ceil(visibleCount / ITEMS_PER_PAGE);
+                if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+
+                const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+                const endIndex = startIndex + ITEMS_PER_PAGE;
+
+                matchedItems.forEach((item, index) => {
+                    const { el } = item.data;
+                    if (index >= startIndex && index < endIndex) {
                         el.classList.remove('hidden-anim');
                         el.classList.remove('is-upcoming-hidden');
+                        
                         const badge = el.querySelector('.dynamic-upcoming-badge') as HTMLElement | null;
                         const badgeText = badge?.querySelector('.badge-text');
                         
                         if (badge) {
-                            if (isUpcoming) {
+                            if (item.isUpcoming) {
                                 badge.classList.remove('hidden');
-                                if (isAboutToPremiere && badgeText) {
+                                if (item.isAboutToPremiere && badgeText) {
                                     badgeText.textContent = '¡Falta muy poco!';
                                     badge.classList.remove('bg-primary/90', 'shadow-primary/30');
                                     badge.classList.add('bg-red-600/90', 'shadow-red-600/30');
@@ -621,12 +648,13 @@ const buildNow = new Date();
                         }
 
                         el.style.display = 'block';
-                        visibleCount++;
                     } else {
                         el.classList.add('hidden-anim');
                         el.style.display = 'none';
                     }
                 });
+
+                renderPagination(totalPages);
 
                 if (visibleCount === 0) {
                     noResults?.classList.remove('hidden');
@@ -634,6 +662,63 @@ const buildNow = new Date();
                     noResults?.classList.add('hidden');
                 }
             };
+
+            function renderPagination(totalPages: number) {
+                const container = document.getElementById('pagination-container');
+                if (!container) return;
+                
+                if (totalPages <= 1) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                let html = '';
+                
+                html += `<button class="page-btn" data-page="prev" ${currentPage === 1 ? 'disabled' : ''}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg><span>Anterior</span></button>`;
+                
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage - startPage < 4) {
+                    startPage = Math.max(1, endPage - 4);
+                }
+
+                if (startPage > 1) {
+                    html += `<button class="page-btn" data-page="1">1</button>`;
+                    if (startPage > 2) html += `<span class="page-dots">...</span>`;
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) html += `<span class="page-dots">...</span>`;
+                    html += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+                }
+
+                html += `<button class="page-btn" data-page="next" ${currentPage === totalPages ? 'disabled' : ''}><span>Siguiente</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>`;
+
+                container.innerHTML = html;
+
+                const btns = container.querySelectorAll('.page-btn:not([disabled])');
+                btns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const page = btn.getAttribute('data-page');
+                        if (page === 'prev') currentPage--;
+                        else if (page === 'next') currentPage++;
+                        else currentPage = parseInt(page || '1');
+                        
+                        filterItems(true);
+                        
+                        // Scroll top to the grid, but maintaining a bit of padding for the fixed navbar
+                        const grid = document.getElementById('episodes-grid');
+                        if (grid) {
+                            const y = grid.getBoundingClientRect().top + window.scrollY - 120;
+                            window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                        }
+                    });
+                });
+            }
 
             // @ts-ignore
             if (document.startViewTransition) {
@@ -644,7 +729,7 @@ const buildNow = new Date();
             }
         }
 
-        const debouncedFilter = debounce(filterItems, 150);
+        const debouncedFilter = debounce(() => filterItems(false), 150);
 
         // Season Buttons Logic
         seasonBtns.forEach(btn => {
@@ -652,17 +737,17 @@ const buildNow = new Date();
                 seasonBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentSeason = btn.getAttribute('data-season') || 'all';
-                filterItems();
+                filterItems(false);
             });
         });
 
         // Event Listeners
         searchInput.addEventListener('input', () => {
-            if (searchInput.value === '') filterItems();
+            if (searchInput.value === '') filterItems(false);
             else debouncedFilter();
         });
         
-        upcomingToggle.addEventListener('change', filterItems);
+        upcomingToggle.addEventListener('change', () => filterItems(false));
         
         resetBtn?.addEventListener('click', () => {
             searchInput.value = '';
@@ -697,11 +782,11 @@ const buildNow = new Date();
             if (guestTriggerAvatar) guestTriggerAvatar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
             guestTrigger?.classList.remove('has-selection');
             
-            filterItems();
+            filterItems(false);
         });
 
         // Initial call
-        filterItems();
+        filterItems(false);
     }
 
     document.addEventListener('DOMContentLoaded', initFilters);
@@ -1381,7 +1466,7 @@ const buildNow = new Date();
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 2.5rem;
         margin-bottom: var(--spacing-2xl);
-        min-height: 800px; /* Previene el salto del footer en el primer render */
+        min-height: auto;
         align-items: stretch;
         isolation: isolate; /* Improve performance for view transitions */
     }
@@ -1428,6 +1513,93 @@ const buildNow = new Date();
 
     .hidden-upcoming {
         display: none !important;
+    }
+
+    /* ── Pagination ───────────────────────────────────────────────── */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: 4rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 0.65rem 1rem;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    :global(.page-btn) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--color-text-muted);
+        padding: 0;
+        min-width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    :global(.page-btn[data-page="prev"]), 
+    :global(.page-btn[data-page="next"]) {
+        padding: 0 1rem;
+        color: var(--color-text-main);
+    }
+    
+    :global(.page-btn[data-page="prev"]) { margin-right: 0.25rem; }
+    :global(.page-btn[data-page="next"]) { margin-left: 0.25rem; }
+
+    :global(.page-btn:hover:not([disabled])) {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.18);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    :global(.page-btn.active) {
+        background: var(--color-primary);
+        color: white;
+        pointer-events: none;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        border-color: var(--color-primary);
+        transform: scale(1.05);
+    }
+
+    :global(.page-btn[disabled]) {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background: transparent !important;
+        border-color: transparent !important;
+        color: var(--color-text-muted) !important;
+        transform: none !important;
+    }
+
+    :global(.page-dots) {
+        color: var(--color-text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        opacity: 0.6;
     }
 
     /* ── No Results ───────────────────────────────────────────────── */
