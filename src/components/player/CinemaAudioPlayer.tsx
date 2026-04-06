@@ -544,9 +544,11 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
 
     // --- Google Cast Logic ---
     useEffect(() => {
-        const checkCastSDK = setInterval(() => {
-            if (window.cast && window.cast.framework) {
-                const context = window.cast.framework.CastContext.getInstance();
+        const initCast = () => {
+             // Check if SDK is loaded and if context is available (from Layout.astro or local)
+            const cast = (window as any).cast;
+            if (cast && cast.framework) {
+                const context = cast.framework.CastContext.getInstance();
                 setCastAvailable(true);
                 
                 const sessionListener = (event: any) => {
@@ -556,46 +558,64 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                         loadMediaToCast();
                     } else if (event.sessionState === 'SESSION_ENDED') {
                         setIsCasting(false);
-                        // Optional: Resume locally if session ends?
-                        // audioRef.current?.play();
                     }
                 };
 
                 context.addEventListener(
-                    window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+                    cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
                     sessionListener
                 );
+                return true;
+            }
+            return false;
+        };
 
+        // Try immediately
+        if (initCast()) return;
+
+        // Otherwise poll
+        const checkCastSDK = setInterval(() => {
+            if (initCast()) {
                 clearInterval(checkCastSDK);
             }
-        }, 1000);
+        }, 1500);
 
         return () => clearInterval(checkCastSDK);
     }, []);
 
     const loadMediaToCast = () => {
-        const castSession = (window as any).cast.framework.CastContext.getInstance().getCurrentSession();
-        if (!castSession || !(window as any).chrome || !(window as any).chrome.cast) return;
+        const cast = (window as any).cast;
+        const chrome = (window as any).chrome;
+        if (!cast || !cast.framework || !chrome || !chrome.cast) return;
 
-        const mediaInfo = new (window as any).chrome.cast.media.MediaInfo(finalAudioUrl, 'audio/mpeg');
-        mediaInfo.metadata = new (window as any).chrome.cast.media.MusicTrackMediaMetadata();
+        const context = cast.framework.CastContext.getInstance();
+        const castSession = context.getCurrentSession();
+        if (!castSession) return;
+
+        const mediaInfo = new chrome.cast.media.MediaInfo(finalAudioUrl, 'audio/mpeg');
+        mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
         mediaInfo.metadata.title = title;
         mediaInfo.metadata.artist = author;
         if (cover) {
             mediaInfo.metadata.images = [{ url: cover.startsWith('http') ? cover : window.location.origin + cover }];
         }
 
-        const request = new (window as any).chrome.cast.media.LoadRequest(mediaInfo);
+        const request = new chrome.cast.media.LoadRequest(mediaInfo);
         request.currentTime = audioRef.current?.currentTime || 0;
 
         castSession.loadMedia(request).then(
-            () => {},
-            (errorCode: any) => console.error('Error al cargar media en Cast:', errorCode)
+            () => {
+                console.log('[Cast] Media cargada con éxito');
+            },
+            (errorCode: any) => console.error('[Cast] Error al cargar media:', errorCode)
         );
     };
 
     const triggerCast = () => {
-        (window as any).cast.framework.CastContext.getInstance().requestSession();
+        const cast = (window as any).cast;
+        if (cast && cast.framework) {
+            cast.framework.CastContext.getInstance().requestSession();
+        }
     };
 
     return (
@@ -792,7 +812,7 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                             {!!videoUrl && (
                                 <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10 ml-2 shadow-inner">
                                     <button 
-                                        className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/20 text-white shadow-sm border border-white/10"
+                                        className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/20 text-white shadow-sm border border-white/10 whitespace-nowrap"
                                         disabled
                                     >
                                         🎧 Audio
@@ -802,7 +822,7 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                                             const event = new CustomEvent('veredillas:switch-mode', { detail: { mode: 'video' } });
                                             document.dispatchEvent(event);
                                         }}
-                                        className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-white/70 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/20"
+                                        className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-white/70 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/20 whitespace-nowrap"
                                     >
                                         📺 Vídeo
                                     </button>
