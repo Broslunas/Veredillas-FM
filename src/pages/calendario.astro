@@ -1,6 +1,41 @@
 ---
-export const prerender = true;
 import Layout from '../layouts/Layout.astro';
+
+// Almacenar en caché durante 1 hora en CDN para no saturar la API de Google
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+
+const CALENDAR_ID = import.meta.env.GOOGLE_CALENDAR_ID;
+const API_KEY = import.meta.env.GOOGLE_CALENDAR_API_KEY;
+
+// Fetch events from today
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+const timeMin = today.toISOString();
+const maxResults = 25;
+
+const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=${maxResults}`;
+
+let events = [];
+try {
+  const response = await fetch(url);
+  if (response.ok) {
+    const data = await response.json();
+    events = data.items || [];
+  } else {
+    console.error("Error fetching calendar:", await response.text());
+  }
+} catch (e) {
+  console.error("Error fetching calendar:", e);
+}
+
+const formatDateObj = (startObj) => {
+    const d = new Date(startObj.dateTime || startObj.date);
+    const day = d.getDate();
+    const monthRaw = d.toLocaleString('es-ES', { month: 'short' }).replace('.', '');
+    const month = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
+    const time = startObj.dateTime ? d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : 'Todo el día';
+    return { day, month, time };
+};
 ---
 
 <Layout 
@@ -13,17 +48,52 @@ import Layout from '../layouts/Layout.astro';
     <div class="calendar-page container">
         <header class="page-header gs-fade-up">
             <h1>Programación</h1>
-            <p class="subtitle">No te pierdas ningún podcast. Consulta nuestros horarios.</p>
+            <p class="subtitle">No te pierdas ningún podcast. Consulta nuestros próximos eventos.</p>
         </header>
 
-        <div class="calendar-wrapper glass-panel gs-fade-up">
-            <div class="iframe-container">
-                <iframe 
-                    src="https://calendar.google.com/calendar/embed?height=600&wkst=2&ctz=Atlantic%2FCanary&showPrint=0&src=MTEyZDg2MzI1YjVhM2IwYjYxZWRkMWRiYmQxYzFjZDM3MzRhYzRiNGIxYTRmM2Y2MjlkYmU5YWQyYjM4MjM0N0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%235789FF&showTitle=0&showNav=1&showDate=1&showTabs=1&showCalendars=0" 
-                    style="border: 0" >
-                </iframe>
-            </div>
+        <div class="events-timeline gs-fade-up">
+            {events.length > 0 ? (
+                events.map(event => {
+                    const dateInfo = event.start ? formatDateObj(event.start) : { day: '--', month: '--', time: '--' };
+                    return (
+                        <div class="event-card glass-panel">
+                            <div class="event-date">
+                                <span class="day">{dateInfo.day}</span>
+                                <span class="month">{dateInfo.month}</span>
+                                <span class="time">{dateInfo.time}</span>
+                            </div>
+                            <div class="event-details">
+                                <h3>{event.summary || 'Evento sin título'}</h3>
+                                {event.description && <p class="description" set:html={event.description}></p>}
+                            </div>
+                            <div class="event-actions">
+                                <a href={event.htmlLink} target="_blank" rel="noopener noreferrer" class="add-btn" aria-label="Ver en Google Calendar" title="Ver en Google Calendar">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                        <line x1="12" y1="14" x2="12" y2="18"></line>
+                                        <line x1="10" y1="16" x2="14" y2="16"></line>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    );
+                })
+            ) : (
+                <div class="no-events glass-panel">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="no-events-icon">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <p>No hay eventos programados próximamente.</p>
+                </div>
+            )}
         </div>
+
         <div class="cta-wrapper glass-panel gs-fade-up">
             <div class="cta-content">
                 <h2>¿Quieres participar en Veredillas FM?</h2>
@@ -39,9 +109,7 @@ import Layout from '../layouts/Layout.astro';
 <script>
     import { gsap } from "gsap";
     
-    // Define the setup function
     function setupPage() {
-        // Animation
         gsap.from(".gs-fade-up", {
             y: 30,
             opacity: 0,
@@ -51,10 +119,7 @@ import Layout from '../layouts/Layout.astro';
         });
     }
 
-    // Run on initial load
     setupPage();
-
-    // Run on Astro navigation
     document.addEventListener('astro:page-load', setupPage);
 </script>
 
@@ -82,43 +147,209 @@ import Layout from '../layouts/Layout.astro';
         color: var(--color-text-muted);
     }
 
-    .calendar-wrapper {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 1rem;
+    .events-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        max-width: 900px;
+        margin: 0 auto 4rem;
+    }
+
+    .event-card {
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
         border-radius: var(--radius-lg);
-        overflow: hidden;
-    }
-
-    .iframe-container {
+        gap: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
         position: relative;
-        padding-bottom: 75%; /* Aspect Ratio */
-        height: 0;
         overflow: hidden;
-        /* Dark Mode Filter Trick */
-        filter: invert(0.92) hue-rotate(180deg) brightness(0.9);
-        border-radius: var(--radius-md);
-        background: #fff; /* Ensure white base for inversion */
     }
-
-    .iframe-container iframe {
+    
+    .event-card::before {
+        content: '';
         position: absolute;
         top: 0;
         left: 0;
-        width: 100%;
+        width: 4px;
         height: 100%;
+        background: linear-gradient(to bottom, var(--color-primary, #5789FF), transparent);
+        opacity: 0.5;
+        transition: opacity 0.3s;
     }
 
-    /* Adjust for Light Mode if needed - removing filter */
-    :global([data-theme="light"]) .iframe-container {
-        filter: none;
+    .event-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+        border-color: rgba(255, 255, 255, 0.1);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    }
+    
+    .event-card:hover::before {
+        opacity: 1;
     }
 
-    @media (min-width: 768px) {
-        .iframe-container {
-            padding-bottom: 600px; /* Fixed height on desktop */
+    @media (min-width: 640px) {
+        .event-card {
+            flex-direction: row;
+            align-items: center;
+            padding: 2rem;
+            gap: 2rem;
         }
+    }
+
+    .event-date {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 110px;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: center;
+    }
+
+    .event-date .day {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+        background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .event-date .month {
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--color-primary, #5789FF);
+        margin-top: 0.5rem;
+        letter-spacing: 0.05em;
+    }
+
+    .event-date .time {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin-top: 0.5rem;
+    }
+
+    .event-details {
+        flex: 1;
+    }
+
+    .event-details h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--color-text-main);
+        line-height: 1.3;
+    }
+
+    .event-details .description {
+        color: var(--color-text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .event-details .description :global(a) {
+        color: var(--color-primary, #5789FF);
+        text-decoration: underline;
+    }
+
+    .event-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .add-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        color: var(--color-text-main);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        padding: 0;
+    }
+
+    .add-btn:hover {
+        background: var(--color-primary, #5789FF);
+        color: white;
+        border-color: var(--color-primary, #5789FF);
+        transform: scale(1.05);
+    }
+
+    .no-events {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        text-align: center;
+        padding: 5rem 2rem;
+        color: var(--color-text-muted);
+        font-size: 1.2rem;
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+    
+    .no-events-icon {
+        color: rgba(255, 255, 255, 0.2);
+        margin-bottom: 0.5rem;
+    }
+
+    :global([data-theme="light"]) .event-card {
+        background: linear-gradient(145deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 100%);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    :global([data-theme="light"]) .event-card:hover {
+        background: linear-gradient(145deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.01) 100%);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    :global([data-theme="light"]) .event-date {
+        background: rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    :global([data-theme="light"]) .event-date .day {
+        background: linear-gradient(135deg, #111 0%, #555 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    :global([data-theme="light"]) .add-btn {
+        background: rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #111;
+    }
+    
+    :global([data-theme="light"]) .add-btn:hover {
+        background: var(--color-primary, #5789FF);
+        color: white;
+    }
+    
+    :global([data-theme="light"]) .no-events {
+        background: rgba(0, 0, 0, 0.02);
+        border: 1px dashed rgba(0, 0, 0, 0.1);
+        color: #666;
+    }
+    
+    :global([data-theme="light"]) .no-events-icon {
+        color: rgba(0, 0, 0, 0.2);
     }
 
     .cta-wrapper {
