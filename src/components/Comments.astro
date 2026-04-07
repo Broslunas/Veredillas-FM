@@ -45,7 +45,16 @@ const { slug } = Astro.props;
           </div>
         </div>
 
+        <div id="reply-indicator" class="hidden mb-4 p-3 bg-primary/10 border-l-4 border-primary rounded-r-lg flex justify-between items-center animate-fade-in">
+          <span class="text-sm text-primary font-medium" id="reply-to-name">Respondiendo a ...</span>
+          <button type="button" id="cancel-reply" class="text-zinc-400 hover:text-white transition-colors">
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
         <form id="comment-form" class="flex flex-col gap-6">
+          <input type="hidden" name="parentId" id="parentId-value" value="" />
+          
           <div id="guest-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="relative">
               <input type="text" id="name" name="name" placeholder=" " required maxlength="60" class="peer w-full bg-white/5 border border-zinc-700 rounded-lg pt-6 pb-2 px-4 text-zinc-100 transition-all focus:bg-black/20 focus:border-primary outline-none" />
@@ -61,30 +70,56 @@ const { slug } = Astro.props;
           </div>
 
           <div class="relative">
-            <textarea id="text" name="text" rows="3" placeholder=" " required maxlength="1000" class="peer w-full bg-white/5 border border-zinc-700 rounded-lg pt-6 pb-2 px-4 text-zinc-100 transition-all focus:bg-black/20 focus:border-primary outline-none resize-none"></textarea>
+            <textarea id="text" name="text" rows="3" placeholder=" " maxlength="1500" class="peer w-full bg-white/5 border border-zinc-700 rounded-lg pt-6 pb-2 px-4 text-zinc-100 transition-all focus:bg-black/20 focus:border-primary outline-none resize-none"></textarea>
             <label for="text" class="absolute left-4 top-5 text-zinc-500 pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-primary peer-focus:font-semibold peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-primary peer-[:not(:placeholder-shown)]:font-semibold">Escribe tu comentario...</label>
           </div>
 
+          <!-- Attachments Preview -->
+          <div id="attachments-preview" class="flex flex-wrap gap-2 empty:hidden"></div>
+
           <!-- Bottom Actions: Rating & Submit -->
           <div class="flex justify-between items-center flex-wrap gap-4">
-            <div class="flex items-center gap-3">
-              <span class="text-sm text-zinc-400">Tu valoración:</span>
-              <div class="flex gap-1" id="star-interactive">
-                {[1, 2, 3, 4, 5].map((val) => (
-                  <button type="button" class="star-btn p-0.5 transition-transform hover:scale-110 focus:outline-none text-zinc-600" data-value={val} aria-label={`${val} estrellas`}>
-                    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                  </button>
-                ))}
+            <div class="flex items-center gap-4">
+              <!-- GIPHY / Image Button -->
+              <div class="relative">
+                <button type="button" id="gif-btn" class="p-2.5 rounded-lg bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all group" title="Añadir GIF">
+                   <svg class="w-5 h-5 group-hover:scale-110 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M7 10h3v4c0 .5-.5 1-1 1s-1-.5-1-1v-1"/><path d="M14 10h3"/><path d="M14 15h3"/><path d="M14 10v5"/><path d="M11 10v5"/></svg>
+                </button>
+                
+                <!-- GIF Search Dropdown -->
+                <div id="gif-dropdown" class="absolute left-0 bottom-full mb-4 hidden w-72 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-[100] animate-fade-in">
+                   <div class="p-3 border-b border-zinc-800">
+                     <div class="relative">
+                        <input type="text" id="gif-search-input" placeholder="Buscar GIFs..." class="w-full bg-black/40 border border-zinc-700 rounded-lg py-2 pl-3 pr-8 text-sm text-white focus:border-primary outline-none" />
+                        <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                     </div>
+                   </div>
+                   <div id="gif-results" class="p-2 grid grid-cols-2 gap-2 max-h-60 overflow-y-auto custom-scrollbar">
+                      <p class="col-span-2 text-center text-xs text-zinc-500 py-4 italic">Escribe para buscar GIFs...</p>
+                   </div>
+                   <div class="p-2 text-center border-t border-zinc-800 text-[10px] text-zinc-500">Power by GIPHY</div>
+                </div>
               </div>
-              <input type="hidden" name="rating" id="rating-value" value="0" />
+
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-zinc-400">Valoración:</span>
+                <div class="flex gap-1" id="star-interactive">
+                  {[1, 2, 3, 4, 5].map((val) => (
+                    <button type="button" class="star-btn p-1 transition-transform hover:scale-125 focus:outline-none text-zinc-700" data-value={val} aria-label={`${val} estrellas`}>
+                      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </button>
+                  ))}
+                </div>
+                <input type="hidden" name="rating" id="rating-value" value="0" />
+              </div>
             </div>
 
-            <button type="submit" class="bg-primary hover:brightness-110 text-white font-semibold py-3 px-6 rounded-full flex items-center gap-2 transition-all shadow-lg shadow-primary/30 hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed">
-              <span>Publicar</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            <button type="submit" class="bg-primary hover:brightness-110 text-white font-bold py-3 px-8 rounded-full flex items-center gap-2 transition-all shadow-lg shadow-primary/30 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span id="submit-btn-text">Publicar</span>
+              <svg id="submit-btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
           </div>
-          <p id="form-status" class="text-sm m-0"></p>
+        <p id="form-status" class="text-sm m-0"></p>
         </form>
       </div>
     </div>
@@ -100,8 +135,6 @@ const { slug } = Astro.props;
   <!-- Toast Container -->
   <div id="toast-container" class="fixed bottom-8 right-8 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
 </section>
-
-
 <script define:vars={{ slug }}>
   // UI Elements
   const form = document.getElementById('comment-form');
@@ -109,23 +142,56 @@ const { slug } = Astro.props;
   const countLabel = document.getElementById('comment-count-label');
   const sortSelect = document.getElementById('sort-select');
   const toastContainer = document.getElementById('toast-container');
+  const parentIdInput = document.getElementById('parentId-value');
+  const replyIndicator = document.getElementById('reply-indicator');
+  const replyToName = document.getElementById('reply-to-name');
+  const cancelReplyBtn = document.getElementById('cancel-reply');
+  const gifBtn = document.getElementById('gif-btn');
+  const gifDropdown = document.getElementById('gif-dropdown');
+  const gifSearchInput = document.getElementById('gif-search-input');
+  const gifResults = document.getElementById('gif-results');
+  const attachmentsPreview = document.getElementById('attachments-preview');
   
   // State
   let allComments = [];
   let currentSort = 'newest';
   let currentUser = null;
+  let attachments = [];
+  let typingTimer;
 
   // --- INITIALIZATION ---
   const init = () => {
     fetchUserSession();
     fetchComments();
-    
+    setupEventListeners();
+  };
+
+  const setupEventListeners = () => {
     if (sortSelect) {
       sortSelect.onchange = (e) => {
         currentSort = e.target.value;
         renderComments();
       };
     }
+    if (cancelReplyBtn) cancelReplyBtn.onclick = window.cancelReply;
+    if (gifBtn) gifBtn.onclick = (e) => {
+        e.stopPropagation();
+        gifDropdown.classList.toggle('hidden');
+        if (!gifDropdown.classList.contains('hidden')) gifSearchInput.focus();
+    };
+    if (gifSearchInput) {
+        gifSearchInput.onkeyup = () => {
+            clearTimeout(typingTimer);
+            if (gifSearchInput.value) {
+                typingTimer = setTimeout(() => searchGifs(gifSearchInput.value), 500);
+            }
+        };
+    }
+    document.addEventListener('click', (e) => {
+        if (gifDropdown && !gifDropdown.contains(e.target) && e.target !== gifBtn) {
+            gifDropdown.classList.add('hidden');
+        }
+    });
   };
 
   document.addEventListener('DOMContentLoaded', init);
@@ -136,11 +202,8 @@ const { slug } = Astro.props;
       try {
           const res = await fetch('/api/auth/me');
           const data = await res.json();
-
           if (data.user) {
               currentUser = data.user;
-              
-              // Hydrate UI Form
               const avatarObj = document.getElementById('user-avatar-container');
               const titleObj = document.getElementById('user-greeting-title');
               const subObj = document.getElementById('user-greeting-subtitle');
@@ -152,7 +215,6 @@ const { slug } = Astro.props;
               }
               if (titleObj) titleObj.innerText = `Hola, ${currentUser.name}`;
               if (subObj) subObj.innerText = `Comparte tu opinión sobre este episodio`;
-              
               if (guestFields) {
                  guestFields.classList.add('hidden');
                  guestFields.querySelectorAll('input').forEach(inp => inp.disabled = true);
@@ -165,18 +227,14 @@ const { slug } = Astro.props;
                  `;
               }
           }
-      } catch (e) {
-          console.error("Comments system could not hydrate user session");
-      }
+      } catch (e) { console.error("Session hydration failed"); }
   }
 
   async function fetchComments() {
     try {
       if(list) list.innerHTML = getSkeletonHTML();
-      
       const res = await fetch(`/api/comments/${slug}`);
       const json = await res.json();
-      
       if (json.success) {
         allComments = json.data;
         renderComments();
@@ -185,9 +243,65 @@ const { slug } = Astro.props;
         list.innerHTML = getEmptyStateHTML('Error de conexión');
       }
     } catch (e) {
-      console.error(e);
       list.innerHTML = getEmptyStateHTML();
     }
+  }
+
+  // --- THREADING & REPLIES ---
+  window.handleReply = (id, name) => {
+      parentIdInput.value = id;
+      replyToName.innerText = `Respondiendo a ${name}`;
+      replyIndicator.classList.remove('hidden');
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('text').focus();
+  };
+
+  window.cancelReply = () => {
+      parentIdInput.value = '';
+      replyIndicator.classList.add('hidden');
+  }
+
+  // --- GIPHY & ATTACHMENTS ---
+  async function searchGifs(query) {
+      gifResults.innerHTML = '<div class="col-span-2 text-center py-4"><span class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin inline-block"></span></div>';
+      try {
+          const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=6FBOyNm7ZTBOqg5QviPqRcmhxDdufrzF&q=${encodeURIComponent(query)}&limit=10&rating=g`);
+          const { data } = await res.json();
+          gifResults.innerHTML = data.map(gif => `
+            <img src="${gif.images.fixed_height_small.url}" 
+                 class="w-full h-24 object-cover rounded-lg cursor-pointer hover:scale-105 transition-transform" 
+                 onclick="addAttachment('${gif.images.fixed_height.url}')" 
+            />
+          `).join('') || '<p class="col-span-2 text-center text-xs text-zinc-500 py-4">No hay resultados</p>';
+      } catch (e) {
+          gifResults.innerHTML = '<p class="col-span-2 text-center text-xs text-red-500 py-4">Error al buscar GIFs</p>';
+      }
+  }
+
+  window.addAttachment = (url) => {
+      if (attachments.length >= 3) {
+          showToast('Máximo 3 adjuntos', 'info');
+          return;
+      }
+      attachments.push(url);
+      renderAttachments();
+      gifDropdown.classList.add('hidden');
+  };
+
+  window.removeAttachment = (index) => {
+      attachments.splice(index, 1);
+      renderAttachments();
+  }
+
+  function renderAttachments() {
+      attachmentsPreview.innerHTML = attachments.map((url, i) => `
+        <div class="relative group w-20 h-20 rounded-lg overflow-hidden border border-zinc-700">
+          <img src="${url}" class="w-full h-full object-cover" />
+          <button type="button" onclick="removeAttachment(${i})" class="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      `).join('');
   }
 
   // --- RENDERING ---
@@ -198,158 +312,145 @@ const { slug } = Astro.props;
       return;
     }
 
-    // Sort Logic
-    let sorted = [...allComments];
-    if (currentSort === 'newest') {
-      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else if (currentSort === 'oldest') {
-      sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    } else if (currentSort === 'top') {
-      sorted.sort((a, b) => b.rating - a.rating); // Sort by rating descending
-    }
+    countLabel.innerText = allComments.length;
 
-    countLabel.innerText = sorted.length;
+    // Separate top level and replies
+    const topLevel = allComments.filter(c => !c.parentId);
+    const repliesMap = allComments.reduce((acc, c) => {
+        if (c.parentId) {
+            if (!acc[c.parentId]) acc[c.parentId] = [];
+            acc[c.parentId].push(c);
+        }
+        return acc;
+    }, {});
 
-    // Render List
-    list.innerHTML = sorted.map(c => `
-      <article class="flex gap-5 p-6 bg-white/5 border border-white/10 rounded-2xl transition-all hover:bg-white/[0.07] hover:border-white/20 hover:-translate-y-0.5 group relative overflow-hidden animate-fade-in-up" id="comment-${c._id}">
-        <div class="shrink-0">
-          <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white uppercase text-xl overflow-hidden shadow-lg border-2 border-white/5" style="background-color: ${stringToColor(c.name)}">
-             ${c.avatar && !c.avatar.includes('placeholder') ? `<img src="${c.avatar}" alt="${escapeHtml(c.name)}" class="w-full h-full object-cover" />` : c.name.charAt(0).toUpperCase()}
+    // Sort top level
+    if (currentSort === 'newest') topLevel.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    else if (currentSort === 'oldest') topLevel.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    else if (currentSort === 'top') topLevel.sort((a, b) => (b.rating + b.likesCount) - (a.rating + a.likesCount));
+
+    list.innerHTML = topLevel.map(c => renderCommentItem(c, repliesMap[c._id] || [])).join('');
+  }
+
+  function renderCommentItem(c, replies = [], isReply = false) {
+    const hasOnlyRating = !c.text && c.rating > 0 && (!c.attachments || c.attachments.length === 0);
+    
+    return `
+      <div class="flex flex-col gap-3 ${isReply ? 'ml-8 sm:ml-12 border-l-2 border-zinc-800 pl-4 sm:pl-6' : ''}">
+        <article class="flex gap-4 p-5 ${hasOnlyRating ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/[0.03] border-white/10'} border rounded-2xl transition-all hover:bg-white/[0.06] group relative overflow-hidden animate-fade-in-up" id="comment-${c._id}">
+          <div class="shrink-0">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white uppercase text-lg overflow-hidden shadow-lg border border-white/10" style="background-color: ${stringToColor(c.name)}">
+               ${c.avatar && !c.avatar.includes('placeholder') ? `<img src="${c.avatar}" alt="${escapeHtml(c.name)}" class="w-full h-full object-cover" />` : c.name.charAt(0).toUpperCase()}
+            </div>
           </div>
-        </div>
-        <div class="flex-1 min-w-0 flex flex-col gap-2">
-          <header class="flex justify-between items-start">
-             <div class="flex flex-col">
-               <span class="font-bold text-base text-zinc-100">${escapeHtml(c.name)}</span>
-               ${c.rating > 0 ? renderStars(c.rating) : ''}
-             </div>
-             <div class="flex items-center gap-3 text-xs text-zinc-400">
-                <button 
-                  class="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-white/5 transition-all hover:bg-white/10 hover:text-white ${c.isLiked ? 'bg-pink-500/10 text-pink-500' : ''} like-btn" 
-                  title="${c.isLiked ? 'Quitar like' : 'Me gusta'}" 
-                  onclick="requestLike('${c._id}')"
-                >
-                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${c.isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                  ${c.likesCount > 0 ? `<span class="font-semibold like-count">${c.likesCount}</span>` : ''}
+          <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+            <header class="flex justify-between items-start">
+               <div class="flex items-center gap-2 flex-wrap">
+                 <span class="font-bold text-sm text-zinc-100">${escapeHtml(c.name)}</span>
+                 ${c.rating > 0 ? renderStars(c.rating) : ''}
+               </div>
+               <div class="flex items-center gap-2 text-[11px] text-zinc-500">
+                  <time class="bg-white/5 py-0.5 px-1.5 rounded" title="${new Date(c.createdAt).toLocaleString()}">${timeAgo(new Date(c.createdAt))}</time>
+               </div>
+            </header>
+            
+            ${c.text ? `
+            <div class="text-zinc-300 leading-relaxed text-sm whitespace-pre-wrap break-words format-text">
+              ${formatText(c.text)}
+            </div>
+            ` : ''}
+
+            ${c.attachments && c.attachments.length > 0 ? `
+            <div class="flex flex-wrap gap-2 mt-2">
+                ${c.attachments.map(url => `<img src="${url}" class="max-w-full sm:max-w-xs h-auto rounded-lg border border-white/10 shadow-lg" loading="lazy" />`).join('')}
+            </div>
+            ` : ''}
+
+            <footer class="flex items-center gap-4 mt-2">
+                <button onclick="requestLike('${c._id}')" class="flex items-center gap-1 text-[11px] font-semibold transition-colors ${c.isLiked ? 'text-pink-500' : 'text-zinc-500 hover:text-zinc-300'}">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="${c.isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    ${c.likesCount || 0}
                 </button>
-                <time class="bg-white/5 py-1 px-2 rounded-md" title="${new Date(c.createdAt).toLocaleString()}">${timeAgo(new Date(c.createdAt))}</time>
-                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner')) ? `
-                <button class="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-all focus:outline-none" title="Eliminar" onclick="requestDelete('${c._id}')">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <button onclick="handleReply('${c._id}', '${escapeHtml(c.name)}')" class="text-[11px] font-semibold text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Responder
                 </button>
+                ${(c.isMine || c.isModerator) ? `
+                <button class="text-[11px] text-zinc-600 hover:text-red-500 transition-colors ml-auto" onclick="requestDelete('${c._id}')">Eliminar</button>
                 ` : ''}
-             </div>
-          </header>
-          <div class="text-zinc-500 leading-relaxed text-[0.95rem] whitespace-pre-wrap break-words pt-1 group-hover:text-zinc-100 transition-colors">
-            ${escapeHtml(c.text)}
+            </footer>
           </div>
-        </div>
-        <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-      </article>
-    `).join('');
+        </article>
+        ${replies.length > 0 ? replies.map(r => renderCommentItem(r, [], true)).join('') : ''}
+      </div>
+    `;
   }
 
   // --- HELPERS ---
   function getSkeletonHTML() {
-    return `
-      <div class="flex flex-col gap-6">
-         ${[1,2,3].map(() => `
-           <div class="flex gap-5 p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-white/5 via-white/10 to-white/5 bg-[length:200%_100%] animate-shimmer"></div>
-              <div class="flex-1 flex flex-col gap-3 justify-center">
-                <div class="h-3 w-1/3 bg-gradient-to-r from-white/5 via-white/10 to-white/5 bg-[length:200%_100%] animate-shimmer rounded"></div>
-                <div class="h-3 w-4/5 bg-gradient-to-r from-white/5 via-white/10 to-white/5 bg-[length:200%_100%] animate-shimmer rounded"></div>
-                <div class="h-3 w-3/5 bg-gradient-to-r from-white/5 via-white/10 to-white/5 bg-[length:200%_100%] animate-shimmer rounded"></div>
-              </div>
-           </div>
-         `).join('')}
-      </div>
-    `;
+    return `<div class="flex flex-col gap-6">${[1,2,3].map(() => `
+       <div class="flex gap-5 p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
+          <div class="w-10 h-10 rounded-full bg-zinc-800 animate-pulse"></div>
+          <div class="flex-1 flex flex-col gap-3">
+            <div class="h-3 w-1/4 bg-zinc-800 animate-pulse rounded"></div>
+            <div class="h-10 w-full bg-zinc-900/50 animate-pulse rounded-lg"></div>
+          </div>
+       </div>`).join('')}</div>`;
   }
 
   function getEmptyStateHTML(msg = 'Sé la primera persona en opinar.') {
-    return `
-      <div class="text-center py-16 px-8 opacity-80 bg-white/[0.02] rounded-2xl border border-dashed border-white/10">
-        <div class="text-5xl mb-4 inline-block drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]">💬</div>
-        <h3 class="text-xl font-bold mb-2">Sin comentarios aún</h3>
-        <p class="text-zinc-400">${msg}</p>
-      </div>
-    `;
+    return '<div class="text-center py-16 opacity-50"><p>' + msg + '</p></div>';
   }
 
   function escapeHtml(text) {
     if (!text) return '';
-    return text.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+    return text.toString().replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+  }
+
+  function formatText(text) {
+      if (!text) return '';
+      let escaped = escapeHtml(text);
+      // Highlight mentions
+      return escaped.replace(/@([^ \n\r\t.,!?;:]+)/g, '<span class="text-primary font-semibold hover:underline cursor-pointer">@$1</span>');
   }
 
   function timeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
+    if (60 > seconds) return 'ahora';
     const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
-    if (seconds < 60) return 'ahora';
-    if (seconds < 3600) return rtf.format(-Math.floor(seconds / 60), 'minute');
-    if (seconds < 86400) return rtf.format(-Math.floor(seconds / 3600), 'hour');
-    if (seconds < 604800) return rtf.format(-Math.floor(seconds / 86400), 'day');
+    if (3600 > seconds) return rtf.format(-Math.floor(seconds / 60), 'minute');
+    if (86400 > seconds) return rtf.format(-Math.floor(seconds / 3600), 'hour');
+    if (604800 > seconds) return rtf.format(-Math.floor(seconds / 86400), 'day');
     return rtf.format(-Math.floor(seconds / 2592000), 'month');
   }
 
   function renderStars(rating) {
-    return `<div class="flex gap-px text-amber-500 mt-1" title="${rating}/5">
+    return `<div class="flex text-amber-500" title="${rating}/5">
        ${Array(5).fill(0).map((_, i) => `
-         <svg class="w-3 h-3 ${i < rating ? 'text-amber-500 drop-shadow-[0_0_2px_rgba(245,158,11,0.5)]' : 'text-zinc-800'}" viewBox="0 0 24 24" fill="currentColor">
-           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-         </svg>
+         <svg class="w-3 h-3 ${rating > i ? 'fill-current' : 'text-zinc-800'}" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
        `).join('')}
     </div>`;
   }
 
   function stringToColor(str) {
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; str.length > i; i++) {
+        hash = str.charCodeAt(i) + ((hash * 31));
+        hash = hash & hash; // Convert to 32bit integer
     }
-    const hue = Math.abs(hash % 360);
-    return `hsl(${hue}, 60%, 50%)`;
+    return `hsl(${Math.abs(hash % 360)}, 60%, 45%)`;
   }
 
   // --- ACTIONS ---
-  
-  // Like
   window.requestLike = async (commentId) => {
       const commentIndex = allComments.findIndex(c => c._id === commentId);
       if (commentIndex === -1) return;
-
-      const previousState = { ...allComments[commentIndex] };
       const comment = allComments[commentIndex];
+      const originalState = { isLiked: comment.isLiked, likesCount: comment.likesCount };
       
-      if (comment.isLiked) {
-          comment.isLiked = false;
-          comment.likesCount--;
-      } else {
-          comment.isLiked = true;
-          comment.likesCount++;
-      }
-      
-      const btn = document.querySelector(`#comment-${commentId} .like-btn`);
-      if(btn) {
-         if(comment.isLiked) {
-            btn.classList.add('bg-pink-500/10', 'text-pink-500');
-            btn.querySelector('svg').setAttribute('fill', 'currentColor');
-         } else {
-            btn.classList.remove('bg-pink-500/10', 'text-pink-500');
-            btn.querySelector('svg').setAttribute('fill', 'none');
-         }
-         const countSpan = btn.querySelector('.like-count');
-         if(countSpan) {
-            countSpan.innerText = comment.likesCount > 0 ? comment.likesCount : '';
-            if(comment.likesCount === 0) countSpan.remove();
-         } else if (comment.likesCount > 0) {
-            const span = document.createElement('span');
-            span.className = 'font-semibold like-count';
-            span.innerText = comment.likesCount;
-            btn.appendChild(span);
-         }
-      }
+      comment.isLiked = !comment.isLiked;
+      comment.likesCount = (comment.likesCount || 0) + (comment.isLiked ? 1 : -1);
+      renderComments();
 
       try {
           const res = await fetch('/api/comments/like', {
@@ -358,34 +459,25 @@ const { slug } = Astro.props;
               body: JSON.stringify({ commentId })
           });
           const json = await res.json();
-          
-          if (!json.success) {
-               if(res.status === 401) {
-                  if (window.triggerAuthPrompt) {
-                    window.triggerAuthPrompt();
-                  } else {
-                    showToast('Inicia sesión para dar like', 'info');
-                  }
-               } else {
-                  showToast(json.error || 'Error', 'error');
-               }
-               allComments[commentIndex] = previousState;
-               renderComments();
-          } else {
-              allComments[commentIndex].likesCount = json.likesCount;
-              allComments[commentIndex].isLiked = json.liked;
-          }
+          if (!json.success) throw new Error(json.error);
+          comment.likesCount = json.likesCount;
+          comment.isLiked = json.liked;
+          renderComments();
       } catch (e) {
-          showToast('Error de conexión', 'error');
-          allComments[commentIndex] = previousState;
+          showToast(e.message || 'Error', 'error');
+          comment.isLiked = originalState.isLiked;
+          comment.likesCount = originalState.likesCount;
           renderComments();
       }
   };
 
-  // Delete
   window.requestDelete = async (commentId) => {
-      if(!confirm('¿Solicitar borrado de este comentario? (Se enviará un email)')) return;
-      
+      const comment = allComments.find(c => c._id === commentId);
+      if (!comment) return;
+
+      const confirmMsg = (comment.isMine || comment.isModerator) ? '¿Eliminar este comentario permanentemente?' : '¿Enviar solicitud de borrado por email?';
+      if(!confirm(confirmMsg)) return;
+
       try {
           const res = await fetch(`/api/comments/${slug}`, {
               method: 'DELETE',
@@ -393,30 +485,39 @@ const { slug } = Astro.props;
               body: JSON.stringify({ commentId })
           });
           const json = await res.json();
-          showToast(json.success ? 'Email de confirmación enviado' : (json.error || 'Error'), json.success ? 'success' : 'error');
-      } catch (e) {
-          showToast('Error de conexión', 'error');
-      }
+          if (json.success) {
+              if (json.immediate) {
+                  allComments = allComments.filter(c => c._id !== commentId);
+                  renderComments();
+              }
+              showToast(json.message, 'success');
+          } else {
+              showToast(json.error || 'Error', 'error');
+          }
+      } catch (e) { showToast('Error de conexión', 'error'); }
   };
 
-  // Submit
   if (form) {
-    form.addEventListener('submit', async (e) => {
+    form.onsubmit = async (e) => {
       e.preventDefault();
       const btn = form.querySelector('button[type="submit"]');
-      const originalContent = btn.innerHTML;
+      const submitText = document.getElementById('submit-btn-text');
+      const submitIcon = document.getElementById('submit-btn-icon');
       
       const formData = new FormData(form);
       const data = {
         name: formData.get('name'),
         email: formData.get('email'),
         text: formData.get('text'),
-        rating: parseInt(formData.get('rating') || '0', 10)
+        rating: parseInt(formData.get('rating') || '0', 10),
+        parentId: formData.get('parentId') || null,
+        attachments: attachments
       };
 
       try {
         btn.disabled = true;
-        btn.innerHTML = `<span class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Enviando...`;
+        submitText.innerText = 'Enviando...';
+        submitIcon.classList.add('animate-ping');
         
         const res = await fetch(`/api/comments/${slug}`, {
           method: 'POST',
@@ -427,80 +528,78 @@ const { slug } = Astro.props;
 
         if (json.success) {
            form.reset();
+           attachments = [];
+           renderAttachments();
            updateInteractiveStars(0);
-           document.getElementById('rating-value').value = '0';
-           
-           if (json.pending === false) {
-             showToast('Comentario publicado', 'success');
-             fetchComments(); // Reload
-           } else {
-             showToast('Verifica tu email para publicar', 'info');
-           }
-        } else {
-           showToast(json.error || 'Error al publicar', 'error');
-        }
-      } catch (e) {
-         showToast('Error de conexión', 'error');
-      } finally {
+           window.cancelReply();
+           showToast(json.pending ? 'Verifica tu email' : 'Publicado', 'success');
+           fetchComments();
+        } else showToast(json.error || 'Error', 'error');
+      } catch (e) { showToast('Error de conexión', 'error'); } 
+      finally {
         btn.disabled = false;
-        btn.innerHTML = originalContent;
+        submitText.innerText = 'Publicar';
+        submitIcon.classList.remove('animate-ping');
       }
-    });
+    };
 
-    // Interactive Stars Logic
     const starsContainer = document.getElementById('star-interactive');
     const ratingInput = document.getElementById('rating-value');
     if (starsContainer) {
-       const starBtns = starsContainer.querySelectorAll('.star-btn');
-       starBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-             const val = btn.dataset.value;
-             ratingInput.value = val;
-             updateInteractiveStars(val);
-          });
-          btn.addEventListener('mouseenter', () => updateInteractiveStars(btn.dataset.value, true));
+       starsContainer.querySelectorAll('.star-btn').forEach(btn => {
+          btn.onclick = () => {
+             ratingInput.value = btn.dataset.value;
+             updateInteractiveStars(btn.dataset.value);
+          };
+          btn.onmouseenter = () => updateInteractiveStars(btn.dataset.value, true);
        });
-       
-       starsContainer.addEventListener('mouseleave', () => {
-          updateInteractiveStars(ratingInput.value);
-       });
+       starsContainer.onmouseleave = () => updateInteractiveStars(ratingInput.value);
     }
 
     function updateInteractiveStars(val, isHover = false) {
        const starBtns = document.getElementById('star-interactive').querySelectorAll('.star-btn');
+       const rating = parseInt(val || '0');
        starBtns.forEach(btn => {
           const btnVal = parseInt(btn.dataset.value);
-          if (btnVal <= val) {
+          if (rating >= btnVal) {
              btn.classList.add(isHover ? 'text-amber-500' : 'text-amber-400', 'scale-110');
-             btn.classList.remove('text-zinc-600');
+             btn.classList.remove('text-zinc-700');
           } else {
              btn.classList.remove('text-amber-500', 'text-amber-400', 'scale-110');
-             btn.classList.add('text-zinc-600');
+             btn.classList.add('text-zinc-700');
           }
        });
     }
   }
 
-  // Toast
   function showToast(msg, type = 'info') {
       const el = document.createElement('div');
       const accentColor = type === 'success' ? 'border-green-500' : type==='error'?'border-red-500':'border-primary';
-      el.className = `bg-zinc-900 border ${accentColor} border-l-4 p-4 rounded-xl flex items-center gap-4 shadow-2xl translate-y-5 opacity-0 transition-all duration-300 pointer-events-auto text-white`;
-      el.innerHTML = `<span>${type === 'success' ? '✔' : type==='error'?'✖':'ℹ'}</span><p class="m-0">${msg}</p>`;
+      el.className = `bg-zinc-900 border ${accentColor} border-l-4 p-4 rounded-xl flex items-center gap-4 shadow-2xl animate-fade-in text-white pointer-events-auto`;
+      const p = document.createElement('p');
+      p.className = 'm-0 text-sm font-medium';
+      p.innerText = msg;
+      el.appendChild(p);
       toastContainer.appendChild(el);
-      requestAnimationFrame(() => el.classList.remove('translate-y-5', 'opacity-0'));
       setTimeout(() => {
-         el.classList.add('translate-y-5', 'opacity-0');
-         setTimeout(() => el.remove(), 300);
-      }, 4000);
+          el.classList.add('animate-fade-out');
+          setTimeout(() => el.remove(), 500);
+      }, 3500);
   }
 </script>
 
-
 <style is:global>
-  /* Base styles for the comments component if needed, mostly handled by tailwind */
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #52525b; }
+  
+  @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fade-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
+  .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+  .animate-fade-out { animation: fade-out 0.3s ease-in forwards; }
 </style>
 

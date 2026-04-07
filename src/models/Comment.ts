@@ -5,9 +5,13 @@ export interface IComment extends mongoose.Document {
   slug: string;
   name: string;
   email: string;
-  text: string;
+  text?: string;
   createdAt: Date;
   likes: string[];
+  parentId?: string | mongoose.Types.ObjectId;
+  attachments?: string[];
+  isVerified: boolean;
+  rating: number;
 }
 
 const CommentSchema = new mongoose.Schema({
@@ -29,8 +33,8 @@ const CommentSchema = new mongoose.Schema({
   },
   text: {
     type: String,
-    required: [true, 'Please provide the comment text.'],
-    maxlength: [1000, 'Comment cannot be more than 1000 characters'],
+    required: [function(this: any) { return this.rating === 0; }, 'Please provide the comment text or a rating.'],
+    maxlength: [1500, 'Comment cannot be more than 1500 characters'],
   },
   createdAt: {
     type: Date,
@@ -45,6 +49,16 @@ const CommentSchema = new mongoose.Schema({
     min: 0,
     max: 5,
     default: 0
+  },
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment',
+    default: null,
+    index: true
+  },
+  attachments: {
+    type: [String],
+    default: []
   },
   likes: {
     type: [String],
