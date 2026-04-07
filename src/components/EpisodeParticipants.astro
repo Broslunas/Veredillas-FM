@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import SidebarWidget from './SidebarWidget.astro';
 
 interface Props {
@@ -29,7 +29,7 @@ if (episodeGuests.length === 0) {
       <li>
         <div class="flex items-center gap-4 py-1">
           {guest.data.image ? (
-            <Image 
+            <img 
               src={guest.data.image} 
               alt={guest.data.name} 
               width={48} 

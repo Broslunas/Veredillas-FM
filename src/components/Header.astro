@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 import ThemeToggle from './ThemeToggle.astro';
 import CommandPalette from './CommandPalette.astro';
 import AuthButton from './AuthButton.astro';
@@ -83,7 +82,7 @@ const isDropdownActive = (items: any[]) => {
     <!-- Left Pill: Logo -->
     <a href="/" class="pill logo-pill">
       <div class="logo-icon-wrapper">
-        <Image src="/logo.webp" alt="Veredillas FM" width={40} height={40} class="logo-image" />
+        <img src="/logo.webp" alt="Veredillas FM" width={40} height={40} class="logo-image" />
       </div>
       <span class="logo-text">Veredillas<span class="highlight">FM</span></span>
     </a>

@@ -1,5 +1,4 @@
 ---
-import { Image } from "astro:assets";
 
 interface Props {
     post: any;
@@ -22,7 +21,7 @@ const formatDate = (date: Date) => {
     <div class="shine"></div>
     <div class="w-full h-[200px] relative overflow-hidden bg-zinc-900">
         {post.data.image ? (
-            <Image 
+            <img 
                 src={post.data.image} 
                 alt={post.data.title} 
                 width={600}

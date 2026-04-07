@@ -2,7 +2,7 @@
 export const prerender = true;
 
 import Layout from '../layouts/Layout.astro';
-import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
 import EpisodeCard from '../components/EpisodeCard.astro';
 import PostCard from '../components/PostCard.astro';
 import FeaturedSlider from '../components/FeaturedSlider.astro';
@@ -81,11 +81,11 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
                         <a id="hero-link" href={`/ep/${sortedEpisodes[0].slug}`} class="relative block w-full max-w-[400px] aspect-square mx-auto cursor-pointer decoration-0 group" aria-label={`Escuchar ${sortedEpisodes[0].data.title}`}>
                             <div class="absolute inset-[5%] bg-[#111] rounded-full bg-[repeating-radial-gradient(#111_0,#111_2px,#222_3px,#222_4px)] shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[1] flex items-center justify-center vinyl-record text-[0px]">.
                                 <div class="w-[35%] h-[35%] bg-black rounded-full flex items-center justify-center border-2 border-white overflow-hidden">
-                                    <Image src="/logo.webp" alt="VFM" width={140} height={140} class="w-full h-full object-cover" />
+                                    <img src="/logo.webp" alt="VFM" width={140} height={140} class="w-full h-full object-cover" />
                                 </div>
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-br from-[#0e0e11] to-black rounded-lg border border-white/10 z-[2] shadow-[0_20px_50px_rgba(0,0,0,0.5)] -rotate-3 overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:rotate-[-5deg] lg:group-hover:-translate-x-[40%]">
-                                <Image 
+                                <img 
                                     id="hero-img"
                                     src={sortedEpisodes[0].data.image} 
                                     alt={sortedEpisodes[0].data.title}
