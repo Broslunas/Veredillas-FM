@@ -122,6 +122,13 @@ function timeAgo(date: Date) {
                                 <td class="bg-white/[0.02] border-y border-r border-white/5 rounded-r-2xl px-6 py-5 group-hover:bg-white/[0.05] group-hover:border-white/10 transition-all text-right pr-6">
                                     <div class="flex justify-end gap-2 text-right">
                                         <button 
+                                            class="p-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-xl hover:scale-110 hover:bg-amber-500/20 transition-all duration-300 edit-btn" 
+                                            data-comment={JSON.stringify(c)}
+                                            title="Editar datos"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <button 
                                             class="p-2 bg-sky-500/10 text-sky-500 border border-sky-500/20 rounded-xl hover:scale-110 hover:bg-sky-500/20 transition-all duration-300 preview-btn" 
                                             data-comment={JSON.stringify(c)}
                                             title="Vista previa"
@@ -155,10 +162,41 @@ function timeAgo(date: Date) {
         </div>
     </div>
 
-    {/* PREVIEW MODAL */}
-    <div id="preview-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-zinc-900 border border-white/10 w-full max-w-xl rounded-[3rem] overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+    {/* EDIT MODAL */}
+    <div id="edit-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-zinc-900 border border-white/10 w-full max-w-xl rounded-[2.5rem] overflow-hidden shadow-2xl transform scale-95 transition-all duration-300">
             <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                <div class="flex flex-col">
+                    <span class="text-[0.6rem] font-black uppercase tracking-[0.4em] text-amber-500">Editor</span>
+                    <h3 class="text-xl font-black text-white tracking-tight">Modificar Comentario</h3>
+                </div>
+                <button id="close-edit" class="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-zinc-400 hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form id="edit-form" class="p-8 space-y-6">
+                <input type="hidden" id="edit-id" />
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[0.65rem] font-black uppercase tracking-widest text-zinc-500 ml-1">Nombre del Autor</label>
+                        <input type="text" id="edit-name" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-amber-500/50 transition-all font-bold text-sm" />
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[0.65rem] font-black uppercase tracking-widest text-zinc-500 ml-1">Correo Electrónico</label>
+                        <input type="email" id="edit-email" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-amber-500/50 transition-all font-mono text-xs" />
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[0.65rem] font-black uppercase tracking-widest text-zinc-500 ml-1">Contenido del Comentario</label>
+                    <textarea id="edit-text" rows="5" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-amber-500/50 transition-all text-sm leading-relaxed resize-none font-medium"></textarea>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" id="cancel-edit" class="flex-1 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 font-bold hover:bg-white/10 hover:text-white transition-all">Cancelar</button>
+                    <button type="submit" class="flex-[2] px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black shadow-lg shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
                 <div class="flex flex-col">
                     <span class="text-[0.6rem] font-black uppercase tracking-[0.4em] text-violet-500">Preview</span>
                     <h3 class="text-xl font-black text-white tracking-tight">Veredillas FM Simulación</h3>
@@ -208,26 +246,34 @@ function timeAgo(date: Date) {
 
     <script>
         const setupActions = () => {
-            const modal = document.getElementById('preview-modal');
-            const closeBtn = document.getElementById('close-preview');
+            const previewModal = document.getElementById('preview-modal');
+            const editModal = document.getElementById('edit-modal');
+            
             const previewName = document.getElementById('preview-name');
             const previewAvatar = document.getElementById('preview-avatar');
             const previewRating = document.getElementById('preview-rating-stars');
             const previewText = document.getElementById('preview-text');
             const previewAttachments = document.getElementById('preview-attachments');
-            const modalInner = modal?.querySelector('div');
 
-            const toggleModal = (show: boolean) => {
-                if (!modal || !modalInner) return;
+            const editForm = document.getElementById('edit-form') as HTMLFormElement;
+            const editId = document.getElementById('edit-id') as HTMLInputElement;
+            const editNameInput = document.getElementById('edit-name') as HTMLInputElement;
+            const editEmailInput = document.getElementById('edit-email') as HTMLInputElement;
+            const editTextInput = document.getElementById('edit-text') as HTMLTextAreaElement;
+
+            const toggleModal = (modal: HTMLElement | null, show: boolean) => {
+                if (!modal) return;
+                const inner = modal.querySelector('div');
                 if (show) {
                     modal.classList.remove('opacity-0', 'pointer-events-none');
-                    modalInner.classList.remove('scale-95');
+                    inner?.classList.remove('scale-95');
                 } else {
                     modal.classList.add('opacity-0', 'pointer-events-none');
-                    modalInner.classList.add('scale-95');
+                    inner?.classList.add('scale-95');
                 }
             };
 
+            // Preview logic
             document.querySelectorAll('.preview-btn').forEach(btn => {
                 const b = btn as HTMLButtonElement;
                 b.onclick = () => {
@@ -235,7 +281,6 @@ function timeAgo(date: Date) {
                     if (previewName) previewName.innerText = data.name;
                     if (previewAvatar) previewAvatar.innerText = (data.name || '?').charAt(0).toUpperCase();
                     if (previewText) previewText.innerText = data.text || '';
-                    
                     if (previewRating) {
                         previewRating.innerHTML = '';
                         if (data.rating > 0) {
@@ -247,7 +292,6 @@ function timeAgo(date: Date) {
                             }
                         }
                     }
-
                     if (previewAttachments) {
                         previewAttachments.innerHTML = '';
                         if (data.attachments && data.attachments.length > 0) {
@@ -257,23 +301,63 @@ function timeAgo(date: Date) {
                                 if (att.type === 'gif') {
                                     el.innerHTML = `<img src="${att.url}" alt="GIF" class="w-full h-full object-cover" />`;
                                 } else {
-                                    el.innerHTML = `<span class="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Archivo Adjunto</span>`;
+                                    el.innerHTML = `<span class="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Archivo</span>`;
                                 }
                                 previewAttachments.appendChild(el);
                             });
                         }
                     }
-
-                    toggleModal(true);
+                    toggleModal(previewModal, true);
                 };
             });
 
-            closeBtn?.addEventListener('click', () => toggleModal(false));
-            modal?.addEventListener('click', (e) => {
-                if (e.target === modal) toggleModal(false);
+            // Edit logic
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                const b = btn as HTMLButtonElement;
+                b.onclick = () => {
+                    const data = JSON.parse(b.dataset.comment || '{}');
+                    if (editId) editId.value = data._id;
+                    if (editNameInput) editNameInput.value = data.name || '';
+                    if (editEmailInput) editEmailInput.value = data.email || '';
+                    if (editTextInput) editTextInput.value = data.text || '';
+                    toggleModal(editModal, true);
+                };
             });
+
+            editForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = editId?.value;
+                const name = editNameInput?.value;
+                const email = editEmailInput?.value;
+                const text = editTextInput?.value;
+
+                try {
+                    const res = await fetch('/api/admin/comments', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, name, email, text })
+                    });
+                    if (res.ok) window.location.reload();
+                    else alert('Error al guardar cambios');
+                } catch (err) { alert('Error de red'); }
+            });
+
+            // Closers
+            document.getElementById('close-preview')?.addEventListener('click', () => toggleModal(previewModal, false));
+            document.getElementById('close-edit')?.addEventListener('click', () => toggleModal(editModal, false));
+            document.getElementById('cancel-edit')?.addEventListener('click', () => toggleModal(editModal, false));
+            
+            [previewModal, editModal].forEach(m => {
+                m?.addEventListener('click', (e) => {
+                    if (e.target === m) toggleModal(m, false);
+                });
+            });
+
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') toggleModal(false);
+                if (e.key === 'Escape') {
+                    toggleModal(previewModal, false);
+                    toggleModal(editModal, false);
+                }
             });
 
             document.querySelectorAll('.verify-btn').forEach(btn => {
