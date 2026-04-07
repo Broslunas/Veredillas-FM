@@ -1,0 +1,627 @@
+---
+import Layout from '../layouts/Layout.astro';
+import mongoose from 'mongoose';
+import User, { type IUser } from '../models/User';
+import { getLevel } from '../lib/gamification';
+import { Trophy, Medal, Star, Flame, Award, Clock, CheckCircle, TrendingUp } from 'lucide-astro';
+
+export const prerender = false;
+
+// Cache the leaderboard for 5 mins
+Astro.response.headers.set(
+  'Cache-Control',
+  's-maxage=300, stale-while-revalidate=600'
+);
+
+// MongoDB Connection
+try {
+  if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = import.meta.env.MONGODB_URI;
+    if (MONGODB_URI) {
+      await mongoose.connect(MONGODB_URI);
+    }
+  }
+} catch (error) {
+  console.error('Error connecting to MongoDB:', error);
+}
+
+// Stats Calculation
+const sevenDaysAgo = new Date();
+sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+// 1. All-time Top (Global)
+let globalTop: IUser[] = [];
+// 2. Consistent Top (Streaks)
+let streakTop: IUser[] = [];
+// 3. Completer Top (Completed Episodes)
+let completerTop: IUser[] = [];
+// 4. Weekly Top (Estimate from playbackHistory)
+let weeklyTop: any[] = [];
+
+try {
+  // Global Top
+  globalTop = await User.find({ listeningTime: { $gt: 0 } })
+    .select('name picture listeningTime role createdAt')
+    .sort({ listeningTime: -1 })
+    .limit(10) as unknown as IUser[];
+
+  // Streak Top
+  streakTop = await User.find({ maxStreak: { $gt: 0 } })
+    .select('name picture maxStreak currentStreak role')
+    .sort({ maxStreak: -1, currentStreak: -1 })
+    .limit(10) as unknown as IUser[];
+
+  // Completer Top
+  completerTop = await User.find({ "completedEpisodes.0": { $exists: true } })
+    .select('name picture completedEpisodes role')
+    .sort({ "completedEpisodes.length": -1 })
+    .limit(10) as unknown as IUser[];
+
+  // Weekly Top (Advanced aggregation on playbackHistory)
+  // We sum the progress of entries that were updated in the last 7 days.
+  // Note: This is an approximation since playbackHistory stores the LAST interaction time.
+  weeklyTop = await User.aggregate([
+    { $unwind: "$playbackHistory" },
+    { $match: { "playbackHistory.listenedAt": { $gte: sevenDaysAgo } } },
+    { $group: {
+        _id: "$_id",
+        name: { $first: "$name" },
+        picture: { $first: "$picture" },
+        role: { $first: "$role" },
+        weeklyScore: { $sum: "$playbackHistory.progress" }
+      }
+    },
+    { $sort: { weeklyScore: -1 } },
+    { $limit: 10 }
+  ]);
+
+} catch (error) {
+  console.error('Error fetching leaderboard data:', error);
+}
+
+function formatTime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+}
+
+const colors = ['#FF6B6B', '#4FACFE', '#43E97B', '#FA709A', '#667EEA', '#8B5CF6'];
+function getPlaceholderColor(name: string) {
+    const charCode = name.charCodeAt(0) || 0;
+    return colors[charCode % colors.length];
+}
+
+const ROLE_ICONS: Record<string, string> = {
+  owner: '👑',
+  admin: '🛡️',
+  user: '🎧',
+};
+---
+
+<Layout 
+    title="Top Oyentes" 
+    description="Ranking de los mayores oyentes de Veredillas FM. ¿Quién es la verdadera leyenda de nuestra comunidad?"
+>
+    <!-- Background Decor -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="container top-container pt-20 pb-32">
+        <header class="text-center mb-16 gs-fade-up">
+            <div class="badge-accent mb-6">HALL OF FAME</div>
+            <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter">
+                Top <span class="gradient-text">Veredillas</span>
+            </h1>
+            <p class="text-xl text-white/60 max-w-2xl mx-auto">
+                Reconocimiento a los oyentes más dedicados, constantes y apasionados de nuestra comunidad.
+            </p>
+        </header>
+
+        <!-- Category Tabs -->
+        <div class="flex flex-wrap justify-center gap-4 mb-12 gs-fade-up">
+            <button class="tab-btn active" data-tab="global">
+                <Trophy class="w-5 h-5" /> Global
+            </button>
+            <button class="tab-btn" data-tab="weekly">
+                <TrendingUp class="w-5 h-5" /> Esta Semana
+            </button>
+            <button class="tab-btn" data-tab="streaks">
+                <Flame class="w-5 h-5" /> Rachas
+            </button>
+            <button class="tab-btn" data-tab="completers">
+                <CheckCircle class="w-5 h-5" /> Coleccionistas
+            </button>
+        </div>
+
+        <!-- Leaderboard Sections -->
+        <div class="leaderboard-sections relative">
+            
+            <!-- GLOBAL TOP -->
+            <section id="tab-global" class="tab-content active">
+                <div class="podium-grid mb-16">
+                    {globalTop.slice(0, 3).map((user, i) => (
+                        <div class={`podium-card rank-${i + 1} gs-fade-up`} style={`--delay: ${i * 0.1}s`}>
+                            <div class="rank-badge">#{i + 1}</div>
+                            <div class="avatar-container">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="avatar" />
+                                ) : (
+                                    <div class="avatar-placeholder" style={`background: ${getPlaceholderColor(user.name)}`}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div class="level-icon">{getLevel(user.listeningTime || 0).icon}</div>
+                            </div>
+                            <h3 class="name">{user.name}</h3>
+                            <div class="score">
+                                <Clock class="w-4 h-4" /> {formatTime(user.listeningTime || 0)}
+                            </div>
+                            <div class="level-name" style={`color: ${getLevel(user.listeningTime || 0).color}`}>
+                                {getLevel(user.listeningTime || 0).name}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div class="list-container gs-fade-up">
+                    {globalTop.slice(3).map((user, i) => (
+                        <a href={`/perfil/${user._id}`} class="list-item glass-panel">
+                            <div class="rank">#{i + 4}</div>
+                            <div class="user-info">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="list-avatar" />
+                                ) : (
+                                    <div class="list-avatar-placeholder" style={`background: ${getPlaceholderColor(user.name)}`}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div>
+                                    <p class="font-bold">{user.name} <span class="text-xs opacity-50 ml-2">{ROLE_ICONS[user.role] || ''}</span></p>
+                                    <p class="text-xs text-white/40">{getLevel(user.listeningTime || 0).name}</p>
+                                </div>
+                            </div>
+                            <div class="list-score">
+                                {formatTime(user.listeningTime || 0)}
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </section>
+
+            <!-- WEEKLY TOP -->
+            <section id="tab-weekly" class="tab-content">
+                <div class="podium-grid mb-16">
+                    {weeklyTop.slice(0, 3).map((user, i) => (
+                        <div class={`podium-card rank-${i + 1}`}>
+                            <div class="rank-badge">#{i + 1}</div>
+                            <div class="avatar-container">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="avatar" />
+                                ) : (
+                                    <div class="avatar-placeholder" style={`background: ${getPlaceholderColor(user.name)}`}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                            <h3 class="name">{user.name}</h3>
+                            <div class="score">
+                                <TrendingUp class="w-4 h-4" /> Actividad Semanal
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                
+                <div class="list-container">
+                    {weeklyTop.length > 3 ? weeklyTop.slice(3).map((user, i) => (
+                        <a href={`/perfil/${user._id}`} class="list-item glass-panel">
+                            <div class="rank">#{i + 4}</div>
+                            <div class="user-info">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="list-avatar" />
+                                ) : (
+                                    <div class="list-avatar-placeholder" style={`background: ${getPlaceholderColor(user.name)}`}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <p class="font-bold">{user.name}</p>
+                            </div>
+                            <div class="list-score text-primary font-bold">
+                                En racha
+                            </div>
+                        </a>
+                    )) : (
+                        <div class="text-center py-10 text-white/40">
+                            No hay suficientes datos esta semana. ¡Sé el primero en escuchar!
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            <!-- STREAKS TOP -->
+            <section id="tab-streaks" class="tab-content">
+                <div class="podium-grid mb-16">
+                    {streakTop.slice(0, 3).map((user, i) => (
+                        <div class={`podium-card rank-${i + 1}`}>
+                            <div class="rank-badge">#{i + 1}</div>
+                            <div class="avatar-container">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="avatar" />
+                                ) : (
+                                    <div class="avatar-placeholder" style={`background: ${getPlaceholderColor(user.name)}`}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                            <h3 class="name">{user.name}</h3>
+                            <div class="score streak-score">
+                                <Flame class="w-5 h-5 text-orange-500" /> {user.maxStreak} días
+                            </div>
+                            <div class="text-xs text-white/40">Récord histórico</div>
+                        </div>
+                    ))}
+                </div>
+
+                <div class="list-container">
+                    {streakTop.slice(3).map((user, i) => (
+                        <a href={`/perfil/${user._id}`} class="list-item glass-panel">
+                            <div class="rank">#{i + 4}</div>
+                            <div class="user-info">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="list-avatar" />
+                                ) : (
+                                    <div class="list-avatar-placeholder" style={`background: ${getPlaceholderColor(user.name)}`}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <p class="font-bold">{user.name}</p>
+                            </div>
+                            <div class="list-score flex items-center gap-2">
+                                <Flame class="w-4 h-4 text-orange-500" /> {user.maxStreak}
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </section>
+
+            <!-- COMPLETERS TOP -->
+            <section id="tab-completers" class="tab-content">
+                <div class="podium-grid mb-16">
+                    {completerTop.slice(0, 3).map((user, i) => (
+                        <div class={`podium-card rank-${i + 1}`}>
+                            <div class="rank-badge">#{i + 1}</div>
+                            <div class="avatar-container">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="avatar" />
+                                ) : (
+                                    <div class="avatar-placeholder" style={`background: ${getPlaceholderColor(user.name)}`}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                            <h3 class="name">{user.name}</h3>
+                            <div class="score">
+                                <Award class="w-4 h-4" /> {user.completedEpisodes?.length || 0} episodios
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div class="list-container">
+                    {completerTop.slice(3).map((user, i) => (
+                        <a href={`/perfil/${user._id}`} class="list-item glass-panel">
+                            <div class="rank">#{i + 4}</div>
+                            <div class="user-info">
+                                {user.picture ? (
+                                    <img src={user.picture} alt={user.name} class="list-avatar" />
+                                ) : (
+                                    <div class="list-avatar-placeholder" style={`background: ${getPlaceholderColor(user.name)}`}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <p class="font-bold">{user.name}</p>
+                            </div>
+                            <div class="list-score">
+                                {user.completedEpisodes?.length || 0} completados
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </section>
+
+        </div>
+    </div>
+</Layout>
+
+<script>
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.getAttribute('data-tab');
+            
+            // Update buttons
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Update content
+            contents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === `tab-${target}`) {
+                    content.classList.add('active');
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .top-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .badge-accent {
+        display: inline-block;
+        padding: 0.5rem 1.25rem;
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        color: #a78bfa;
+        border-radius: 100px;
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #a78bfa, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Tabs */
+    .tab-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .tab-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .tab-btn.active {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+    }
+
+    /* Podium */
+    .podium-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr 1fr;
+        align-items: flex-end;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .podium-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+    }
+
+    .podium-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 2rem;
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        position: relative;
+        transition: transform 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .podium-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .rank-1 { order: 2; height: 100%; border-color: rgba(251, 191, 36, 0.3); background: linear-gradient(to bottom, rgba(251, 191, 36, 0.05), rgba(251, 191, 36, 0.02)); }
+    .rank-2 { order: 1; border-color: rgba(148, 163, 184, 0.3); }
+    .rank-3 { order: 3; border-color: rgba(180, 83, 9, 0.3); }
+
+    @media (max-width: 768px) {
+        .rank-1, .rank-2, .rank-3 { order: initial; }
+    }
+
+    .rank-badge {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0.5rem 1.5rem;
+        border-radius: 100px;
+        font-weight: 900;
+        font-size: 1.2rem;
+    }
+
+    .rank-1 .rank-badge { background: linear-gradient(135deg, #fbbf24, #d97706); color: black; }
+    .rank-2 .rank-badge { background: linear-gradient(135deg, #94a3b8, #475569); color: white; }
+    .rank-3 .rank-badge { background: linear-gradient(135deg, #b45309, #78350f); color: white; }
+
+    .avatar-container {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .rank-1 .avatar-container { width: 120px; height: 120px; }
+
+    .avatar, .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 2.5rem;
+        object-fit: cover;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border: 3px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .avatar-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+    }
+
+    .level-icon {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        background: black;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .score {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+
+    .level-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* List Items */
+    .list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .list-item {
+        display: grid;
+        grid-template-columns: 50px 1fr auto;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-radius: 1.25rem;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s ease;
+    }
+
+    .list-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateX(5px);
+    }
+
+    .rank {
+        font-weight: 800;
+        color: white/40;
+        font-size: 1.1rem;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .list-avatar, .list-avatar-placeholder {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        object-fit: cover;
+    }
+
+    .list-avatar-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+    }
+
+    .list-score {
+        font-weight: 700;
+        font-family: var(--font-display);
+    }
+
+    /* Tabs Logic */
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Background blobs */
+    .blob {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.15;
+    }
+    
+    .blob-1 { top: -100px; left: -100px; background: radial-gradient(circle, var(--color-primary), transparent); }
+    .blob-2 { bottom: -100px; right: 100px; background: radial-gradient(circle, var(--color-secondary), transparent); }
+
+    .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+    }
+</style>
