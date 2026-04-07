@@ -1,41 +1,55 @@
 ---
 const currentPath = Astro.url.pathname;
-
 const navLinks = [
-  { href: '/dashboard/admin', label: '📊 Dashboard', active: currentPath === '/dashboard/admin' },
-  { href: '/dashboard/admin/users', label: '👥 Usuarios', active: currentPath === '/dashboard/admin/users' },
-  { href: '/dashboard/admin/user-stats', label: '📈 Analíticas', active: currentPath === '/dashboard/admin/user-stats' },
-  { href: '/dashboard/admin/content', label: '🎙️ Contenido', active: currentPath === '/dashboard/admin/content' },
-  { href: '/dashboard/admin/live', label: '🔴 En Vivo', active: currentPath === '/dashboard/admin/live' },
-  { href: '/dashboard/admin/interviews', label: '📅 Entrevistas', active: currentPath.startsWith('/dashboard/admin/interviews') },
-  { href: '/dashboard/admin/social-clips', label: '📱 Social Clips', active: currentPath.startsWith('/dashboard/admin/social-clips') },
-  { href: '/dashboard/admin/buffer', label: '🦬 Buffer API', active: currentPath.startsWith('/dashboard/admin/buffer') },
-  { href: '/dashboard/admin/push', label: '🔔 Push', active: currentPath.startsWith('/dashboard/admin/push') },
-  { href: '/dashboard/admin/wrapped', label: '🎁 Wrapped', active: currentPath.startsWith('/dashboard/admin/wrapped') },
-  { href: '/studio/remote', label: '🎙️ Studio Remoto', active: currentPath.startsWith('/studio/remote') },
+  { group: 'Overview', items: [
+      { href: '/dashboard/admin', label: '📊 Dashboard' },
+      { href: '/dashboard/admin/user-stats', label: '📈 Analíticas' },
+  ]},
+  { group: 'Usuarios', items: [
+      { href: '/dashboard/admin/users', label: '👥 Usuarios' },
+      { href: '/dashboard/admin/comments', label: '💬 Comentarios' },
+      { href: '/dashboard/admin/interviews', label: '📅 Entrevistas' },
+  ]},
+  { group: 'Contenido', items: [
+      { href: '/dashboard/admin/content', label: '🎙️ Episodios' },
+      { href: '/dashboard/admin/social-clips', label: '📱 Social' },
+      { href: '/dashboard/admin/buffer', label: '🦬 Buffer' },
+  ]},
+  { group: 'Utilidades', items: [
+      { href: '/dashboard/admin/live', label: '🔴 Live' },
+      { href: '/dashboard/admin/push', label: '🔔 Push' },
+      { href: '/dashboard/admin/wrapped', label: '🎁 Wrapped' },
+      { href: '/studio/remote', label: '🎙️ Studio' },
+  ]},
 ];
+
+const isActive = (href: string) => {
+    if (href === '/dashboard/admin') return currentPath === '/dashboard/admin';
+    return currentPath.startsWith(href);
+};
 ---
 
-<nav class="mb-8 border-b border-white/5">
-  <div class="flex gap-2 overflow-x-auto pb-px">
-    {navLinks.map(({ href, label, active }) => (
-      <a 
-        href={href} 
-        class:list={[
-          "px-5 py-3 text-[0.95rem] font-medium whitespace-nowrap transition-all duration-200 border-b-2 hover:text-white hover:bg-white/5 hover:rounded-t-lg",
-          {
-            "text-violet-400 border-violet-400": active,
-            "text-zinc-400 border-transparent": !active
-          }
-        ]}
-      >
-        {label}
-      </a>
+<nav class="mb-8 flex flex-wrap items-center gap-x-8 gap-y-4 p-5 bg-zinc-900/40 border border-white/10 rounded-3xl backdrop-blur-xl">
+    {navLinks.map((group) => (
+      <div class="flex items-center gap-3">
+        <span class="text-[0.6rem] font-black uppercase tracking-[0.25em] text-zinc-600 border-r border-white/5 pr-3 py-1">{group.group}</span>
+        <div class="flex flex-wrap gap-1.5">
+          {group.items.map(({ href, label }) => (
+            <a 
+              href={href} 
+              class:list={[
+                "px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all duration-300 border",
+                {
+                  "bg-violet-500/20 text-violet-400 border-violet-500/30 shadow-[0_0_20px_-5px_rgba(139,92,246,0.3)] scale-105": isActive(href),
+                  "bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-zinc-200 hover:border-white/10": !isActive(href)
+                }
+              ]}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </div>
     ))}
-  </div>
 </nav>
-
-<script define:vars={{ currentPath: Astro.url.pathname }}>
-  // Optional: Client-side active state if not strictly SSR
-</script>
 

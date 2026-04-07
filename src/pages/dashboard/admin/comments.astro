@@ -1,0 +1,332 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import { getUserFromCookie } from '../../../lib/auth';
+import User from '../../../models/User';
+import dbConnect from '../../../lib/mongodb';
+import Comment from '../../../models/Comment';
+import { getCollection } from 'astro:content';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) return Astro.redirect('/404');
+
+await dbConnect();
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404'); 
+}
+
+const comments = await Comment.find({}).sort({ createdAt: -1 }).lean();
+const allEpisodes = await getCollection('episodios');
+const episodesMap = allEpisodes.reduce((acc, ep) => {
+    acc[ep.slug] = ep.data.title;
+    return acc;
+}, {} as Record<string, string>);
+
+function timeAgo(date: Date) {
+    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+    if (seconds < 60) return 'ahora';
+    if (seconds < 3600) return rtf.format(-Math.floor(seconds / 60), 'minute');
+    if (seconds < 86400) return rtf.format(-Math.floor(seconds / 3600), 'hour');
+    return rtf.format(-Math.floor(seconds / 86400), 'day');
+}
+---
+
+<Layout title="Moderación - Veredillas FM" robots="noindex, nofollow">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-black">
+        <div class="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-[100px]"></div>
+        <div class="absolute bottom-[-200px] right-[-200px] w-[600px] h-[600px] rounded-full bg-pink-600/10 blur-[100px]"></div>
+        <div class="absolute top-[30%] right-[-100px] w-[400px] h-[400px] rounded-full bg-violet-400/5 blur-[100px]"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(circle_at_center,black_40%,transparent_100%)] opacity-40"></div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto p-8 animate-fade-in-up">
+        <div class="mb-10 flex flex-col items-start gap-4">
+            <div class="flex flex-col gap-1">
+                <span class="text-[0.65rem] font-bold uppercase tracking-[0.4em] text-violet-500/80">Administración</span>
+                <h1 class="text-5xl font-black text-white tracking-tighter bg-gradient-to-r from-white via-violet-300 to-pink-300 bg-clip-text text-transparent filter drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]">
+                    Moderación
+                </h1>
+                <p class="text-zinc-500 mt-2 text-sm font-medium">Gestionando <span class="text-white font-bold">{comments.length}</span> aportaciones de la comunidad</p>
+            </div>
+        </div>
+
+        <AdminNav />
+
+        <div class="bg-zinc-900/40 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-3xl shadow-2xl">
+            <div class="overflow-x-auto p-4 custom-scrollbar">
+                <table class="w-full border-separate border-spacing-y-2">
+                    <thead>
+                        <tr class="text-left text-[0.65rem] font-black uppercase tracking-[0.2em] text-zinc-600">
+                            <th class="px-6 py-4 w-1/4">Autor</th>
+                            <th class="px-6 py-4 w-1/6">Episodio</th>
+                            <th class="px-6 py-4 w-[40%] text-center">Comentario</th>
+                            <th class="px-6 py-4">Enviado</th>
+                            <th class="px-6 py-4 text-center">Estado</th>
+                            <th class="px-6 py-4 text-right pr-10">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="space-y-4">
+                        {comments.map((c: any) => (
+                            <tr id={`comment-${c._id}`} class="group transition-all duration-300">
+                                <td class="bg-white/[0.02] border-y border-l border-white/5 rounded-l-2xl px-6 py-5 group-hover:bg-white/[0.05] group-hover:border-white/10 transition-all">
+                                    <div class="flex flex-col">
+                                        <span class="text-white font-black text-sm tracking-tight">{c.name}</span>
+                                        <span class="text-[10px] text-zinc-500 font-mono opacity-50 truncate max-w-[160px]" title={c.email}>{c.email}</span>
+                                    </div>
+                                </td>
+                                <td class="bg-white/[0.02] border-y border-white/5 px-6 py-5 group-hover:bg-white/[0.05] group-hover:border-white/10 transition-all">
+                                    <div class="max-w-[140px]">
+                                        <a href={`/episodios/${c.slug}#comments`} class="text-[0.7rem] text-violet-400 hover:text-violet-300 font-black leading-tight block hover:underline" target="_blank">
+                                            {episodesMap[c.slug] || c.slug}
+                                        </a>
+                                    </div>
+                                </td>
+                                <td class="bg-white/[0.02] border-y border-white/5 px-6 py-5 group-hover:bg-white/[0.05] group-hover:border-white/10 transition-all">
+                                    <div class="max-w-xl mx-auto flex flex-col items-center text-center">
+                                        <p class="text-zinc-400 text-xs leading-relaxed mb-3 line-clamp-2 overflow-hidden text-pretty italic tracking-tight italic" title={c.text}>
+                                            "{c.text || <span class="not-italic opacity-30">Contenido vacío</span>}"
+                                        </p>
+                                        <div class="flex flex-wrap justify-center gap-2">
+                                            {c.rating > 0 && (
+                                                <div class="flex gap-0.5 items-center px-1.5 py-0.5 rounded-lg border bg-amber-500/5 border-amber-500/20">
+                                                    {[1,2,3,4,5].map(star => (
+                                                        <span class={`text-[10px] ${star <= c.rating ? 'text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.5)]' : 'text-zinc-800'}`}>★</span>
+                                                    ))}
+                                                    <span class="text-[9px] font-black text-amber-500 ml-1.5 opacity-80">{c.rating}/5</span>
+                                                </div>
+                                            )}
+                                            {c.attachments?.length > 0 && (
+                                                <span class="bg-sky-500/10 text-sky-400 text-[8px] px-2 py-0.5 rounded-lg border border-sky-500/20 font-black uppercase tracking-[0.1em]">
+                                                    📎 {c.attachments.length} ADJUNTOS
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="bg-white/[0.02] border-y border-white/5 px-6 py-5 group-hover:bg-white/[0.05] group-hover:border-white/10 transition-all text-xs text-zinc-500 font-bold whitespace-nowrap">
+                                    {timeAgo(c.createdAt)}
+                                </td>
+                                <td class="bg-white/[0.02] border-y border-white/5 px-6 py-5 group-hover:bg-white/[0.05] group-hover:border-white/10 transition-all">
+                                    <div class="flex justify-center">
+                                        <span class={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] border ${c.isVerified ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                                            {c.isVerified ? 'Ok' : 'Wait'}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="bg-white/[0.02] border-y border-r border-white/5 rounded-r-2xl px-6 py-5 group-hover:bg-white/[0.05] group-hover:border-white/10 transition-all text-right pr-6">
+                                    <div class="flex justify-end gap-2 text-right">
+                                        <button 
+                                            class="p-2 bg-sky-500/10 text-sky-500 border border-sky-500/20 rounded-xl hover:scale-110 hover:bg-sky-500/20 transition-all duration-300 preview-btn" 
+                                            data-comment={JSON.stringify(c)}
+                                            title="Vista previa"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </button>
+                                        <button 
+                                            class={`p-2 rounded-xl transition-all duration-300 border ${c.isVerified ? 'bg-zinc-800 text-zinc-500 border-white/5 hover:text-white hover:bg-zinc-700' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:scale-110 hover:bg-emerald-500/20'} verify-btn`} 
+                                            data-id={c._id} 
+                                            data-verified={c.isVerified.toString()}
+                                            title="Verificar"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                                {c.isVerified ? <path d="M18 6 6 18M6 6l12 12"/> : <polyline points="20 6 9 17 4 12"/>}
+                                            </svg>
+                                        </button>
+                                        <button 
+                                            class="p-2 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-xl hover:scale-110 hover:bg-rose-500/20 transition-all duration-300 delete-btn" 
+                                            data-id={c._id}
+                                            title="Eliminar"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {/* PREVIEW MODAL */}
+    <div id="preview-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-zinc-900 border border-white/10 w-full max-w-xl rounded-[3rem] overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                <div class="flex flex-col">
+                    <span class="text-[0.6rem] font-black uppercase tracking-[0.4em] text-violet-500">Preview</span>
+                    <h3 class="text-xl font-black text-white tracking-tight">Veredillas FM Simulación</h3>
+                </div>
+                <button id="close-preview" class="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-zinc-400 hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="p-10 bg-zinc-900 overflow-y-auto max-h-[70vh]">
+                <div id="preview-container" class="space-y-6">
+                    {/* Simulated comment box */}
+                    <article class="bg-white/[0.03] border border-white/10 p-6 rounded-[2rem] shadow-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-3xl -z-10"></div>
+                        
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-black shadow-lg shadow-violet-500/20" id="preview-avatar">
+                                P
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-0.5">
+                                    <h4 class="font-black text-white" id="preview-name">Pablo Luna</h4>
+                                    <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest opacity-60">Justo ahora</span>
+                                </div>
+                                <div id="preview-rating-stars" class="flex gap-0.5 mb-1.5">
+                                    {/* Stars go here */}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="preview-text" class="text-zinc-300 text-sm leading-relaxed mb-4 text-pretty font-medium whitespace-pre-wrap">
+                            Tu comentario se verá exactamente así en la plataforma...
+                        </div>
+
+                        <div id="preview-attachments" class="grid grid-cols-2 gap-3 mt-4">
+                            {/* Attachments go here */}
+                        </div>
+                    </article>
+                    
+                    <div class="flex items-center justify-center gap-2 p-6 bg-violet-500/5 rounded-3xl border border-violet-500/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <p class="text-xs text-violet-300 font-bold">Esta es una simulación visual exacta del componente de comentarios.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const setupActions = () => {
+            const modal = document.getElementById('preview-modal');
+            const closeBtn = document.getElementById('close-preview');
+            const previewName = document.getElementById('preview-name');
+            const previewAvatar = document.getElementById('preview-avatar');
+            const previewRating = document.getElementById('preview-rating-stars');
+            const previewText = document.getElementById('preview-text');
+            const previewAttachments = document.getElementById('preview-attachments');
+            const modalInner = modal?.querySelector('div');
+
+            const toggleModal = (show: boolean) => {
+                if (!modal || !modalInner) return;
+                if (show) {
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    modalInner.classList.remove('scale-95');
+                } else {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    modalInner.classList.add('scale-95');
+                }
+            };
+
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                const b = btn as HTMLButtonElement;
+                b.onclick = () => {
+                    const data = JSON.parse(b.dataset.comment || '{}');
+                    if (previewName) previewName.innerText = data.name;
+                    if (previewAvatar) previewAvatar.innerText = (data.name || '?').charAt(0).toUpperCase();
+                    if (previewText) previewText.innerText = data.text || '';
+                    
+                    if (previewRating) {
+                        previewRating.innerHTML = '';
+                        if (data.rating > 0) {
+                            for (let i = 1; i <= 5; i++) {
+                                const star = document.createElement('span');
+                                star.innerText = '★';
+                                star.className = `text-sm ${i <= data.rating ? 'text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]' : 'text-zinc-800'}`;
+                                previewRating.appendChild(star);
+                            }
+                        }
+                    }
+
+                    if (previewAttachments) {
+                        previewAttachments.innerHTML = '';
+                        if (data.attachments && data.attachments.length > 0) {
+                            data.attachments.forEach((att: any) => {
+                                const el = document.createElement('div');
+                                el.className = 'rounded-2xl border border-white/10 overflow-hidden bg-white/5 aspect-video flex items-center justify-center';
+                                if (att.type === 'gif') {
+                                    el.innerHTML = `<img src="${att.url}" alt="GIF" class="w-full h-full object-cover" />`;
+                                } else {
+                                    el.innerHTML = `<span class="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Archivo Adjunto</span>`;
+                                }
+                                previewAttachments.appendChild(el);
+                            });
+                        }
+                    }
+
+                    toggleModal(true);
+                };
+            });
+
+            closeBtn?.addEventListener('click', () => toggleModal(false));
+            modal?.addEventListener('click', (e) => {
+                if (e.target === modal) toggleModal(false);
+            });
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') toggleModal(false);
+            });
+
+            document.querySelectorAll('.verify-btn').forEach(btn => {
+                const b = btn as HTMLButtonElement;
+                b.onclick = async (e) => {
+                    const id = b.dataset.id;
+                    const isVerified = b.dataset.verified === 'true';
+                    
+                    try {
+                        const res = await fetch('/api/admin/comments', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id, isVerified: !isVerified })
+                        });
+                        if (res.ok) window.location.reload();
+                    } catch (err) { alert('Error al actualizar'); }
+                };
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                const b = btn as HTMLButtonElement;
+                b.onclick = async (e) => {
+                    if (!confirm('¿Seguro que quieres eliminar este comentario permanentemente?')) return;
+                    const id = b.dataset.id;
+                    
+                    try {
+                        const res = await fetch('/api/admin/comments', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id })
+                        });
+                        if (res.ok) {
+                            const row = document.getElementById(`comment-${id}`);
+                            row?.remove();
+                        }
+                    } catch (err) { alert('Error al eliminar'); }
+                };
+            });
+        };
+
+        setupActions();
+        document.addEventListener('astro:page-load', setupActions);
+    </script>
+
+    <style is:global>
+        .truncate-2-lines {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .icon-btn.danger:hover {
+            @apply bg-red-500/20 text-red-500 border-red-500/30;
+        }
+    </style>
+</Layout>
