@@ -36,8 +36,12 @@ const loadImage = async (imagePath: string): Promise<ArrayBuffer | null> => {
 
         let buffer;
         if (imagePath.startsWith('http')) {
-            const response = await fetch(imagePath);
-            if (!response.ok) throw new Error(`Failed to fetch remote image: ${response.statusText}`);
+            const response = await fetch(imagePath, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+                }
+            });
+            if (!response.ok) throw new Error(`Failed to fetch remote image: ${response.statusText} (${response.status})`);
             buffer = await response.arrayBuffer();
         } else {
             // Local file resolution for build time (SSG)
