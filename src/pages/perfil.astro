@@ -231,10 +231,31 @@ function formatTime(seconds: number): string {
                         </div>
                     </form>
                 </div>
+
+                <!-- Privacy and Data -->
+                <div class="glass-panel data-privacy-panel" style="margin-top: 2rem;">
+                    <div class="panel-header">
+                        <h2>Privacidad y Datos</h2>
+                        <p>Gestiona tu información y cumple con tus derechos de privacidad.</p>
+                    </div>
+
+                    <div class="data-actions-grid">
+                        <div class="data-action-card">
+                            <div class="action-icon">📦</div>
+                            <div class="action-content">
+                                <h4>Exportar mis datos (RGPD)</h4>
+                                <p>Descarga un archivo ZIP con toda tu actividad, comentarios, favoritos e historial de escucha.</p>
+                                <button id="export-data-btn" class="btn btn-secondary" style="margin-top: 1rem; width: fit-content; padding: 0.6rem 1rem; font-size: 0.9rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem; display: inline-block; vertical-align: middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    <span class="btn-text">Solicitar Exportación</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
     </div>
     <LevelsModal currentLevelName={currentLevel.name} listeningTime={listeningTime} />
-</Layout>
 
 <style>
     .profile-page-container {
@@ -787,6 +808,84 @@ function formatTime(seconds: number): string {
         right: 0;
         background: radial-gradient(circle, var(--color-secondary), transparent);
     }
+
+    /* Privacy and Data Section */
+    .data-actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+        .data-actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .data-action-card {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 1rem;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    
+    .data-action-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .action-icon {
+        font-size: 1.5rem;
+        padding-top: 0.25rem;
+    }
+
+    .action-content h4 {
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        color: var(--color-text);
+    }
+
+    .action-content p {
+        font-size: 0.85rem;
+        color: var(--color-text-dim);
+        line-height: 1.4;
+    }
+
+    .btn-outline-danger {
+        background: transparent;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #ef4444;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-outline-danger:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: #ef4444;
+        transform: translateY(-1px);
+    }
+
+    #export-data-btn .loading-spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+        vertical-align: middle;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
 </style>
 
 <script>
@@ -866,6 +965,56 @@ function formatTime(seconds: number): string {
         showMessage('¡Bienvenido! Has iniciado sesión correctamente.', 'success');
         // Clean URL
         window.history.replaceState({}, '', '/perfil');
+    }
+
+    // Data Export
+    const exportBtn = document.getElementById('export-data-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', async () => {
+            const btnText = exportBtn.querySelector('.btn-text');
+            const originalHtml = exportBtn.innerHTML;
+            
+            // Disable button and show loading state
+            (exportBtn as HTMLButtonElement).disabled = true;
+            exportBtn.innerHTML = '<span class="loading-spinner"></span> <span class="btn-text">Generando ZIP...</span>';
+
+            try {
+                const response = await fetch('/api/user/export');
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al exportar datos');
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                
+                // Get filename from header or fallback
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = 'veredillas-fm-datos.zip';
+                if (contentDisposition && contentDisposition.includes('filename=')) {
+                    filename = contentDisposition.split('filename=')[1].replace(/["]/g, '');
+                }
+                
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                showMessage('¡Tu descarga ha comenzado!', 'success');
+            } catch (error: any) {
+                console.error('Export error:', error);
+                showMessage(error.message || 'Error al exportar los datos.', 'error');
+            } finally {
+                // Restore button
+                exportBtn.innerHTML = originalHtml;
+                (exportBtn as HTMLButtonElement).disabled = false;
+            }
+        });
     }
 </script>
 
