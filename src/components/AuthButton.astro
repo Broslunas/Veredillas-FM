@@ -29,6 +29,21 @@
       const data = await response.json();
 
       if (data.user) {
+        // --- STREAK TOAST LOGIC ---
+        // Notify user about their streak if we haven't done so in this session
+        if (data.user.currentStreak > 0 && (window as any).queueStreakToast) {
+          const streakKey = `notified_streak_${data.user.currentStreak}`;
+          // Check if this specific streak number was already notified today
+          const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+          const notifiedToday = localStorage.getItem('last_streak_notified_day');
+          
+          if (!sessionStorage.getItem(streakKey) && notifiedToday !== today) {
+             (window as any).queueStreakToast(data.user.currentStreak);
+             sessionStorage.setItem(streakKey, 'true');
+             localStorage.setItem('last_streak_notified_day', today);
+          }
+        }
+
         // User is logged in - show profile dropdown
         const initial = data.user.name.charAt(0).toUpperCase();
         
@@ -40,6 +55,12 @@
                 : `<div class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center font-bold text-white text-[0.75rem] border-2 border-violet-500/50">${initial}</div>`
               }
               <span class="font-semibold text-[0.85rem] max-w-[100px] truncate hidden md:block">${data.user.name}</span>
+              ${data.user.currentStreak > 0 ? `
+                <div class="flex items-center gap-0.5 px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full border border-orange-500/20 text-[0.75rem] font-bold" title="Racha de días">
+                  <span>🔥</span>
+                  <span>${data.user.currentStreak}</span>
+                </div>
+              ` : ''}
             </button>
             
             <div class="dropdown-menu absolute top-full right-0 mt-2 w-[260px] bg-zinc-900/95 border border-violet-500/20 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.4)] backdrop-blur-md opacity-0 invisible -translate-y-[10px] transition-all duration-200 z-[100] p-2 overflow-hidden">

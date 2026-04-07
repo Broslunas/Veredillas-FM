@@ -4,6 +4,7 @@ import { getUserFromCookie } from '../../../lib/auth';
 import dbConnect from '../../../lib/mongodb';
 import User from '../../../models/User';
 import crypto from 'crypto';
+import { calculateStreakUpdate } from '../../../lib/streak';
 
 export const prerender = false;
 
@@ -45,66 +46,16 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     // --- STREAK LOGIC ---
-    const now = new Date();
-    // Use local-friendly date string (Year-Month-Day)
-    const getDayStr = (d: Date) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-    
-    const todayStr = getDayStr(now);
-    const lastActiveStr = user.lastActiveAt ? getDayStr(new Date(user.lastActiveAt)) : null;
+    const { currentStreak, maxStreak, lastActiveAt, updated, wasIncremented } = calculateStreakUpdate(
+      user.lastActiveAt,
+      user.currentStreak,
+      user.maxStreak
+    );
 
-    let needsSave = false;
-
-    if (!lastActiveStr) {
-      // First time tracking activity or missing field
-      user.currentStreak = 1;
-      user.maxStreak = Math.max(user.maxStreak || 0, 1);
-      user.lastActiveAt = now;
-      needsSave = true;
-    } else if (todayStr !== lastActiveStr) {
-      // It's a new day!
-      const lastDate = new Date(user.lastActiveAt);
-      const diffTime = now.getTime() - lastDate.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays <= 1) {
-        // Consecutive or near-consecutive (considering timezone shifts)
-        // We verify if it was exactly 1 day ago
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (lastActiveStr === getDayStr(yesterday)) {
-          user.currentStreak = (user.currentStreak || 0) + 1;
-        } else {
-          // More than 24h gap
-          user.currentStreak = 1;
-        }
-      } else {
-        // Definitely more than 1 day gap
-        user.currentStreak = 1;
-      }
-
-      if (user.currentStreak > (user.maxStreak || 0)) {
-        user.maxStreak = user.currentStreak;
-      }
-      user.lastActiveAt = now;
-      needsSave = true;
-    } else {
-      // Same day activity
-      // Ensure streak is at least 1 if they are active today
-      if (!user.currentStreak || user.currentStreak === 0) {
-        user.currentStreak = 1;
-        user.maxStreak = Math.max(user.maxStreak || 0, 1);
-        needsSave = true;
-      }
-
-      // Update timestamp every 5 mins
-      const lastActiveAtTime = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
-      if (now.getTime() - lastActiveAtTime > 5 * 60 * 1000) {
-        user.lastActiveAt = now;
-        needsSave = true;
-      }
-    }
-
-    if (needsSave) {
+    if (updated) {
+      user.currentStreak = currentStreak;
+      user.maxStreak = maxStreak;
+      user.lastActiveAt = lastActiveAt;
       await user.save();
     }
 

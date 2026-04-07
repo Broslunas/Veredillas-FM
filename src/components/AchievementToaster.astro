@@ -224,8 +224,19 @@ function queueAchievementToast(item: ToastItem) {
   showNextToast();
 }
 
+function queueStreakToast(streak: number) {
+  queueAchievementToast({
+    name: `¡Racha de ${streak} ${streak === 1 ? 'día' : 'días'}!`,
+    desc: streak === 1 ? '¡Has empezado tu racha hoy! Vuelve mañana para aumentarla. 🔥' : '¡Sigues on fire! No pares ahora. 🔥',
+    icon: '🔥',
+    rarity: 'Racha',
+    color: '#f97316' // Orange-500
+  });
+}
+
 // Global functions
 (window as any).queueAchievementToast = queueAchievementToast;
+(window as any).queueStreakToast = queueStreakToast;
 
 (window as any).unlockAchievement = async (achievementId: string) => {
   try {

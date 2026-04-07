@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { generateToken } from '../../../../lib/auth';
 import User from '../../../../models/User';
+import VerificationCode from '../../../../models/VerificationCode';
+import { calculateStreakUpdate } from '../../../../lib/streak';
 import { createHash } from 'crypto';
 
 const JWT_SECRET = import.meta.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
@@ -49,7 +51,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Buscar el usuario por email
     let user = await User.findOne({ email: payload.email });
     const now = new Date();
-    const getDayStr = (d: Date) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
 
     if (!user) {
       const emailUsername = payload.email.split('@')[0];
@@ -98,30 +99,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }
     } else {
       // --- STREAK LOGIC FOR LOGIN EVENT ---
-      const todayStr = getDayStr(now);
-      const lastActiveStr = user.lastActiveAt ? getDayStr(new Date(user.lastActiveAt)) : null;
+      const { currentStreak, maxStreak, lastActiveAt, updated } = calculateStreakUpdate(
+        user.lastActiveAt,
+        user.currentStreak,
+        user.maxStreak
+      );
 
-      if (!lastActiveStr) {
-        user.currentStreak = 1;
-        user.maxStreak = Math.max(user.maxStreak || 0, 1);
-      } else if (todayStr !== lastActiveStr) {
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (lastActiveStr === getDayStr(yesterday)) {
-          user.currentStreak = (user.currentStreak || 0) + 1;
-        } else {
-          user.currentStreak = 1;
-        }
-        if (user.currentStreak > (user.maxStreak || 0)) {
-          user.maxStreak = user.currentStreak;
-        }
-      } else if (!user.currentStreak || user.currentStreak === 0) {
-        user.currentStreak = 1;
-        user.maxStreak = Math.max(user.maxStreak || 0, 1);
+      if (updated) {
+        user.currentStreak = currentStreak;
+        user.maxStreak = maxStreak;
+        user.lastActiveAt = lastActiveAt;
       }
-
+      
       user.lastLogin = now;
-      user.lastActiveAt = now;
       await user.save();
     }
 

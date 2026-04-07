@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { exchangeGoogleCode, getGoogleUserInfo, generateToken } from '../../../../lib/auth';
 import User from '../../../../models/User';
 import { createHash } from 'crypto';
+import { calculateStreakUpdate } from '../../../../lib/streak';
 
 export const prerender = false;
 
@@ -66,7 +67,6 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
     });
 
     const now = new Date();
-    const getDayStr = (d: Date) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
 
     if (!user) {
       const refCookie = cookies.get('ref')?.value;
@@ -116,31 +116,19 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       }
 
       // --- STREAK LOGIC FOR LOGIN EVENT ---
-      const todayStr = getDayStr(now);
-      const lastActiveStr = user.lastActiveAt ? getDayStr(new Date(user.lastActiveAt)) : null;
+      const { currentStreak, maxStreak, lastActiveAt, updated } = calculateStreakUpdate(
+        user.lastActiveAt,
+        user.currentStreak,
+        user.maxStreak
+      );
 
-      if (!lastActiveStr) {
-        user.currentStreak = 1;
-        user.maxStreak = Math.max(user.maxStreak || 0, 1);
-      } else if (todayStr !== lastActiveStr) {
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (lastActiveStr === getDayStr(yesterday)) {
-          user.currentStreak = (user.currentStreak || 0) + 1;
-        } else {
-          user.currentStreak = 1;
-        }
-        if (user.currentStreak > (user.maxStreak || 0)) {
-          user.maxStreak = user.currentStreak;
-        }
-      } else if (!user.currentStreak || user.currentStreak === 0) {
-        // Active today but streak wasn't tracked yet
-        user.currentStreak = 1;
-        user.maxStreak = Math.max(user.maxStreak || 0, 1);
+      if (updated) {
+        user.currentStreak = currentStreak;
+        user.maxStreak = maxStreak;
+        user.lastActiveAt = lastActiveAt;
       }
-
+      
       user.lastLogin = now;
-      user.lastActiveAt = now;
       if (userPicture) {
         user.picture = userPicture;
       }
