@@ -984,6 +984,79 @@ quiz:
       - ¿Es el pasado irrelevante para el futuro?
       - ¿Debe el futuro dictar la interpretación del pasado?
     correctAnswer: 1
+clips:
+  - title: Guerra y Democracia  ¿Quién Pierde Siempre
+    url: 'https://youtu.be/4k9x2XuPS9U'
+  - title: La ONU  ¿Ineficaz Contra Conflictos Mundiales
+    url: 'https://youtu.be/d5NJV0A75CE'
+  - title: La Verdad de la Guerra  ¿Quién Pierde Siempre
+    url: 'https://youtu.be/I3cZt06cEtg'
+  - title: Derechos Humanos  La Base de Toda Discusión
+    url: 'https://youtu.be/IWon16MJb7k'
+  - title: ONU  El Poder de Veto que Impide la Paz Mundial
+    url: 'https://youtu.be/RosEk6DJxRM'
+  - title: ONU  Votación Gaza 2023 y la Falsa Seguridad
+    url: 'https://youtu.be/y0Yw7WdN9Fk'
+  - title: La Paz en Estados Unidos y el Mundo  ¿Un Nuevo Comienzo
+    url: 'https://youtu.be/YnRLNzeX40o'
+  - title: Ucrania  La Verdad Detrás del Interés Europeo
+    url: 'https://youtu.be/Tx9id-X0ef0'
+  - title: Crisis de Misiles Cuba  ¿Por Qué Ocurrió
+    url: 'https://youtu.be/3POURLGSB8I'
+  - title: Trump y la Democracia  ¿Elecciones Imposibles
+    url: 'https://youtu.be/wflwfdKB374'
+  - title: Putin y Trump  ¿Imperialistas Similares  Análisis Profundo
+    url: 'https://youtu.be/1NrNmo2Hjz8'
+  - title: Palestina  ¿Guerra Perpetua o Diálogo y Paz
+    url: 'https://youtu.be/OKSJCgQ2NU4'
+  - title: 'Ucrania  Putin, Imperialismo y EE UU  ¿Qué Pasaría'
+    url: 'https://youtu.be/gBHvriUBGPA'
+  - title: Silencio  ¿Perspectiva o Convivencia Forzada
+    url: 'https://youtu.be/TflKdH47GYk'
+  - title: ONU vs Sociedad de Naciones  ¿Repetiremos Errores Históricos
+    url: 'https://youtu.be/c94qSd9p5Zg'
+  - title: Debate  Tensión EE UU  Irán y Situación Mundial
+    url: 'https://youtu.be/cwL0klp3GuA'
+  - title: Ucrania  ¿Vía Diplomática o Conflicto Inevitable
+    url: 'https://youtu.be/oOZc-Ej7qms'
+  - title: Jovenes  ¿Les Importa Todo o Solo Actúan
+    url: 'https://youtu.be/RwdcPgkexas'
+  - title: Guerra  ¿Verdad sobre las Muertes Civiles  Dudas y Realidades
+    url: 'https://youtu.be/80ZEOxguNYU'
+  - title: 'Irán  Opresión, Protestas y Lucha por la Libertad'
+    url: 'https://youtu.be/DSNZOFmDnoM'
+  - title: 'China, Taiwán y la Frontera Infranqueable'
+    url: 'https://youtu.be/FLjTBEEuFkA'
+  - title: Trump y el Partido Republicano  ¿Una Crítica Necesaria
+    url: 'https://youtu.be/-4jQr2FgDL0'
+  - title: Ucrania  Nacionalismo y el Conflicto en el Donbass
+    url: 'https://youtu.be/sabwVgJJGE0'
+  - title: Soberanía y OTAN  El Dilema Ucraniano Explicado
+    url: 'https://youtu.be/VMu7__TESMw'
+  - title: Arabia Saudí  ¿Democracia  ¿Derechos de las Mujeres
+    url: 'https://youtu.be/OIPB7J_gI9o'
+  - title: El Odio Humano  ¿Nos Mueve Más Que El Amor
+    url: 'https://youtu.be/ZHP5p9eFr4w'
+  - title: 'EEUU, Rusia y Crimea  La Doble Cara de las Potencias'
+    url: 'https://youtu.be/WkFvkV8HCnQ'
+  - title: ICE Controversial  ¿Policía Migratoria o Muerte Civil
+    url: 'https://youtu.be/gUnD1z774Vw'
+  - title: Trump  ¿Guerra vs  Espolones  La Verdad Revelada
+    url: 'https://youtu.be/BksFGlZDovk'
+  - title: Trump  ¿Peligro para la Humanidad o Interés Petrolero
+    url: 'https://youtu.be/ykRLsxZVbIM'
+  - title: EEUU  Imperio en Decadencia y Su Fuerza Militar
+    url: 'https://youtu.be/yG6jf4ek070'
+  - title: 'Imperialismo, Petróleo y Geoestrategia  La Cruda Realidad'
+    url: 'https://youtu.be/Louf-7N0LAg'
+  - title: EE UU  ¿Pilar del Mundo Libre o Imperialista
+    url: 'https://youtu.be/oL9kRlIah-8'
+  - title: EE UU  e Irán  ¿Imperialismo o Interés Propio
+    url: 'https://youtu.be/4MC-z-KuScM'
+  - title: Israel  Agente de Inestabilidad en Medio Oriente
+    url: 'https://youtu.be/fawg3e7eeXQ'
+  - title: 'Ucrania  Putin, Imperialismo y EE UU  ¿Qué Pasaría 1'
+    url: 'https://youtu.be/2qouM2fdbEA'
 ---
 ¡Bienvenidos a un fascinante encuentro de ideas! En este episodio, seremos testigos de un debate histórico entre el Profesor Ulises, un respetado historiador con años de experiencia, y Gustavo, un joven y entusiasta estudiante de primer año de bachillerato.  Prepárense para un choque de generaciones y perspectivas sobre los eventos que han moldeado nuestro mundo.
 
