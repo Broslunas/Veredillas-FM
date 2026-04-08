@@ -20,9 +20,10 @@ participants:
   - Prof. Ulises
   - Gustavo
 season: 2
-episode: 7
-duration: ░░ min
+episode: 6
+duration: 48 min
 pubDate: '2026-04-08T16:00:00.000Z'
+videoUrl: 'https://youtube.com/embed/3Nh6fy70X4o'
 ---
 ¡Bienvenidos a un fascinante encuentro de ideas! En este episodio, seremos testigos de un debate histórico entre el Profesor Ulises, un respetado historiador con años de experiencia, y Gustavo, un joven y entusiasta estudiante de primer año de bachillerato.  Prepárense para un choque de generaciones y perspectivas sobre los eventos que han moldeado nuestro mundo.
 
