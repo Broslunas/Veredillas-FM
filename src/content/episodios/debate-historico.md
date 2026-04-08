@@ -15,7 +15,7 @@ description: >-
   Diferentes perspectivas y un análisis profundo de los eventos que marcaron
   nuestro pasado.
 isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/09c9a0d3-8cb1-46e2-8010-ea0ce0338a3b.png'
+image: 'https://cdn.veredillasfm.es/images/6300df1d-f250-47ff-8308-f1e1c06e3740.webp'
 participants:
   - Prof. Ulises
   - Gustavo
@@ -23,7 +23,7 @@ season: 2
 episode: 6
 duration: 49 min
 pubDate: '2026-04-08T16:00:00.000Z'
-videoUrl: 'https://youtube.com/embed/3Nh6fy70X4o'
+videoUrl: 'https://www.youtube.com/embed/OxsT2ge6Ga0'
 ---
 ¡Bienvenidos a un fascinante encuentro de ideas! En este episodio, seremos testigos de un debate histórico entre el Profesor Ulises, un respetado historiador con años de experiencia, y Gustavo, un joven y entusiasta estudiante de primer año de bachillerato.  Prepárense para un choque de generaciones y perspectivas sobre los eventos que han moldeado nuestro mundo.
 
