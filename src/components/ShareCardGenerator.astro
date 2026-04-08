@@ -509,21 +509,21 @@ const lowerTitle = displayTitle.toLowerCase();
         isGeneratingId = true;
         try {
             const state = {
-                t: titleInput?.value,
-                g: guestInput?.value,
-                q: quoteInput?.value,
+                t: titleInput?.value || '',
+                g: guestInput?.value || '',
+                q: quoteInput?.value || '',
                 c: document.documentElement.style.getPropertyValue('--card-accent') || '#8b5cf6',
                 b: cardBgLayer?.className.replace('card-bg', '').trim() || 'cover',
-                bc: bgColorInput?.value,
+                bc: bgColorInput?.value || '#0f0f0f',
                 img: currentEpisodeImage,
                 u: currentEpisodeUrl,
                 es: elementStates,
                 v: {
-                    l: showLogoInput?.checked,
-                    w: showWebsiteInput?.checked,
-                    wv: showWaveInput?.checked,
-                    q: showQRInput?.checked,
-                    cv: showCoverInput?.checked
+                    l: showLogoInput?.checked ?? true,
+                    w: showWebsiteInput?.checked ?? true,
+                    wv: showWaveInput?.checked ?? true,
+                    q: showQRInput?.checked ?? false,
+                    cv: showCoverInput?.checked ?? true
                 }
             };
             const res = await fetch('/api/share/save', {
@@ -937,7 +937,23 @@ const lowerTitle = displayTitle.toLowerCase();
         cacheBust: true,
         skipAutoScale: true,
         style: { transform: 'none' },
-        pixelRatio: 1
+        pixelRatio: 1,
+        allowTaint: true,
+        useCORS: false,
+        ignoreElements: (element: Element) => {
+            // Ignore script tags and other problematic elements
+            if (element.tagName === 'SCRIPT' || element.tagName === 'NOSCRIPT') return true;
+            // Ignore modal backdrops and control panels
+            if (element.classList.contains('generator-backdrop') || 
+                element.classList.contains('controls-panel') || 
+                element.classList.contains('preview-panel')) return true;
+            return false;
+        },
+        onClone: (clonedDocument: Document) => {
+            // Remove all external stylesheet links to avoid CORS issues
+            const externalStyles = clonedDocument.querySelectorAll('link[rel="stylesheet"][href*="cdn"], link[rel="stylesheet"][href*="http"]');
+            externalStyles.forEach(style => style.remove());
+        }
     });
 
     const setExportingState = (btn: HTMLElement, isExporting: boolean, originalHTML: string) => {
@@ -1012,13 +1028,8 @@ const lowerTitle = displayTitle.toLowerCase();
         
         try {
             const dataUrl = await htmlToImage.toPng(card, {
-                quality,
-                width: 1080,
-                height: 1920,
-                cacheBust: true,
-                skipAutoScale: true,
-                style: { transform: 'none' },
-                pixelRatio: 1
+                ...getRenderOptions(),
+                quality
             });
             return dataUrl;
         } catch (err) {
