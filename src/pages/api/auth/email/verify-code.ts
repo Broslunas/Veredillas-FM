@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { generateToken } from '../../../../lib/auth';
 import User from '../../../../models/User';
-import VerificationCode from '../../../../models/VerificationCode';
 import { calculateStreakUpdate } from '../../../../lib/streak';
 import { createHash } from 'crypto';
 
