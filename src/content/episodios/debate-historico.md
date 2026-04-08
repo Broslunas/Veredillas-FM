@@ -21,7 +21,7 @@ participants:
   - Gustavo
 season: 2
 episode: 6
-duration: 48 min
+duration: 49 min
 pubDate: '2026-04-08T16:00:00.000Z'
 videoUrl: 'https://youtube.com/embed/3Nh6fy70X4o'
 ---
