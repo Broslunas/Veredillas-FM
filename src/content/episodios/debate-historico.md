@@ -928,6 +928,62 @@ sections:
     title: El Estado de Israel y la Inestabilidad Regional
   - time: '48:35'
     title: Conclusiones y Cierre del Programa
+quiz:
+  - question: >-
+      ¿Qué característica se atribuye al participante con vasta experiencia
+      académica?
+    options:
+      - Una visión fresca y juvenil
+      - Desafiar interpretaciones tradicionales
+      - Una visión profunda y matizada de la historia
+      - La formulación de nuevas preguntas
+    correctAnswer: 2
+  - question: ¿Qué rasgo distintivo se destaca del participante joven en el encuentro?
+    options:
+      - Años de experiencia historiográfica
+      - Una perspectiva que desafía interpretaciones tradicionales
+      - Un análisis exhaustivo de eventos pasados
+      - Conclusiones ya establecidas sobre el mundo
+    correctAnswer: 1
+  - question: ¿Cuál es el tema central que aborda el debate descrito?
+    options:
+      - La literatura contemporánea
+      - Los avances tecnológicos
+      - Los eventos que han moldeado nuestro mundo
+      - Las teorías económicas
+    correctAnswer: 2
+  - question: >-
+      Además de su perspectiva juvenil, ¿qué contribución específica se menciona
+      del estudiante durante el encuentro?
+    options:
+      - Confirmar todas las interpretaciones históricas existentes.
+      - Compartir únicamente anécdotas personales sin análisis.
+      - Plantear nuevas preguntas sobre la historia.
+      - Resumir exclusivamente el trabajo de otros historiadores.
+    correctAnswer: 2
+  - question: ¿Qué compartirán los participantes al finalizar el intenso debate?
+    options:
+      - Un nuevo libro de texto de historia.
+      - Conclusiones y reflexiones finales sobre la importancia de la historia.
+      - Un plan para futuros encuentros académicos.
+      - Un listado de errores históricos comunes.
+    correctAnswer: 1
+  - question: ¿Cuál es uno de los propósitos declarados del debate para los oyentes?
+    options:
+      - Que memoricen fechas y nombres históricos específicos.
+      - Que reflexionen y cuestionen su propia visión del mundo.
+      - Que acepten sin crítica todas las visiones presentadas.
+      - Que aprendan a organizar un debate profesional.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué pregunta fundamental se busca explorar con relación al pasado y el
+      futuro?
+    options:
+      - ¿Cómo podemos ignorar el pasado para un futuro mejor?
+      - ¿Qué podemos aprender del pasado para construir un futuro mejor?
+      - ¿Es el pasado irrelevante para el futuro?
+      - ¿Debe el futuro dictar la interpretación del pasado?
+    correctAnswer: 1
 ---
 ¡Bienvenidos a un fascinante encuentro de ideas! En este episodio, seremos testigos de un debate histórico entre el Profesor Ulises, un respetado historiador con años de experiencia, y Gustavo, un joven y entusiasta estudiante de primer año de bachillerato.  Prepárense para un choque de generaciones y perspectivas sobre los eventos que han moldeado nuestro mundo.
 
