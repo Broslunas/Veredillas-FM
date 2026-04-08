@@ -1,6 +1,9 @@
 ---
 category: Episodios Temporada 2
 images:
+  - title: 'T2 E6 - Debate HISTORICO: Ulises vs Gustavo'
+    src: >-
+      https://cdn.veredillasfm.es/images/6300df1d-f250-47ff-8308-f1e1c06e3740.webp
   - title: T2 E5 - Cálculo de la Experiencia
     src: >-
       https://cdn.veredillasfm.es/images/407d3dd8-882d-46f2-9562-7742120f20bb.webp
