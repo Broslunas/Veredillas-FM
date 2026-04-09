@@ -1,0 +1,251 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import CinemaAudioPlayer from "../components/player/CinemaAudioPlayer.tsx";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+
+export const prerender = false; // We might want dynamic selection if we add live status
+
+const allEpisodes = await getCollection("episodios");
+const now = new Date();
+
+// Filter episodes that are premieres (special flag) or future (upcoming)
+const premieres = allEpisodes
+    .filter(ep => ep.data.isPremiere)
+    .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+// Selected episode: if there's an ?ep=slug in query, use that, else use the most recent premiere
+const url = new URL(Astro.request.url);
+const epSlug = url.searchParams.get("ep");
+const activeEpisode = epSlug 
+    ? (premieres.find(e => e.slug === epSlug) || premieres[0])
+    : premieres[0];
+
+if (!activeEpisode) {
+    // Should not happen with valid content, but fallback
+    return Astro.redirect("/");
+}
+
+const formattedDate = activeEpisode.data.pubDate.toLocaleDateString("es-ES", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+});
+
+const isUpcoming = activeEpisode.data.pubDate > now;
+
+// For the player context
+const nextEpisodes = premieres
+    .filter(e => e.slug !== activeEpisode.slug)
+    .slice(0, 5)
+    .map(e => ({
+        slug: e.slug,
+        title: e.data.title,
+        image: e.data.image,
+        author: e.data.author,
+        duration: e.data.duration,
+    }));
+
+const timeToSeconds = (timeStr: string) => {
+    const parts = timeStr.split(":").map(Number);
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    return 0;
+};
+
+const formattedTranscription = activeEpisode.data.transcription?.map((t) => ({
+    ...t,
+    time: timeToSeconds(t.time),
+}));
+---
+
+<Layout 
+    title="Radio Veredillas - Sintoniza los Estrenos"
+    description="Escucha todas las emisoras y estrenos exclusivos de Veredillas FM. Una experiencia de radio digital inmersiva con los mejores programas de nuestro instituto."
+>
+    <div class="radio-page-bg"></div>
+    
+    <div class="container mx-auto px-4 py-8 relative z-10">
+        <Breadcrumbs className="mb-6" />
+        
+        <header class="mb-10 text-center md:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full mb-4">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Radio en Directo</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tight text-white drop-shadow-sm">
+                Sintonizando <span class="text-primary italic">Estrenos</span>
+            </h1>
+            <p class="text-zinc-400 max-w-2xl text-lg">
+                Disfruta de la programación especial de Veredillas FM. Aquí encontrarás todas las "emisoras" y programas marcados como estreno oficial.
+            </p>
+        </header>
+
+        <div class="radio-grid">
+            <div class="player-main shadow-2xl rounded-3xl overflow-hidden bg-black/40 backdrop-blur-xl border border-white/5 p-4 md:p-8">
+                <div class="relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                    <div class="relative bg-black rounded-2xl overflow-hidden border border-white/5">
+                        <CinemaAudioPlayer
+                            client:load
+                            audioUrl={activeEpisode.data.audioUrl || ""}
+                            title={activeEpisode.data.title || ""}
+                            cover={activeEpisode.data.image || ""}
+                            author={activeEpisode.data.author || "Veredillas FM"}
+                            transcription={formattedTranscription}
+                            slug={activeEpisode.slug}
+                            videoUrl={activeEpisode.data.videoUrl}
+                            sections={activeEpisode.data.sections}
+                            nextEpisodes={nextEpisodes}
+                        />
+                    </div>
+                </div>
+
+                <div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/30 p-1 bg-black/50">
+                            <img src={activeEpisode.data.image || "/logo.webp"} alt={activeEpisode.data.title} class="w-full h-full object-cover rounded-full" />
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-white leading-tight">{activeEpisode.data.title}</h2>
+                            <p class="text-zinc-500 text-sm">{activeEpisode.data.author} • {formattedDate}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href={`/ep/${activeEpisode.slug}`} class="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-full text-sm font-bold transition-all border border-white/10">
+                            Ver Detalles
+                        </a>
+                        <button class="px-6 py-2.5 bg-primary text-white rounded-full text-sm font-bold transition-all hover:bg-primary/90 shadow-lg shadow-primary/20">
+                            Compartir Estación
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="stations-list flex flex-col gap-6">
+                <div class="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 backdrop-blur-md">
+                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mb-6 flex items-center justify-between">
+                        Emisoras Disponibles
+                        <span class="bg-primary/20 text-primary px-2 py-0.5 rounded text-[9px]">{premieres.length}</span>
+                    </h3>
+                    
+                    <div class="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                        {premieres.map((ep) => (
+                            <a 
+                                href={`/radio?ep=${ep.slug}`}
+                                class={`station-card group p-3 rounded-2xl border transition-all flex gap-3 items-center ${
+                                    ep.slug === activeEpisode.slug 
+                                    ? "bg-primary/10 border-primary/30" 
+                                    : "bg-white/5 border-transparent hover:border-white/10 hover:bg-white/10"
+                                }`}
+                            >
+                                <div class="relative w-12 h-12 flex-shrink-0">
+                                    <img src={ep.data.image || "/logo.webp"} alt={ep.data.title} class="w-full h-full object-cover rounded-xl" />
+                                    {ep.slug === activeEpisode.slug && (
+                                        <div class="absolute inset-0 bg-primary/40 flex items-center justify-center rounded-xl backdrop-blur-[2px]">
+                                            <div class="equalizer-mini">
+                                                <div class="bar"></div>
+                                                <div class="bar"></div>
+                                                <div class="bar"></div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class={`text-sm font-bold truncate ${ep.slug === activeEpisode.slug ? "text-primary" : "text-zinc-100"}`}>
+                                        {ep.data.title}
+                                    </h4>
+                                    <p class="text-[11px] text-zinc-500 truncate">{ep.data.author}</p>
+                                </div>
+                                {ep.data.duration && (
+                                    <span class="text-[10px] text-zinc-600 font-mono">{ep.data.duration}</span>
+                                )}
+                            </a>
+                        ))}
+                    </div>
+                </div>
+
+                <div class="ads-placeholder glass-panel p-6 rounded-3xl border border-white/5 bg-gradient-to-br from-primary/5 to-blue-500/5 aspect-square flex flex-col items-center justify-center text-center">
+                    <div class="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                    </div>
+                    <h4 class="text-white font-bold mb-1">¿Quieres anunciarte?</h4>
+                    <p class="text-zinc-500 text-xs px-4">Llega a toda la comunidad estudiantil del IES Veredillas.</p>
+                </div>
+            </aside>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    .radio-page-bg {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #0a0a0b 100%);
+        z-index: 0;
+    }
+
+    .radio-grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+        .radio-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .glass-panel {
+        background: rgba(10, 10, 11, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* Equalizer Mini Animation */
+    .equalizer-mini {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 12px;
+    }
+
+    .equalizer-mini .bar {
+        width: 2px;
+        background: white;
+        border-radius: 1px;
+        animation: eq-bounce 0.6s infinite ease-in-out;
+    }
+
+    .equalizer-mini .bar:nth-child(2) { animation-delay: 0.2s; }
+    .equalizer-mini .bar:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes eq-bounce {
+        0%, 100% { height: 4px; }
+        50% { height: 12px; }
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--color-primary);
+    }
+</style>
