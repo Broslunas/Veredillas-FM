@@ -1,251 +1,376 @@
 ---
-import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
-import CinemaAudioPlayer from "../components/player/CinemaAudioPlayer.tsx";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 
-export const prerender = false; // We might want dynamic selection if we add live status
-
-const allEpisodes = await getCollection("episodios");
-const now = new Date();
-
-// Filter episodes that are premieres (special flag) or future (upcoming)
-const premieres = allEpisodes
-    .filter(ep => ep.data.isPremiere)
-    .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
-
-// Selected episode: if there's an ?ep=slug in query, use that, else use the most recent premiere
-const url = new URL(Astro.request.url);
-const epSlug = url.searchParams.get("ep");
-const activeEpisode = epSlug 
-    ? (premieres.find(e => e.slug === epSlug) || premieres[0])
-    : premieres[0];
-
-if (!activeEpisode) {
-    // Should not happen with valid content, but fallback
-    return Astro.redirect("/");
-}
-
-const formattedDate = activeEpisode.data.pubDate.toLocaleDateString("es-ES", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-});
-
-const isUpcoming = activeEpisode.data.pubDate > now;
-
-// For the player context
-const nextEpisodes = premieres
-    .filter(e => e.slug !== activeEpisode.slug)
-    .slice(0, 5)
-    .map(e => ({
-        slug: e.slug,
-        title: e.data.title,
-        image: e.data.image,
-        author: e.data.author,
-        duration: e.data.duration,
-    }));
-
-const timeToSeconds = (timeStr: string) => {
-    const parts = timeStr.split(":").map(Number);
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    return 0;
-};
-
-const formattedTranscription = activeEpisode.data.transcription?.map((t) => ({
-    ...t,
-    time: timeToSeconds(t.time),
-}));
+const radioStations = [
+    {
+        name: "Lofi Chill",
+        url: "https://stream.zeno.fm/0r0xa792kwzuv",
+        genre: "Chill / Lo-Fi",
+        logo: "https://zeno.fm/_next/image?url=https%3A%2F%2Fimages.zeno.fm%2Fstations%2F0r0xa792kwzuv%2Fimage%2F%3Fv%3D1692110243&w=128&q=75",
+        description: "Música tranquila para estudiar o relajarse."
+    },
+    {
+        name: "Los 40 Urban",
+        url: "https://27833.live.streamtheworld.com/LOS40_URBAN.mp3",
+        genre: "Reggaeton / Urban",
+        logo: "https://play-lh.googleusercontent.com/97y_X9Z6O8GvUq_m0v_n_e9Fz2k8G3vW2vX_z_z_z_z",
+        description: "El ritmo de la calle con los mejores hits urbanos."
+    },
+    {
+        name: "Rock FM",
+        url: "https://stream-177.zeno.fm/gwmx5szrc0hvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnd214NXN6cmMwaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Ild6UHlGOHdzUkRLeVRHalhZY004SlEiLCJpYXQiOjE3NzUyMTIwMjEsImV4cCI6MTc3NTIxMjA4MX0.NrAFqkqJUVyckzTl0C0RqzdCDxEkgQxGfBkS47sENnQ",
+        genre: "Classic Rock",
+        logo: "https://www.rockfm.fm/favicon.ico",
+        description: "Solo los mejores clásicos del rock de todos los tiempos."
+    },
+    {
+        name: "Los 40",
+        url: "https://28503.live.streamtheworld.com/LOS40_CAT.mp3",
+        genre: "Pop / Hits",
+        logo: "https://los40.com/favicon.ico",
+        description: "La lista de éxitos número uno en España."
+    },
+    {
+        name: "TechnoBase.FM",
+        url: "https://listen.technobase.fm/tunein-mp3",
+        genre: "Techno / Hands Up",
+        logo: "https://www.technobase.fm/favicon.ico",
+        description: "Puro ritmo electrónico desde Alemania."
+    },
+    {
+        name: "La MUEVE FM",
+        url: "https://sunaer-stream.com:7113/LA_MUEVE_CADENA_HD",
+        genre: "Latin / Hits",
+        logo: "/logo.webp",
+        description: "Todo el sabor latino y los hits del momento."
+    },
+    {
+        name: "Cadena Dial",
+        url: "http://streaming.indalteco.net:8002/dial.mp3",
+        genre: "Pop Español",
+        logo: "https://www.cadenadial.com/favicon.ico",
+        description: "Lo mejor de nuestra música en español."
+    },
+    {
+        name: "Loca Urban",
+        url: "https://s1.we4stream.com:2020/stream/locaurban",
+        genre: "House / Urban",
+        logo: "https://www.locafm.com/favicon.ico",
+        description: "La emisora de música electrónica y urbana pionera en España."
+    }
+];
 ---
 
 <Layout 
-    title="Radio Veredillas - Sintoniza los Estrenos"
-    description="Escucha todas las emisoras y estrenos exclusivos de Veredillas FM. Una experiencia de radio digital inmersiva con los mejores programas de nuestro instituto."
+    title="Sintonizador de Radio - Veredillas FM"
+    description="Escucha tus emisoras favoritas directamente desde Veredillas FM. Selecciona entre una variedad de géneros mientras esperas nuestros próximos estrenos."
 >
-    <div class="radio-page-bg"></div>
-    
-    <div class="container mx-auto px-4 py-8 relative z-10">
-        <Breadcrumbs className="mb-6" />
+    <!-- Background Decor -->
+    <div class="radio-background">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+        <div class="grid-lines"></div>
+    </div>
+
+    <div class="container mx-auto px-4 py-12 relative z-10">
+        <Breadcrumbs />
         
-        <header class="mb-10 text-center md:text-left">
-            <div class="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full mb-4">
-                <span class="relative flex h-2 w-2">
+        <header class="mb-12 text-center">
+            <div class="inline-flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
+                <span class="relative flex h-3 w-3">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
                 </span>
-                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Radio en Directo</span>
+                <span class="text-xs font-black uppercase tracking-[0.2em] text-primary">Sintonizador Premiere</span>
             </div>
-            <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tight text-white drop-shadow-sm">
-                Sintonizando <span class="text-primary italic">Estrenos</span>
+            <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter text-white">
+                Radio <span class="text-gradient">Veredillas</span>
             </h1>
-            <p class="text-zinc-400 max-w-2xl text-lg">
-                Disfruta de la programación especial de Veredillas FM. Aquí encontrarás todas las "emisoras" y programas marcados como estreno oficial.
+            <p class="text-zinc-400 max-w-2xl mx-auto text-lg leading-relaxed">
+                Hemos integrado las emisoras del contador de estrenos en una sola página. Elige tu ambiente y disfruta de la música sin interrupciones.
             </p>
         </header>
 
-        <div class="radio-grid">
-            <div class="player-main shadow-2xl rounded-3xl overflow-hidden bg-black/40 backdrop-blur-xl border border-white/5 p-4 md:p-8">
-                <div class="relative group">
-                    <div class="absolute -inset-1 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-                    <div class="relative bg-black rounded-2xl overflow-hidden border border-white/5">
-                        <CinemaAudioPlayer
-                            client:load
-                            audioUrl={activeEpisode.data.audioUrl || ""}
-                            title={activeEpisode.data.title || ""}
-                            cover={activeEpisode.data.image || ""}
-                            author={activeEpisode.data.author || "Veredillas FM"}
-                            transcription={formattedTranscription}
-                            slug={activeEpisode.slug}
-                            videoUrl={activeEpisode.data.videoUrl}
-                            sections={activeEpisode.data.sections}
-                            nextEpisodes={nextEpisodes}
-                        />
+        <!-- Player Board -->
+        <div class="max-w-6xl mx-auto">
+            <div class="main-player-console bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-[40px] p-8 md:p-12 mb-12 shadow-2xl relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-12 items-center">
+                    <div class="flex flex-col md:flex-row items-center gap-8">
+                        <div class="station-visual relative">
+                            <div class="equalizer-overlay absolute inset-0 flex items-end justify-center gap-1 p-8 opacity-0 transition-opacity duration-500" id="global-eq">
+                                <div class="eq-bar"></div>
+                                <div class="eq-bar"></div>
+                                <div class="eq-bar"></div>
+                                <div class="eq-bar"></div>
+                                <div class="eq-bar"></div>
+                            </div>
+                            <img src="/logo.webp" id="active-station-logo" class="w-48 h-48 md:w-64 md:h-64 object-cover rounded-[32px] shadow-2xl border border-white/10" alt="Station Logo" />
+                        </div>
+                        
+                        <div class="text-center md:text-left">
+                            <span class="text-primary font-bold text-sm tracking-widest uppercase mb-2 block" id="active-station-genre">Selecciona una emisora</span>
+                            <h2 class="text-4xl md:text-5xl font-black text-white mb-4" id="active-station-name">Veredillas Player</h2>
+                            <p class="text-zinc-500 text-lg max-w-md" id="active-station-desc">Haz clic en cualquier emisora de abajo para empezar a escuchar en directo.</p>
+                            
+                            <div class="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
+                                <button id="master-play-btn" class="px-10 py-5 bg-white text-black font-black rounded-full hover:scale-105 active:scale-95 transition-all flex items-center gap-3 shadow-xl shadow-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                    REPRODUCIR
+                                </button>
+                                <div class="volume-control-horizontal flex items-center gap-4 bg-white/5 border border-white/5 px-6 py-4 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-500"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                                    <input type="range" id="master-volume" min="0" max="1" step="0.01" value="0.5" class="w-24 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-8">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/30 p-1 bg-black/50">
-                            <img src={activeEpisode.data.image || "/logo.webp"} alt={activeEpisode.data.title} class="w-full h-full object-cover rounded-full" />
+                    <div class="hidden lg:block border-l border-white/5 pl-12 h-full">
+                        <div class="space-y-6">
+                            <h4 class="text-white font-bold opacity-50 uppercase text-xs tracking-widest">Información</h4>
+                            <div class="stat">
+                                <span class="block text-[10px] text-zinc-600 uppercase font-black mb-1">Status</span>
+                                <span class="text-emerald-500 font-mono text-sm flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                    READY TO STREAM
+                                </span>
+                            </div>
+                            <div class="stat">
+                                <span class="block text-[10px] text-zinc-600 uppercase font-black mb-1">Source</span>
+                                <span class="text-zinc-400 font-mono text-xs truncate max-w-[200px]" id="active-station-url">None Selected</span>
+                            </div>
+                            <div class="stat">
+                                <span class="block text-[10px] text-zinc-600 uppercase font-black mb-1">Quality</span>
+                                <span class="text-zinc-400 font-mono text-xs">High Definition / MP3</span>
+                            </div>
                         </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-white leading-tight">{activeEpisode.data.title}</h2>
-                            <p class="text-zinc-500 text-sm">{activeEpisode.data.author} • {formattedDate}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <a href={`/ep/${activeEpisode.slug}`} class="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-full text-sm font-bold transition-all border border-white/10">
-                            Ver Detalles
-                        </a>
-                        <button class="px-6 py-2.5 bg-primary text-white rounded-full text-sm font-bold transition-all hover:bg-primary/90 shadow-lg shadow-primary/20">
-                            Compartir Estación
-                        </button>
                     </div>
                 </div>
             </div>
 
-            <aside class="stations-list flex flex-col gap-6">
-                <div class="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 backdrop-blur-md">
-                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mb-6 flex items-center justify-between">
-                        Emisoras Disponibles
-                        <span class="bg-primary/20 text-primary px-2 py-0.5 rounded text-[9px]">{premieres.length}</span>
-                    </h3>
-                    
-                    <div class="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                        {premieres.map((ep) => (
-                            <a 
-                                href={`/radio?ep=${ep.slug}`}
-                                class={`station-card group p-3 rounded-2xl border transition-all flex gap-3 items-center ${
-                                    ep.slug === activeEpisode.slug 
-                                    ? "bg-primary/10 border-primary/30" 
-                                    : "bg-white/5 border-transparent hover:border-white/10 hover:bg-white/10"
-                                }`}
-                            >
-                                <div class="relative w-12 h-12 flex-shrink-0">
-                                    <img src={ep.data.image || "/logo.webp"} alt={ep.data.title} class="w-full h-full object-cover rounded-xl" />
-                                    {ep.slug === activeEpisode.slug && (
-                                        <div class="absolute inset-0 bg-primary/40 flex items-center justify-center rounded-xl backdrop-blur-[2px]">
-                                            <div class="equalizer-mini">
-                                                <div class="bar"></div>
-                                                <div class="bar"></div>
-                                                <div class="bar"></div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class={`text-sm font-bold truncate ${ep.slug === activeEpisode.slug ? "text-primary" : "text-zinc-100"}`}>
-                                        {ep.data.title}
-                                    </h4>
-                                    <p class="text-[11px] text-zinc-500 truncate">{ep.data.author}</p>
-                                </div>
-                                {ep.data.duration && (
-                                    <span class="text-[10px] text-zinc-600 font-mono">{ep.data.duration}</span>
-                                )}
-                            </a>
-                        ))}
-                    </div>
-                </div>
-
-                <div class="ads-placeholder glass-panel p-6 rounded-3xl border border-white/5 bg-gradient-to-br from-primary/5 to-blue-500/5 aspect-square flex flex-col items-center justify-center text-center">
-                    <div class="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 text-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-                    </div>
-                    <h4 class="text-white font-bold mb-1">¿Quieres anunciarte?</h4>
-                    <p class="text-zinc-500 text-xs px-4">Llega a toda la comunidad estudiantil del IES Veredillas.</p>
-                </div>
-            </aside>
+            <!-- Grid of Stations -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {radioStations.map((station) => (
+                    <button 
+                        class="station-card group bg-zinc-900/20 hover:bg-white/5 border border-white/5 hover:border-white/10 p-6 rounded-[32px] transition-all duration-300 text-left relative overflow-hidden"
+                        data-station-url={station.url}
+                        data-station-name={station.name}
+                        data-station-genre={station.genre}
+                        data-station-desc={station.description}
+                        data-station-logo={station.logo}
+                    >
+                        <div class="flex items-center gap-4 mb-4">
+                            <img src={station.logo} class="w-16 h-16 rounded-2xl object-cover border border-white/10 group-hover:scale-105 transition-transform" alt={station.name} />
+                            <div>
+                                <h3 class="text-white font-bold text-lg group-hover:text-primary transition-colors">{station.name}</h3>
+                                <span class="text-zinc-500 text-xs uppercase tracking-tighter">{station.genre}</span>
+                            </div>
+                        </div>
+                        <p class="text-zinc-400 text-sm line-clamp-2 leading-relaxed">
+                            {station.description}
+                        </p>
+                        <div class="active-indicator absolute top-4 right-4 opacity-0 transition-opacity">
+                            <div class="w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_var(--color-primary)]"></div>
+                        </div>
+                    </button>
+                ))}
+            </div>
         </div>
     </div>
+
+    <audio id="radio-backend-audio" preload="none"></audio>
 </Layout>
 
 <style>
-    .radio-page-bg {
+    .radio-background {
         position: fixed;
         inset: 0;
-        background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #0a0a0b 100%);
-        z-index: 0;
+        background: #050505;
+        z-index: -1;
+        overflow: hidden;
     }
 
-    .radio-grid {
-        display: grid;
-        grid-template-columns: 1fr 340px;
-        gap: 2rem;
-        align-items: start;
+    .glow {
+        position: absolute;
+        width: 60vw;
+        height: 60vw;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.15;
     }
 
-    @media (max-width: 1024px) {
-        .radio-grid {
-            grid-template-columns: 1fr;
-        }
+    .glow-1 {
+        top: -10vw;
+        left: -10vw;
+        background: radial-gradient(circle, var(--color-primary), transparent);
+        animation: float-slow 20s infinite alternate;
     }
 
-    .glass-panel {
-        background: rgba(10, 10, 11, 0.4);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+    .glow-2 {
+        bottom: -10vw;
+        right: -10vw;
+        background: radial-gradient(circle, #3b82f6, transparent);
+        animation: float-slow 25s infinite alternate-reverse;
     }
 
-    /* Equalizer Mini Animation */
-    .equalizer-mini {
-        display: flex;
-        align-items: flex-end;
-        gap: 2px;
-        height: 12px;
+    .grid-lines {
+        position: absolute;
+        inset: 0;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: radial-gradient(ellipse at center, black, transparent);
     }
 
-    .equalizer-mini .bar {
-        width: 2px;
+    @keyframes float-slow {
+        from { transform: translate(0, 0); }
+        to { transform: translate(10vw, 5vh); }
+    }
+
+    /* Console Styling */
+    .eq-bar {
+        width: 8px;
         background: white;
-        border-radius: 1px;
-        animation: eq-bounce 0.6s infinite ease-in-out;
+        border-radius: 4px;
+        animation: eq-dance 0.8s infinite ease-in-out;
     }
 
-    .equalizer-mini .bar:nth-child(2) { animation-delay: 0.2s; }
-    .equalizer-mini .bar:nth-child(3) { animation-delay: 0.4s; }
+    .eq-bar:nth-child(2) { animation-delay: 0.1s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(4) { animation-delay: 0.3s; }
+    .eq-bar:nth-child(5) { animation-delay: 0.4s; }
 
-    @keyframes eq-bounce {
-        0%, 100% { height: 4px; }
-        50% { height: 12px; }
+    @keyframes eq-dance {
+        0%, 100% { height: 10px; opacity: 0.3; }
+        50% { height: 100%; opacity: 1; }
     }
 
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 4px;
+    .station-card.active {
+        background: rgba(var(--color-primary-rgb), 0.1);
+        border-color: var(--color-primary);
     }
 
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
+    .station-card.active .active-indicator {
+        opacity: 1;
     }
 
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: var(--color-primary);
+    /* Custom range input */
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: white;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const audio = document.getElementById('radio-backend-audio') as HTMLAudioElement;
+        const playBtn = document.getElementById('master-play-btn');
+        const volSlider = document.getElementById('master-volume') as HTMLInputElement;
+        const stationCards = document.querySelectorAll('.station-card');
+        const eqOverlay = document.getElementById('global-eq');
+        
+        // UI elements
+        const uiName = document.getElementById('active-station-name');
+        const uiGenre = document.getElementById('active-station-genre');
+        const uiDesc = document.getElementById('active-station-desc');
+        const uiLogo = document.getElementById('active-station-logo') as HTMLImageElement;
+        const uiUrl = document.getElementById('active-station-url');
+
+        let isPlaying = false;
+        let currentUrl = "";
+
+        // Set initial volume
+        if (audio) audio.volume = parseFloat(volSlider.value);
+
+        function updatePlayIcon(playing: boolean) {
+            if (!playBtn) return;
+            if (playing) {
+                playBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    PAUSAR
+                `;
+                eqOverlay?.style.setProperty('opacity', '1');
+            } else {
+                playBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    REPRODUCIR
+                `;
+                eqOverlay?.style.setProperty('opacity', '0');
+            }
+        }
+
+        stationCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const url = card.getAttribute('data-station-url');
+                const name = card.getAttribute('data-station-name');
+                const genre = card.getAttribute('data-station-genre');
+                const desc = card.getAttribute('data-station-desc');
+                const logo = card.getAttribute('data-station-logo');
+
+                if (!url || !uiName || !uiGenre || !uiDesc || !uiLogo || !uiUrl) return;
+
+                // Mark current as active
+                stationCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+
+                // Update UI
+                uiName.textContent = name;
+                uiGenre.textContent = genre;
+                uiDesc.textContent = desc;
+                uiLogo.src = logo || "/logo.webp";
+                uiUrl.textContent = url;
+
+                // Load and play
+                if (currentUrl !== url) {
+                    currentUrl = url;
+                    audio.src = url;
+                }
+                
+                audio.play().then(() => {
+                    isPlaying = true;
+                    updatePlayIcon(true);
+                }).catch(err => {
+                    console.error("Audio play failed:", err);
+                    isPlaying = false;
+                    updatePlayIcon(false);
+                });
+            });
+        });
+
+        playBtn?.addEventListener('click', () => {
+            if (!currentUrl) return;
+
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+            } else {
+                audio.play();
+                isPlaying = true;
+            }
+            updatePlayIcon(isPlaying);
+        });
+
+        volSlider?.addEventListener('input', (e) => {
+            const val = parseFloat((e.target as HTMLInputElement).value);
+            audio.volume = val;
+        });
+
+        // Handle errors
+        audio.addEventListener('error', (e) => {
+            console.error("Audio error event:", e);
+            isPlaying = false;
+            updatePlayIcon(false);
+            if (uiDesc) uiDesc.textContent = "Error al conectar con la emisora. El stream puede estar fuera de línea.";
+            if (uiDesc) uiDesc.style.color = "#ef4444";
+        });
+    });
+</script>
