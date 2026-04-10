@@ -164,9 +164,9 @@ const buildNow = new Date();
                                             role="option"
                                             aria-selected="false"
                                         >
-                                            <span class="guest-option-avatar">
+                                            <span class="guest-option-avatar shimmer-skeleton">
                                                 {guest.image ? (
-                                                    <img src={guest.image} alt={guest.name} loading="lazy" />
+                                                    <img src={guest.image} alt={guest.name} loading="lazy" onload="this.classList.remove('opacity-0'); this.parentElement.classList.remove('shimmer-skeleton')" class="transition-opacity duration-500 opacity-0 bg-transparent" />
                                                 ) : (
                                                     <span class="guest-option-initials">{guest.name.charAt(0).toUpperCase()}</span>
                                                 )}
@@ -466,7 +466,7 @@ const buildNow = new Date();
                     if (value === '') {
                         guestTriggerAvatar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
                     } else if (image) {
-                        guestTriggerAvatar.innerHTML = `<img src="${image}" alt="${name}" />`;
+                        guestTriggerAvatar.innerHTML = `<img src="${image}" alt="${name}" class="transition-opacity duration-300 opacity-0" onload="this.classList.remove('opacity-0')" />`;
                     } else {
                         guestTriggerAvatar.innerHTML = `<span class="trigger-initials">${name.charAt(0).toUpperCase()}</span>`;
                     }
@@ -787,6 +787,19 @@ const buildNow = new Date();
             
             filterItems(false);
         });
+
+        // Handle already cached images
+        const checkEpisodeImages = () => {
+            document.querySelectorAll('.guest-option-avatar img').forEach(img => {
+                const image = img as HTMLImageElement;
+                if (image.complete) {
+                    image.classList.remove('opacity-0');
+                    image.parentElement?.classList.remove('shimmer-skeleton');
+                }
+            });
+        };
+
+        checkEpisodeImages();
 
         // Initial call
         filterItems(false);

@@ -19,23 +19,24 @@ const formatDate = (date: Date) => {
 
 <article class="relative flex flex-col h-full bg-white/3 backdrop-blur-[10px] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 hover:border-primary hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] hover-3d-card group" data-cursor="read">
     <div class="shine"></div>
-    <div class="w-full h-[200px] relative overflow-hidden bg-zinc-900">
+    <div class="w-full h-[200px] relative overflow-hidden bg-white/5 shimmer-skeleton">
         {post.data.image ? (
             <img 
                 src={post.data.image} 
                 alt={post.data.title} 
                 width={600}
                 height={400}
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                class="blog-cover w-full h-full object-cover transition-all duration-700 opacity-0 group-hover:scale-105" 
                 style="transform: translateZ(20px);"
-                loading="lazy" 
+                loading="lazy"
+                onload="this.classList.remove('opacity-0'); this.parentElement.classList.remove('shimmer-skeleton')"
             />
         ) : (
             <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-white/2">
                 <span class="text-5xl opacity-30">📰</span>
             </div>
         )}
-        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 pointer-events-none"></div>
     </div>
 
     <div class="p-6 flex flex-col flex-grow">
@@ -64,3 +65,18 @@ const formatDate = (date: Date) => {
         </a>
     </div>
 </article>
+
+<script>
+    const checkBlogImages = () => {
+        document.querySelectorAll('.blog-cover').forEach(img => {
+            const image = img as HTMLImageElement;
+            if (image.complete) {
+                image.classList.remove('opacity-0');
+                image.parentElement?.classList.remove('shimmer-skeleton');
+            }
+        });
+    };
+    
+    document.addEventListener("DOMContentLoaded", checkBlogImages);
+    document.addEventListener("astro:page-load", checkBlogImages);
+</script>

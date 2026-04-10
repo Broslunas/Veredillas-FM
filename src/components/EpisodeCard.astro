@@ -1,6 +1,5 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import type { CollectionEntry } from "astro:content";
 
 interface Props {
     post: CollectionEntry<"episodios">;
@@ -53,18 +52,19 @@ const isAboutToPremiere = isUpcoming && diffInHours <= 2;
     <div class="flex flex-col h-full text-inherit">
         {
             post.data.image ? (
-                <div class="w-full h-[180px] relative overflow-hidden">
+                <div class="w-full h-[180px] relative overflow-hidden bg-white/5 shimmer-skeleton">
                     <img
                         src={post.data.image}
                         alt={post.data.title}
                         width={600}
                         height={338}
-                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        class="episode-cover w-full h-full object-cover transition-all duration-700 opacity-0 group-hover:scale-105"
                         style={`transform: translateZ(20px); view-transition-name: ${!disableTransition ? `cover-${post.slug}` : 'none'}`}
                         loading="lazy"
                         decoding="async"
+                        onload="this.classList.remove('opacity-0'); this.parentElement.classList.remove('shimmer-skeleton')"
                     />
-                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px] z-20">
                         {
                             !isUpcoming && post.data.audioUrl && (
                                 <button
@@ -357,4 +357,19 @@ const isAboutToPremiere = isUpcoming && diffInHours <= 2;
 
     document.addEventListener("DOMContentLoaded", initQuickPlay);
     document.addEventListener("astro:page-load", initQuickPlay);
+
+    // Initial check for already cached images
+    // Handles the case where images finish loading before the script executes
+    const checkImages = () => {
+        document.querySelectorAll('.episode-cover').forEach(img => {
+            const image = img as HTMLImageElement;
+            if (image.complete) {
+                image.classList.remove('opacity-0');
+                image.parentElement?.classList.remove('shimmer-skeleton');
+            }
+        });
+    };
+    
+    document.addEventListener("DOMContentLoaded", checkImages);
+    document.addEventListener("astro:page-load", checkImages);
 </script>
