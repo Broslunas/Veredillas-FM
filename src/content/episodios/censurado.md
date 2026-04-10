@@ -16,6 +16,10 @@ season: 2
 episode: 7
 duration: ¿? min
 pubDate: '2026-04-14T16:00:00.000Z'
+description: >-
+  Bibiana, nueva profesora, comparte en Veredillas FM su visión de la tecnología
+  en el aula. Descubre cómo conectar con nativos digitales y fomentar la
+  vocación técnica.
 ---
 ¡Bienvenidos a una desconexión total de la rutina para conectar con la innovación! En este episodio especial, somos testigos de un encuentro excepcional: la llegada de Bibiana, una joven y talentosa profesora en prácticas, al departamento de Tecnología. Prepárense para una charla que navega entre los circuitos de la enseñanza tradicional y las nuevas corrientes de la era digital.
 
