@@ -187,6 +187,14 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
   top: 0; left: 0; right: 0;
   z-index: 9000;
   font-family: var(--font-body);
+  /* Scroll-hide/show */
+  transform: translateY(0);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.sh.is-hidden {
+  transform: translateY(-110%);
 }
 
 /* Gradient accent line on top */
@@ -207,34 +215,38 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
   100% { background-position: 200% 0%; }
 }
 
-/* Main bar */
+/* Main bar – full width, glassmorphism */
 .sh-inner {
   height: 60px;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  width: 100%;
+  padding: 0 2rem;
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  background: rgba(4, 4, 8, 0.85);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  transition: background 0.3s;
+  /* Transparent glass – starts very transparent */
+  background: rgba(4, 4, 8, 0.35);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 1px 40px rgba(0,0,0,0.15);
+  transition: background 0.4s ease, box-shadow 0.4s ease;
 }
 
-/* After scrolling – slightly more opaque */
+/* Scrolled – slightly more opaque but never fully solid */
 .sh.is-scrolled .sh-inner {
-  background: rgba(4, 4, 8, 0.97);
+  background: rgba(4, 4, 8, 0.72);
+  box-shadow: 0 4px 48px rgba(0,0,0,0.4);
 }
 
 :global([data-theme="light"]) .sh-inner {
-  background: rgba(255, 255, 255, 0.88);
-  border-bottom-color: rgba(0,0,0,0.07);
+  background: rgba(255, 255, 255, 0.45);
+  border-bottom-color: rgba(0,0,0,0.06);
+  box-shadow: 0 1px 24px rgba(0,0,0,0.06);
 }
 
 :global([data-theme="light"]) .sh.is-scrolled .sh-inner {
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.1);
 }
 
 /* ─────────────────────────────────────────
@@ -874,15 +886,50 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const header  = document.getElementById('site-header');
-    const ham     = document.getElementById('sh-ham') as HTMLButtonElement;
-    const overlay = document.querySelector('.sh-overlay') as HTMLElement;
+    const header   = document.getElementById('site-header');
+    const ham      = document.getElementById('sh-ham') as HTMLButtonElement;
+    const overlay  = document.querySelector('.sh-overlay') as HTMLElement;
     const closeBtn = document.getElementById('sh-overlay-close') as HTMLButtonElement;
 
-    // ── Scroll class ──────────────────────
-    const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 10);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+    // ── Scroll: hide on down, show on up ──
+    let lastY      = window.scrollY;
+    let ticking    = false;
+    const HIDE_THRESHOLD = 80;  // px scrolled before we start hiding
+    const DELTA          = 6;   // minimum scroll delta to react
+
+    function handleScroll() {
+      const y     = window.scrollY;
+      const delta = y - lastY;
+
+      // Scrolled state (glassmorphism intensity)
+      header?.classList.toggle('is-scrolled', y > 20);
+
+      // Hide / show – only if menu is NOT open
+      if (!overlay?.classList.contains('is-open')) {
+        if (y < HIDE_THRESHOLD) {
+          // Always visible near top
+          header?.classList.remove('is-hidden');
+        } else if (delta > DELTA) {
+          // Scrolling DOWN → hide
+          header?.classList.add('is-hidden');
+        } else if (delta < -DELTA) {
+          // Scrolling UP → show
+          header?.classList.remove('is-hidden');
+        }
+      }
+
+      lastY    = y;
+      ticking  = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(handleScroll);
+        ticking = true;
+      }
+    }, { passive: true });
+
+    handleScroll();
 
     // ── Mobile overlay ────────────────────
     function open() {
@@ -890,6 +937,8 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
       overlay.setAttribute('aria-hidden', 'false');
       ham.classList.add('is-open');
       ham.setAttribute('aria-expanded', 'true');
+      // Always show header when menu is open
+      header?.classList.remove('is-hidden');
       document.body.style.overflow = 'hidden';
     }
 
