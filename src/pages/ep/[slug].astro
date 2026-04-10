@@ -272,9 +272,14 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     <div class="cinema-layout container">
         <Breadcrumbs className="col-span-full mb-4" customLabel={entry.data.title} />
         {
-            isPremiere && !hasPremiereEnded && (
-                /* 0. PREMIERE STAGE (Player + Chat side-by-side) */
-                <div class="premiere-stage section-fade">
+            isPremiere && (
+                /* 0. PREMIERE STAGE (Player + Chat side-by-side)
+                   Always rendered in HTML; client JS shows/hides based on real-time premiere end */
+                <div
+                    id="premiere-stage-block"
+                    class="premiere-stage section-fade"
+                    style={hasPremiereEnded ? "display:none;" : ""}
+                >
                     <div class="player-stage-wrapper shadow-2xl relative">
                         {
                             isUpcoming && (
@@ -382,8 +387,73 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
                 )
             }
             {
-                (!isPremiere || hasPremiereEnded) && (
-                    /* 1. THE PLAYER AREA (Non-premiere) */
+                isPremiere ? (
+                    /* 1. THE PLAYER AREA (Post-premiere, only for isPremiere episodes)
+                       Always rendered; client JS shows it when premiere has ended */
+                    <section
+                        id="post-premiere-player-block"
+                        class="player-section section-fade"
+                        style={!hasPremiereEnded ? "display:none;" : ""}
+                    >
+                        <div class="player-wrapper shadow-2xl relative">
+                            <div
+                                id="static-player-wrapper"
+                                style=""
+                            >
+                                <div
+                                    id="episode-player-inner-post"
+                                    class="cinema-player-box group"
+                                    data-audio-url={entry.data.audioUrl}
+                                    data-spotify-url={entry.data.spotifyUrl}
+                                    data-title={entry.data.title}
+                                    data-image={entry.data.image}
+                                    data-author={entry.data.author}
+                                    data-slug={entry.slug}
+                                    data-is-premiere={isPremiere}
+                                    data-video-url={entry.data.videoUrl}
+                                    data-transcription={entry.data.transcription
+                                        ? JSON.stringify(entry.data.transcription)
+                                        : null}
+                                    data-sections={entry.data.sections
+                                        ? JSON.stringify(entry.data.sections)
+                                        : null}
+                                    data-next-episodes={JSON.stringify(nextEpisodes)}
+                                >
+                                    <div id="audio-player-container-post" class={entry.data.videoUrl ? "hidden" : "block relative"}>
+                                        <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5">
+                                            <div class="loader-vfm flex flex-col items-center gap-4">
+                                                <div class="loader-spinner"></div>
+                                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Sintonizando...</span>
+                                            </div>
+                                        </div>
+                                        <CinemaAudioPlayer
+                                            client:load
+                                            audioUrl={entry.data.audioUrl || ""}
+                                            title={entry.data.title || ""}
+                                            cover={entry.data.image || ""}
+                                            author={entry.data.author || "Veredillas FM"}
+                                            transcription={formattedTranscription}
+                                            slug={entry.slug}
+                                            videoUrl={entry.data.videoUrl}
+                                            sections={entry.data.sections}
+                                            nextEpisodes={nextEpisodes}
+                                        />
+                                    </div>
+
+                                    <div id="video-player-container-post" class={!entry.data.videoUrl ? "hidden" : "block relative"}>
+                                        <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5">
+                                            <div class="loader-vfm flex flex-col items-center gap-4">
+                                                <div class="loader-spinner !border-t-red-500"></div>
+                                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Iniciando Video...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                ) : (
+                    /* 1. THE PLAYER AREA (Non-premiere episodes) */
                     <section class="player-section section-fade">
                         <div class="player-wrapper shadow-2xl relative">
                             {
@@ -526,15 +596,15 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
             </section>
 
             <!-- 3. COMMENTS AREA -->
-            <section id="comments-wrapper" class="comments-section mb-20">
-                {
-                    (!isPremiere || hasPremiereEnded) && (
-                        <div class="flex items-center gap-4 mb-8">
-                            <h2 class="text-xl font-black">Comentarios</h2>
-                        </div>
-                        <Comments slug={entry.slug} />
-                    )
-                }
+            <section
+                id="comments-wrapper"
+                class="comments-section mb-20"
+                style={isPremiere && !hasPremiereEnded ? "display:none;" : ""}
+            >
+                <div class="flex items-center gap-4 mb-8">
+                    <h2 class="text-xl font-black">Comentarios</h2>
+                </div>
+                <Comments slug={entry.slug} />
             </section>
 
         </main>
@@ -622,6 +692,46 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
             />
         )
     }
+
+    {isPremiere && premiereEndTimeMs > 0 && (
+        <script
+            is:inline
+            data-premiere-end-ms={premiereEndTimeMs}
+        >
+            (function () {
+                var endMs = parseInt(document.currentScript.dataset.premiereEndMs, 10);
+                if (!endMs) return;
+
+                function applyPremiereState() {
+                    var now = Date.now();
+                    var ended = now >= endMs;
+
+                    var premiereBlock = document.getElementById('premiere-stage-block');
+                    var postBlock = document.getElementById('post-premiere-player-block');
+                    var commentsBlock = document.getElementById('comments-wrapper');
+
+                    if (premiereBlock) premiereBlock.style.display = ended ? 'none' : '';
+                    if (postBlock) postBlock.style.display = ended ? '' : 'none';
+                    if (commentsBlock) commentsBlock.style.display = ended ? '' : 'none';
+
+                    return ended;
+                }
+
+                // Apply immediately on load
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', applyPremiereState);
+                } else {
+                    applyPremiereState();
+                }
+
+                // Poll every 10 seconds until premiere ends
+                var interval = setInterval(function () {
+                    var ended = applyPremiereState();
+                    if (ended) clearInterval(interval);
+                }, 10000);
+            })();
+        </script>
+    )}
 </Layout>
 
 <style>
