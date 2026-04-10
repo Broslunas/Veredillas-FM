@@ -64,6 +64,12 @@ const formatDate = (date: Date) => {
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </a>
     </div>
+    <a 
+        href={`/blog/${post.slug}`} 
+        class="absolute inset-0 z-[30]" 
+        style="transform: translateZ(100px);"
+        aria-label={`Leer ${post.data.title}`}
+    ></a>
 </article>
 
 <script>

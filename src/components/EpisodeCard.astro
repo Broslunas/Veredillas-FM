@@ -241,7 +241,8 @@ const isAboutToPremiere = isUpcoming && diffInHours <= 2;
     </div>
     <a
         href={`${urlPrefix}${post.slug}`}
-        class="absolute inset-0 z-10"
+        class="absolute inset-0 z-[30]"
+        style="transform: translateZ(100px);"
         aria-label={`Escuchar ${post.data.title}`}
         data-cursor="play"></a>
 </article>
