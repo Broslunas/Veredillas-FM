@@ -13,7 +13,7 @@ const navItems = [
   {
     label: 'Escuchar',
     dropdown: [
-      { label: 'Clips destacados',  href: '/clips',   badge: 'Nuevo' },
+      { label: 'Clips',             href: '/clips' },
       { label: 'Galería',           href: '/galeria' },
       { label: 'Estadísticas',      href: '/stats' },
       { label: '─', href: '#', divider: true },
@@ -122,8 +122,8 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 
       <!-- ── Right Actions ──────────────────── -->
       <div class="sh-actions">
-        <!-- CTA Directo -->
-        <a href="/live" class="sh-cta" aria-label="Ir al directo">
+        <!-- CTA En Directo: oculto por defecto, solo visible cuando hay stream activo -->
+        <a id="sh-live-cta" href="/live" class="sh-cta sh-cta--hidden" aria-label="Emisión en directo" aria-hidden="true">
           <span class="sh-cta-dot" aria-hidden="true"></span>
           En Directo
         </a>
@@ -132,7 +132,6 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 
         <CommandPalette />
         <AuthButton />
-        <ThemeToggle />
 
         <!-- Hamburger -->
         <button id="sh-ham" class="sh-ham" aria-label="Abrir menú" aria-expanded="false">
@@ -616,14 +615,28 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
   color: #fca5a5;
   border: 1px solid rgba(239,68,68,0.3);
   background: rgba(239,68,68,0.08);
-  transition: all 0.2s;
+  transition: opacity 0.3s ease, transform 0.3s ease, max-width 0.3s ease, padding 0.3s ease, border-width 0.3s ease, margin 0.3s ease;
   white-space: nowrap;
+  overflow: hidden;
+  max-width: 160px;
 }
 
 .sh-cta:hover {
   background: rgba(239,68,68,0.18);
   border-color: rgba(239,68,68,0.5);
   color: #fecaca;
+}
+
+/* Hidden state – collapses smoothly */
+.sh-cta--hidden {
+  opacity: 0;
+  pointer-events: none;
+  max-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-width: 0;
+  margin: 0;
+  transform: scale(0.85);
 }
 
 .sh-cta-dot {
@@ -635,39 +648,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
   animation: sh-pulse 2s ease-in-out infinite;
 }
 
-.sh-chip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0.3rem 0.625rem;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-decoration: none;
-  border: 1px solid transparent;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
 
-.sh-chip--spotify {
-  color: #1DB954;
-  border-color: rgba(29,185,84,0.25);
-  background: rgba(29,185,84,0.08);
-}
-.sh-chip--spotify:hover {
-  background: rgba(29,185,84,0.18);
-  border-color: rgba(29,185,84,0.5);
-}
-
-.sh-chip--apple {
-  color: #A335EE;
-  border-color: rgba(163,53,238,0.25);
-  background: rgba(163,53,238,0.08);
-}
-.sh-chip--apple:hover {
-  background: rgba(163,53,238,0.18);
-  border-color: rgba(163,53,238,0.5);
-}
 
 /* ─────────────────────────────────────────
    LIVE BANNER
@@ -1005,8 +986,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
    RESPONSIVE
 ───────────────────────────────────────── */
 @media (max-width: 1100px) {
-  .sh-platforms { display: none; }
-  .sh-sep       { display: none; }
+  .sh-sep { display: none; }
 }
 
 @media (max-width: 900px) {
@@ -1016,7 +996,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 
 @media (max-width: 480px) {
   .sh-logo-text { display: none; }
-  .sh-inner { padding: 0 1rem; }
+  .sh-inner-wrap { padding: 0 1rem; }
 }
 </style>
 
@@ -1108,16 +1088,30 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
     const banner  = document.getElementById('sh-live');
     const labelEl = document.getElementById('sh-live-label');
     const titleEl = document.getElementById('sh-live-title');
+    const cta     = document.getElementById('sh-live-cta');
     if (!banner) return;
 
     if (isStreamOnline) {
+      // Mostrar banner inferior
       banner.classList.remove('hidden');
       banner.href = '/live';
       if (labelEl) labelEl.textContent = 'EN DIRECTO';
       if (titleEl) titleEl.textContent = 'Emisión en Directo desde el Estudio';
+      // Mostrar CTA del header
+      if (cta) {
+        cta.classList.remove('sh-cta--hidden');
+        cta.removeAttribute('aria-hidden');
+      }
       return;
     }
 
+    // Sin stream: ocultar CTA
+    if (cta) {
+      cta.classList.add('sh-cta--hidden');
+      cta.setAttribute('aria-hidden', 'true');
+    }
+
+    // Comprobar premieres
     const now = Date.now(), SOON = 7200000;
     let active = null, soon = null;
     premieres.forEach(p => {
