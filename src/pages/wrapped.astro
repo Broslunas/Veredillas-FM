@@ -704,25 +704,30 @@ const TOTAL_SLIDES = 11;
     // ── Render charts ──────────────────────────────────────────────
     function renderCharts() {
         const cd = window.__wrappedData__ || {};
+        const CHART_H = 60; // px — must match .hour-bars / .month-bars height in CSS
+
         // Hour bars
         const hourBarsEl = document.getElementById('hour-bars');
-        if (hourBarsEl && cd.hourCounts) {
+        if (hourBarsEl && cd.hourCounts && cd.hourCounts.length) {
             const maxH = Math.max(...cd.hourCounts.map((h) => h.count), 1);
             hourBarsEl.innerHTML = cd.hourCounts.map((h) => {
-                const pct = Math.max(5, Math.round((h.count / maxH) * 100));
+                const px = Math.max(4, Math.round((h.count / maxH) * CHART_H));
                 const isActive = h.count === maxH;
-                return `<div class="hour-bar" style="height: ${pct}%; background: ${isActive ? '#a78bfa' : 'rgba(255,255,255,0.2)'};" title="${h.hour}:00 - ${h.count} sesiones"></div>`;
+                const bg = isActive ? '#a78bfa' : 'rgba(255,255,255,0.25)';
+                return `<div class="hour-bar" style="height:${px}px;background:${bg};flex:1;border-radius:3px 3px 0 0;cursor:pointer;transition:background .3s;" title="${h.hour}:00 - ${h.count} sesiones"></div>`;
             }).join('');
         }
 
-        // Month bars
+        // Month bars (10 months in academic order: Sept→Jun)
         const monthBarsEl = document.getElementById('month-bars');
-        if (monthBarsEl && cd.monthCounts) {
+        if (monthBarsEl && cd.monthCounts && cd.monthCounts.length) {
             const maxM = Math.max(...cd.monthCounts, 1);
             monthBarsEl.innerHTML = cd.monthCounts.map((c, i) => {
-                const pct = Math.max(5, Math.round((c / maxM) * 100));
+                const px = Math.max(4, Math.round((c / maxM) * CHART_H));
                 const isActive = c === maxM;
-                return `<div class="month-bar" style="height: ${pct}%; background: ${isActive ? '#22d3ee' : 'rgba(255,255,255,0.2)'};" title="Mes ${i + 1}: ${c} sesiones"></div>`;
+                const bg = isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)';
+                const labels = ['Sep','Oct','Nov','Dic','Ene','Feb','Mar','Abr','May','Jun'];
+                return `<div class="month-bar" style="height:${px}px;background:${bg};flex:1;border-radius:3px 3px 0 0;cursor:pointer;transition:background .3s;" title="${labels[i] || ''}: ${c} sesiones"></div>`;
             }).join('');
         }
     }
