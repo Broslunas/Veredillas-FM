@@ -2,1294 +2,966 @@
 import ThemeToggle from './ThemeToggle.astro';
 import CommandPalette from './CommandPalette.astro';
 import AuthButton from './AuthButton.astro';
+import { getCollection } from 'astro:content';
 
 const navItems = [
-
-  { 
-    label: 'Contenido', 
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  {
+    label: 'Contenido',
     dropdown: [
-      { label: 'Episodios', href: '/ep', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>' },
-      { label: 'Blog', href: '/blog', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>' },
-      { label: 'Clips', href: '/clips', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="7" x2="7" y1="3" y2="21"/><line x1="17" x2="17" y1="3" y2="21"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="7" y1="7" y2="7"/><line x1="3" x2="7" y1="17" y2="17"/><line x1="17" x2="21" y1="17" y2="17"/><line x1="17" x2="21" y1="7" y2="7"/></svg>' },
-      { label: 'Galería', href: '/galeria', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' },
-      { label: 'Estadísticas', href: '/stats', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>' }
+      { label: 'Episodios',     href: '/ep' },
+      { label: 'Blog',          href: '/blog' },
+      { label: 'Clips',         href: '/clips' },
+      { label: 'Galería',       href: '/galeria' },
+      { label: 'Estadísticas',  href: '/stats' },
     ]
   },
-  { 
-    label: 'Comunidad', 
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="16" cy="7" r="4"/></svg>',
+  {
+    label: 'Comunidad',
     dropdown: [
-      { label: 'Equipo', href: '/equipo', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' },
-      { label: 'Invitados', href: '/invitados', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="16" cy="7" r="4"/></svg>' },
-      { label: 'Oyentes', href: '/usuarios', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><circle cx="16" cy="7" r="4"/></svg>' },
-      { label: 'Ranking Top', href: '/top', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>' },
-      { label: 'Calendario', href: '/calendario', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
-      { label: 'Participar', href: '/solicitar-entrevista', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' },
-      { label: 'FAQ / Ayuda', href: '/faq', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>' }
+      { label: 'Equipo',             href: '/equipo' },
+      { label: 'Invitados',          href: '/invitados' },
+      { label: 'Oyentes',            href: '/usuarios' },
+      { label: 'Ranking Top',        href: '/top' },
+      { label: 'Calendario',         href: '/calendario' },
+      { label: 'Participar',         href: '/solicitar-entrevista' },
+      { label: 'FAQ / Ayuda',        href: '/faq' },
     ]
   },
-  { 
-    label: 'Contacto', 
-    href: '/contacto', 
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>' 
-  },
+  { label: 'Contacto', href: '/contacto' },
 ];
-
-import { getCollection } from 'astro:content';
 
 const premieres = (await getCollection('episodios'))
   .filter(e => e.data.isPremiere)
   .map(e => ({
     title: e.data.title,
     date: e.data.pubDate.getTime(),
-    duration: e.data.duration || '0min', 
+    duration: e.data.duration || '0min',
     slug: e.slug
   }));
-  
+
 const currentPath = Astro.url.pathname;
-
-const isActive = (href: string) => {
-    if (href === '/') return currentPath === '/';
-    return currentPath.startsWith(href);
-};
-
-const isDropdownActive = (items: any[]) => {
-  return items?.some(item => isActive(item.href));
-};
+const isActive = (href: string) => href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 ---
 
-<header class="header-wrapper">
-  <!-- System Messages Band -->
-  <div class="system-messages-band">
-                <!-- Fixed Message 
-                <div class="message-item">
-                  <span>Estamos optimizando el sitio web. Si encuentras algún error, <a href="/contacto" class="contact-link">ponte en contacto</a>.</span>
-                </div>
-                -->
-    <!-- Dynamic Premiere Banner -->
-    <a id="premiere-banner" class="premiere-banner hidden" href="#">
-        <span class="banner-status">
-          <span class="live-dot"></span>
-          <span id="banner-label">EN DIRECTO</span>
-        </span>
-        <span id="banner-title" class="banner-title">Título del Episodio</span>
-        <span class="banner-cta">Unirse →</span>
-    </a>
-  </div>
+<!-- ============================
+     HEADER
+     ============================ -->
+<header id="site-header" class="sh">
 
-  <div class="header-inner-container">
-    <div class="header-inner">
-    <!-- Left Pill: Logo -->
-    <a href="/" class="pill logo-pill">
-      <div class="logo-icon-wrapper">
-        <img src="/logo.webp" alt="Veredillas FM" width={40} height={40} class="logo-image" />
-      </div>
-      <span class="logo-text">Veredillas<span class="highlight">FM</span></span>
+  <!-- Accent line -->
+  <div class="sh-accent" aria-hidden="true"></div>
+
+  <div class="sh-inner">
+
+    <!-- ── Logo ───────────────────────────── -->
+    <a href="/" class="sh-logo" aria-label="Veredillas FM – Inicio">
+      <span class="sh-logo-ring" aria-hidden="true"></span>
+      <img src="/logo.webp" alt="" width="34" height="34" class="sh-logo-img" />
+      <span class="sh-logo-text">Veredillas<b>FM</b></span>
     </a>
 
-    <!-- Right Pill: Navigation & Actions -->
-    <nav class="pill nav-pill">
-      <ul class="nav-list">
-        {navItems.map((item) => (
-          <li class="nav-item">
-            {item.dropdown ? (
-              <div class={`nav-dropdown ${isDropdownActive(item.dropdown) ? 'active' : ''}`}>
-                <button class="nav-link dropdown-trigger">
-                  <span class="nav-icon" set:html={item.icon}></span>
-                  <span class="nav-text">{item.label}</span>
-                  <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
-                <div class="dropdown-menu">
-                  {item.dropdown.map((subItem) => (
-                    <a href={subItem.href} class={`dropdown-item ${isActive(subItem.href) ? 'active' : ''}`}>
-                      <span class="dropdown-icon" set:html={subItem.icon}></span>
-                      <span>{subItem.label}</span>
+    <!-- ── Desktop Nav ────────────────────── -->
+    <nav class="sh-nav" aria-label="Navegación principal">
+      {navItems.map((item) => (
+        <div class={`sh-nav-item${item.dropdown ? ' has-dd' : ''}${item.dropdown ? (isDropdownActive(item.dropdown) ? ' is-active' : '') : (isActive(item.href ?? '') ? ' is-active' : '')}`}>
+          {item.dropdown ? (
+            <>
+              <button class="sh-nav-btn" aria-haspopup="true">
+                {item.label}
+                <svg class="sh-caret" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="sh-dd" role="menu">
+                <div class="sh-dd-inner">
+                  {item.dropdown.map(sub => (
+                    <a href={sub.href} class={`sh-dd-link${isActive(sub.href) ? ' is-active' : ''}`} role="menuitem">
+                      <span class="sh-dd-dot" aria-hidden="true"></span>
+                      {sub.label}
                     </a>
                   ))}
                 </div>
               </div>
-            ) : (
-              <a href={item.href} class={`nav-link ${isActive(item.href) ? 'active' : ''}`}>
-                <span class="nav-icon" set:html={item.icon}></span>
-                <span class="nav-text">{item.label}</span>
-              </a>
-            )}
-          </li>
-        ))}
-      </ul>
-      
-      <div class="divider"></div>
-
-      <div class="actions">
-        <!-- Utility / User Group -->
-        <div class="utility-group">
-            <CommandPalette />
-            <AuthButton />
-            <ThemeToggle />
+            </>
+          ) : (
+            <a href={item.href} class="sh-nav-link">{item.label}</a>
+          )}
         </div>
-
-        <!-- Platforms Group -->
-        <div class="platforms-group">
-            <a href="https://open.spotify.com/show/6mXWyLhzhET5EHk1p72j18" target="_blank" class="action-btn spotify-btn" aria-label="Escúchanos en Spotify">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-              </svg>
-              <span class="spotify-tooltip">Escúchanos en Spotify</span>
-            </a>
-            <a href="https://music.amazon.es/podcasts/8d708ffa-7ef7-42f0-878d-fe3575491bef/veredillas-fm" target="_blank" class="action-btn amazon-btn" aria-label="Escúchanos en Amazon Music">
-              <div class="icon-mask amazon-icon"></div>
-              <span class="spotify-tooltip">Escúchanos en Amazon Music</span>
-            </a>
-            <a href="https://podcasts.apple.com/es/podcast/veredillas-fm/id1870103081" target="_blank" class="action-btn apple-btn" aria-label="Escúchanos en Apple Podcasts">
-              <div class="icon-mask apple-icon"></div>
-              <span class="spotify-tooltip">Escúchanos en Apple Podcasts</span>
-            </a>
-        </div>
-      </div>
+      ))}
     </nav>
-  
-  <!-- Mobile Menu Toggle -->
-  <button id="menu-toggle" class="menu-toggle pill" aria-label="Abrir menú">
-    <div class="hamburger-box">
-      <span class="hamburger-inner"></span>
+
+    <!-- ── Right Actions ──────────────────── -->
+    <div class="sh-actions">
+      <!-- Platform chips -->
+      <div class="sh-platforms" aria-label="Plataformas">
+        <a href="https://open.spotify.com/show/6mXWyLhzhET5EHk1p72j18" target="_blank" class="sh-chip sh-chip--spotify" aria-label="Spotify">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          <span>Spotify</span>
+        </a>
+        <a href="https://podcasts.apple.com/es/podcast/veredillas-fm/id1870103081" target="_blank" class="sh-chip sh-chip--apple" aria-label="Apple">
+          <div class="icon-mask apple-icon" style="width:13px;height:13px;background-color:currentColor"></div>
+          <span>Apple</span>
+        </a>
+      </div>
+
+      <div class="sh-sep" aria-hidden="true"></div>
+
+      <CommandPalette />
+      <AuthButton />
+      <ThemeToggle />
+
+      <!-- Hamburger -->
+      <button id="sh-ham" class="sh-ham" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-  </button>
+
   </div>
+
+  <!-- ── Live Banner ────────────────────── -->
+  <a id="sh-live" class="sh-live hidden" href="#">
+    <span class="sh-live-dot"></span>
+    <span id="sh-live-label">EN DIRECTO</span>
+    <span id="sh-live-title" class="sh-live-title">Emisión en directo</span>
+    <span class="sh-live-arrow">→</span>
+  </a>
+
+</header>
+
+<!-- ── Mobile Overlay ─────────────────────── -->
+<div id="sh-overlay" class="sh-overlay" aria-hidden="true">
+  <div class="sh-overlay-top">
+    <a href="/" class="sh-overlay-logo">
+      <img src="/logo.webp" alt="Veredillas FM" width="32" height="32" />
+      <span>Veredillas<b>FM</b></span>
+    </a>
+    <button id="sh-overlay-close" class="sh-overlay-close" aria-label="Cerrar menú">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
-  </header>
-  
-  <style>
-  .header-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-width: 100vw;
-    z-index: 9000;
-    pointer-events: none; /* Let clicks pass through empty space */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-sizing: border-box;
-  }
 
-  .header-inner-container {
-    width: 100%;
-    padding: var(--spacing-md);
-    padding-top: 10px; /* spacing below the band */
-    display: flex;
-    justify-content: center;
-    pointer-events: none;
-    box-sizing: border-box;
-  }
-  
-  /* SYSTEM MESSAGES BAND */
-  .system-messages-band {
-    width: 100%;
-    background: rgba(45, 20, 75, 0.75); /* Tono morado transparentoso */
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.75rem;
-    font-weight: 500;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center; /* Modificado para centrar el contenido */
-    gap: 1rem;
-    padding: 0.4rem 1.5rem;
-    margin: 0;
-    pointer-events: auto;
-    letter-spacing: 0.05em;
-    box-sizing: border-box;
-  }
+  <nav class="sh-overlay-nav">
+    {navItems.map((item, i) => (
+      <div class="sh-ov-group" style={`--i:${i}`}>
+        {item.dropdown ? (
+          <>
+            <span class="sh-ov-label">{item.label}</span>
+            <div class="sh-ov-links">
+              {item.dropdown.map(sub => (
+                <a href={sub.href} class={`sh-ov-link${isActive(sub.href) ? ' is-active' : ''}`}>
+                  {sub.label}
+                </a>
+              ))}
+            </div>
+          </>
+        ) : (
+          <a href={item.href} class={`sh-ov-big${isActive(item.href ?? '') ? ' is-active' : ''}`}>
+            {item.label}
+          </a>
+        )}
+      </div>
+    ))}
+  </nav>
 
-  :global([data-theme="light"]) .system-messages-band {
-    background: rgba(243, 232, 255, 0.75); /* Light transparent purple */
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    color: #4c1d95;
-  }
+  <div class="sh-overlay-foot">
+    <a href="https://open.spotify.com/show/6mXWyLhzhET5EHk1p72j18" target="_blank" class="sh-ov-chip sh-ov-chip--spotify">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+      Spotify
+    </a>
+    <a href="https://music.amazon.es/podcasts/8d708ffa-7ef7-42f0-878d-fe3575491bef/veredillas-fm" target="_blank" class="sh-ov-chip sh-ov-chip--amazon">
+      <div class="icon-mask amazon-icon" style="width:16px;height:16px;background-color:currentColor"></div>
+      Amazon
+    </a>
+    <a href="https://podcasts.apple.com/es/podcast/veredillas-fm/id1870103081" target="_blank" class="sh-ov-chip sh-ov-chip--apple">
+      <div class="icon-mask apple-icon" style="width:16px;height:16px;background-color:currentColor"></div>
+      Apple
+    </a>
+  </div>
+</div>
 
-  .message-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+<style>
+/* ─────────────────────────────────────────
+   HEADER SHELL
+───────────────────────────────────────── */
+.sh {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9000;
+  font-family: var(--font-body);
+}
 
-  .message-item a.contact-link {
-    text-decoration: underline;
-    font-weight: 700;
-    color: #c4b5fd;
-    transition: color 0.2s;
-  }
+/* Gradient accent line on top */
+.sh-accent {
+  height: 2px;
+  background: linear-gradient(90deg,
+    #8b5cf6 0%,
+    #ec4899 35%,
+    #0ea5e9 65%,
+    #8b5cf6 100%
+  );
+  background-size: 200% 100%;
+  animation: sh-accent-slide 5s linear infinite;
+}
 
-  .message-item a.contact-link:hover {
-    color: #ffffff;
-  }
+@keyframes sh-accent-slide {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
 
-  :global([data-theme="light"]) .message-item a.contact-link {
-    color: #6d28d9;
-  }
-  :global([data-theme="light"]) .message-item a.contact-link:hover {
-    color: #4c1d95;
-  }
+/* Main bar */
+.sh-inner {
+  height: 60px;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: rgba(4, 4, 8, 0.85);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.3s;
+}
 
-  /* PREMIERE BANNER OVERRIDES FOR BAND */
-  .premiere-banner {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      pointer-events: auto;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 0.25rem 0.8rem;
-      border-radius: 9999px;
-      border: 1px solid rgba(255,255,255,0.1);
-  }
-  
-  .premiere-banner:hover {
-      background: rgba(0, 0, 0, 0.4);
-      transform: translateY(-1px);
-  }
-  
-  .banner-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 700;
-      font-size: 0.75rem;
-      color: #fca5a5; /* Light red */
-      letter-spacing: 0.05em;
-  }
-  
-  .coming-soon .banner-status {
-      color: #93c5fd; /* Light blue */
-  }
-  
-  .coming-soon .live-dot {
-      background: #3b82f6;
-      box-shadow: 0 0 0 rgba(59, 130, 246, 0.4);
-      animation: none;
-  }
-  
-  .live-dot {
-      width: 8px;
-      height: 8px;
-      background: #ef4444;
-      border-radius: 50%;
-      display: block;
-      box-shadow: 0 0 0 rgba(239, 68, 68, 0.4);
-      animation: pulse-red 2s infinite;
-  }
-  
-  @keyframes pulse-red {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-  }
-  
-  .banner-title {
-      color: #ffffff;
-      font-weight: 600;
-      font-size: 0.85rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 250px;
-  }
-  
-  @media (max-width: 480px) {
-      .banner-title {
-          max-width: 140px;
-      }
-  }
-  
-  .banner-cta {
-      color: #ddd6fe;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-left: 4px;
-  }
-  
-  .premiere-banner.hidden {
-      display: none !important;
-  }
-  
-  .header-inner {
-    width: 100%; /* Ensure full width inside wrapper */
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .pill {
-    background: rgba(10, 10, 11, 0.6); /* Glassy dark */
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 9999px;
-    padding: 0.5rem 1.5rem;
-    pointer-events: auto; /* Re-enable clicks */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    transition: all 0.3s ease;
-  }
-  
-  :global([data-theme="light"]) .pill {
-      background: rgba(255, 255, 255, 0.7);
-      border-color: rgba(0, 0, 0, 0.05);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  }
-  
-  /* Logo Pill */
-  .logo-pill {
-    padding-left: 0.5rem;
-    padding-right: 1.5rem;
-    gap: 0.75rem;
-  }
-  
-  .logo-pill:hover, .nav-pill:hover {
-      border-color: rgba(255, 255, 255, 0.15);
-      background: rgba(10, 10, 11, 0.8);
-      transform: translateY(-1px);
-  }
-  
-  :global([data-theme="light"]) .logo-pill:hover, 
-  :global([data-theme="light"]) .nav-pill:hover {
-      background: rgba(255, 255, 255, 0.9);
-      border-color: rgba(0, 0, 0, 0.08); /* Darker border on hover light */
-  }
-  
-  .logo-icon-wrapper {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      overflow: hidden;
-  }
-  
-  .logo-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-  }
-  
-  .logo-text {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1.125rem;
-    letter-spacing: -0.02em;
-    color: var(--color-text-main);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 180px;
-    flex-shrink: 1;
-  }
+/* After scrolling – slightly more opaque */
+.sh.is-scrolled .sh-inner {
+  background: rgba(4, 4, 8, 0.97);
+}
 
-  @media (max-width: 480px) {
-      .logo-text {
-          max-width: 110px;
-          font-size: 0.95rem;
-      }
-  }
-  
-  .highlight {
-    color: var(--color-primary);
-  }
-  
-  /* Nav Pill (Desktop) */
-  .nav-pill {
-      padding: 0.4rem 1rem;
-      gap: 1.5rem;
-  }
-  
-  .nav-list {
-    display: flex;
-    list-style: none;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--color-text-muted);
-    font-weight: 500;
-    font-size: 0.93rem;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    transition: all 0.2s ease;
-  }
-  
-  .nav-link:hover {
-      color: var(--color-text-main);
-      background: rgba(255, 255, 255, 0.05);
-  }
-  
-  :global([data-theme="light"]) .nav-link:hover {
-      background: rgba(0, 0, 0, 0.05);
-  }
-  
-  /* Active State - New Visual style */
-  .nav-link.active {
-      color: #3b82f6; /* Blue-500 equivalent */
-      background: rgba(255, 255, 255, 0.1);
-      font-weight: 600;
-  }
-  
-  :global([data-theme="light"]) .nav-link.active {
-      color: var(--color-primary);
-      background: rgba(0, 0, 0, 0.05);
-  }
-  
-  .nav-icon {
-      font-size: 1rem;
-      display: flex;
-  }
-  
-  /* Dropdown Styles */
-  .nav-item {
-    position: relative;
-  }
+:global([data-theme="light"]) .sh-inner {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom-color: rgba(0,0,0,0.07);
+}
 
-  .nav-dropdown {
-    position: relative;
-  }
+:global([data-theme="light"]) .sh.is-scrolled .sh-inner {
+  background: rgba(255, 255, 255, 0.98);
+}
 
-  .dropdown-trigger {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-  }
+/* ─────────────────────────────────────────
+   LOGO
+───────────────────────────────────────── */
+.sh-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+  flex-shrink: 0;
+  position: relative;
+}
 
-  .dropdown-arrow {
-    transition: transform 0.3s ease;
-    margin-left: 0.25rem;
-  }
+.sh-logo-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: -1;
+  filter: blur(8px);
+}
 
-  .nav-dropdown:hover .dropdown-arrow {
-    transform: rotate(180deg);
-  }
+.sh-logo:hover .sh-logo-ring { opacity: 0.45; }
 
-  .dropdown-menu {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(10, 10, 11, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 0.5rem;
-    min-width: 200px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    visibility: hidden;
-    /* remove pointer-events: none; let visibility handle it */
-    transition: 
-      opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-      visibility 0s linear 0.2s; /* Hide visibility AFTER opacity fades */
-    transition-delay: 0.3s; /* Wait before starting ANY transition */
-    z-index: 1000;
-  }
+.sh-logo-img {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  object-fit: cover;
+  display: block;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
 
-  /* Invisible bridge to prevent dropdown from closing */
-  .dropdown-menu::before {
-    content: '';
-    position: absolute;
-    top: -1.5rem;
-    left: -20px;
-    right: -20px;
-    height: 1.5rem;
-    background: transparent;
-  }
+.sh-logo:hover .sh-logo-img { transform: scale(1.08) rotate(-2deg); }
 
-  :global([data-theme="light"]) .dropdown-menu {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(0, 0, 0, 0.08);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  }
+.sh-logo-text {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--color-text-main);
+  white-space: nowrap;
+}
 
-  .nav-dropdown:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0s;
-    transition: 
-      opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-      visibility 0s linear 0s; /* Instant visibility on show */
-  }
+.sh-logo-text b {
+  font-weight: 800;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
-  .dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 1rem;
-    border-radius: 12px;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    text-decoration: none;
-  }
+/* ─────────────────────────────────────────
+   DESKTOP NAV
+───────────────────────────────────────── */
+.sh-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  margin-left: 1rem;
+}
 
-  .dropdown-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--color-text-main);
-  }
+.sh-nav-item {
+  position: relative;
+}
 
-  :global([data-theme="light"]) .dropdown-item:hover {
-    background: rgba(0, 0, 0, 0.05);
-  }
+.sh-nav-link,
+.sh-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.875rem;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
 
-  .dropdown-item.active {
-    color: var(--color-primary);
-    background: rgba(139, 92, 246, 0.15);
-  }
+.sh-nav-link:hover,
+.sh-nav-btn:hover {
+  color: var(--color-text-main);
+  background: rgba(255,255,255,0.06);
+}
 
-  .dropdown-icon {
-    display: flex;
-    opacity: 0.7;
-  }
+:global([data-theme="light"]) .sh-nav-link:hover,
+:global([data-theme="light"]) .sh-nav-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
 
-  .dropdown-item.active .dropdown-icon {
-    opacity: 1;
-  }
+/* Active – underline */
+.sh-nav-item.is-active .sh-nav-link,
+.sh-nav-item.is-active .sh-nav-btn {
+  color: var(--color-text-main);
+}
 
-  /* Make Header More Compact */
-  .header-wrapper {
-    padding: 0.75rem var(--spacing-md);
-  }
+.sh-nav-item.is-active .sh-nav-link::after,
+.sh-nav-item.is-active .sh-nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0.875rem;
+  right: 0.875rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+}
 
-  .pill {
-    padding: 0.375rem 1.25rem;
-  }
+.sh-caret {
+  opacity: 0.5;
+  transition: transform 0.22s ease;
+  flex-shrink: 0;
+}
 
-  .logo-pill {
-    padding-left: 0.375rem;
-    padding-right: 1.25rem;
-    gap: 0.625rem;
-  }
+.sh-nav-item.has-dd:hover .sh-caret { transform: rotate(180deg); }
 
-  .logo-icon-wrapper {
-    width: 36px;
-    height: 36px;
-  }
+/* ─────────────────────────────────────────
+   DROPDOWN
+───────────────────────────────────────── */
+.sh-dd {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 210px;
+  z-index: 200;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px) scale(0.97);
+  transform-origin: top left;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s linear 0.18s;
+  pointer-events: none;
+}
 
-  .logo-text {
-    font-size: 1rem;
-  }
+/* Bridge gap */
+.sh-dd::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: -16px;
+  right: -16px;
+  height: 12px;
+}
 
-  .nav-pill {
-    padding: 0.3rem 0.875rem;
-    gap: 1.25rem;
-  }
+.sh-nav-item.has-dd:hover .sh-dd {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s linear 0s;
+}
 
-  .nav-link {
-    padding: 0.4rem 0.875rem;
-    font-size: 0.875rem;
-  }
-  
-  /* Divider */
-  .divider {
-      width: 1px;
-      height: 24px;
-      background: rgba(255, 255, 255, 0.1);
-  }
-  
-  :global([data-theme="light"]) .divider {
-      background: rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Actions */
-  .actions {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem; /* Increased gap between groups */
-  }
+.sh-dd-inner {
+  background: rgba(12, 10, 22, 0.97);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(139,92,246,0.2);
+  border-radius: 14px;
+  padding: 0.5rem;
+  box-shadow:
+    0 24px 64px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.04) inset;
+}
 
-  .utility-group, .platforms-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-  }
+:global([data-theme="light"]) .sh-dd-inner {
+  background: rgba(255,255,255,0.98);
+  border-color: rgba(139,92,246,0.15);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+}
 
-  
-  .action-btn {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      color: var(--color-text-muted);
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-  }
-  
-  :global([data-theme="light"]) .action-btn {
-      background: #cbd5e1; /* Light grey background */
-      border: 2px solid #475569; /* Dark grey border */
-      color: #475569;
-  }
-  
-  .action-btn:hover {
-      color: var(--color-text-main);
-      background: rgba(255, 255, 255, 0.1);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  }
-  
-  :global([data-theme="light"]) .action-btn:hover {
-      background: #f1f5f9;
-      border-color: #334155;
-      color: #1e293b;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  /* Spotify Button Enhanced */
-  .spotify-btn {
-      color: #1DB954; /* Spotify Green */
-      position: relative;
-  }
-  
-  .spotify-btn:hover {
-      color: #1ed760;
-      background: #ffffff;
-      border-color: #1DB954;
-      box-shadow: 0 4px 15px rgba(29, 185, 84, 0.25);
-      transform: translateY(-2px) scale(1.05);
-  }
-  
-  .spotify-btn::before {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #1DB954, #1ed760);
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: -1;
-      filter: blur(8px);
-  }
-  
-  .spotify-btn:hover::before {
-      opacity: 0.4;
-      animation: pulse 2s ease-in-out infinite;
-  }
-  
-  @keyframes pulse {
-      0%, 100% {
-          transform: scale(1);
-          opacity: 0.4;
-      }
-      50% {
-          transform: scale(1.1);
-          opacity: 0.6;
-      }
-  }
-  
-  /* Tooltip */
-  .spotify-tooltip {
-      position: absolute;
-      bottom: -45px;
-      left: 50%;
-      transform: translateX(-50%) translateY(5px);
-      background: rgba(29, 185, 84, 0.95);
-      color: white;
-      padding: 0.5rem 0.75rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      font-weight: 500;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-  }
-  
-  .spotify-tooltip::before {
-      content: '';
-      position: absolute;
-      top: -4px;
-      left: 50%;
-      transform: translateX(-50%) rotate(45deg);
-      width: 8px;
-      height: 8px;
-      background: rgba(29, 185, 84, 0.95);
-  }
-  
-  .spotify-btn:hover .spotify-tooltip {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-  }
-  
-  /* Amazon Button Enhanced */
-  .amazon-btn {
-      color: #3cd0d9; /* Amazon Cyan */
-      position: relative;
-  }
-  
-  .amazon-btn:hover {
-      color: #6aeff6;
-      background: #ffffff;
-      border-color: #3cd0d9;
-      box-shadow: 0 4px 15px rgba(60, 208, 217, 0.25);
-      transform: translateY(-2px) scale(1.05);
-  }
-  
-  .amazon-btn::before {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #3cd0d9, #6aeff6);
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: -1;
-      filter: blur(8px);
-  }
-  
-  .amazon-btn:hover::before {
-      opacity: 0.4;
-      animation: pulse 2s ease-in-out infinite;
-  }
-  
-  /* Shared Tooltip styles handle the rest, but let's ensure tooltip background matches if specific needed */
-  .amazon-btn .spotify-tooltip {
-      background: rgba(60, 208, 217, 0.95);
-      color: black;
-  }
-  
-  .amazon-btn .spotify-tooltip::before {
-      background: rgba(60, 208, 217, 0.95);
-  }
-  
-  .amazon-btn:hover .spotify-tooltip {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-  }
-  
-  :global([data-theme="light"]) .amazon-btn .spotify-tooltip {
-      background: #3cd0d9;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  :global([data-theme="light"]) .amazon-btn .spotify-tooltip::before {
-      background: #3cd0d9;
-  }
+.sh-dd-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.575rem 0.875rem;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: all 0.15s;
+  letter-spacing: -0.01em;
+}
 
-  :global([data-theme="light"]) .spotify-tooltip {
-      background: #1DB954;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
+.sh-dd-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.15s;
+}
 
-  :global([data-theme="light"]) .spotify-tooltip::before {
-      background: #1DB954;
-  }
-  
-  /* Apple Podcasts Button Enhanced */
-  .apple-btn {
-      color: #A335EE; /* Apple Purple */
-      position: relative;
-  }
-  
-  .apple-btn:hover {
-      color: #B55AF2;
-      background: #ffffff;
-      border-color: #A335EE;
-      box-shadow: 0 4px 15px rgba(163, 53, 238, 0.25);
-      transform: translateY(-2px) scale(1.05);
-  }
-  
-  .apple-btn::before {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #A335EE, #B55AF2);
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: -1;
-      filter: blur(8px);
-  }
-  
-  .apple-btn:hover::before {
-      opacity: 0.4;
-      animation: pulse 2s ease-in-out infinite;
-  }
-  
-  /* Reuse tooltips */
-  .apple-btn .spotify-tooltip {
-      background: rgba(163, 53, 238, 0.95);
-  }
-  
-  .apple-btn .spotify-tooltip::before {
-      background: rgba(163, 53, 238, 0.95);
-  }
-  
-  .apple-btn:hover .spotify-tooltip {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-  }
-  
-  :global([data-theme="light"]) .apple-btn .spotify-tooltip {
-      background: #A335EE;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  :global([data-theme="light"]) .apple-btn .spotify-tooltip::before {
-      background: #A335EE;
-  }
+:global([data-theme="light"]) .sh-dd-dot {
+  background: rgba(0,0,0,0.15);
+}
 
-  /* SVG Mask Icons */
-  .icon-mask {
-      width: 22px;
-      height: 22px;
-      background-color: currentColor;
-      mask-size: contain;
-      mask-repeat: no-repeat;
-      mask-position: center;
-      -webkit-mask-size: contain;
-      -webkit-mask-repeat: no-repeat;
-      -webkit-mask-position: center;
-  }
+.sh-dd-link:hover {
+  background: rgba(139,92,246,0.12);
+  color: #e9d5ff;
+}
 
-  .amazon-icon {
-      mask-image: url('/svg/amazon-music.svg');
-      -webkit-mask-image: url('/svg/amazon-music.svg');
-  }
+:global([data-theme="light"]) .sh-dd-link:hover {
+  background: rgba(139,92,246,0.08);
+  color: #6d28d9;
+}
 
-  .apple-icon {
-      mask-image: url('/svg/apple-podcasts.svg');
-      -webkit-mask-image: url('/svg/apple-podcasts.svg');
-  }
+.sh-dd-link:hover .sh-dd-dot {
+  background: #8b5cf6;
+  transform: scale(1.3);
+}
 
+.sh-dd-link.is-active {
+  color: #c4b5fd;
+  background: rgba(139,92,246,0.15);
+}
 
-  /* ========================================= */
-  /* MOBILE REDESIGN (Hamburger)               */
-  /* ========================================= */
+:global([data-theme="light"]) .sh-dd-link.is-active {
+  color: #7c3aed;
+  background: rgba(139,92,246,0.1);
+}
 
-  .menu-toggle {
-      display: none;
-      padding: 0;
-      width: 40px;
-      height: 40px;
-      cursor: pointer;
-      z-index: 200;
-      justify-content: center;
-      align-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      flex-shrink: 0;
-  }
+.sh-dd-link.is-active .sh-dd-dot {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
 
-  .hamburger-box {
-      width: 18px;
-      height: 14px;
-      position: relative;
-  }
+/* ─────────────────────────────────────────
+   ACTIONS
+───────────────────────────────────────── */
+.sh-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: auto;
+}
 
-  .hamburger-inner {
-      display: block;
-      top: 50%;
-      margin-top: -1px;
-      width: 100%;
-      height: 2px;
-      background-color: var(--color-text-main);
-      border-radius: 2px;
-      position: absolute;
-      transition: transform 0.15s ease;
-  }
+.sh-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.1);
+  margin: 0 0.25rem;
+}
 
-  .hamburger-inner::before,
-  .hamburger-inner::after {
-      content: "";
-      display: block;
-      width: 100%;
-      height: 2px;
-      background-color: var(--color-text-main);
-      border-radius: 2px;
-      position: absolute;
-      transition: transform 0.15s ease;
-  }
+:global([data-theme="light"]) .sh-sep {
+  background: rgba(0,0,0,0.1);
+}
 
-  .hamburger-inner::before { top: -6px; }
-  .hamburger-inner::after { bottom: -6px; }
+/* Platform chips */
+.sh-platforms {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
 
-  /* Active State (X shape) */
-  .menu-toggle.active .hamburger-inner {
-      transform: rotate(45deg);
-  }
-  .menu-toggle.active .hamburger-inner::before {
-      top: 0;
-      opacity: 0;
-  }
-  .menu-toggle.active .hamburger-inner::after {
-      bottom: 0;
-      transform: rotate(-90deg);
-  }
+.sh-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.3rem 0.625rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
 
-  @media (max-width: 1024px) {
-      .header-inner-container {
-          padding: 0.75rem 1rem;
-      }
-      
-      .menu-toggle {
-          display: flex;
-          color: var(--color-text-main);
-      }
-      
-      :global([data-theme="light"]) .menu-toggle {
-          background: rgba(255, 255, 255, 0.7);
-          border-color: rgba(0, 0, 0, 0.05);
-      }
+.sh-chip--spotify {
+  color: #1DB954;
+  border-color: rgba(29,185,84,0.25);
+  background: rgba(29,185,84,0.08);
+}
+.sh-chip--spotify:hover {
+  background: rgba(29,185,84,0.18);
+  border-color: rgba(29,185,84,0.5);
+}
 
-      /* Logo Pill */
-      .logo-pill {
-          padding-left: 0.25rem;
-          padding-right: 1rem;
-          background: rgba(10, 10, 11, 0.7);
-          backdrop-filter: blur(12px);
-      }
+.sh-chip--apple {
+  color: #A335EE;
+  border-color: rgba(163,53,238,0.25);
+  background: rgba(163,53,238,0.08);
+}
+.sh-chip--apple:hover {
+  background: rgba(163,53,238,0.18);
+  border-color: rgba(163,53,238,0.5);
+}
 
-      /* NAV PILL - The Full Screen Overlay */
-      .nav-pill {
-          position: fixed !important;
-          inset: 0 !important;
-          margin: 0 !important;
-          width: auto !important;
-          height: auto !important;
-          
-          background: var(--color-bg); /* Opaque background */
-          display: flex;
-          flex-direction: column;
-          /* Changed from center to flex-start to allow scrolling */
-          justify-content: flex-start; 
-          align-items: center;
-          z-index: 150;
-          border-radius: 0 !important;
-          border: none !important;
-          padding: 2rem;
-          /* Add top padding to avoid hitting the logo/close button */
-          padding-top: 6rem;
-          padding-bottom: 4rem;
-          box-sizing: border-box;
-          
-          /* Enable Scrolling */
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-          
-          /* Animation Start State */
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          pointer-events: none;
-          
-          /* Slide from bottom subtle */
-          transform: translateY(20px) scale(0.98);
-      }
-      
-      :global([data-theme="light"]) .nav-pill {
-          background: #ffffff;
-      }
+/* ─────────────────────────────────────────
+   LIVE BANNER
+───────────────────────────────────────── */
+.sh-live {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 32px;
+  background: rgba(239,68,68,0.1);
+  border-bottom: 1px solid rgba(239,68,68,0.2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  transition: background 0.2s;
+  letter-spacing: 0.01em;
+}
 
-      .nav-pill.menu-open {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0) scale(1);
-          pointer-events: auto;
-      }
+.sh-live:hover { background: rgba(239,68,68,0.16); }
+.sh-live.hidden { display: none !important; }
 
-      /* Navigation List Items */
-      .nav-list {
-          flex-direction: column;
-          align-items: center;
-          gap: 1.5rem; /* Reduced gap from 2rem */
-          width: 100%;
-          flex-shrink: 0; /* Prevent shrinking */
-      }
+.sh-live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: sh-pulse 2s ease-in-out infinite;
+}
 
-      .nav-link {
-          font-size: 1.75rem; /* Slightly smaller to save space */
-          font-weight: 700;
-          padding: 0;
-          width: auto;
-          justify-content: center;
-          flex-direction: row;
-          background: transparent !important;
-          
-          /* Stagger Animation Setup */
-          opacity: 0;
-          transform: translateY(20px);
-          transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-      
-      .menu-open .nav-link {
-          opacity: 1;
-          transform: translateY(0);
-      }
-      
-      /* Stagger Delays */
-      .menu-open li:nth-child(1) .nav-link { transition-delay: 0.1s; }
-      .menu-open li:nth-child(2) .nav-link { transition-delay: 0.15s; }
-      .menu-open li:nth-child(3) .nav-link { transition-delay: 0.2s; }
-      .menu-open li:nth-child(4) .nav-link { transition-delay: 0.25s; }
-      .menu-open li:nth-child(5) .nav-link { transition-delay: 0.3s; }
+@keyframes sh-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.6); }
+  50%      { box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+}
 
-      .nav-text {
-          display: inline-block;
-      }
-      
-      .nav-icon {
-          display: none; /* Hide icons for cleaner big text look, or keep if preferred */
-      }
-      .nav-icon svg {
-          width: 32px;
-          height: 32px;
-      }
+#sh-live-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fca5a5;
+}
 
-      /* Actions in Menu */
-      .actions {
-          flex-direction: column;
-          width: 100%;
-          gap: 2rem;
-          margin-top: 2rem;
-          /* Remove scale to fix layout issues with buttons */
-          scale: 1; 
-          flex-shrink: 0; /* Prevent shrinking */
-          
-          opacity: 0;
-          transform: translateY(20px);
-          transition: all 0.4s ease 0.4s; /* Delay after links */
-      }
+.sh-live-title {
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-      .utility-group {
-        flex-direction: column;
-        width: 100%;
-        gap: 1.5rem; /* Spacing between auth/theme/command */
-      }
+.sh-live-arrow {
+  color: #fde68a;
+  font-size: 0.9rem;
+}
 
-      .platforms-group {
-        justify-content: center;
-        gap: 2rem;
-        transform: scale(1.3); /* Make platform icons larger */
-      }
+/* ─────────────────────────────────────────
+   HAMBURGER
+───────────────────────────────────────── */
+.sh-ham {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
 
-      /* Force centered content in utility group */
-      .utility-group :global(.cmd-btn) {
-          width: 100%;
-          justify-content: center;
-          padding: 1rem;
-          font-size: 1.1rem;
-      }
+.sh-ham:hover {
+  border-color: rgba(139,92,246,0.4);
+  background: rgba(139,92,246,0.08);
+}
 
-      .utility-group :global(#auth-button-wrapper),
-      .utility-group :global(.profile-dropdown-container) {
-          width: 100%;
-          justify-content: center;
-      }
-      
-      .utility-group :global(.auth-btn), 
-      .utility-group :global(.profile-btn) {
-          width: 100% !important;
-          justify-content: center !important;
-          padding: 1rem !important;
-          font-size: 1.1rem !important;
-      }
-      
-      .menu-open .actions {
-          opacity: 1;
-          transform: translateY(0);
-      }
+:global([data-theme="light"]) .sh-ham {
+  border-color: rgba(0,0,0,0.1);
+  background: rgba(0,0,0,0.03);
+}
 
-      .divider {
-          display: none;
-      }
-      
-      .nav-link.active {
-          color: var(--color-primary);
-      }
-  }
+.sh-ham span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-text-main);
+  transition: transform 0.25s ease, opacity 0.2s;
+  transform-origin: center;
+}
+
+.sh-ham.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.sh-ham.is-open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.sh-ham.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ─────────────────────────────────────────
+   MOBILE FULLSCREEN OVERLAY
+───────────────────────────────────────── */
+.sh-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9800;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  transform: translateX(100%);
+  transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+:global([data-theme="light"]) .sh-overlay {
+  background: #fff;
+}
+
+.sh-overlay::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899, #0ea5e9);
+  z-index: 1;
+}
+
+.sh-overlay.is-open {
+  transform: translateX(0);
+}
+
+/* Overlay top row */
+.sh-overlay-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  flex-shrink: 0;
+}
+
+.sh-overlay-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.03em;
+  color: var(--color-text-main);
+}
+
+.sh-overlay-logo img { border-radius: 8px; }
+
+.sh-overlay-logo b {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sh-overlay-close {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+:global([data-theme="light"]) .sh-overlay-close {
+  border-color: rgba(0,0,0,0.1);
+  background: rgba(0,0,0,0.03);
+}
+
+.sh-overlay-close:hover {
+  color: var(--color-text-main);
+  background: rgba(255,255,255,0.1);
+}
+
+/* Overlay nav */
+.sh-overlay-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sh-ov-group {
+  opacity: 0;
+  transform: translateX(24px);
+  transition:
+    opacity 0.35s ease calc(var(--i, 0) * 0.07s + 0.05s),
+    transform 0.35s cubic-bezier(0.34,1.56,0.64,1) calc(var(--i, 0) * 0.07s + 0.05s);
+}
+
+.sh-overlay.is-open .sh-ov-group {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sh-ov-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin-bottom: 0.625rem;
+}
+
+.sh-ov-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.sh-ov-link {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: 0.2rem 0;
+  transition: color 0.15s;
+  line-height: 1.2;
+}
+
+.sh-ov-link:hover,
+.sh-ov-link.is-active { color: var(--color-text-main); }
+
+.sh-ov-link.is-active {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sh-ov-big {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.sh-ov-big:hover,
+.sh-ov-big.is-active { color: var(--color-text-main); }
+
+/* Overlay footer */
+.sh-overlay-foot {
+  display: flex;
+  gap: 0.625rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+:global([data-theme="light"]) .sh-overlay-foot {
+  border-top-color: rgba(0,0,0,0.07);
+}
+
+.sh-ov-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.875rem;
+  border-radius: 99px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.sh-ov-chip--spotify { color: #1DB954; border-color: rgba(29,185,84,0.3); background: rgba(29,185,84,0.1); }
+.sh-ov-chip--amazon  { color: #3cd0d9; border-color: rgba(60,208,217,0.3); background: rgba(60,208,217,0.1); }
+.sh-ov-chip--apple   { color: #A335EE; border-color: rgba(163,53,238,0.3); background: rgba(163,53,238,0.1); }
+
+.sh-ov-chip:hover { opacity: 0.8; transform: translateY(-1px); }
+
+/* ─────────────────────────────────────────
+   SVG MASKS
+───────────────────────────────────────── */
+.icon-mask {
+  background-color: currentColor;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  flex-shrink: 0;
+}
+
+.amazon-icon {
+  mask-image: url('/svg/amazon-music.svg');
+  -webkit-mask-image: url('/svg/amazon-music.svg');
+}
+
+.apple-icon {
+  mask-image: url('/svg/apple-podcasts.svg');
+  -webkit-mask-image: url('/svg/apple-podcasts.svg');
+}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .sh-platforms { display: none; }
+  .sh-sep       { display: none; }
+}
+
+@media (max-width: 900px) {
+  .sh-nav  { display: none; }
+  .sh-ham  { display: flex; }
+}
+
+@media (max-width: 480px) {
+  .sh-logo-text { display: none; }
+  .sh-inner { padding: 0 1rem; }
+}
 </style>
 
 <script>
-  // Update active state on navigation (Client-side)
   document.addEventListener('DOMContentLoaded', () => {
-    // 1. Highlight Active Link
-    const currentPath = window.location.pathname;
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    navLinks.forEach(link => {
-      const href = link.getAttribute('href');
-      if (href === '/') {
-        if (currentPath === '/') link.classList.add('active');
-        else link.classList.remove('active');
-      } else {
-         if (href && currentPath.startsWith(href)) {
-             link.classList.add('active');
-         } else {
-             link.classList.remove('active');
-         }
-      }
-    });
+    const header  = document.getElementById('site-header');
+    const ham     = document.getElementById('sh-ham') as HTMLButtonElement;
+    const overlay = document.querySelector('.sh-overlay') as HTMLElement;
+    const closeBtn = document.getElementById('sh-overlay-close') as HTMLButtonElement;
 
-    // 2. Mobile Menu Logic
-    const menuToggle = document.getElementById('menu-toggle');
-    const navPill = document.querySelector('.nav-pill');
-    
-    if (menuToggle && navPill) {
-        menuToggle.addEventListener('click', () => {
-            const isOpen = navPill.classList.toggle('menu-open');
-            menuToggle.classList.toggle('active');
-            
-            // Prevent body scroll when menu is open
-            if (isOpen) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
-        });
+    // ── Scroll class ──────────────────────
+    const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 10);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
 
-        // Close menu when clicking a link
-        const links = navPill.querySelectorAll('a');
-        links.forEach(link => {
-            link.addEventListener('click', () => {
-                navPill.classList.remove('menu-open');
-                menuToggle.classList.remove('active');
-                document.body.style.overflow = '';
-            });
-        });
+    // ── Mobile overlay ────────────────────
+    function open() {
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
+      ham.classList.add('is-open');
+      ham.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
     }
+
+    function close() {
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden', 'true');
+      ham.classList.remove('is-open');
+      ham.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    ham?.addEventListener('click', () => overlay.classList.contains('is-open') ? close() : open());
+    closeBtn?.addEventListener('click', close);
+
+    // Close on link click
+    overlay?.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
   });
 </script>
 
 <script define:vars={{ premieres }}>
-  // Logic to handle Premiere Banner
-  // Runs immediately
-  
-  // Logic to handle Premiere Banner and Live Stream
-  // Runs immediately
-  
   const STREAM_URL = 'https://live.veredillasfm.es/stream-pro.m3u8';
   let isStreamOnline = false;
 
-  function parseDuration(durStr) {
-      if(!durStr) return 0;
-      let totalMs = 0;
-      const hours = durStr.match(/(\d+)\s*h/);
-      const mins = durStr.match(/(\d+)\s*min/);
-      if(hours) totalMs += parseInt(hours[1]) * 60 * 60 * 1000;
-      if(mins) totalMs += parseInt(mins[1]) * 60 * 1000;
-      return totalMs || (10 * 60 * 1000);
+  function parseDuration(d) {
+    if (!d) return 0;
+    const h = d.match(/(\d+)\s*h/),  m = d.match(/(\d+)\s*min/);
+    return (h ? +h[1]*3600000 : 0) + (m ? +m[1]*60000 : 0) || 600000;
   }
 
   function updateBanner() {
-      const banner = document.getElementById('premiere-banner');
-      if(!banner) return;
-      
-      const labelEl = document.getElementById('banner-label');
-      const titleEl = document.getElementById('banner-title');
+    const banner  = document.getElementById('sh-live');
+    const labelEl = document.getElementById('sh-live-label');
+    const titleEl = document.getElementById('sh-live-title');
+    if (!banner) return;
 
-      // 1. Live Stream Support (Priority #1)
-      if (isStreamOnline) {
-          banner.classList.remove('hidden');
-          banner.classList.remove('coming-soon'); // Ensure it's live style (red)
-          banner.href = "/live";
-          if(labelEl) labelEl.textContent = "EN DIRECTO";
-          if(titleEl) titleEl.textContent = "Emisión en Directo desde el Estudio"; 
-          return; // Stop here, live stream takes precedence
-      }
+    if (isStreamOnline) {
+      banner.classList.remove('hidden');
+      banner.href = '/live';
+      if (labelEl) labelEl.textContent = 'EN DIRECTO';
+      if (titleEl) titleEl.textContent = 'Emisión en Directo desde el Estudio';
+      return;
+    }
 
-      // 2. Scheduled Premieres (Priority #2)
-      const now = Date.now();
-      const SOON_THRESHOLD = 2 * 60 * 60 * 1000; // 2 Hours
-      
-      let activePremiere = null;
-      let soonPremiere = null;
-      
-      premieres.forEach(p => {
-          const duration = parseDuration(p.duration);
-          const endTime = p.date + duration;
-          
-          if (now >= p.date && now < endTime) {
-              activePremiere = p;
-          }
-          
-          if (p.date > now && (p.date - now) <= SOON_THRESHOLD) {
-              if (!soonPremiere || p.date < soonPremiere.date) {
-                  soonPremiere = p;
-              }
-          }
-      });
-      
-      const target = activePremiere || soonPremiere;
-      
-      if (target) {
-          banner.classList.remove('hidden');
-          banner.href = `/ep/${target.slug}`;
-          
-          if(titleEl) titleEl.textContent = target.title;
-          
-          if (activePremiere) {
-              banner.classList.remove('coming-soon');
-              if(labelEl) labelEl.textContent = "EN DIRECTO";
-          } else {
-              banner.classList.add('coming-soon');
-              const minsLeft = Math.ceil((target.date - now) / 60000);
-              let timeText = "";
-              if(minsLeft >= 60) {
-                 const h = Math.floor(minsLeft/60);
-                 const m = minsLeft % 60;
-                 timeText = `${h}h ${m}m`;
-              } else {
-                 timeText = `${minsLeft}m`;
-              }
-              if(labelEl) labelEl.textContent = `ESTRENO EN ${timeText}`;
-          }
+    const now = Date.now(), SOON = 7200000;
+    let active = null, soon = null;
+    premieres.forEach(p => {
+      const end = p.date + parseDuration(p.duration);
+      if (now >= p.date && now < end) active = p;
+      if (p.date > now && p.date - now <= SOON && (!soon || p.date < soon.date)) soon = p;
+    });
+
+    const t = active || soon;
+    if (t) {
+      banner.classList.remove('hidden');
+      banner.href = `/ep/${t.slug}`;
+      if (titleEl) titleEl.textContent = t.title;
+      if (active) {
+        if (labelEl) labelEl.textContent = 'EN DIRECTO';
       } else {
-          banner.classList.add('hidden');
+        const mins = Math.ceil((t.date - now) / 60000);
+        const time = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+        if (labelEl) labelEl.textContent = `ESTRENO EN ${time}`;
       }
+    } else {
+      banner.classList.add('hidden');
+    }
   }
-  
-  function checkStreamStatus() {
-       fetch(STREAM_URL, { method: 'HEAD' })
-       .then(res => {
-           const wasOnline = isStreamOnline;
-           isStreamOnline = res.ok;
-           if(wasOnline !== isStreamOnline) updateBanner();
-       })
-       .catch(() => {
-           isStreamOnline = false;
-           updateBanner();
-       });
-  }
-  
-  // Init
-  checkStreamStatus();
-  updateBanner(); // Run once immediately too (for premieres)
-  
-  // Poll
-  // setInterval(checkStreamStatus, 15000); // Removed polling to save CPU/Network: check once on load
-  setInterval(updateBanner, 60000); // Check premieres every 1m (local calculation)
+
+  fetch(STREAM_URL, { method: 'HEAD' })
+    .then(r => { isStreamOnline = r.ok; updateBanner(); })
+    .catch(() => updateBanner());
+
+  updateBanner();
+  setInterval(updateBanner, 60000);
 </script>
