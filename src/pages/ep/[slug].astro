@@ -1189,15 +1189,15 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     };
 
     const initCinemaSection = () => {
-        const playerBox = document.getElementById("episode-player-inner");
-        if (!playerBox) {
-            console.warn("[Cinema] #episode-player-inner not found in DOM.");
-            return;
-        }
+        ['', '-post'].forEach(suffix => {
+            const playerBox = document.getElementById(`episode-player-inner${suffix}`);
+            if (!playerBox) {
+                return;
+            }
 
-        const audioUrl = playerBox.getAttribute("data-audio-url");
-        const spotifyUrl = playerBox.getAttribute("data-spotify-url");
-        let videoUrl = playerBox.getAttribute("data-video-url");
+            const audioUrl = playerBox.getAttribute("data-audio-url");
+            const spotifyUrl = playerBox.getAttribute("data-spotify-url");
+            let videoUrl = playerBox.getAttribute("data-video-url");
 
         const title = playerBox.getAttribute("data-title") || "";
         const image = playerBox.getAttribute("data-image") || "";
@@ -1232,14 +1232,14 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
 
         // If it's a video, render with Plyr to hide YouTube branding
         const videoContainer = document.getElementById(
-            "video-player-container",
+            `video-player-container${suffix}`,
         );
         if (videoUrl && !spotifyUrl && videoContainer) {
             const finalVideoUrl = getEmbedVideoUrl(videoUrl);
 
             videoContainer.innerHTML = `
                 <div class="plyr-video-wrapper shadow-2xl rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0f0f0f] relative group">
-                    <div class="plyr__video-embed" id="video-player">
+                    <div class="plyr__video-embed" id="video-player${suffix}">
                         <iframe 
                             src="${finalVideoUrl}" 
                             allowfullscreen 
@@ -1278,7 +1278,7 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
             }
 
             // Initialize Plyr for Video
-            const videoElement = document.getElementById("video-player");
+            const videoElement = document.getElementById(`video-player${suffix}`);
             let player: any = null;
             if (videoElement) {
                 player = new Plyr(videoElement, {
@@ -1686,24 +1686,26 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
         }
 
         // Use global variables or fetch them in the handler
+        });
     };
 
     // --- UNIFIED MODE SWITCHER LOGIC ---
     const handleModeSwitch = (e: any) => {
         const requestedMode = e.detail?.mode;
 
-        const videoContainer = document.getElementById(
-            "video-player-container",
-        );
-        const audioContainer = document.getElementById(
-            "audio-player-container",
-        );
-        const playerBox = document.getElementById("episode-player-inner");
+        ['', '-post'].forEach(suffix => {
+            const videoContainer = document.getElementById(
+                `video-player-container${suffix}`,
+            );
+            const audioContainer = document.getElementById(
+                `audio-player-container${suffix}`,
+            );
+            const playerBox = document.getElementById(`episode-player-inner${suffix}`);
 
-        if (!videoContainer || !audioContainer || !playerBox) return;
+            if (!videoContainer || !audioContainer || !playerBox) return;
 
-        const isVideoCurrentlyVisible =
-            !videoContainer.classList.contains("hidden");
+            const isVideoCurrentlyVisible =
+                !videoContainer.classList.contains("hidden");
         const targetMode =
             requestedMode || (isVideoCurrentlyVisible ? "audio" : "video");
 
@@ -1746,6 +1748,7 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
                 );
             }
         }
+        });
     };
 
     // Listen for internal player requests (Added once globally)
@@ -1766,23 +1769,25 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     // Cleanup on before-preparation to stop any stray audio if navigating
     document.addEventListener("astro:before-preparation", () => {
         // Only stop the in-page episode audio, not the global persistent player
-        const episodeAudio = document.querySelector("#audio-player-container audio, #video-player-container audio");
-        if (episodeAudio) {
-            (episodeAudio as HTMLAudioElement).pause();
-            (episodeAudio as HTMLAudioElement).src = "";
-        }
+        const episodeAudios = document.querySelectorAll("#audio-player-container audio, #video-player-container audio, #audio-player-container-post audio, #video-player-container-post audio");
+        episodeAudios.forEach(audio => {
+            (audio as HTMLAudioElement).pause();
+            (audio as HTMLAudioElement).src = "";
+        });
     });
     // Listen for sync requests (e.g. from Video Player)
     document.addEventListener("veredillas:sync-playback", (e: any) => {
         const { time, slug: incomingSlug } = e.detail;
-        const playerBox = document.getElementById("episode-player-inner");
-        const currentSlug = playerBox?.getAttribute("data-slug");
+        ['', '-post'].forEach(suffix => {
+            const playerBox = document.getElementById(`episode-player-inner${suffix}`);
+            const currentSlug = playerBox?.getAttribute("data-slug");
 
-        if (incomingSlug === currentSlug) {
-            const audio = document.querySelector<HTMLAudioElement>("#audio-player-container audio");
-            if (audio) {
-                audio.currentTime = time;
+            if (incomingSlug === currentSlug) {
+                const audio = document.querySelector<HTMLAudioElement>(`#audio-player-container${suffix} audio`);
+                if (audio) {
+                    audio.currentTime = time;
+                }
             }
-        }
+        });
     });
 </script>
