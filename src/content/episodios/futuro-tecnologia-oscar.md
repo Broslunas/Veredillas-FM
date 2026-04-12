@@ -1,5 +1,5 @@
 ---
-title: El Futuro de la Tecnología en el Aula ft. Oscar
+title: El Futuro de la Tecnología en el Aula ft. Prof. Oscar
 tags:
   - Profesorado
   - Tecnología
