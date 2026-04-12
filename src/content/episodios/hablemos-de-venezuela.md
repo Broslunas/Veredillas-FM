@@ -992,3 +992,10 @@ Junto a **Christopher** y el **Profesor Jezael Goya**, nos sumergimos en un deba
 Un episodio necesario para entender no solo lo que pasa en Venezuela, sino cómo esto resuena en toda Latinoamérica y el mundo.
 
 **¡Dale al play y únete a la conversación!**
+
+
+## Análisis Profundo del Episodio:
+
+Un episodio que rebosó carga geopolítica, nostalgia y dolor en igual medida. Escuchar las voces de los participantes desgranando desde la distancia el panorama económico y social sobre la situación en Venezuela, ha sido un ejercicio empático brutal para toda nuestra comunidad escolar. 
+
+A lo largo del desarrollo de la charla, y como muestra explícitamente su guion transcrito, los estudiantes evidenciaron que la actualidad geopolítica no solo es algo que se vea obligatoriamente en los libros de Historia Contemporánea, sino historias con nombres y apellidos que se pasean por nuestros propios pasillos. Reflexiones acerca de la migración, superar las barreras al dejar tu país y seguir adelante luchando por un futuro demostraron el alto calibre humano, crítico y tolerante sobre el que se apoya nuestro pódcast.

@@ -940,3 +940,10 @@ Y para rematar, nos regala una reflexión sobre la vida, el destino (o la "causa
 **Esta no es una entrevista cualquiera; es una historia de superación, curiosidad insaciable y pasión por enseñar. ¡No te la puedes perder! Dale al play.**
 
 Esperemos que disfrutes de esta entrevista llena de sorpresas.
+
+
+## Análisis Profundo del Episodio:
+
+En esta reveladora sesión, escuchamos una perspectiva atípica: cómo un biólogo puede acabar desarrollando herramientas informáticas o ejerciendo una guía técnica. Escuchando la transcripción completa, notamos la pasión que Alejandro transmite al explicar la convergencia entre ciencias puras (la biología) y la tecnología. 
+
+Durante el debate sobre si "todo está o no inventado", nos queda claro que en IES Las Veredillas siempre hay hueco para la innovación interdisciplinar. Este mensaje es vital para cualquier alumno a punto de elegir carrera: tu título inicial no define tu techo tecnológico ni adónde te llevará tu curiosidad en el futuro. Escuchar cómo desmontó ciertos estigmas sobre las ciencias naturales frente a las ingenierías nos dejó con material valioso de reflexión.

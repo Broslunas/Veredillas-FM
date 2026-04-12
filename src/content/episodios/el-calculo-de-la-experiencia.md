@@ -674,3 +674,10 @@ quiz:
 
 ---
 **#Matemáticas #Podcast #Educación #ElCálculoDeLaExperiencia #ProfCarmen #Liderazgo #Vida**
+
+
+## Análisis Profundo del Episodio:
+
+Sentar a la profesora Carmen frente a nuestros micrófonos supuso darle voz a la "experiencia calculada". A través de sus comentarios reflexivos se nota el peso de llevar años guiando a decenas de generaciones en el instituto, viéndolos tropezar y volver a levantarse en asignaturas que tradicionalmente infunden "terror".
+
+Las citas que rescatamos de su transcripción son un bálsamo de calma para aquellos estudiantes de segundo de Bachillerato al borde del colapso: el mensaje definitivo fue que los números se aprenden con constancia y que ningún suspenso te rompe la vida en dos. Además, aportó interesantes perlas sobre cómo ha cambiado la metodología de enseñanza durante su trayectoria, confirmando que la escuela está viva y evoluciona adaptándose a las necesidades tecnológicas y sociales que el siglo actual demanda.

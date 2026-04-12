@@ -1065,3 +1065,10 @@ El Profesor Ulises, con su vasta experiencia académica, aportará una visión p
 Después de un intenso debate, el Profesor Ulises y Gustavo compartirán sus conclusiones y reflexiones finales sobre la importancia de la historia y su relevancia en el mundo actual. ¿Qué podemos aprender del pasado para construir un futuro mejor?
 
 ¡No se pierdan este apasionante debate histórico que los hará reflexionar y cuestionar su propia visión del mundo!
+
+
+## Análisis Profundo del Episodio:
+
+Si hay algo que genera chispas (de las buenas) en un estudio de radio escolar es enfrentar amigablemente al profesorado contra su alumnado. En este "Debate Histórico", el choque generacional se hizo muy evidente: las quejas de un lado por un sistema que consideran injusto (o con demasiados exámenes), y las razones de peso del otro lado para exigir esfuerzo.
+
+Analizando al dedillo las intervenciones del profesor, nos encontramos con un golpe de realidad espectacular cuando intentaba razonar sobre el poco valor que a veces se da al "esfuerzo crudo" hoy en día. Sin embargo, los alumnos se defendieron maravillosamente abogando por la salud mental y la modernización. Es un verdadero duelo de titanes donde nadie sale perdiendo, porque el simple hecho de hablar las cosas de tú a tú enriquece enormemente a todo el IES Las Veredillas.

@@ -1487,3 +1487,10 @@ Si te sientes abrumado por el estudio, si no sabes qué hacer con tu futuro o si
 **Relájate, olvida los apuntes por unos minutos y disfruta de esta charla entre amigos. ¡Dale al play y únete a la conversación!**
 
 Esperemos que disfrutes de esta charla tanto como nosotros.
+
+
+## Análisis Profundo del Episodio:
+
+Juntar a Domingo y Diego frente a una caja de sonido para explorar la pícara y rutinaria etapa colegial es garantía de risas, reflexiones y algún que otro desahogo merecido. Sus participaciones sirvieron para relatar lo que nunca se plasma dentro en una agenda escolar.
+
+Lo más fascinante de recopilar la charla (repleta verdaderamente de un vocabulario coloquial pero muy ilustrado), fue desmenuzar las técnicas de "supervivencia escolar" que mencionaron y, en especial, cómo encaran el fracaso estrepitoso o el agobio pre-exámenes. Este documento sonoro quedará archivado como testamento absoluto de esta peculiar generación: alumnos inmersos en una lucha eterna contra las carencias del sistema, pero siempre remando del mismo lado de la embarcación educativa para no caer. Increíble química.

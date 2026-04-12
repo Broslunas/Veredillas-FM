@@ -705,3 +705,10 @@ Si estás dudando sobre tu futuro, si sientes que la presión por "ser alguien" 
 **Una lección de vida que va mucho más allá de la Tecnología. ¡Dale al play y déjate inspirar!**
 
 Esperemos que esta charla te motive tanto como a nosotros.
+
+
+## Análisis Profundo del Episodio:
+
+De forma muy pertinente, este episodio con Óscar sentó las bases para el debate más necesario e inevitable en cualquier centro de enseñanza actual: ¿Hacia dónde nos lleva la imparable evolución tecnológica moderna? Escudriñando el contenido, encontramos profundas preocupaciones éticas expresadas en voz alta sobre las inteligencias artificiales, la programación y el mercado laboral que recibiremos los alumnos.
+
+La dicotomía entre "la máquina que te ayuda" frente "la máquina que te sustituye" sobrevoló su intervención. Lo valioso de este aporte a Veredillas FM es que impulsa a nuestro alumnado a no ser meros consumidores pasivos de tecnología, sino a interesarse en dominarla como creadores. La energía que desbordó Óscar se sintiéndose cautivado e intimidado a partes iguales por este nuevo horizonte deja clara la enorme madurez reflexiva que se amasa en este instituto.

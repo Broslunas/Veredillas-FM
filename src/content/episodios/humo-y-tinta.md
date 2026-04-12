@@ -1672,3 +1672,10 @@ Anécdotas reales: Historias de estudio de tatuajes, sesiones interminables y ri
 "Hay cosas que se esfuman en el aire y otras que se quedan grabadas para siempre. Hoy hablamos de ambas."
 
 Sube el volumen, prepara tu vaper y acompáñanos en esta charla entre amigos donde lo que importa es la marca que dejas y el ambiente que creas.
+
+
+## Análisis Profundo del Episodio:
+
+El título "Humo y Tinta" capturó de inmediato una de las conversaciones más artísticas y oscuras (en el buen sentido) de nuestros volúmenes. Repasando el fragmento digitalizado, se ahonda notablemente en cómo en ocasiones expresamos ansiedad o sensaciones a través de arte que puede "molestar a otros", abordando los estereotipos, el tabú e incluso los tatuajes u ornamentos personales en un mundo laboral todavía muy clasista.
+
+Es un documento de oro si buscas entender qué pasa por la cabeza de la vertiente más experimental del alumnado. El rechazo a ser estigmatizados por lo que escuchan, por cómo se expresan gráfica o visualmente o por la vestimenta es un discurso de empoderamiento puro. Revisitando estas vivencias, es innegable que esta franqueza discursiva solo suele brotar cuando un grupo de alumnos talentosos asumen a un micrófono como su propio escudo.

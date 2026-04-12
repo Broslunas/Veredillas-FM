@@ -969,3 +969,10 @@ Para cerrar con broche de oro, Jezael se convierte en nuestro consejero sentimen
 **Sube el volumen, olvida las integrales por un rato y prepárate para conocer al humano detrás del profesor. ¡Una masterclass de vida que no entra en el examen!**
 
 Esperemos que disfrutes de esta charla tan auténtica.
+
+
+## Análisis Profundo del Episodio:
+
+Nadie dijo que ser docente fuera tarea fácil, y al repasar el metraje de este episodio, la sinceridad de Jezael destaca sobremanera. Exploramos a fondo la realidad de la docencia moderna enfrentada al estoicismo. 
+
+La entrevista cobra una fuerza especial en el tramo donde él comparte su "camino del maestro", desde su etapa como alumno lleno de dudas hasta plantarse frente a adolescentes a dar clase de Matemáticas. Además, las referencias constantes a su amor por la saga Dark Souls y cómo la perseverancia del juego se aplica al duro día a día de un profesor (y de un estudiante de selectividad que se enfrenta a continuas frustraciones) son el corazón de este podcast. No hay nada más inspirador que un profesor que no teme mostrarse humano, vulnerable y, al mismo tiempo, tremendamente apasionado de su labor formativa.

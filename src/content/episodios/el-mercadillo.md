@@ -317,3 +317,10 @@ Hablamos de la logística detrás del evento, del esfuerzo titánico de organiza
 **No te quedes fuera de este movimiento. Escucha la entrevista, prepara tus donaciones y ¡ven a buscar tu próximo tesoro! Dale al play.**
 
 Esperemos que disfrutes eches una mano en el mercadillo.
+
+
+## Análisis Profundo del Episodio:
+
+El episodio junto a Carlos ha resultado ser uno de los más divertidos y excéntricos de nuestra fonoteca estudiantil. Denominado "El Mercadillo", escucharlo de inicio a fin nos confirma que, en Veredillas FM, también hay espacio para el humor, lo espontáneo y ese coloquialismo caótico típico de la edad.
+
+Dentro del revuelo, la transcripción nos regala momentos puramente sociológicos: ¿De qué habla la juventud cuando creen que nadie les pone nota? Exploraron anécdotas locas del grupo de amigos y situaciones sociales que, aunque parezcan superficiales, tejen la verdadera comunidad que sostiene el día a día en nuestro patio del colegio. El dinamismo que imprimieron a este bloque demuestra unas impresionantes dotes de improvisación radiofónica y retención constante de la audición.

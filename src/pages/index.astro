@@ -2,7 +2,6 @@
 export const prerender = true;
 
 import Layout from '../layouts/Layout.astro';
-import Layout from '../layouts/Layout.astro';
 import EpisodeCard from '../components/EpisodeCard.astro';
 import PostCard from '../components/PostCard.astro';
 import FeaturedSlider from '../components/FeaturedSlider.astro';
@@ -294,6 +293,47 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
                     <p class="text-zinc-400 leading-relaxed">Llevamos la voz del Veredillas a todo el mundo a través del streaming digital.</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- Proyecto Veredillas FM - Contenido SEO -->
+    <section class="py-16 md:py-24 border-t border-white/5 bg-gradient-to-b from-transparent to-[#0a0a0c]">
+        <div class="container">
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center gs-fade-up">
+                 <div class="space-y-6">
+                    <h2 class="text-3xl md:text-5xl font-black text-white leading-tight tracking-tighter">
+                        ¿Qué es <span class="text-gradient">Veredillas FM</span>?
+                    </h2>
+                    <div class="space-y-4 text-zinc-400 text-lg leading-relaxed">
+                        <p>
+                            <strong>Veredillas FM</strong> es una radio escolar oficial del <strong>IES Las Veredillas</strong>. Nuestro objetivo es dar voz a los estudiantes y profesores, fomentando la comunicación, el debate y el aprendizaje continuo a través de los micrófonos.
+                        </p>
+                        <p>
+                            En este espacio, encontrarás numerosas entrevistas exclusivas a profesores, alumnos y antiguos alumnos que comparten sus experiencias formativas. Abordamos la actualidad del instituto, elaboramos reportajes exhaustivos en texto y audio, y cubrimos noticias de ciencia, tecnología, cultura y deportes, todo desde el enfoque crítico y dinámico de las nuevas generaciones.
+                        </p>
+                        <p>
+                            Todo este sitio web pretende ser un gran repositorio de artículos educativos, opiniones de estudiantes y documentos culturales en formato texto y podcast. Si buscas contenido original, entrevistas en profundidad y quieres estar al día de la comunidad educativa, estás en el lugar correcto.
+                        </p>
+                    </div>
+                 </div>
+                 <div class="relative rounded-2xl overflow-hidden glass-panel border border-white/10 p-8 shadow-2xl">
+                    <h3 class="text-2xl font-bold text-white mb-4">Nuestros Valores Educativos</h3>
+                    <ul class="space-y-4 text-zinc-300">
+                        <li class="flex items-start gap-3">
+                            <span class="text-primary mt-1"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+                            <span class="leading-relaxed"><strong>Periodismo y Redacción:</strong> Aprendizaje práctico de las herramientas de la comunicación actual, escribiendo y documentando cada noticia.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-primary mt-1"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+                            <span class="leading-relaxed"><strong>Tecnología e Innovación:</strong> Producción completa de artículos de fondo, guiones, edición de sonido y streaming digital.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-primary mt-1"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+                            <span class="leading-relaxed"><strong>Contenido Cultural y Divulgación:</strong> Un espacio seguro donde todas las ideas se plasman en formato de redacciones y debates con respeto.</span>
+                        </li>
+                    </ul>
+                 </div>
+             </div>
         </div>
     </section>
 
