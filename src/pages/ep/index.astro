@@ -311,22 +311,105 @@ const buildNow = new Date();
 
         if (!upcomingToggle || !searchInput) return;
 
-        let currentSeason = 'all';
-        let selectedGuest = '';
+        // Read initial state from URL
+        const params = new URLSearchParams(window.location.search);
+        let currentSeason = params.get('temporada') || 'all';
+        let selectedGuest = params.get('invitado') || '';
         let selectedGuestName = '';
-        let selectedTag = new URLSearchParams(window.location.search).get('tag')?.toLowerCase() || '';
-        let selectedDuration = { min: 0, max: 999 };
+        let selectedTag = params.get('tag')?.toLowerCase() || '';
+        let selectedDuration = { 
+            min: parseInt(params.get('minDur') || '0'), 
+            max: parseInt(params.get('maxDur') || '999') 
+        };
         let selectedDurationLabel = 'Cualquiera';
-        let selectedSchoolYear = '';
-        let selectedSubject = '';
-        
-        let currentPage = 1;
+        let selectedSchoolYear = params.get('año') || '';
+        let selectedSubject = selectedTag || params.get('tematica') || '';
+        let initialSearch = params.get('q') || '';
+        let currentPage = parseInt(params.get('p') || '1');
         const ITEMS_PER_PAGE = 12;
 
-        // Initial setup for tag if present
-        if (selectedTag) {
-            selectedSubject = selectedTag;
-            if (subjectFilter) subjectFilter.value = selectedTag;
+        // Apply initial state to UI components
+        if (initialSearch) searchInput.value = initialSearch;
+        if (params.get('proximos') === 'true') upcomingToggle.checked = true;
+        
+        if (currentSeason !== 'all') {
+            seasonBtns.forEach(btn => {
+                const btnSeason = btn.getAttribute('data-season');
+                if (btnSeason === currentSeason) {
+                    seasonBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        if (selectedSchoolYear && schoolYearFilter) {
+            schoolYearFilter.value = selectedSchoolYear;
+        }
+        
+        if (selectedSubject && subjectFilter) {
+            subjectFilter.value = selectedSubject.toLowerCase();
+        }
+
+        // Apply initial duration state
+        if (selectedDuration.min !== 0 || selectedDuration.max !== 999) {
+            durationChips.forEach(chip => {
+                const chipMin = parseInt(chip.getAttribute('data-min') || '0');
+                const chipMax = parseInt(chip.getAttribute('data-max') || '999');
+                if (chipMin === selectedDuration.min && chipMax === selectedDuration.max) {
+                    durationChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    selectedDurationLabel = chip.textContent || 'Cualquiera';
+                }
+            });
+        }
+
+        // Apply initial guest state
+        if (selectedGuest) {
+            const guestOption = Array.from(guestOptions).find(o => o.getAttribute('data-value') === selectedGuest) as HTMLElement;
+            if (guestOption) {
+                const name = guestOption.getAttribute('data-name') || '';
+                const image = guestOption.getAttribute('data-image') || '';
+                selectedGuestName = name;
+
+                guestOptions.forEach(o => o.classList.remove('active'));
+                guestOption.classList.add('active');
+                guestOption.setAttribute('aria-selected', 'true');
+                
+                if (guestTriggerLabel) guestTriggerLabel.textContent = name;
+                if (guestTriggerAvatar) {
+                    if (image) {
+                        guestTriggerAvatar.innerHTML = `<img src="${image}" alt="${name}" class="transition-opacity duration-300 opacity-0" onload="this.classList.remove('opacity-0')" />`;
+                    } else {
+                        guestTriggerAvatar.innerHTML = `<span class="trigger-initials">${name.charAt(0).toUpperCase()}</span>`;
+                    }
+                }
+                guestTrigger?.classList.add('has-selection');
+            }
+        }
+
+        // Auto-expand advanced filters if any are active
+        const hasActiveAdvFilters = selectedSchoolYear !== '' || selectedSubject !== '' || selectedDuration.min !== 0 || selectedDuration.max !== 999;
+        if (hasActiveAdvFilters) {
+            advFiltersToggle?.setAttribute('aria-expanded', 'true');
+            advFiltersPanel?.classList.remove('hidden');
+            advFiltersToggle?.classList.add('active');
+        }
+
+        function updateURL() {
+            const newParams = new URLSearchParams();
+            if (currentSeason !== 'all') newParams.set('temporada', currentSeason);
+            if (selectedGuest) newParams.set('invitado', selectedGuest);
+            if (selectedSubject) newParams.set('tag', selectedSubject);
+            if (searchInput.value.trim()) newParams.set('q', searchInput.value.trim());
+            if (selectedDuration.min !== 0) newParams.set('minDur', selectedDuration.min.toString());
+            if (selectedDuration.max !== 999) newParams.set('maxDur', selectedDuration.max.toString());
+            if (selectedSchoolYear) newParams.set('año', selectedSchoolYear);
+            if (upcomingToggle.checked) newParams.set('proximos', 'true');
+            if (currentPage > 1) newParams.set('p', currentPage.toString());
+
+            const newQuery = newParams.toString();
+            const newURL = newQuery ? `${window.location.pathname}?${newQuery}` : window.location.pathname;
+            window.history.replaceState({ path: newURL }, '', newURL);
         }
 
         // ── Advanced Filters Toggle ──────────────────────────────────────
@@ -338,9 +421,6 @@ const buildNow = new Date();
         });
 
         durationChips.forEach(chip => {
-            if (chip.getAttribute('data-min') === '0' && chip.getAttribute('data-max') === '999') {
-                chip.classList.add('active');
-            }
             chip.addEventListener('click', () => {
                 durationChips.forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
@@ -390,7 +470,6 @@ const buildNow = new Date();
                 if (entry.isIntersecting) {
                     const el = entry.target as HTMLElement;
                     el.classList.add('is-visible');
-                    // Stop observing once visible to prevent re-triggering
                     observer.unobserve(el);
                 }
             });
@@ -488,6 +567,9 @@ const buildNow = new Date();
             if (fromPagination !== true) {
                 currentPage = 1;
             }
+            
+            updateURL();
+
             const now = new Date();
             const showUpcoming = upcomingToggle.checked;
             const searchTerm = searchInput.value.toLowerCase().trim();
@@ -510,7 +592,6 @@ const buildNow = new Date();
             const activeFiltersContainer = document.getElementById('active-filters-container');
             const activeFiltersList = document.getElementById('active-filters-list');
 
-            // Update active filters UI
             if (activeFiltersList && activeFiltersContainer) {
                 activeFiltersList.innerHTML = '';
                 let hasAnyActive = false;
@@ -525,11 +606,11 @@ const buildNow = new Date();
                     `;
                 }
 
-                if (selectedSubject || selectedTag) {
+                if (selectedSubject) {
                     hasAnyActive = true;
                     activeFiltersList.innerHTML += `
                         <span class="filter-chip">
-                            #${selectedSubject || selectedTag}
+                            #${selectedSubject}
                             <button id="clear-tag" class="clear-chip-btn">&times;</button>
                         </span>
                     `;
@@ -558,18 +639,15 @@ const buildNow = new Date();
                 if (hasAnyActive) {
                     activeFiltersContainer.classList.remove('hidden');
                     
-                    // Add listeners for individual clear buttons
                     document.getElementById('clear-tag')?.addEventListener('click', () => {
-                        selectedTag = '';
                         selectedSubject = '';
+                        selectedTag = '';
                         if (subjectFilter) subjectFilter.value = '';
-                        window.history.replaceState({}, '', window.location.pathname);
                         filterItems(false);
                     });
                     document.getElementById('clear-guest-chip')?.addEventListener('click', () => {
                         selectedGuest = '';
                         selectedGuestName = '';
-                        // Reset guest dropdown UI
                         guestOptions.forEach(o => o.classList.remove('active'));
                         document.querySelector('.guest-option--all')?.classList.add('active');
                         if (guestTriggerLabel) guestTriggerLabel.textContent = 'Invitado';
@@ -605,8 +683,8 @@ const buildNow = new Date();
                     const matchesUpcoming = showUpcoming || !isUpcoming || isAboutToPremiere;
                     const matchesSearch = searchTerm === '' || searchContent.includes(searchTerm);
                     const matchesGuest = selectedGuest === '' || participants.includes(selectedGuest);
-                    const matchesTag = (selectedSubject === '' && selectedTag === '') || 
-                                     tags.some(t => t === selectedSubject || t === selectedTag);
+                    const matchesTag = selectedSubject === '' || 
+                                     tags.some(t => t.toLowerCase() === selectedSubject.toLowerCase());
                     const matchesDuration = durationMin >= selectedDuration.min && durationMin <= selectedDuration.max;
                     const matchesSchoolYear = selectedSchoolYear === '' || schoolYear === selectedSchoolYear;
 
@@ -630,23 +708,6 @@ const buildNow = new Date();
                     if (index >= startIndex && index < endIndex) {
                         el.classList.remove('hidden-anim');
                         el.classList.remove('is-upcoming-hidden');
-                        
-                        const badge = el.querySelector('.dynamic-upcoming-badge') as HTMLElement | null;
-                        const badgeText = badge?.querySelector('.badge-text');
-                        
-                        if (badge) {
-                            if (item.isUpcoming) {
-                                badge.classList.remove('hidden');
-                                if (item.isAboutToPremiere && badgeText) {
-                                    badgeText.textContent = '¡Falta muy poco!';
-                                    badge.classList.remove('bg-primary/90', 'shadow-primary/30');
-                                    badge.classList.add('bg-red-600/90', 'shadow-red-600/30');
-                                }
-                            } else {
-                                badge.classList.add('hidden');
-                            }
-                        }
-
                         el.style.display = 'block';
                     } else {
                         el.classList.add('hidden-anim');
@@ -673,14 +734,11 @@ const buildNow = new Date();
                 }
 
                 let html = '';
-                
                 html += `<button class="page-btn" data-page="prev" ${currentPage === 1 ? 'disabled' : ''}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg><span>Anterior</span></button>`;
                 
                 let startPage = Math.max(1, currentPage - 2);
                 let endPage = Math.min(totalPages, startPage + 4);
-                if (endPage - startPage < 4) {
-                    startPage = Math.max(1, endPage - 4);
-                }
+                if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
                 if (startPage > 1) {
                     html += `<button class="page-btn" data-page="1">1</button>`;
@@ -710,8 +768,6 @@ const buildNow = new Date();
                         
                         filterItems(true);
                         
-                        // Scroll top to the grid with a slight delay 
-                        // to allow ViewTransitions and DOM updates to complete
                         setTimeout(() => {
                             const grid = document.getElementById('episodes-grid');
                             if (grid) {
@@ -734,7 +790,6 @@ const buildNow = new Date();
 
         const debouncedFilter = debounce(() => filterItems(false), 150);
 
-        // Season Buttons Logic
         seasonBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 seasonBtns.forEach(b => b.classList.remove('active'));
@@ -744,7 +799,6 @@ const buildNow = new Date();
             });
         });
 
-        // Event Listeners
         searchInput.addEventListener('input', () => {
             if (searchInput.value === '') filterItems(false);
             else debouncedFilter();
@@ -763,14 +817,10 @@ const buildNow = new Date();
             selectedDuration = { min: 0, max: 999 };
             currentSeason = 'all';
             
-            // Clear UI elements
             if (schoolYearFilter) schoolYearFilter.value = '';
             if (subjectFilter) subjectFilter.value = '';
             durationChips.forEach(c => c.classList.remove('active'));
             document.querySelector('.duration-chip[data-min="0"][data-max="999"]')?.classList.add('active');
-
-            // Clear URL search params without reload
-            window.history.replaceState({}, '', window.location.pathname);
 
             seasonBtns.forEach(b => b.classList.remove('active'));
             document.querySelector('.season-btn[data-season="all"]')?.classList.add('active');
@@ -788,7 +838,6 @@ const buildNow = new Date();
             filterItems(false);
         });
 
-        // Handle already cached images
         const checkEpisodeImages = () => {
             document.querySelectorAll('.guest-option-avatar img').forEach(img => {
                 const image = img as HTMLImageElement;
@@ -800,9 +849,7 @@ const buildNow = new Date();
         };
 
         checkEpisodeImages();
-
-        // Initial call
-        filterItems(false);
+        filterItems(true); 
     }
 
     document.addEventListener('DOMContentLoaded', initFilters);
