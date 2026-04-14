@@ -16,7 +16,7 @@ participants:
   - Paola
   - Nerea
 season: 2
-episode: 8
+episode: 7
 duration: ¿? min
 pubDate: '2026-04-15T16:00:00.000Z'
 description: >-
