@@ -8,7 +8,7 @@ participants:
   - Anaysa
   - Gisselle
 season: 2
-episode: 9
+episode: 8
 duration: ¿? min
 pubDate: '2026-04-17T16:00:00.000Z'
 description: No Disponible
