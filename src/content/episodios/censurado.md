@@ -15,7 +15,7 @@ participants:
 season: 2
 episode: 7
 duration: ¿? min
-pubDate: '2026-04-14T16:00:00.000Z'
+pubDate: '2026-04-21T16:00:00.000Z'
 description: >-
   Bibiana, nueva profesora, comparte en Veredillas FM su visión de la tecnología
   en el aula. Descubre cómo conectar con nativos digitales y fomentar la
