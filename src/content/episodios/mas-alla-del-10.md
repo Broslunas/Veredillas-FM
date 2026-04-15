@@ -9,7 +9,7 @@ tags:
   - Hábitos De Estudio
   - Competición Universitaria
 isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/25885df9-afc6-42c6-ac60-2ac5f82963dd.png'
+image: 'https://cdn.veredillasfm.es/images/234c216b-4561-4bfe-a3b3-8ce4ff6a34ce.webp'
 participants:
   - Daniela
   - Nayara
