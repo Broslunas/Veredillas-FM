@@ -17,7 +17,7 @@ participants:
   - Nerea
 season: 2
 episode: 7
-duration: ¿? min
+duration: 51 min
 pubDate: '2026-04-15T16:00:00.000Z'
 description: >-
   Descubre la realidad de alumnas con expedientes de 10. ¿Presión, vida social o
