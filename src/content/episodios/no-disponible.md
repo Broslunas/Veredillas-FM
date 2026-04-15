@@ -10,7 +10,7 @@ participants:
 season: 2
 episode: 8
 duration: ¿? min
-pubDate: '2026-04-17T16:00:00.000Z'
+pubDate: '2026-04-22T16:00:00.000Z'
 description: No Disponible
 ---
 No Disponible por el momento.
