@@ -22,6 +22,7 @@ pubDate: '2026-04-15T16:00:00.000Z'
 description: >-
   Descubre la realidad de alumnas con expedientes de 10. ¿Presión, vida social o
   fórmula mágica? Paola, Nayara, Daniela y Nerea lo revelan. ¡Dale al play!
+videoUrl: 'https://www.youtube.com/embed/Ak3-RZ1QPMg'
 ---
 ¿Alguna vez te has preguntado qué pasa por la mente de quienes siempre están en lo más alto de la lista de notas? En este episodio nos acompañan Paola, Nayara, Daniela y Nerea, las cuatro alumnas con los mejores expedientes de su promoción. Pero no venimos a hablar de fórmulas matemáticas ni de fechas históricas.
 
