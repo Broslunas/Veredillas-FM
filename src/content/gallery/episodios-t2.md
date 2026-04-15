@@ -1,6 +1,9 @@
 ---
 category: Episodios Temporada 2
 images:
+  - title: T2 E7 - Más allá del 10
+    src: >-
+      https://cdn.veredillasfm.es/images/234c216b-4561-4bfe-a3b3-8ce4ff6a34ce.webp
   - title: 'T2 E6 - Debate HISTORICO: Ulises vs Gustavo'
     src: >-
       https://cdn.veredillasfm.es/images/6300df1d-f250-47ff-8308-f1e1c06e3740.webp
