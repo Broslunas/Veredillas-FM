@@ -1885,6 +1885,11 @@ quiz:
       - El aburrimiento por la falta de retos
       - La facilidad de alcanzar sus metas sin esfuerzo
     correctAnswer: 1
+clips:
+  - title: Ballet y Estudio_ Mi Sacrificio por los Sueños
+    url: 'https://youtu.be/Kg8asqZCDiE'
+  - title: 'Esfuerzo, No Notas_ Mi Estrategia Realista'
+    url: 'https://youtu.be/PK3JnzO-Gi8'
 ---
 ¿Alguna vez te has preguntado qué pasa por la mente de quienes siempre están en lo más alto de la lista de notas? En este episodio nos acompañan Paola, Nayara, Daniela y Nerea, las cuatro alumnas con los mejores expedientes de su promoción. Pero no venimos a hablar de fórmulas matemáticas ni de fechas históricas.
 
