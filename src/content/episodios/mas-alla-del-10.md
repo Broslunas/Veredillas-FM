@@ -1906,6 +1906,42 @@ clips:
     url: 'https://youtu.be/Kg8asqZCDiE'
   - title: 'Esfuerzo, No Notas_ Mi Estrategia Realista'
     url: 'https://youtu.be/PK3JnzO-Gi8'
+  - title: S Mi Carrera  De Medicina a Ingeniería Informática
+    url: 'https://youtu.be/B9-i-SyMc_w'
+  - title: S Método de Despeje  ¡Descansa tu mente y rinde más!
+    url: 'https://youtu.be/RgRUB0fHyGc'
+  - title: 'S Lloré por un final, pero nos merecemos este respiro'
+    url: 'https://youtu.be/qZ_USftT_cM'
+  - title: S Llorar para Aprobar  Mi Secreto para Exámenes
+    url: 'https://youtu.be/Sf6iRYpAhI0'
+  - title: S Llorar Libera  El Poder de Desahogarse con Alguien
+    url: 'https://youtu.be/8V461fbKFrs'
+  - title: S Estudiar con Colores vs  Sin Colores  ¿Cuál es Mejor
+    url: 'https://youtu.be/Dy9xp5AfQNc'
+  - title: S Estudiando en Casa  ¡Mi Vida y Mis Padres!
+    url: 'https://youtu.be/10qKQBwZ4h0'
+  - title: S El Examen Que Cuenta Más Que Años de Trabajo
+    url: 'https://youtu.be/nhr9z3dmuY4'
+  - title: S Sacrificios de Estudiantes  ¿Vida Social o Sueños
+    url: 'https://youtu.be/dqaakwxmi2E'
+  - title: S Desahogo Emocional  Hablar vs  Llorar para Sentirse Mejor
+    url: 'https://youtu.be/wGvJobePl_M'
+  - title: S Clases Mixtas  ¿Un Caos o una Oportunidad
+    url: 'https://youtu.be/FHw-ryAyxIc'
+  - title: 'Carreras Universitarias  ¿Salud, Enfermería o Medicina'
+    url: 'https://youtu.be/hAtHmUhjXC4'
+  - title: 'Sacrificios de Estudiantes  ¡Tiempo, Salud y Hobbies!'
+    url: 'https://youtu.be/G8omgAEfY_8'
+  - title: Sacrificios Personales  ¿Vale la Pena
+    url: 'https://youtu.be/ydYYyHZ_I98'
+  - title: Apuntes Universitarios  ¿Compartir o No Compartir
+    url: 'https://youtu.be/5JImWNxQDxk'
+  - title: Aprende Cuándo Parar  Clave del Éxito en el Estudio
+    url: 'https://youtu.be/yxKKqSJKnPc'
+  - title: ¡Gritos y Estrés! ¿Presión Escolar o Familiar
+    url: 'https://youtu.be/Wb5jM0z77kQ'
+  - title: Notas y Familia  ¿Presión o Motivación en Casa
+    url: 'https://youtu.be/GD9m4b-MLDk'
 ---
 ¿Alguna vez te has preguntado qué pasa por la mente de quienes siempre están en lo más alto de la lista de notas? En este episodio nos acompañan Paola, Nayara, Daniela y Nerea, las cuatro alumnas con los mejores expedientes de su promoción. Pero no venimos a hablar de fórmulas matemáticas ni de fechas históricas.
 
