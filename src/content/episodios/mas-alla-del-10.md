@@ -1789,27 +1789,43 @@ transcription:
     text: Chau chau.
 sections:
   - time: '00:02'
-    title: 'Bienvenidos: Presentación de Matrículas de Honor'
+    title: 'Veredillas FM: ¡Bienvenida y Primeras Impresiones!'
   - time: '00:23'
-    title: 'Calentando Motores: Hábitos de Estudio Rápidos'
+    title: 'Hábitos de Estudio: ¿Madrugada o Mañana?'
+  - time: '01:42'
+    title: 'Descanso Es Primordial: Adiós a las Noches Extremas'
+  - time: '02:41'
+    title: ¿Estudiar en Casa o Biblioteca? Mi Método Único
   - time: '03:34'
-    title: 'Del Color al Cuaderno: Estrategias de Estudio'
+    title: 'Apuntes Perfectos: Colores, Esquemas y Personalidad'
+  - time: '04:44'
+    title: 'El Salto Brutal: De 1º a 2º de Bachillerato'
+  - time: '05:39'
+    title: 'Aprender a Memorizar: El Reto de la Teoría'
   - time: '07:01'
-    title: 'PAU y Futuro: Aspiraciones Profesionales'
+    title: 'Más Allá de la PAU: Sueños y Carreras Futuras'
   - time: '11:15'
-    title: ¿Presión de Casa o Autoexigencia Propia?
+    title: 'Notas Altas: ¿Presión Familiar o Autoexigencia?'
   - time: '14:24'
-    title: 'En Clase: ¿Competencia Sana o Equipo Solidario?'
-  - time: '20:15'
-    title: El Poder del Apoyo y la Amistad en Bachiller
+    title: 'Compañerismo vs. Competición: La Clave del Éxito'
+  - time: '17:02'
+    title: 'El Apoyo Mutuo: La Clave en Bachillerato'
+  - time: '24:35'
+    title: 'La Dinámica de Clase: Ciencias vs. General'
   - time: '27:21'
-    title: Sacrificios y Desahogos del Segundo Bachillerato
-  - time: '39:46'
-    title: 'Cara a la PAU: Miedos, Dudas y el ''¿Y si...?'''
-  - time: '46:13'
-    title: 'Claves para Sobrevivir: Consejos Finales'
+    title: 'Sacrificios Personales: Entre Estudios y Vida Social'
+  - time: '32:17'
+    title: 'Semanas Trágicas: Sobreviviendo a la Sobrecarga'
+  - time: '35:35'
+    title: 'Métodos de Desahogo: Del Llanto a la Reflexión'
+  - time: '39:49'
+    title: 'La PAU Cerca: Miedos, Magnificación y Motivación'
+  - time: '43:55'
+    title: 'El Peligro del ''Y Si'': Superando el Sobrepensar'
+  - time: '46:17'
+    title: Consejos para el Éxito y Bienestar en los Estudios
   - time: '51:04'
-    title: Cierre y Reflexiones Finales
+    title: 'Despedida: ¡Mucha Suerte y a Vivir la Vida!'
 quiz:
   - question: >-
       ¿Cuál es la idea central que se explora sobre los estudiantes con altas
