@@ -7,6 +7,7 @@ on:
     # In summer (WEST, UTC+1) it's 13:00 UTC. 
     # This cron runs at 14:00 UTC every Friday.
     - cron: '0 14 * * 5'
+  workflow_dispatch: # Permite ejecución manual desde GitHub
 
 jobs:
   send-newsletter:
