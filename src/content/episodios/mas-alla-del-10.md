@@ -8,23 +8,6 @@ tags:
   - Gestión Del Estrés
   - Hábitos De Estudio
   - Competición Universitaria
-isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/234c216b-4561-4bfe-a3b3-8ce4ff6a34ce.webp'
-participants:
-  - Daniela
-  - Nayara
-  - Paola
-  - Nerea
-season: 2
-episode: 7
-duration: 51 min
-pubDate: '2026-04-15T16:00:00.000Z'
-description: >-
-  Descubre la realidad de alumnas con expedientes de 10. ¿Presión, vida social o
-  fórmula mágica? Paola, Nayara, Daniela y Nerea lo revelan. ¡Dale al play!
-videoUrl: 'https://www.youtube.com/embed/Ak3-RZ1QPMg'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/118494659/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-3-15%2F422119335-44100-2-ea57c229bb11.mp3
 transcription:
   - time: '00:02'
     text: >-
@@ -1787,6 +1770,23 @@ transcription:
       todos, cuídense. Chau.
   - time: '51:33'
     text: Chau chau.
+isPremiere: true
+image: 'https://cdn.veredillasfm.es/images/234c216b-4561-4bfe-a3b3-8ce4ff6a34ce.webp'
+participants:
+  - Daniela
+  - Nayara
+  - Paola
+  - Nerea
+season: 2
+episode: 7
+duration: 51 min
+pubDate: '2026-04-15T16:00:00.000Z'
+description: >-
+  Descubre la realidad de alumnas con expedientes de 10. ¿Presión, vida social o
+  fórmula mágica? Paola, Nayara, Daniela y Nerea lo revelan. ¡Dale al play!
+videoUrl: 'https://www.youtube.com/embed/Ak3-RZ1QPMg'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/118494659/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-3-15%2F422119335-44100-2-ea57c229bb11.mp3
 sections:
   - time: '00:02'
     title: 'Veredillas FM: ¡Bienvenida y Primeras Impresiones!'
@@ -1942,6 +1942,16 @@ clips:
     url: 'https://youtu.be/Wb5jM0z77kQ'
   - title: Notas y Familia  ¿Presión o Motivación en Casa
     url: 'https://youtu.be/GD9m4b-MLDk'
+  - title: Ingeniería Agrícola_ Tu Futuro Profesional Ampliado
+    url: 'https://youtu.be/sh7_oKm434g'
+  - title: Llorar para Despejar la Mente_ ¡Mi Secreto Anti-Estrés!
+    url: 'https://youtu.be/cR3AfaZzfDQ'
+  - title: Semana de Exámenes_ ¡Sobrevive a la Tortura Académica!
+    url: 'https://youtu.be/hg2dzro3TQo'
+  - title: ¡Deja de Exigirte! Cómo Planificar Sin Agobios
+    url: 'https://youtu.be/W4tTOJnmuug'
+  - title: Mi Secreto para Dejar de Ser un _Tronco_ en los Estudios
+    url: 'https://youtu.be/8rkUKciNUtc'
 ---
 ¿Alguna vez te has preguntado qué pasa por la mente de quienes siempre están en lo más alto de la lista de notas? En este episodio nos acompañan Paola, Nayara, Daniela y Nerea, las cuatro alumnas con los mejores expedientes de su promoción. Pero no venimos a hablar de fórmulas matemáticas ni de fechas históricas.
 
