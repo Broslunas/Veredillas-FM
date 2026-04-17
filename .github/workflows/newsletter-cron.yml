@@ -16,4 +16,6 @@ jobs:
         run: |
           curl -X POST "https://veredillasfm.es/api/newsletter/send-weekly" \
           -H "Authorization: Bearer ${{ secrets.NEWSLETTER_CRON_SECRET }}" \
-          -H "Content-Type: application/json"
+          -H "Content-Type: application/json" \
+          -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+          --fail-with-body
