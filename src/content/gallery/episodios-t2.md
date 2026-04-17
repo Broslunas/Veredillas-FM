@@ -1,6 +1,9 @@
 ---
 category: Episodios Temporada 2
 images:
+  - title: T2 E8 - Tecno-Dependencia
+    src: >-
+      https://cdn.veredillasfm.es/images/3ad38b3b-8f2f-4341-b0eb-39b160d6820a.webp
   - title: T2 E7 - Más allá del 10
     src: >-
       https://cdn.veredillasfm.es/images/234c216b-4561-4bfe-a3b3-8ce4ff6a34ce.webp
@@ -21,8 +24,5 @@ images:
   - title: T2 E1 - La HISTORIA de un Docente
     src: >-
       https://cdn.veredillasfm.es/images/e723bb85-a053-48db-878c-98e0110e5415.JPEG
-  - title: T2 E8 - Tecno-Dependencia
-    src: >-
-      https://cdn.veredillasfm.es/images/3ad38b3b-8f2f-4341-b0eb-39b160d6820a.webp
 ---
 
