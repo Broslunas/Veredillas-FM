@@ -14,7 +14,7 @@ participants:
 season: 2
 episode: 8
 duration: 32 min
-pubDate: '2026-04-15T16:00:00.000Z'
+pubDate: '2026-04-17T16:00:00.000Z'
 description: >-
   ¿La IA te domina o tú a ella? Súmate a Elio y Zi Cheng para debatir seguridad,
   creatividad y el uso responsable de la Inteligencia Artificial. ¡Escucha ya!
