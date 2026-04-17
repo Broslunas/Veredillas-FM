@@ -1,0 +1,15 @@
+name: Check Premieres and Redeploy
+on:
+  schedule:
+    # Se ejecuta cada 30 minutos
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
+
+jobs:
+  check-premieres:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call API Checker
+        run: |
+          curl -X GET "https://www.veredillasfm.es/api/admin/check-redeploy" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
