@@ -3,13 +3,30 @@ on:
   schedule:
     # Se ejecuta cada 30 minutos
     - cron: '*/30 * * * *'
-  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
+  workflow_dispatch: # Permite ejecución manual
 
 jobs:
-  check-premieres:
+  check-and-redeploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Call API Checker
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install Dependencies
+        run: npm install gray-matter
+        
+      - name: Check for finished premieres
+        id: check
+        continue-on-error: true
+        run: node scripts/check-premieres.mjs
+        
+      - name: Trigger Vercel Deploy Hook
+        # Sólo se ejecuta si el script anterior terminó con exit code 0 (success)
+        if: steps.check.outcome == 'success'
         run: |
-          curl -X GET "https://www.veredillasfm.es/api/admin/check-redeploy" \
-          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
