@@ -556,7 +556,43 @@ transcription:
     text: Gracias a ti.
   - time: '32:35'
     text: Gracias.
-sections: []
+sections:
+  - time: '00:01'
+    title: 'Veredillas FM: ¡Bienvenidos Elio y Zi Cheng!'
+  - time: '00:45'
+    title: 'Vocaciones: Entre Ingeniería, Software y Videojuegos'
+  - time: '01:17'
+    title: 'El Momento ''Eureka'': Minecraft y la Libertad Creativa'
+  - time: '02:40'
+    title: 'IA en Programación: ¿Herramienta o Amenaza?'
+  - time: '04:25'
+    title: 'El Problema del Autoconsumo: IAs que se Envenenan'
+  - time: '05:58'
+    title: 'Límites y Sesgos: El Dilema de Regular la IA'
+  - time: '08:14'
+    title: 'IA como Psicólogo: Buscando Refugio en las Máquinas'
+  - time: '09:43'
+    title: 'Soledad Moderna: ¿La Tecnología nos une o nos aísla?'
+  - time: '12:07'
+    title: Apariencia en Redes vs. Realidad Social
+  - time: '14:26'
+    title: 'La Evolución del Ocio: Del Parque a la Realidad Virtual'
+  - time: '15:42'
+    title: 'Diseño de Adicción: El Robo de Tiempo y Dopamina'
+  - time: '18:24'
+    title: 'Educación Post-ChatGPT: ¿Retroceso Cognitivo?'
+  - time: '20:56'
+    title: 'El Incentivo del Atajo: ¿Culpa del Usuario o del Modelo?'
+  - time: '23:04'
+    title: 'Volver al Papel: El Regreso a los Métodos Tradicionales'
+  - time: '26:01'
+    title: 'Niños y Pantallas: La Deficiencia en la Educación Digital'
+  - time: '28:58'
+    title: 'Privacidad y Ciberseguridad: ¿Qué saben de nosotros?'
+  - time: '31:03'
+    title: 'Pensamiento Crítico: No Romantizar el Pasado'
+  - time: '32:20'
+    title: 'Despedida: Reflexiones sobre un Futuro Tecnológico'
 ---
 ¿Estamos dominando a la tecnología o ella nos domina a nosotros? En este episodio nos sentamos con Elio y Zi Cheng para desmenuzar la realidad de vivir en un mundo donde la Inteligencia Artificial parece estar en todas partes.
 
