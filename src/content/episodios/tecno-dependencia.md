@@ -593,6 +593,45 @@ sections:
     title: 'Pensamiento Crítico: No Romantizar el Pasado'
   - time: '32:20'
     title: 'Despedida: Reflexiones sobre un Futuro Tecnológico'
+clips:
+  - title: Tablets y Niños  ¿Daño Irreparable o Herramienta
+    url: 'https://youtu.be/JvXeWnFW2B8'
+  - title: Trampas para el Examen  ¡No Copiando!
+    url: 'https://youtu.be/ELz5_PEIA9g'
+  - title: Tecnología  ¿Aislamiento o Refugio Social
+    url: 'https://youtu.be/1HFW7oWO78Q'
+  - title: Tecnología y Soledad  ¿Aislamiento Digital
+    url: 'https://youtu.be/sUX3bpDtKu4'
+  - title: Redes Sociales  ¿Felicidad o Soledad Digital
+    url: 'https://youtu.be/hyiDY8E4GIU'
+  - title: La Falta de Genuinidad en Redes Sociales HOY
+    url: 'https://youtu.be/UN1zghdxXjs'
+  - title: Ingeniería Informática  Mi Camino Desde la Pandemia
+    url: 'https://youtu.be/nFEA3tgkasc'
+  - title: IA  ¿Pasado Romantizado o Herramienta Potente
+    url: 'https://youtu.be/t5OsBziNc4E'
+  - title: IA  ¿Está reemplazando nuestro pensamiento
+    url: 'https://youtu.be/eT9LSD3obmM'
+  - title: IA  ¿Culpable o Herramienta  Debate Ético Revelado
+    url: 'https://youtu.be/bH6-avS6iRs'
+  - title: IA y Programación  ¿El Fin de los Desarrolladores
+    url: 'https://youtu.be/GAc1CglPC3Q'
+  - title: IA vs  Amigos  ¿Realmente Estamos Más Solos
+    url: 'https://youtu.be/FpV8QeNPpq4'
+  - title: IA como Psicólogo  ¿El Futuro de la Salud Mental
+    url: 'https://youtu.be/1g4sGEQ3RjY'
+  - title: Fracaso Escolar  Volver a lo Básico para Triunfar
+    url: 'https://youtu.be/IDYyliU8cAA'
+  - title: 'El WiFi es lo Nuevo  Adiós Lluvia, Hola Desconexión'
+    url: 'https://youtu.be/8tGGVmI8178'
+  - title: Desarrollo Videojuegos  Ingeniería Informática o Software
+    url: 'https://youtu.be/615Fk8o4ko8'
+  - title: ChatGPT  ¿Avance o Retroceso Cognitivo
+    url: 'https://youtu.be/Bo0evoz2AGY'
+  - title: Adicción Tecnológica  Padres y Educación en Crisis
+    url: 'https://youtu.be/zvoZ1jZwUIo'
+  - title: Reflexión Crítica  La Soledad y la Realidad Social
+    url: 'https://youtu.be/SmePb9a3xGo'
 ---
 ¿Estamos dominando a la tecnología o ella nos domina a nosotros? En este episodio nos sentamos con Elio y Zi Cheng para desmenuzar la realidad de vivir en un mundo donde la Inteligencia Artificial parece estar en todas partes.
 
