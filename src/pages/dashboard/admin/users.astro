@@ -55,24 +55,48 @@ function formatTime(seconds: number) {
     const m = Math.floor((seconds % 3600) / 60);
     return `${h}h ${m}m`;
 }
+
+// Stats Computation
+const now = new Date();
+const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+const totalUsers = users.length;
+const adminCount = users.filter(u => u.role === 'admin' || u.role === 'owner').length;
+const subscribedCount = users.filter(u => u.newsletter).length;
+const activeRecentCount = users.filter(u => u.lastActiveAt && new Date(u.lastActiveAt) > thirtyDaysAgo).length;
+const newThisWeek = users.filter(u => new Date(u.createdAt) > sevenDaysAgo).length;
+const totalListeningTime = users.reduce((acc, u) => acc + (u.listeningTime || 0), 0);
+const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalUsers) : 0;
 ---
 
 <Layout title="Gestión de Usuarios - Admin" robots="noindex, nofollow">
+    <!-- Background Effects -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="grid-overlay"></div>
+        <div class="absolute -top-48 -left-48 w-[600px] h-[600px] rounded-full bg-violet-600/[0.07] blur-[100px] animate-blob-float"></div>
+        <div class="absolute -bottom-48 -right-48 w-[600px] h-[600px] rounded-full bg-pink-500/[0.07] blur-[100px] animate-blob-float-reverse"></div>
+        <div class="absolute inset-0 opacity-40 pointer-events-none" style="background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 40%, transparent 100%);"></div>
     </div>
 
-    <div class="admin-container fade-in-up" id="adminContainer" data-episodes={JSON.stringify(episodesData)} data-clips={JSON.stringify(clipsData)}>
-        <div class="admin-header">
-            <div class="header-content">
-                <h1>Usuarios</h1>
-                <p>Gestión de la base de usuarios ({users.length} total)</p>
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in-up" id="adminContainer" data-episodes={JSON.stringify(episodesData)} data-clips={JSON.stringify(clipsData)}>
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-violet-400 to-pink-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(167,139,250,0.4)]">
+                    Usuarios
+                </h1>
+                <p class="text-zinc-400 text-lg mt-1 tracking-wide">
+                    Gestión completa de la base de usuarios
+                </p>
             </div>
-            <div class="header-actions">
-                <button id="sendBulkNewsletterBtn" class="btn-bulk-newsletter" title="Enviar newsletter personalizada a todos los suscritos">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            <div class="flex items-center gap-3 flex-wrap">
+                <button id="exportUsersBtn" class="group flex items-center gap-2 px-4 py-2.5 bg-zinc-800/60 border border-white/10 rounded-xl text-sm font-semibold text-zinc-300 hover:bg-zinc-700/60 hover:text-white hover:border-white/20 transition-all duration-300 backdrop-blur-xl" title="Exportar usuarios a CSV">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    <span>Exportar</span>
+                </button>
+                <button id="sendBulkNewsletterBtn" class="group flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl text-sm font-bold text-white shadow-[0_4px_15px_rgba(139,92,246,0.3)] hover:shadow-[0_8px_25px_rgba(139,92,246,0.5)] hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0 active:scale-[0.98] transition-all duration-300" title="Enviar newsletter a todos los suscritos">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                     <span>Enviar a Todos</span>
                 </button>
             </div>
@@ -80,242 +104,484 @@ function formatTime(seconds: number) {
 
         <AdminNav />
 
-        <div class="section-container glass-panel">
-            <div class="table-container">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Usuario</th>
-                            <th>Email</th>
-                            <th>Rol</th>
-                            <th>Registro</th>
-                            <th>Último Acceso</th>
-                            <th>Tiempo</th>
-                            <th>Estado</th>
-                            <th class="text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.map((user) => (
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <img src={user.picture || `https://ui-avatars.com/api/?name=${user.name}`} alt={user.name} class="user-avatar" />
-                                        <span class="user-name">{user.name}</span>
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-violet-500/30 hover:bg-zinc-800/40 transition-all duration-300 hover:-translate-y-1">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-violet-400 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold">Total</p>
+                        <p class="text-xl font-extrabold text-white">{totalUsers}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-emerald-500/30 hover:bg-zinc-800/40 transition-all duration-300 hover:-translate-y-1">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold">Activos 30d</p>
+                        <p class="text-xl font-extrabold text-white">{activeRecentCount}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-sky-500/30 hover:bg-zinc-800/40 transition-all duration-300 hover:-translate-y-1">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center text-sky-400 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold">Suscritos</p>
+                        <p class="text-xl font-extrabold text-white">{subscribedCount}<span class="text-xs text-zinc-500 ml-1">/ {totalUsers}</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-amber-500/30 hover:bg-zinc-800/40 transition-all duration-300 hover:-translate-y-1">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-400 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold">Nuevos 7d</p>
+                        <p class="text-xl font-extrabold text-white">+{newThisWeek}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-pink-500/30 hover:bg-zinc-800/40 transition-all duration-300 hover:-translate-y-1">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-pink-500/15 flex items-center justify-center text-pink-400 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold">Tiempo Total</p>
+                        <p class="text-xl font-extrabold text-white">{formatTime(totalListeningTime)}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-indigo-500/30 hover:bg-zinc-800/40 transition-all duration-300 hover:-translate-y-1">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/15 flex items-center justify-center text-indigo-400 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold">Media/User</p>
+                        <p class="text-xl font-extrabold text-white">{formatTime(avgListeningTime)}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search & Filters Bar -->
+        <div class="bg-zinc-900/40 border border-white/[0.06] rounded-2xl p-4 mb-6 backdrop-blur-xl">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <!-- Search Input -->
+                <div class="relative flex-1">
+                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Buscar por nombre, email..." 
+                        class="w-full pl-10 pr-4 py-2.5 bg-black/30 border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                    />
+                </div>
+                <!-- Filter: Role -->
+                <select id="filterRole" class="px-3 py-2.5 bg-black/30 border border-white/[0.08] rounded-xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none min-w-[140px]">
+                    <option value="all">Todos los roles</option>
+                    <option value="user">👤 Usuarios</option>
+                    <option value="admin">🛡️ Admins</option>
+                    <option value="owner">👑 Owners</option>
+                </select>
+                <!-- Filter: Newsletter -->
+                <select id="filterNewsletter" class="px-3 py-2.5 bg-black/30 border border-white/[0.08] rounded-xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none min-w-[140px]">
+                    <option value="all">Newsletter: Todos</option>
+                    <option value="subscribed">✅ Suscritos</option>
+                    <option value="unsubscribed">❌ No suscritos</option>
+                </select>
+                <!-- Sort -->
+                <select id="sortBy" class="px-3 py-2.5 bg-black/30 border border-white/[0.08] rounded-xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none min-w-[160px]">
+                    <option value="newest">📅 Más recientes</option>
+                    <option value="oldest">📅 Más antiguos</option>
+                    <option value="name">🔤 Nombre A-Z</option>
+                    <option value="listening">🎧 Más escuchado</option>
+                    <option value="streak">🔥 Mayor racha</option>
+                    <option value="lastActive">⚡ Último activo</option>
+                </select>
+                <!-- Results counter -->
+                <div id="resultsCounter" class="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-violet-500/10 border border-violet-500/20 rounded-xl text-xs font-bold text-violet-400 whitespace-nowrap">
+                    <span id="resultsCount">{totalUsers}</span> resultados
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table / List -->
+        <div class="bg-zinc-900/40 border border-white/[0.06] rounded-2xl backdrop-blur-xl overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,0,0,0.4)]">
+            <!-- Table Header (Desktop) -->
+            <div class="hidden lg:grid grid-cols-[minmax(200px,2fr)_minmax(180px,2fr)_100px_120px_120px_100px_90px_100px_140px] gap-2 px-5 py-3 border-b border-white/[0.05] text-[0.7rem] uppercase tracking-[0.12em] font-bold text-zinc-500">
+                <span>Usuario</span>
+                <span>Email</span>
+                <span>Rol</span>
+                <span>Registro</span>
+                <span>Último Acceso</span>
+                <span>Tiempo</span>
+                <span>Racha</span>
+                <span>Newsletter</span>
+                <span class="text-right">Acciones</span>
+            </div>
+
+            <!-- User Rows -->
+            <div id="usersListContainer">
+                {users.map((user, index) => {
+                    const isCurrentUser = user._id.toString() === currentUser._id.toString();
+                    const daysAgo = user.lastActiveAt ? Math.floor((now.getTime() - new Date(user.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24)) : -1;
+                    const isActive = daysAgo >= 0 && 7 >= daysAgo;
+                    const isInactive = daysAgo >= 31 || daysAgo === -1;
+                    
+                    return (
+                        <div 
+                            class="user-row group grid grid-cols-1 lg:grid-cols-[minmax(200px,2fr)_minmax(180px,2fr)_100px_120px_120px_100px_90px_100px_140px] gap-2 lg:gap-2 px-5 py-3.5 border-b border-white/[0.03] hover:bg-white/[0.03] transition-all duration-200 relative"
+                            data-name={user.name.toLowerCase()}
+                            data-email={user.email.toLowerCase()}
+                            data-role={user.role}
+                            data-newsletter={user.newsletter ? 'subscribed' : 'unsubscribed'}
+                            data-created={new Date(user.createdAt).getTime()}
+                            data-listening={user.listeningTime || 0}
+                            data-streak={user.currentStreak || 0}
+                            data-last-active={user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0}
+                            style={`animation-delay: ${index * 20}ms`}
+                        >
+                            {/* User Avatar + Name */}
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="relative shrink-0">
+                                    <img 
+                                        src={user.picture || `https://ui-avatars.com/api/?name=${user.name}&background=7c3aed&color=fff&size=80`} 
+                                        alt={user.name} 
+                                        class="w-10 h-10 rounded-full object-cover ring-2 ring-white/10 shadow-lg"
+                                        loading="lazy"
+                                    />
+                                    <div class={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-zinc-900 ${isActive ? 'bg-emerald-500 shadow-[0_0_6px_rgba(52,211,153,0.6)]' : isInactive ? 'bg-zinc-600' : 'bg-amber-500'}`}></div>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-bold text-white text-sm truncate">{user.name}</span>
+                                        {isCurrentUser && <span class="text-[0.6rem] px-1.5 py-0.5 bg-violet-500/20 text-violet-400 rounded-md font-bold">TÚ</span>}
                                     </div>
-                                </td>
-                                <td class="text-muted">{user.email}</td>
-                                <td>
-                                    <span class={`role-badge ${user.role}`}>
-                                        {user.role}
-                                    </span>
-                                </td>
-                                <td title={new Date(user.createdAt).toLocaleString()} class="text-sm">
-                                    {new Date(user.createdAt).toLocaleDateString()}
-                                </td>
-                                <td title={user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'N/A'} class="text-sm">
-                                    {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : '-'}
-                                </td>
-                                <td class="font-mono text-sm">{formatTime(user.listeningTime || 0)}</td>
-                                <td>
-                                    <span class={`status-badge ${user.newsletter ? 'active' : 'inactive'}`}>
-                                        {user.newsletter ? 'Suscrito' : 'Inactivo'}
-                                    </span>
-                                </td>
-                                <td class="text-right">
-                                    <div class="actions-cell">
-                                        <button class="icon-btn view-btn" data-user={JSON.stringify(user)} aria-label="Ver detalles" title="Ver Detalles">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                        </button>
-                                        <button class="icon-btn edit-btn" data-user={JSON.stringify(user)} aria-label="Editar usuario" title="Editar">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                        </button>
-                                        <button class="icon-btn test-to-me-btn" data-id={user._id} data-name={user.name} aria-label="Enviarme prueba a mí" title="Enviarme prueba a mí con sus datos">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                                        </button>
-                                        {user._id.toString() !== currentUser._id.toString() && (
-                                            <button class="icon-btn delete-btn" data-id={user._id} aria-label="Eliminar usuario" title="Eliminar">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                    <span class="lg:hidden text-xs text-zinc-500 truncate block">{user.email}</span>
+                                </div>
+                            </div>
+                            
+                            {/* Email */}
+                            <div class="hidden lg:flex items-center min-w-0">
+                                <span class="text-sm text-zinc-400 truncate" title={user.email}>{user.email}</span>
+                            </div>
+                            
+                            {/* Role Badge */}
+                            <div class="hidden lg:flex items-center">
+                                <span class={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-wide ${
+                                    user.role === 'owner' 
+                                        ? 'bg-pink-500/15 text-pink-300 border border-pink-500/30 shadow-[0_0_10px_rgba(244,114,182,0.15)]' 
+                                        : user.role === 'admin' 
+                                        ? 'bg-violet-500/15 text-violet-300 border border-violet-500/30 shadow-[0_0_10px_rgba(139,92,246,0.15)]' 
+                                        : 'bg-white/[0.04] text-zinc-400 border border-white/[0.08]'
+                                }`}>
+                                    {user.role === 'owner' ? '👑' : user.role === 'admin' ? '🛡️' : '👤'} {user.role}
+                                </span>
+                            </div>
+                            
+                            {/* Registration Date */}
+                            <div class="hidden lg:flex items-center">
+                                <span class="text-xs text-zinc-500 font-mono" title={new Date(user.createdAt).toLocaleString()}>
+                                    {new Date(user.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                </span>
+                            </div>
+                            
+                            {/* Last Active */}
+                            <div class="hidden lg:flex items-center">
+                                <span class={`text-xs font-mono ${isActive ? 'text-emerald-400' : isInactive ? 'text-zinc-600' : 'text-zinc-400'}`} title={user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : 'Nunca'}>
+                                    {daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
+                                </span>
+                            </div>
+                            
+                            {/* Listening Time */}
+                            <div class="hidden lg:flex items-center">
+                                <span class="text-xs text-zinc-300 font-mono font-semibold">{formatTime(user.listeningTime || 0)}</span>
+                            </div>
+                            
+                            {/* Streak */}
+                            <div class="hidden lg:flex items-center">
+                                <span class="text-xs font-mono">
+                                    {(user.currentStreak || 0) > 0 
+                                        ? <span class="text-amber-400 font-bold">🔥 {user.currentStreak}</span> 
+                                        : <span class="text-zinc-600">-</span>
+                                    }
+                                </span>
+                            </div>
+                            
+                            {/* Newsletter Status */}
+                            <div class="hidden lg:flex items-center">
+                                {user.newsletter 
+                                    ? <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.7rem] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✓ Suscrito</span>
+                                    : <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.7rem] font-semibold bg-red-500/10 text-red-400 border border-red-500/20">✗ No</span>
+                                }
+                            </div>
+                            
+                            {/* Actions */}
+                            <div class="flex items-center justify-end gap-1.5">
+                                <button class="view-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,92,246,0.2)] transition-all duration-200" data-user={JSON.stringify(user)} aria-label="Ver detalles" title="Ver Detalles">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                                <button class="edit-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-sky-500/20 hover:border-sky-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(14,165,233,0.2)] transition-all duration-200" data-user={JSON.stringify(user)} aria-label="Editar usuario" title="Editar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button class="test-to-me-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(99,102,241,0.2)] transition-all duration-200" data-id={user._id} data-name={user.name} aria-label="Enviarme prueba" title="Enviarme prueba a mí">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                </button>
+                                {!isCurrentUser && (
+                                    <button class="delete-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-red-400 hover:bg-red-500/20 hover:border-red-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(239,68,68,0.2)] transition-all duration-200" data-id={user._id} aria-label="Eliminar usuario" title="Eliminar">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {/* Mobile extra info row */}
+                            <div class="lg:hidden flex flex-wrap items-center gap-2 mt-1">
+                                <span class={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.65rem] font-bold uppercase ${
+                                    user.role === 'owner' ? 'bg-pink-500/15 text-pink-300' : user.role === 'admin' ? 'bg-violet-500/15 text-violet-300' : 'bg-white/[0.04] text-zinc-500'
+                                }`}>{user.role}</span>
+                                <span class="text-[0.65rem] text-zinc-600">•</span>
+                                <span class="text-[0.65rem] text-zinc-500 font-mono">{formatTime(user.listeningTime || 0)}</span>
+                                <span class="text-[0.65rem] text-zinc-600">•</span>
+                                {user.newsletter 
+                                    ? <span class="text-[0.65rem] text-emerald-400">Suscrito</span>
+                                    : <span class="text-[0.65rem] text-red-400">No suscrito</span>
+                                }
+                                {(user.currentStreak || 0) > 0 && (
+                                    <>
+                                        <span class="text-[0.65rem] text-zinc-600">•</span>
+                                        <span class="text-[0.65rem] text-amber-400">🔥{user.currentStreak}</span>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <!-- No Results -->
+            <div id="noResults" class="hidden py-16 text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zinc-800/60 flex items-center justify-center text-zinc-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
+                </div>
+                <p class="text-zinc-500 text-sm font-semibold">No se encontraron usuarios</p>
+                <p class="text-zinc-600 text-xs mt-1">Intenta cambiar los filtros de búsqueda</p>
             </div>
         </div>
     </div>
 
-    <!-- Edit User Modal -->
-    <div id="editUserModal" class="modal-backdrop hidden">
-        <div class="modal-content glass-panel" style="max-width: 600px;">
-            <div class="modal-header">
-                <h3>Editar Usuario Superior</h3>
-                <button id="closeModal" class="close-btn">&times;</button>
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- EDIT USER MODAL -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div id="editUserModal" class="fixed inset-0 bg-black/60 backdrop-blur-xl z-[100] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="display:none;">
+        <div class="modal-inner bg-zinc-950/95 border border-white/10 w-full max-w-[600px] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.05)] max-h-[90vh] overflow-y-auto transform translate-y-5 scale-95 transition-all duration-300">
+            <div class="flex items-center justify-between p-6 border-b border-white/[0.06]">
+                <h3 class="text-xl font-extrabold bg-gradient-to-r from-white to-violet-400 bg-clip-text text-transparent">Editar Usuario</h3>
+                <button id="closeModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
             </div>
-            <form id="editUserForm">
+            <form id="editUserForm" class="p-6 space-y-5">
                 <input type="hidden" id="editUserId" name="userId" />
                 
-                <div class="dashboard-columns mt-0" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label for="editName">Nombre</label>
-                        <input type="text" id="editName" name="name" class="modern-input" required />
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="editName" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Nombre</label>
+                        <input type="text" id="editName" name="name" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all" required />
                     </div>
-                    <div class="form-group">
-                        <label for="editEmail">Email</label>
-                        <input type="email" id="editEmail" name="email" class="modern-input" required />
+                    <div>
+                        <label for="editEmail" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Email</label>
+                        <input type="email" id="editEmail" name="email" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all" required />
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="editBio">Bio</label>
-                    <textarea id="editBio" name="bio" class="modern-input" rows="2"></textarea>
+                <div>
+                    <label for="editBio" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Bio</label>
+                    <textarea id="editBio" name="bio" rows="2" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all resize-none"></textarea>
                 </div>
 
-                <div class="dashboard-columns mt-0" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label for="editRole">Rol</label>
-                        <select id="editRole" name="role" class="modern-input">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="editRole" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Rol</label>
+                        <select id="editRole" name="role" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer">
                             <option value="user">Usuario</option>
                             <option value="admin">Administrador</option>
                             <option value="owner">Dueño</option>
                         </select>
                     </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label>Tiempo Escuchado</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="number" id="editListeningHours" class="modern-input" placeholder="Horas" min="0" style="width: 33%;" />
-                            <input type="number" id="editListeningMinutes" class="modern-input" placeholder="Minutos" min="0" max="59" style="width: 33%;" />
-                            <input type="number" id="editListeningSeconds" class="modern-input" placeholder="Segundos" min="0" max="59" style="width: 33%;" />
+                    <div></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Tiempo Escuchado</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="relative">
+                            <input type="number" id="editListeningHours" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all pr-8" placeholder="0" min="0" />
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-zinc-600 font-bold">HRS</span>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="editListeningMinutes" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all pr-8" placeholder="0" min="0" max="59" />
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-zinc-600 font-bold">MIN</span>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="editListeningSeconds" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all pr-8" placeholder="0" min="0" max="59" />
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-zinc-600 font-bold">SEG</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="dashboard-columns mt-0" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label for="editCurrentStreak">Racha Actual</label>
-                        <input type="number" id="editCurrentStreak" name="currentStreak" class="modern-input" min="0" />
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="editCurrentStreak" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Racha Actual</label>
+                        <input type="number" id="editCurrentStreak" name="currentStreak" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all" min="0" />
                     </div>
-                    <div class="form-group">
-                        <label for="editMaxStreak">Racha Máxima</label>
-                        <input type="number" id="editMaxStreak" name="maxStreak" class="modern-input" min="0" />
+                    <div>
+                        <label for="editMaxStreak" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Racha Máxima</label>
+                        <input type="number" id="editMaxStreak" name="maxStreak" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all" min="0" />
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="editFavorites">Episodios Favoritos (Slugs separados por coma)</label>
-                    <input type="text" id="editFavorites" name="favorites" class="modern-input" placeholder="ej: ep-1, ep-2" />
+                <div>
+                    <label for="editFavorites" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Episodios Favoritos <span class="text-zinc-600 normal-case">(slugs separados por coma)</span></label>
+                    <input type="text" id="editFavorites" name="favorites" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all" placeholder="ep-1, ep-2" />
                 </div>
 
-                <div class="form-group checkbox-group" style="margin-top: 0.5rem;">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="editNewsletter" name="newsletter" />
-                        <span class="checkbox-custom"></span>
-                        <span class="label-text">Suscrito a la Newsletter</span>
-                    </label>
-                </div>
+                <!-- Newsletter Toggle -->
+                <label class="flex items-center gap-4 p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl cursor-pointer hover:bg-white/[0.04] transition-colors group">
+                    <input type="checkbox" id="editNewsletter" name="newsletter" class="sr-only peer" />
+                    <div class="w-11 h-6 bg-zinc-700 rounded-full relative peer-checked:bg-violet-600 transition-colors after:content-[''] after:absolute after:left-[2px] after:top-[2px] after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow-md after:transition-transform peer-checked:after:translate-x-5"></div>
+                    <span class="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Suscrito a la Newsletter</span>
+                </label>
 
-                <div class="modal-actions">
-                    <button type="button" class="btn-cancel" id="cancelEdit">Cancelar</button>
-                    <button type="submit" class="btn-save">Guardar Cambios</button>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" id="cancelEdit" class="px-5 py-2.5 bg-transparent border border-white/10 text-zinc-400 rounded-xl font-semibold text-sm hover:bg-white/[0.05] hover:text-white transition-all">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-violet-500 text-white rounded-xl font-bold text-sm shadow-[0_4px_15px_rgba(139,92,246,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(139,92,246,0.5)] hover:brightness-110 transition-all">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- View User Details Dashboard Modal -->
-    <div id="viewUserModal" class="modal-backdrop hidden">
-        <div class="modal-content glass-panel super-wide-modal">
-            <div class="modal-header">
-                <h3>Dashboard del Usuario</h3>
-                <button id="closeViewModal" class="close-btn">&times;</button>
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- VIEW USER DETAILS MODAL -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div id="viewUserModal" class="fixed inset-0 bg-black/60 backdrop-blur-xl z-[100] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="display:none;">
+        <div class="modal-inner bg-zinc-950/95 border border-white/10 w-full max-w-[950px] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.05)] max-h-[90vh] overflow-hidden transform translate-y-5 scale-95 transition-all duration-300">
+            <div class="flex items-center justify-between p-6 border-b border-white/[0.06]">
+                <h3 class="text-xl font-extrabold bg-gradient-to-r from-white to-violet-400 bg-clip-text text-transparent">Panel del Usuario</h3>
+                <button id="closeViewModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
             </div>
             
-            <div id="viewUserDetails" class="user-dashboard-scrollable">
-                <div class="dashboard-hero">
-                    <img id="viewAvatar" src="" alt="" class="dashboard-avatar" />
-                    <div class="hero-info">
-                        <div class="hero-title-row">
-                            <h2 id="viewName"></h2>
-                            <span id="viewRoleBadge" class="role-badge"></span>
-                            <span id="viewNewsletterBadge" class="status-badge"></span>
+            <div id="viewUserDetails" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+                <!-- Hero Section -->
+                <div class="flex flex-col sm:flex-row items-start gap-5 pb-6 border-b border-white/[0.06] mb-6">
+                    <img id="viewAvatar" src="" alt="" class="w-24 h-24 rounded-2xl object-cover ring-4 ring-violet-500/20 shadow-2xl shrink-0" />
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3 flex-wrap mb-1.5">
+                            <h2 id="viewName" class="text-2xl font-extrabold text-white tracking-tight"></h2>
+                            <span id="viewRoleBadge" class="role-badge-view"></span>
+                            <span id="viewNewsletterBadge" class="newsletter-badge-view"></span>
                         </div>
-                        <p id="viewEmail" class="hero-email"></p>
-                        <p class="hero-meta">Miembro desde: <span id="viewJoined"></span> <span class="dot-sep">&bull;</span> Último activo: <span id="viewLastActive"></span></p>
-                    </div>
-                </div>
-
-                <div class="stats-cards-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon time-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                        <div class="stat-data">
-                            <h4>Tiempo Escuchado</h4>
-                            <span id="viewListeningTime" class="stat-value font-mono"></span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon ep-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div>
-                        <div class="stat-data">
-                            <h4>Episodios Completados</h4>
-                            <span id="viewCompletedCount" class="stat-value"></span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon streak-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
-                        <div class="stat-data">
-                            <h4>Racha (Actual/Max)</h4>
-                            <span id="viewStreak" class="stat-value"></span>
+                        <p id="viewEmail" class="text-zinc-400 text-sm mb-2"></p>
+                        <p id="viewBio" class="text-zinc-500 text-sm italic mb-3 hidden"></p>
+                        <div class="flex items-center gap-4 text-xs text-zinc-500 font-mono flex-wrap">
+                            <span class="flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                Registro: <span id="viewJoined" class="text-zinc-300"></span>
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Último: <span id="viewLastActive" class="text-zinc-300"></span>
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <div class="dashboard-columns">
-                    <div class="dash-col dash-main">
-                        <div class="dash-section">
-                            <div class="section-header-row">
-                                <h4 class="section-title">Historial de Reproducción</h4>
-                            </div>
-                            <div class="history-list-wrapper">
-                                <ul id="viewHistoryList" class="rich-list history-list"></ul>
-                            </div>
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <div class="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-center">
+                        <div class="w-9 h-9 mx-auto mb-2 rounded-lg bg-violet-500/15 flex items-center justify-center text-violet-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         </div>
+                        <p class="text-[0.6rem] uppercase tracking-wider text-zinc-500 font-bold mb-0.5">Tiempo</p>
+                        <p id="viewListeningTime" class="text-lg font-extrabold text-white font-mono"></p>
+                    </div>
+                    <div class="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-center">
+                        <div class="w-9 h-9 mx-auto mb-2 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <p class="text-[0.6rem] uppercase tracking-wider text-zinc-500 font-bold mb-0.5">Completados</p>
+                        <p id="viewCompletedCount" class="text-lg font-extrabold text-white"></p>
+                    </div>
+                    <div class="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-center">
+                        <div class="w-9 h-9 mx-auto mb-2 rounded-lg bg-amber-500/15 flex items-center justify-center text-amber-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                        </div>
+                        <p class="text-[0.6rem] uppercase tracking-wider text-zinc-500 font-bold mb-0.5">Racha</p>
+                        <p id="viewStreak" class="text-lg font-extrabold text-white"></p>
+                    </div>
+                    <div class="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-center">
+                        <div class="w-9 h-9 mx-auto mb-2 rounded-lg bg-pink-500/15 flex items-center justify-center text-pink-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                        </div>
+                        <p class="text-[0.6rem] uppercase tracking-wider text-zinc-500 font-bold mb-0.5">Favoritos</p>
+                        <p id="viewFavCount" class="text-lg font-extrabold text-white">0</p>
+                    </div>
+                </div>
+
+                <!-- Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
+                    <!-- Playback History -->
+                    <div>
+                        <h4 class="text-xs uppercase tracking-[0.1em] font-bold text-violet-400 mb-3 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Historial de Reproducción
+                        </h4>
+                        <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar" id="viewHistoryList"></div>
                     </div>
                     
-                    <div class="dash-col dash-side">
-                        <div class="dash-section">
-                            <div class="section-header-row">
-                                <h4 class="section-title">Episodios Favoritos (<span id="viewFavCount">0</span>)</h4>
-                            </div>
-                            <ul id="viewFavoritesList" class="rich-list mini-list"></ul>
+                    <!-- Sidebar: Favorites & Clips -->
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-xs uppercase tracking-[0.1em] font-bold text-pink-400 mb-3 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                                Episodios Favoritos
+                            </h4>
+                            <div class="space-y-1.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar" id="viewFavoritesList"></div>
                         </div>
-                        <div class="dash-section mt-4">
-                             <div class="section-header-row">
-                                <h4 class="section-title">Clips Guardados (<span id="viewClipsCount">0</span>)</h4>
-                            </div>
-                            <ul id="viewClipsList" class="rich-list mini-list"></ul>
+                        <div>
+                            <h4 class="text-xs uppercase tracking-[0.1em] font-bold text-sky-400 mb-3 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>
+                                Clips Guardados (<span id="viewClipsCount">0</span>)
+                            </h4>
+                            <div class="space-y-1.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar" id="viewClipsList"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
 
-    <!-- Confirmation Modal -->
-    <div id="confirmModal" class="modal-backdrop hidden">
-        <div class="modal-content glass-panel">
-            <div class="modal-header">
-                <h3 id="confirmTitle">Confirmar Acción</h3>
-                <button id="closeConfirmModal" class="close-btn">&times;</button>
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- CONFIRMATION MODAL -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div id="confirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-xl z-[110] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="display:none;">
+        <div class="modal-inner bg-zinc-950/95 border border-white/10 w-full max-w-[450px] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6)] p-6 transform translate-y-5 scale-95 transition-all duration-300">
+            <div class="flex items-center justify-between mb-5">
+                <h3 id="confirmTitle" class="text-lg font-extrabold text-white">Confirmar Acción</h3>
+                <button id="closeConfirmModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
             </div>
-            <div class="modal-body">
-                <p id="confirmMessage" style="color: var(--color-text-muted); line-height: 1.6; margin-bottom: 2rem;"></p>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn-cancel" id="cancelConfirm">Cancelar</button>
-                <button type="button" class="btn-save" id="executeConfirm" style="background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">Confirmar</button>
+            <p id="confirmMessage" class="text-zinc-400 text-sm leading-relaxed mb-8"></p>
+            <div class="flex justify-end gap-3">
+                <button type="button" id="cancelConfirm" class="px-5 py-2.5 bg-transparent border border-white/10 text-zinc-400 rounded-xl font-semibold text-sm hover:bg-white/[0.05] hover:text-white transition-all">Cancelar</button>
+                <button type="button" id="executeConfirm" class="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl font-bold text-sm shadow-[0_4px_15px_rgba(239,68,68,0.3)] hover:shadow-[0_8px_25px_rgba(239,68,68,0.5)] hover:-translate-y-0.5 transition-all">Confirmar</button>
             </div>
         </div>
     </div>
@@ -329,32 +595,45 @@ function formatTime(seconds: number) {
         }
 
         function attachEventListeners() {
-            const modal = document.getElementById('editUserModal');
-            const form = document.getElementById('editUserForm') as HTMLFormElement;
-            const closeBtn = document.getElementById('closeModal');
-            const cancelBtn = document.getElementById('cancelEdit'); // Matched with HTML ID
-            
-            // View Modal Elements
-            const viewModal = document.getElementById('viewUserModal');
-            const closeViewBtn = document.getElementById('closeViewModal');
+            // ── Modal Helpers ──
+            function openModal(modalEl: HTMLElement | null) {
+                if (!modalEl) return;
+                modalEl.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    modalEl.classList.remove('opacity-0', 'pointer-events-none');
+                    modalEl.classList.add('opacity-100');
+                    const inner = modalEl.querySelector('.modal-inner') as HTMLElement;
+                    if (inner) {
+                        inner.classList.remove('translate-y-5', 'scale-95');
+                        inner.classList.add('translate-y-0', 'scale-100');
+                    }
+                });
+            }
+            function closeModal(modalEl: HTMLElement | null) {
+                if (!modalEl) return;
+                modalEl.classList.add('opacity-0', 'pointer-events-none');
+                modalEl.classList.remove('opacity-100');
+                const inner = modalEl.querySelector('.modal-inner') as HTMLElement;
+                if (inner) {
+                    inner.classList.add('translate-y-5', 'scale-95');
+                    inner.classList.remove('translate-y-0', 'scale-100');
+                }
+                setTimeout(() => { modalEl.style.display = 'none'; }, 300);
+            }
 
-            // Confirm Modal Elements
+            // ── Modal References ──
+            const editModal = document.getElementById('editUserModal');
+            const viewModal = document.getElementById('viewUserModal');
             const confirmModal = document.getElementById('confirmModal');
+            const form = document.getElementById('editUserForm') as HTMLFormElement;
+
+            // ── Confirm Modal Setup ──
+            let confirmCallback: (() => void) | null = null;
             const confirmTitle = document.getElementById('confirmTitle');
             const confirmMessage = document.getElementById('confirmMessage');
-            const cancelConfirmBtn = document.getElementById('cancelConfirm');
             const executeConfirmBtn = document.getElementById('executeConfirm');
+            const cancelConfirmBtn = document.getElementById('cancelConfirm');
             const closeConfirmBtn = document.getElementById('closeConfirmModal');
-
-            let confirmCallback: (() => void) | null = null;
-
-            function openModal(modalEl: HTMLElement | null) {
-                if(modalEl) modalEl.classList.remove('hidden');
-            }
-
-            function closeModal(modalEl: HTMLElement | null) {
-                if(modalEl) modalEl.classList.add('hidden');
-            }
 
             window.customConfirm = (title: string, message: string, callback: () => void) => {
                 if (confirmTitle) confirmTitle.innerText = title;
@@ -370,72 +649,125 @@ function formatTime(seconds: number) {
                 };
             }
 
-            // Edit Modal Closers
-            if (closeBtn) closeBtn.onclick = () => closeModal(modal);
-            if (cancelBtn) cancelBtn.onclick = () => closeModal(modal);
-            
-             // View Modal Closers
-            if (closeViewBtn) closeViewBtn.onclick = () => closeModal(viewModal);
-
-            // Confirm Modal Closers
+            // ── Close handlers ──
+            document.getElementById('closeModal')?.addEventListener('click', () => closeModal(editModal));
+            document.getElementById('cancelEdit')?.addEventListener('click', () => closeModal(editModal));
+            document.getElementById('closeViewModal')?.addEventListener('click', () => closeModal(viewModal));
             if (closeConfirmBtn) closeConfirmBtn.onclick = () => closeModal(confirmModal);
             if (cancelConfirmBtn) cancelConfirmBtn.onclick = () => closeModal(confirmModal);
-            
-            // Click outside
-            if (modal) {
-                 modal.onclick = (e) => {
-                    if (e.target === modal) closeModal(modal);
-                };
-            }
-            if (viewModal) {
-                 viewModal.onclick = (e) => {
-                    if (e.target === viewModal) closeModal(viewModal);
-                };
+
+            // Click-outside close
+            [editModal, viewModal, confirmModal].forEach(m => {
+                if (m) {
+                    m.addEventListener('click', (e) => {
+                        if (e.target === m) closeModal(m);
+                    });
+                }
+            });
+
+            // ── SEARCH & FILTER ──
+            const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+            const filterRole = document.getElementById('filterRole') as HTMLSelectElement;
+            const filterNewsletter = document.getElementById('filterNewsletter') as HTMLSelectElement;
+            const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
+            const resultsCount = document.getElementById('resultsCount');
+            const noResults = document.getElementById('noResults');
+            const container = document.getElementById('usersListContainer');
+
+            function applyFilters() {
+                if (!container) return;
+                const rows = container.querySelectorAll('.user-row') as NodeListOf<HTMLElement>;
+                const query = searchInput?.value.toLowerCase() || '';
+                const roleFilter = filterRole?.value || 'all';
+                const newsletterFilter = filterNewsletter?.value || 'all';
+                const sort = sortBy?.value || 'newest';
+
+                let visibleRows: HTMLElement[] = [];
+
+                rows.forEach(row => {
+                    const name = row.dataset.name || '';
+                    const email = row.dataset.email || '';
+                    const role = row.dataset.role || '';
+                    const newsletter = row.dataset.newsletter || '';
+
+                    let visible = true;
+                    if (query && !name.includes(query) && !email.includes(query)) visible = false;
+                    if (roleFilter !== 'all' && role !== roleFilter) visible = false;
+                    if (newsletterFilter !== 'all' && newsletter !== newsletterFilter) visible = false;
+
+                    row.style.display = visible ? '' : 'none';
+                    if (visible) visibleRows.push(row);
+                });
+
+                // Sort
+                visibleRows.sort((a, b) => {
+                    switch (sort) {
+                        case 'oldest': return Number(a.dataset.created) - Number(b.dataset.created);
+                        case 'newest': return Number(b.dataset.created) - Number(a.dataset.created);
+                        case 'name': return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+                        case 'listening': return Number(b.dataset.listening) - Number(a.dataset.listening);
+                        case 'streak': return Number(b.dataset.streak) - Number(a.dataset.streak);
+                        case 'lastActive': return Number(b.dataset.lastActive) - Number(a.dataset.lastActive);
+                        default: return 0;
+                    }
+                });
+
+                // Re-order DOM
+                visibleRows.forEach(row => container.appendChild(row));
+
+                // Update counter
+                if (resultsCount) resultsCount.textContent = visibleRows.length.toString();
+                if (noResults) noResults.style.display = visibleRows.length === 0 ? 'block' : 'none';
             }
 
-            // Edit Buttons
+            searchInput?.addEventListener('input', applyFilters);
+            filterRole?.addEventListener('change', applyFilters);
+            filterNewsletter?.addEventListener('change', applyFilters);
+            sortBy?.addEventListener('change', applyFilters);
+
+            // ── EDIT BUTTONS ──
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode?.replaceChild(newBtn, btn);
-                
-                newBtn.addEventListener('click', (e) => {
-                     const target = e.currentTarget as HTMLElement;
-                     const userData = JSON.parse(target.dataset.user || '{}');
-                     
-                     const idInput = document.getElementById('editUserId') as HTMLInputElement;
-                     const nameInput = document.getElementById('editName') as HTMLInputElement;
-                     const emailInput = document.getElementById('editEmail') as HTMLInputElement;
-                     const bioInput = document.getElementById('editBio') as HTMLTextAreaElement;
-                     const roleInput = document.getElementById('editRole') as HTMLSelectElement;
-                     const listeningHoursInput = document.getElementById('editListeningHours') as HTMLInputElement;
-                     const listeningMinutesInput = document.getElementById('editListeningMinutes') as HTMLInputElement;
-                     const listeningSecondsInput = document.getElementById('editListeningSeconds') as HTMLInputElement;
-                     const currentStreakInput = document.getElementById('editCurrentStreak') as HTMLInputElement;
-                     const maxStreakInput = document.getElementById('editMaxStreak') as HTMLInputElement;
-                     const favoritesInput = document.getElementById('editFavorites') as HTMLInputElement;
-                     const newsletterInput = document.getElementById('editNewsletter') as HTMLInputElement;
 
-                     if(idInput) idInput.value = userData._id;
-                     if(nameInput) nameInput.value = userData.name;
-                     if(emailInput) emailInput.value = userData.email;
-                     if(bioInput) bioInput.value = userData.bio || '';
-                     if(roleInput) roleInput.value = userData.role;
-                     
-                     const totalSeconds = userData.listeningTime || 0;
-                     if(listeningHoursInput) listeningHoursInput.value = Math.floor(totalSeconds / 3600).toString();
-                     if(listeningMinutesInput) listeningMinutesInput.value = Math.floor((totalSeconds % 3600) / 60).toString();
-                     if(listeningSecondsInput) listeningSecondsInput.value = (totalSeconds % 60).toString();
-                     
-                     if(currentStreakInput) currentStreakInput.value = userData.currentStreak || 0;
-                     if(maxStreakInput) maxStreakInput.value = userData.maxStreak || 0;
-                     if(favoritesInput) favoritesInput.value = (userData.favorites || []).join(', ');
-                     if(newsletterInput) newsletterInput.checked = !!userData.newsletter;
-                     
-                     openModal(modal);
+                newBtn.addEventListener('click', (e) => {
+                    const target = e.currentTarget as HTMLElement;
+                    const userData = JSON.parse(target.dataset.user || '{}');
+
+                    const idInput = document.getElementById('editUserId') as HTMLInputElement;
+                    const nameInput = document.getElementById('editName') as HTMLInputElement;
+                    const emailInput = document.getElementById('editEmail') as HTMLInputElement;
+                    const bioInput = document.getElementById('editBio') as HTMLTextAreaElement;
+                    const roleInput = document.getElementById('editRole') as HTMLSelectElement;
+                    const listeningHoursInput = document.getElementById('editListeningHours') as HTMLInputElement;
+                    const listeningMinutesInput = document.getElementById('editListeningMinutes') as HTMLInputElement;
+                    const listeningSecondsInput = document.getElementById('editListeningSeconds') as HTMLInputElement;
+                    const currentStreakInput = document.getElementById('editCurrentStreak') as HTMLInputElement;
+                    const maxStreakInput = document.getElementById('editMaxStreak') as HTMLInputElement;
+                    const favoritesInput = document.getElementById('editFavorites') as HTMLInputElement;
+                    const newsletterInput = document.getElementById('editNewsletter') as HTMLInputElement;
+
+                    if (idInput) idInput.value = userData._id;
+                    if (nameInput) nameInput.value = userData.name;
+                    if (emailInput) emailInput.value = userData.email;
+                    if (bioInput) bioInput.value = userData.bio || '';
+                    if (roleInput) roleInput.value = userData.role;
+
+                    const totalSeconds = userData.listeningTime || 0;
+                    if (listeningHoursInput) listeningHoursInput.value = Math.floor(totalSeconds / 3600).toString();
+                    if (listeningMinutesInput) listeningMinutesInput.value = Math.floor((totalSeconds % 3600) / 60).toString();
+                    if (listeningSecondsInput) listeningSecondsInput.value = (totalSeconds % 60).toString();
+
+                    if (currentStreakInput) currentStreakInput.value = userData.currentStreak || 0;
+                    if (maxStreakInput) maxStreakInput.value = userData.maxStreak || 0;
+                    if (favoritesInput) favoritesInput.value = (userData.favorites || []).join(', ');
+                    if (newsletterInput) newsletterInput.checked = !!userData.newsletter;
+
+                    openModal(editModal);
                 });
             });
 
-            // View Buttons
+            // ── VIEW BUTTONS ──
             document.querySelectorAll('.view-btn').forEach(btn => {
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode?.replaceChild(newBtn, btn);
@@ -444,96 +776,108 @@ function formatTime(seconds: number) {
                     const target = e.currentTarget as HTMLElement;
                     const userData = JSON.parse(target.dataset.user || '{}');
 
-                    // Populate View Modal
                     const avatar = document.getElementById('viewAvatar') as HTMLImageElement;
                     const name = document.getElementById('viewName');
                     const email = document.getElementById('viewEmail');
+                    const bio = document.getElementById('viewBio');
                     const roleBadge = document.getElementById('viewRoleBadge');
                     const newsletterBadge = document.getElementById('viewNewsletterBadge');
                     const joined = document.getElementById('viewJoined');
                     const lastActive = document.getElementById('viewLastActive');
-
                     const time = document.getElementById('viewListeningTime');
                     const completed = document.getElementById('viewCompletedCount');
                     const streak = document.getElementById('viewStreak');
-
                     const favList = document.getElementById('viewFavoritesList');
                     const favCount = document.getElementById('viewFavCount');
                     const clipsList = document.getElementById('viewClipsList');
                     const clipsCount = document.getElementById('viewClipsCount');
                     const historyList = document.getElementById('viewHistoryList');
 
-                    const container = document.getElementById('adminContainer');
-                    const episodesData = container ? JSON.parse(container.dataset.episodes || '{}') : {};
-                    const clipsData = container ? JSON.parse(container.dataset.clips || '{}') : {};
+                    const adminContainer = document.getElementById('adminContainer');
+                    const episodesData = adminContainer ? JSON.parse(adminContainer.dataset.episodes || '{}') : {};
+                    const clipsData = adminContainer ? JSON.parse(adminContainer.dataset.clips || '{}') : {};
 
-                    if(avatar) avatar.src = userData.picture || `https://ui-avatars.com/api/?name=${userData.name}`;
-                    if(name) name.textContent = userData.name;
-                    if(email) email.textContent = userData.email;
+                    if (avatar) avatar.src = userData.picture || `https://ui-avatars.com/api/?name=${userData.name}&background=7c3aed&color=fff&size=200`;
+                    if (name) name.textContent = userData.name;
+                    if (email) email.textContent = userData.email;
                     
-                    if(roleBadge) {
-                        roleBadge.className = `role-badge ${userData.role || 'user'}`;
-                        roleBadge.textContent = userData.role || 'user';
-                    }
-                    if(newsletterBadge) {
-                        newsletterBadge.className = `status-badge ${userData.newsletter ? 'active' : 'inactive'}`;
-                        newsletterBadge.textContent = userData.newsletter ? 'Suscrito' : 'Inactivo';
+                    if (bio) {
+                        if (userData.bio) {
+                            bio.textContent = userData.bio;
+                            bio.classList.remove('hidden');
+                        } else {
+                            bio.classList.add('hidden');
+                        }
                     }
 
-                    if(joined) joined.textContent = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A';
-                    if(lastActive) lastActive.textContent = userData.lastActiveAt ? new Date(userData.lastActiveAt).toLocaleString() : (userData.lastLogin ? new Date(userData.lastLogin).toLocaleString() : 'N/A');
+                    if (roleBadge) {
+                        const r = userData.role || 'user';
+                        roleBadge.className = r === 'owner'
+                            ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-wide bg-pink-500/15 text-pink-300 border border-pink-500/30'
+                            : r === 'admin'
+                            ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-wide bg-violet-500/15 text-violet-300 border border-violet-500/30'
+                            : 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-wide bg-white/[0.04] text-zinc-400 border border-white/[0.08]';
+                        roleBadge.textContent = `${r === 'owner' ? '👑' : r === 'admin' ? '🛡️' : '👤'} ${r}`;
+                    }
+                    if (newsletterBadge) {
+                        newsletterBadge.className = userData.newsletter
+                            ? 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.7rem] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.7rem] font-semibold bg-red-500/10 text-red-400 border border-red-500/20';
+                        newsletterBadge.textContent = userData.newsletter ? '✓ Suscrito' : '✗ No suscrito';
+                    }
 
-                    if(time) time.textContent = userData.listeningTime ? `${Math.floor(userData.listeningTime/3600)}h ${Math.floor((userData.listeningTime%3600)/60)}m` : '0h 0m';
-                    if(completed) completed.textContent = (userData.completedEpisodes || []).length.toString();
-                    if(streak) streak.textContent = `${userData.currentStreak || 0} / ${userData.maxStreak || 0}`;
+                    if (joined) joined.textContent = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : 'N/A';
+                    if (lastActive) lastActive.textContent = userData.lastActiveAt ? new Date(userData.lastActiveAt).toLocaleString('es-ES') : (userData.lastLogin ? new Date(userData.lastLogin).toLocaleString('es-ES') : 'N/A');
+
+                    if (time) time.textContent = userData.listeningTime ? `${Math.floor(userData.listeningTime / 3600)}h ${Math.floor((userData.listeningTime % 3600) / 60)}m` : '0h 0m';
+                    if (completed) completed.textContent = (userData.completedEpisodes || []).length.toString();
+                    if (streak) streak.textContent = `${userData.currentStreak || 0} / ${userData.maxStreak || 0}`;
 
                     // Favorites
-                    if(favList && favCount) {
+                    if (favList && favCount) {
                         favList.innerHTML = '';
                         const favs = userData.favorites || [];
                         favCount.textContent = favs.length;
-                        if(favs.length === 0) {
-                            favList.innerHTML = '<li class="empty-state">Sin favoritos</li>';
+                        if (favs.length === 0) {
+                            favList.innerHTML = '<div class="py-6 text-center text-zinc-600 text-xs border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">Sin favoritos</div>';
                         } else {
                             favs.forEach((slug: string) => {
                                 const epData = episodesData[slug];
                                 const title = epData ? epData.title : slug;
                                 const image = epData ? epData.image : 'https://placehold.co/100x100?text=?';
-                                const li = document.createElement('li');
-                                li.className = 'mini-item';
-                                li.innerHTML = `
-                                    <img src="${image}" alt="${title}" class="mini-thumb" />
-                                    <div class="mini-info">
-                                        <span class="mini-title" title="${title}">${title}</span>
-                                    </div>
+                                const div = document.createElement('div');
+                                div.className = 'flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-transparent hover:border-white/[0.06] hover:bg-white/[0.04] transition-all';
+                                div.innerHTML = `
+                                    <img src="${image}" alt="${title}" class="w-10 h-10 rounded-lg object-cover shrink-0" />
+                                    <span class="text-sm font-medium text-zinc-300 truncate" title="${title}">${title}</span>
                                 `;
-                                favList.appendChild(li);
+                                favList.appendChild(div);
                             });
                         }
                     }
 
-                    // Liked Clips
-                    if(clipsList && clipsCount) {
+                    // Clips
+                    if (clipsList && clipsCount) {
                         clipsList.innerHTML = '';
                         const clips = userData.likedClips || [];
                         clipsCount.textContent = clips.length;
-                        if(clips.length === 0) {
-                            clipsList.innerHTML = '<li class="empty-state">Sin clips guardados</li>';
+                        if (clips.length === 0) {
+                            clipsList.innerHTML = '<div class="py-6 text-center text-zinc-600 text-xs border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">Sin clips guardados</div>';
                         } else {
                             clips.forEach((id: string) => {
                                 const clipData = clipsData[id];
                                 const title = clipData ? clipData.title : id;
                                 const image = clipData ? clipData.image : 'https://placehold.co/100x100?text=?';
-                                const li = document.createElement('li');
-                                li.className = 'mini-item';
-                                li.innerHTML = `
-                                    <img src="${image}" alt="${title}" class="mini-thumb clip-thumb" />
-                                    <div class="mini-info">
-                                        <span class="mini-title" title="${title}">${title}</span>
-                                        ${clipData ? `<span class="mini-meta">Ep: ${clipData.episodeSlug}</span>` : ''}
+                                const div = document.createElement('div');
+                                div.className = 'flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-transparent hover:border-white/[0.06] hover:bg-white/[0.04] transition-all';
+                                div.innerHTML = `
+                                    <img src="${image}" alt="${title}" class="w-8 h-14 rounded-lg object-cover shrink-0" style="aspect-ratio:9/16" />
+                                    <div class="min-w-0">
+                                        <span class="text-sm font-medium text-zinc-300 truncate block" title="${title}">${title}</span>
+                                        ${clipData ? `<span class="text-[0.65rem] text-zinc-600">Ep: ${clipData.episodeSlug}</span>` : ''}
                                     </div>
                                 `;
-                                clipsList.appendChild(li);
+                                clipsList.appendChild(div);
                             });
                         }
                     }
@@ -547,21 +891,19 @@ function formatTime(seconds: number) {
                     }
 
                     // History
-                    if(historyList) {
+                    if (historyList) {
                         historyList.innerHTML = '';
                         const history = userData.playbackHistory || [];
-                        // Sort history by listenedAt desc
                         history.sort((a: any, b: any) => new Date(b.listenedAt).getTime() - new Date(a.listenedAt).getTime());
 
-                        if(history.length === 0) {
-                             historyList.innerHTML = '<li class="empty-state">Sin historial de reproducción</li>';
+                        if (history.length === 0) {
+                            historyList.innerHTML = '<div class="py-8 text-center text-zinc-600 text-xs border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">Sin historial de reproducción</div>';
                         } else {
-                             history.forEach((h: any) => {
+                            history.forEach((h: any) => {
                                 const epData = episodesData[h.episodeSlug];
                                 const title = epData ? epData.title : h.episodeSlug;
                                 const image = epData ? epData.image : 'https://placehold.co/100x100?text=?';
                                 
-                                // Real progress calculation
                                 let progressPercent = 0;
                                 if (h.duration > 0) {
                                     progressPercent = Math.min(100, Math.round((h.progress / h.duration) * 100));
@@ -569,25 +911,25 @@ function formatTime(seconds: number) {
                                     progressPercent = 100;
                                 }
 
-                                const li = document.createElement('li');
-                                li.className = 'history-item-rich';
-                                li.innerHTML = `
-                                    <img src="${image}" alt="${title}" class="history-thumb" />
-                                    <div class="history-info">
-                                        <div class="history-title-row">
-                                            <span class="history-title" title="${title}">${title}</span>
-                                            <span class="history-date">${new Date(h.listenedAt).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}</span>
+                                const div = document.createElement('div');
+                                div.className = 'flex gap-3 p-3 rounded-xl bg-black/20 border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.03] transition-all';
+                                div.innerHTML = `
+                                    <img src="${image}" alt="${title}" class="w-16 h-16 rounded-lg object-cover shadow-lg shrink-0" />
+                                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                        <div class="flex justify-between items-start gap-2 mb-1">
+                                            <span class="text-sm font-semibold text-white truncate" title="${title}">${title}</span>
+                                            <span class="text-[0.65rem] text-zinc-600 whitespace-nowrap font-mono shrink-0">${new Date(h.listenedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</span>
                                         </div>
-                                        <div class="history-meta mt-1">
-                                            <span class="progress-text">${formatTimeJS(h.progress)} / ${formatTimeJS(h.duration)}</span>
-                                            ${h.completed ? '<span class="badge-completed">✓ Completado</span>' : ''}
+                                        <div class="flex items-center gap-2 mb-1.5">
+                                            <span class="text-xs font-mono text-violet-400 font-semibold">${formatTimeJS(h.progress)} / ${formatTimeJS(h.duration)}</span>
+                                            ${h.completed ? '<span class="text-[0.6rem] font-bold bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-md">✓</span>' : ''}
                                         </div>
-                                        <div class="progress-track-mini mt-2">
-                                            <div class="progress-fill-mini" style="width: ${progressPercent}%"></div>
+                                        <div class="h-1 bg-white/[0.08] rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full transition-all" style="width: ${progressPercent}%"></div>
                                         </div>
                                     </div>
                                 `;
-                                historyList.appendChild(li);
+                                historyList.appendChild(div);
                             });
                         }
                     }
@@ -596,47 +938,7 @@ function formatTime(seconds: number) {
                 });
             });
 
-            // Test Email Buttons
-            document.querySelectorAll('.test-email-btn').forEach(btn => {
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode?.replaceChild(newBtn, btn);
-
-                newBtn.addEventListener('click', (e) => {
-                    const target = e.currentTarget as HTMLElement;
-                    const userName = target.dataset.name;
-                    
-                    window.customConfirm(
-                        'Enviar Prueba',
-                        `¿Quieres enviar un email de prueba con el resumen personalizado a ${userName}?`,
-                        async () => {
-                            const userId = target.dataset.id;
-                            target.style.opacity = '0.5';
-                            target.style.pointerEvents = 'none';
-                            
-                            try {
-                                const res = await fetch('/api/admin/newsletter-test', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ userId })
-                                });
-                                if (res.ok) {
-                                    window.showToast('Email de prueba enviado correctamente a ' + userName, 'success');
-                                } else {
-                                    const data = await res.json();
-                                    window.showToast('Error: ' + (data.error || 'Fallo desconocido'), 'error');
-                                }
-                            } catch (e) {
-                                window.showToast('Error de conexión', 'error');
-                            } finally {
-                                target.style.opacity = '1';
-                                target.style.pointerEvents = 'auto';
-                            }
-                        }
-                    );
-                });
-            });
-
-            // Test to Me Buttons
+            // ── TEST TO ME BUTTONS ──
             document.querySelectorAll('.test-to-me-btn').forEach(btn => {
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode?.replaceChild(newBtn, btn);
@@ -644,7 +946,7 @@ function formatTime(seconds: number) {
                 newBtn.addEventListener('click', (e) => {
                     const target = e.currentTarget as HTMLElement;
                     const userName = target.dataset.name;
-                    
+
                     window.customConfirm(
                         'Probar Perfil',
                         `¿Quieres enviarte A TI MISMO un correo de prueba con los datos de ${userName}?`,
@@ -652,7 +954,7 @@ function formatTime(seconds: number) {
                             const userId = target.dataset.id;
                             target.style.opacity = '0.5';
                             target.style.pointerEvents = 'none';
-                            
+
                             try {
                                 const res = await fetch('/api/admin/newsletter-test', {
                                     method: 'POST',
@@ -676,13 +978,14 @@ function formatTime(seconds: number) {
                 });
             });
 
+            // ── DELETE BUTTONS ──
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode?.replaceChild(newBtn, btn);
 
                 newBtn.addEventListener('click', (e) => {
                     const target = e.currentTarget as HTMLElement;
-                    
+
                     window.customConfirm(
                         'Eliminar Usuario',
                         '¿Estás seguro de que quieres eliminar a este usuario? Esta acción no se puede deshacer.',
@@ -709,6 +1012,7 @@ function formatTime(seconds: number) {
                 });
             });
 
+            // ── BULK NEWSLETTER ──
             const bulkBtn = document.getElementById('sendBulkNewsletterBtn');
             if (bulkBtn) {
                 bulkBtn.onclick = () => {
@@ -720,7 +1024,7 @@ function formatTime(seconds: number) {
                             bulkBtn.style.opacity = '0.5';
                             bulkBtn.style.pointerEvents = 'none';
                             const originalText = bulkBtn.innerHTML;
-                            bulkBtn.innerHTML = 'Enviando...';
+                            bulkBtn.innerHTML = '<span class="animate-pulse">Enviando...</span>';
 
                             try {
                                 const res = await fetch('/api/admin/newsletter-bulk', { method: 'POST' });
@@ -742,10 +1046,37 @@ function formatTime(seconds: number) {
                 };
             }
 
+            // ── EXPORT CSV ──
+            const exportBtn = document.getElementById('exportUsersBtn');
+            if (exportBtn) {
+                exportBtn.onclick = () => {
+                    const rows = document.querySelectorAll('.user-row') as NodeListOf<HTMLElement>;
+                    let csv = 'Nombre,Email,Rol,Newsletter,Tiempo Escuchado (s),Racha,Registro\n';
+                    rows.forEach(row => {
+                        const name = row.dataset.name || '';
+                        const email = row.dataset.email || '';
+                        const role = row.dataset.role || '';
+                        const newsletter = row.dataset.newsletter || '';
+                        const listening = row.dataset.listening || '0';
+                        const streak = row.dataset.streak || '0';
+                        const created = row.dataset.created ? new Date(Number(row.dataset.created)).toISOString() : '';
+                        csv += `"${name}","${email}","${role}","${newsletter}","${listening}","${streak}","${created}"\n`;
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `usuarios_${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    window.showToast('CSV exportado correctamente', 'success');
+                };
+            }
+
+            // ── FORM SUBMIT ──
             if (form) {
                 form.onsubmit = async (e) => {
                     e.preventDefault();
-                    // Custom form data handling to include checkbox state
                     const idInput = document.getElementById('editUserId') as HTMLInputElement;
                     const nameInput = document.getElementById('editName') as HTMLInputElement;
                     const emailInput = document.getElementById('editEmail') as HTMLInputElement;
@@ -765,8 +1096,8 @@ function formatTime(seconds: number) {
                     const totalListeningTime = (h * 3600) + (m * 60) + s;
 
                     const favArray = favoritesInput.value.split(',')
-                                         .map(f => f.trim())
-                                         .filter(f => f !== '');
+                        .map(f => f.trim())
+                        .filter(f => f !== '');
 
                     const data = {
                         userId: idInput.value,
@@ -808,359 +1139,28 @@ function formatTime(seconds: number) {
         document.addEventListener('astro:page-load', attachEventListeners);
     </script>
 </Layout>
+
 <style is:inline>
-  /* --- God Tier Admin Styles --- */
+    /* Custom scrollbar for modal lists */
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.25); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.5); }
 
-  /* Container */
-  .admin-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-    color: var(--color-text-main);
-    animation: fadeInUp 0.8s ease-out;
-  }
+    /* Smooth reveal animation for user rows */
+    .user-row {
+        animation: rowReveal 0.4s ease-out both;
+    }
+    @keyframes rowReveal {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-  .admin-header {
-    margin-bottom: 2.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-
-  .admin-header h1 {
-    font-size: 3.5rem;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(to right, #fff, #a78bfa, #f472b6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    filter: drop-shadow(0 0 30px rgba(167, 139, 250, 0.4));
-  }
-  
-  .admin-header p {
-    color: var(--color-text-muted);
-    font-size: 1.1rem;
-    letter-spacing: 0.02em;
-  }
-
-  .btn-bulk-newsletter {
-      background: linear-gradient(135deg, #8b5cf6, #d946ef);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 1rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
-  }
-
-  .btn-bulk-newsletter:hover {
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
-      filter: brightness(1.1);
-  }
-
-  .btn-bulk-newsletter:active {
-      transform: translateY(0) scale(0.98);
-  }
-
-  /* Glass Panel & Table */
-  .section-container {
-    padding: 0; /* Remove padding to flush table */
-    border-radius: 1.5rem;
-    margin-bottom: 2rem;
-    overflow: hidden;
-    background: rgba(18, 18, 23, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
-  }
-
-  .table-container { 
-      overflow-x: auto; 
-      padding: 1rem;
-  }
-
-  .modern-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 0.5rem;
-  }
-
-  .modern-table th {
-    text-align: left;
-    padding: 1rem 1.5rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-text-dim);
-    font-weight: 700;
-    opacity: 0.8;
-  }
-  
-  .modern-table td {
-    padding: 1.25rem 1.5rem;
-    background: rgba(255,255,255,0.02);
-    border-top: 1px solid rgba(255,255,255,0.03);
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .modern-table tr td:first-child {
-    border-top-left-radius: 1rem;
-    border-bottom-left-radius: 1rem;
-    border-left: 1px solid rgba(255,255,255,0.03);
-  }
-  
-  .modern-table tr td:last-child {
-    border-top-right-radius: 1rem;
-    border-bottom-right-radius: 1rem;
-    border-right: 1px solid rgba(255,255,255,0.03);
-  }
-
-  .modern-table tr:hover td { 
-      background: rgba(255,255,255,0.06); 
-      transform: scale(1.01);
-      border-color: rgba(255,255,255,0.1);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      z-index: 10;
-      position: relative;
-  }
-
-  /* User Cells */
-  .user-cell { display: flex; align-items: center; gap: 1rem; }
-  .user-avatar { 
-      width: 44px; height: 44px; border-radius: 50%; object-fit: cover; 
-      border: 2px solid rgba(255,255,255,0.1); 
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-  }
-  .user-name { font-weight: 700; color: #fff; font-size: 1rem; }
-  .text-muted { color: var(--color-text-muted); font-size: 0.9rem; }
-  .text-sm { font-size: 0.85rem; color: var(--color-text-muted); font-family: monospace; }
-  .font-mono { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.5px; opacity: 0.9; }
-
-  /* Badges */
-  .role-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-  .role-badge.admin { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); box-shadow: 0 0 10px rgba(139, 92, 246, 0.2); }
-  .role-badge.owner { background: rgba(244, 114, 182, 0.15); color: #fbcfe8; border: 1px solid rgba(244, 114, 182, 0.4); box-shadow: 0 0 15px rgba(244, 114, 182, 0.3); }
-  .role-badge.user { background: rgba(255,255,255,0.03); color: #9ca3af; border: 1px solid rgba(255,255,255,0.1); }
-  
-  .status-badge { display: inline-flex; padding: 0.3rem 0.8rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600; }
-  .status-badge.active { color: #34d399; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
-  .status-badge.inactive { color: #f87171; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
-
-  /* Actions */
-  .text-right { text-align: right; }
-  .actions-cell { display: flex; justify-content: flex-end; gap: 0.5rem; }
-  .icon-btn { 
-      background: rgba(255,255,255,0.03); 
-      border: 1px solid rgba(255,255,255,0.05);
-      cursor: pointer; 
-      padding: 0.5rem; 
-      border-radius: 0.75rem; 
-      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); 
-      color: var(--color-text-muted);
-      display: flex; align-items: center; justify-content: center;
-  }
-  .icon-btn:hover { 
-      background: rgba(167, 139, 250, 0.2); 
-      color: #fff; border-color: rgba(167, 139, 250, 0.5); 
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(139, 92, 246, 0.2);
-  }
-  .icon-btn.delete-btn:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: rgba(239, 68, 68, 0.5);
-      box-shadow: 0 5px 15px rgba(239, 68, 68, 0.2);
-  }
-  .icon-btn.test-email-btn:hover {
-      background: rgba(52, 211, 153, 0.2);
-      border-color: rgba(52, 211, 153, 0.5);
-      color: #34d399;
-      box-shadow: 0 5px 15px rgba(52, 211, 153, 0.2);
-  }
-  .icon-btn.test-to-me-btn:hover {
-      background: rgba(129, 140, 248, 0.2);
-      border-color: rgba(129, 140, 248, 0.5);
-      color: #818cf8;
-      box-shadow: 0 5px 15px rgba(129, 140, 248, 0.2);
-  }
-
-  /* MODAL */
-  .modal-backdrop { 
-      position: fixed; inset: 0; 
-      background: rgba(0, 0, 0, 0.6); 
-      backdrop-filter: blur(12px); 
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 100; 
-      display: flex; align-items: center; justify-content: center; 
-      padding: 1rem; 
-      opacity: 1; transition: opacity 0.3s; 
-  }
-  .modal-backdrop.hidden { opacity: 0; pointer-events: none; }
-  
-  .modal-content { 
-      background: rgba(20, 20, 25, 0.95);
-      border: 1px solid rgba(255,255,255,0.1); 
-      width: 100%; max-width: 500px; 
-      padding: 2rem; 
-      border-radius: 2rem; 
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.05);
-      transform: translateY(0); 
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
-      max-height: 90vh;
-      overflow-y: auto;
-  }
-  .modal-content.wide-modal { max-width: 800px; }
-
-  .modal-backdrop.hidden .modal-content { transform: translateY(20px) scale(0.95); }
-  
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-  .modal-header h3 { font-size: 1.5rem; font-weight: 800; color: #fff; background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .close-btn { background: transparent; border: none; color: var(--color-text-muted); font-size: 2rem; line-height: 1; cursor: pointer; transition: color 0.2s; }
-  .close-btn:hover { color: #fff; transform: rotate(90deg); transition: transform 0.3s, color 0.2s; }
-  
-  .form-group { margin-bottom: 1.5rem; }
-  .form-group label { display: block; margin-bottom: 0.5rem; color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500; }
-  .modern-input { 
-      width: 100%; padding: 1rem; 
-      background: rgba(0, 0, 0, 0.4); 
-      border: 1px solid rgba(255,255,255,0.1); 
-      border-radius: 1rem; 
-      color: #fff; font-size: 1rem; 
-      transition: all 0.2s; 
-  }
-  .modern-input:focus { outline: none; border-color: #a78bfa; background: rgba(0,0,0,0.6); box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.1); }
-  
-  .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
-  .btn-cancel { padding: 0.75rem 1.5rem; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--color-text-muted); border-radius: 1rem; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-  .btn-cancel:hover { background: rgba(255,255,255,0.05); color: #fff; }
-  .btn-save { padding: 0.75rem 2rem; background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: none; color: #fff; border-radius: 1rem; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); transition: all 0.2s; }
-  .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5); filter: brightness(1.1); }
-
-  /* Checkbox & Switch */
-  .checkbox-group { margin-top: 1.5rem; }
-  .checkbox-label {
-      display: flex; align-items: center; gap: 1rem; cursor: pointer;
-      padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 1rem;
-      border: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;
-  }
-  .checkbox-label:hover { background: rgba(255,255,255,0.05); }
-  .checkbox-label input { display: none; }
-  .checkbox-custom {
-      width: 24px; height: 24px; min-width: 24px; min-height: 24px; flex-shrink: 0;
-      border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.2s;
-      display: flex; align-items: center; justify-content: center;
-  }
-  .checkbox-label input:checked + .checkbox-custom { background: #a78bfa; border-color: #a78bfa; box-shadow: 0 0 10px rgba(167, 139, 250, 0.4); }
-  .checkbox-label input:checked + .checkbox-custom::after {
-      content: '✓'; font-size: 1rem; color: white; font-weight: 800; line-height: 1;
-  }
-  .label-text { font-weight: 500; font-size: 0.95rem; user-select: none; }
-
-  /* Dashboard User Details Responsive */
-  .modal-content.super-wide-modal { max-width: 900px; padding: 0; }
-  .modal-header { padding: 2rem 2rem 1.5rem; margin-bottom: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  
-  .user-dashboard-scrollable { padding: 2rem; max-height: calc(90vh - 85px); overflow-y: auto; }
-  
-  /* Hero */
-  .dashboard-hero {
-      display: flex; align-items: flex-start; gap: 2rem; padding-bottom: 2.5rem;
-      border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 2rem;
-  }
-  .dashboard-avatar { width: 110px; height: 110px; border-radius: 2rem; object-fit: cover; border: 4px solid rgba(167, 139, 250, 0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-  
-  .hero-info { flex: 1; }
-  .hero-title-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
-  .hero-title-row h2 { font-size: 2rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.02em; }
-  .hero-email { color: var(--color-text-dim); font-size: 1.05rem; margin-bottom: 1rem; }
-  .hero-meta { color: var(--color-text-muted); font-size: 0.9rem; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 0.5rem; }
-  .dot-sep { opacity: 0.5; font-size: 1.2rem; line-height: 0; }
-
-  /* Stat Cards */
-  .stats-cards-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;
-  }
-  .stat-card {
-      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.5rem;
-      padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem; transition: all 0.3s;
-  }
-  .stat-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.05); border-color: rgba(167, 139, 250, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-  .stat-icon { width: 50px; height: 50px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; }
-  .time-icon { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
-  .ep-icon { background: rgba(52, 211, 153, 0.15); color: #6ee7b7; }
-  .streak-icon { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
-  
-  .stat-data h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dim); margin-bottom: 0.25rem; }
-  .stat-value { font-size: 1.5rem; font-weight: 700; color: #fff; }
-
-  /* Columns */
-  .dashboard-columns { display: grid; grid-template-columns: 1.6fr 1fr; gap: 2rem; }
-  .section-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.75rem; }
-  .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #a78bfa; margin: 0; }
-
-  .rich-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem; }
-  .empty-state { padding: 2rem; text-align: center; color: var(--color-text-dim); background: rgba(255,255,255,0.02); border-radius: 1rem; border: 1px dashed rgba(255,255,255,0.1); font-size: 0.9rem; }
-
-  /* History Rich Items */
-  .history-list-wrapper { max-height: 500px; overflow-y: auto; padding-right: 0.5rem; }
-  .history-list-wrapper::-webkit-scrollbar { width: 6px; }
-  .history-list-wrapper::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.3); border-radius: 10px; }
-  
-  .history-item-rich {
-      display: flex; gap: 1.25rem; padding: 1.25rem;
-      background: rgba(0,0,0,0.3); border-radius: 1rem;
-      border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;
-  }
-  .history-item-rich:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
-  .history-thumb { width: 70px; height: 70px; border-radius: 0.75rem; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.4); flex-shrink: 0; }
-  
-  .history-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-  .history-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
-  .history-title { font-weight: 700; font-size: 1.05rem; color: #fff; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .history-date { font-size: 0.75rem; color: var(--color-text-dim); white-space: nowrap; font-family: monospace; }
-  
-  .history-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
-  .progress-text { font-family: 'JetBrains Mono', monospace; color: #a78bfa; font-weight: 600; }
-  .badge-completed { font-size: 0.7rem; font-weight: 800; background: rgba(52, 211, 153, 0.15); color: #34d399; padding: 0.2rem 0.6rem; border-radius: 99px; }
-  
-  .progress-track-mini { height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; }
-  .progress-fill-mini { height: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); border-radius: 99px; }
-
-  /* Side Lists (Mini) */
-  .mini-list { max-height: 250px; overflow-y: auto; padding-right: 0.5rem; }
-  .mini-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 0.75rem; transition: background 0.2s; border: 1px solid transparent; }
-  .mini-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); }
-  .mini-thumb { width: 44px; height: 44px; border-radius: 0.5rem; object-fit: cover; }
-  .clip-thumb { aspect-ratio: 9/16; width: 34px; height: 60px; }
-  .mini-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .mini-title { font-weight: 600; font-size: 0.9rem; color: #e5e7eb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mini-meta { font-size: 0.75rem; color: var(--color-text-dim); margin-top: 0.2rem; }
-
-  .mt-1 { margin-top: 0.25rem; }
-  .mt-2 { margin-top: 0.75rem; }
-  .mt-4 { margin-top: 2rem; }
-
-  /* Responsive Adjustments */
-  @media (max-width: 900px) {
-      .dashboard-columns { grid-template-columns: 1fr; }
-      .dashboard-hero { flex-direction: column; align-items: center; text-align: center; }
-      .hero-title-row { justify-content: center; }
-      .hero-meta { justify-content: center; flex-wrap: wrap; }
-      .stats-cards-grid { grid-template-columns: 1fr; }
-      .user-dashboard-scrollable { padding: 1.5rem; }
-  }
-
-  /* Blobs */
-  .blob { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: -1; pointer-events: none; }
-  .blob-1 { top: -200px; left: -200px; background: #8b5cf6; }
-  .blob-2 { bottom: -200px; right: -200px; background: #ec4899; }
-  .grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 40%, transparent 100%); opacity: 0.4; pointer-events: none; }
+    /* Fix select appearance with a custom chevron */
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 28px !important;
+    }
 </style>
-
