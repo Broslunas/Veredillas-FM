@@ -14,5 +14,8 @@ images:
   - title: El amor está en el aire
     src: >-
       https://cdn.veredillasfm.es/galeria/c19abd1e-6c15-40e5-abfd-40edd18cd9b8.jpg
+  - title: El amor entre alumno y profesor
+    src: >-
+      https://cdn.veredillasfm.es/galeria/7e565431-d6ca-4fd7-a21f-758a795596f7.jpeg
 ---
 
