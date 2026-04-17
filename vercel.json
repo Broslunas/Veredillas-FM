@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/newsletter/send-weekly",
+      "schedule": "0 14 * * 5"
+    }
+  ],
   "headers": [
     {
       "source": "/logo.webp",

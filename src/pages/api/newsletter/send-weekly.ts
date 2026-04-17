@@ -8,8 +8,12 @@ export const POST: APIRoute = async ({ request }) => {
     // 1. Check for authorization secret to prevent unauthorized triggers
     const authHeader = request.headers.get('Authorization');
     const secret = import.meta.env.NEWSLETTER_CRON_SECRET;
+    const vercelCronSecret = import.meta.env.CRON_SECRET;
 
-    if (secret && authHeader !== `Bearer ${secret}`) {
+    const isAuthorized = (secret && authHeader === `Bearer ${secret}`) || 
+                        (vercelCronSecret && authHeader === `Bearer ${vercelCronSecret}`);
+
+    if (!isAuthorized) {
       return new Response(
         JSON.stringify({ message: "Unauthorized" }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
