@@ -158,14 +158,33 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: '
         </header>
 
         <div class="team-grid gs-reveal" id="guests-grid">
-            {guestsWithStats.map((guest, index) => (
-                <div 
-                    class="member-card" 
-                    data-name={guest.data.name.toLowerCase()}
-                    data-role={guest.data.role?.toLowerCase()}
-                    id={`guest-${index}`}
-                >
-                    <div class="card-inner glass-panel">
+            {guestsWithStats.map((guest, index) => {
+                const isTop3 = index < 3 && guest.stats.episodeCount > 0;
+                return (
+                    <div 
+                        class={`member-card ${isTop3 ? `is-top is-top-${index + 1}` : ''}`} 
+                        data-name={guest.data.name.toLowerCase()}
+                        data-role={guest.data.role?.toLowerCase()}
+                        id={`guest-${index}`}
+                    >
+                        <div class="card-inner glass-panel">
+                            
+                            {/* Special Top 3 Decorations */}
+                            {index === 0 && isTop3 && (
+                                <div class="top-decoration crown">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7Z"/><path d="M12 17H12M12 21H12"/></svg>
+                                </div>
+                            )}
+                            {index === 1 && isTop3 && (
+                                <div class="top-decoration trophy">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                                </div>
+                            )}
+                            {index === 2 && isTop3 && (
+                                <div class="top-decoration medal">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><circle cx="12" cy="15" r="5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                                </div>
+                            )}
                         
                         <!-- Rank Badge -->
                         {index < 3 && guest.stats.episodeCount > 0 && (
@@ -261,7 +280,7 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: '
 
                     </div>
                 </div>
-            ))}
+            )})}
         </div>
     </div>
 
@@ -457,28 +476,117 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: '
         box-shadow: 0 15px 30px rgba(0,0,0,0.2);
     }
 
-    /* Rank Badge */
+    /* Rank Badge Enhanced */
     .rank-badge {
         position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 32px;
-        height: 32px;
+        top: 20px;
+        left: 20px;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 10;
+        color: #000;
+        cursor: help;
+        transform: rotate(-10deg);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .member-card:hover .rank-badge {
+        transform: rotate(0deg) scale(1.1);
+    }
+
+    .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); border: 1px solid rgba(255,255,255,0.4); }
+    .rank-2 { background: linear-gradient(135deg, #E0E0E0, #A0A0A0); border: 1px solid rgba(255,255,255,0.4); }
+    .rank-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); border: 1px solid rgba(255,255,255,0.4); }
+
+    /* Top Decorations */
+    .top-decoration {
+        position: absolute;
+        top: -15px;
+        right: 20px;
+        background: var(--color-bg);
+        padding: 8px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 800;
-        font-size: 0.9rem;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        z-index: 10;
-        color: #000;
-        cursor: help;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        z-index: 11;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
     }
 
-    .rank-1 { background: linear-gradient(135deg, #FFD700, #FDB931); border: 2px solid #FFF8D5; }
-    .rank-2 { background: linear-gradient(135deg, #E0E0E0, #BDBDBD); border: 2px solid #F5F5F5; }
-    .rank-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); border: 2px solid #E6C2AA; }
+    .member-card:hover .top-decoration {
+        transform: translateY(-5px) scale(1.1);
+    }
+
+    .crown { color: #FFD700; border-color: rgba(255, 215, 0, 0.3); }
+    .trophy { color: #E0E0E0; border-color: rgba(224, 224, 224, 0.3); }
+    .medal { color: #CD7F32; border-color: rgba(205, 127, 50, 0.3); }
+
+    /* Unique Card Styles for Top 3 */
+    .member-card.is-top .card-inner {
+        padding-top: 3rem;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .member-card.is-top-1 .card-inner {
+        background: radial-gradient(circle at top right, rgba(255, 215, 0, 0.1), rgba(0,0,0,0.2) 60%),
+                    rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 215, 0, 0.3);
+        box-shadow: 0 20px 40px -10px rgba(255, 215, 0, 0.15);
+    }
+
+    .member-card.is-top-1:hover .card-inner {
+        border-color: rgba(255, 215, 0, 0.6);
+        box-shadow: 0 25px 50px -12px rgba(255, 215, 0, 0.25);
+    }
+
+    .member-card.is-top-2 .card-inner {
+        background: radial-gradient(circle at top right, rgba(224, 224, 224, 0.08), rgba(0,0,0,0.2) 60%),
+                    rgba(255, 255, 255, 0.05);
+        border-color: rgba(224, 224, 224, 0.3);
+    }
+
+    .member-card.is-top-3 .card-inner {
+        background: radial-gradient(circle at top right, rgba(205, 127, 50, 0.08), rgba(0,0,0,0.2) 60%),
+                    rgba(255, 255, 255, 0.05);
+        border-color: rgba(205, 127, 50, 0.3);
+    }
+
+    /* Top 3 Image Boxes */
+    .is-top-1 .image-box {
+        width: 140px;
+        height: 140px;
+        margin-top: 0.5rem;
+    }
+
+    .is-top-1 .image-box img {
+        border-color: #FFD700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    }
+    
+    .is-top .image-box::after {
+        content: '';
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        border: 2px dashed rgba(255,255,255,0.1);
+        animation: rotate 20s linear infinite;
+        pointer-events: none;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
 
     .image-box {
         width: 120px;
