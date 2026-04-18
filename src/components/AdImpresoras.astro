@@ -32,13 +32,11 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
 ---
 
 <div class={`ad-container ${currentVariantClass} ${theme === 'dynamic' ? 'theme-dynamic' : `theme-${theme}`} ${className}`} id="ad-impresoras">
-  <a href={AD_URL} target="_blank" rel="noopener noreferrer" class="ad-link hover-3d-card">
+  <a href={AD_URL} target="_blank" rel="noopener noreferrer" class="ad-link">
     
-    <!-- Background Elements -->
+    <!-- Background Elements - Subtler -->
     <div class="ad-bg">
-      <div class="ad-blob ad-blob-1"></div>
-      <div class="ad-blob ad-blob-2"></div>
-      <div class="ad-grid-pattern"></div>
+      <div class="ad-gradient-overlay"></div>
     </div>
 
     <!-- Content -->
@@ -46,15 +44,14 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
       {variant === 'hero' && (
         <div class="ad-hero-layout">
           <div class="ad-text-content">
-            <span class="ad-badge">Servicio Premium</span>
-            <h2 class="ad-title">Tus proyectos <span class="text-gradient">cobran vida</span></h2>
-            <p class="ad-desc">Impresión láser y 3D de alta precisión con la garantía de Veredillas FM.</p>
-            <div class="ad-cta">Visitar ahora <span class="arrow">→</span></div>
+            <span class="ad-badge">Servicio de Impresión Profesional</span>
+            <h2 class="ad-title">Calidad que puedes <span class="text-gradient">tocar</span></h2>
+            <p class="ad-desc">Desde documentos impecables hasta prototipos 3D. Rapidez y precisión para tus proyectos más exigentes.</p>
+            <div class="ad-cta">Empezar ahora <span class="arrow">→</span></div>
           </div>
           <div class="ad-visual">
-            <div class="ad-image-wrap">
+            <div class="ad-image-container">
               <img src="/modern_printer_service_1776539921760.png" alt="Impresión Profesional" class="ad-main-img" />
-              <div class="ad-img-overlay"></div>
             </div>
           </div>
         </div>
@@ -62,14 +59,14 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
 
       {variant === 'leaderboard' && (
         <div class="ad-leaderboard-layout">
-          <div class="ad-logo-small">
-            <img src="/logo.webp" alt="Veredillas FM" width="30" height="30" />
+          <div class="ad-lb-img">
+            <img src="/modern_printer_service_1776539921760.png" alt="Printer" />
           </div>
-          <div class="ad-text-content">
-            <h3 class="ad-title-small">Impresión Profesional Veredillas</h3>
-            <p class="ad-desc-small">Calidad láser y 3D al mejor precio.</p>
+          <div class="ad-lb-text">
+            <h3 class="ad-title-lb">Impresión Láser y 3D Veredillas</h3>
+            <p class="ad-desc-lb">Resultados profesionales. Visita impresoras.veredillasfm.es</p>
           </div>
-          <div class="ad-cta-small">¡Empieza ya!</div>
+          <div class="ad-cta-lb">Ver servicios</div>
         </div>
       )}
 
@@ -80,8 +77,8 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
           </div>
           <div class="ad-text-sq">
             <h3 class="ad-title-sq">¿Necesitas imprimir?</h3>
-            <p class="ad-desc-sq">Resultados profesionales garantizados.</p>
-            <div class="ad-cta-sq">Ver servicios</div>
+            <p class="ad-desc-sq">Láser, 3D y gran formato con acabado premium.</p>
+            <div class="ad-cta-sq">Saber más</div>
           </div>
         </div>
       )}
@@ -91,28 +88,26 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
           <div class="ad-logo-sky">
             <img src="/logo.webp" alt="VFM" />
           </div>
-          <div class="ad-text-sky">
-             <h2>IMPRIME CON NOSOTROS</h2>
-             <p>Láser, 3D y gran formato.</p>
-          </div>
           <div class="ad-visual-sky">
              <img src="/modern_printer_service_1776539921760.png" alt="Printer" />
           </div>
-          <div class="ad-cta-sky">Saber más</div>
+          <div class="ad-text-sky">
+             <h2>IMPRIME CON NOSOTROS</h2>
+             <p>Calidad industrial a tu alcance.</p>
+          </div>
+          <div class="ad-cta-sky">Ver precios</div>
         </div>
       )}
 
       {variant === 'minimal' && (
         <div class="ad-minimal-layout">
-          <span class="dot"></span>
-          <span>¿Buscas impresión de calidad?</span>
+          <img src="/logo.webp" alt="" class="min-logo" />
+          <span class="min-sep"></span>
+          <span>Impresión Profesional:</span>
           <span class="url">impresoras.veredillasfm.es</span>
         </div>
       )}
     </div>
-
-    <!-- Interactive Layer -->
-    <div class="ad-shine"></div>
   </a>
 </div>
 
@@ -121,19 +116,22 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
   .ad-container {
     --primary: #8b5cf6;
     --secondary: #ec4899;
-    --accent: #0ea5e9;
-    --bg-dark: #09090b;
-    --text-main: #ffffff;
-    --text-dim: rgba(255, 255, 255, 0.7);
+    --bg-dark: #0f0f12;
+    --bg-light: #ffffff;
+    --text-white: #ffffff;
+    --text-black: #1a1a1b;
     
     position: relative;
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    box-sizing: border-box;
-    display: block;
-    width: 100%;
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-dark);
+  }
+
+  .ad-container:hover {
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
   }
 
   .ad-link {
@@ -142,112 +140,45 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
     color: inherit;
     width: 100%;
     height: 100%;
-    position: relative;
-    z-index: 10;
   }
 
   /* Themes */
-  .theme-dark {
-    background: var(--bg-dark);
-    color: var(--text-main);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
   .theme-light {
-    background: #ffffff;
-    color: #1a1a1a;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    --text-main: #1a1a1a;
-    --text-dim: #666;
-  }
-
-  /* Dynamic theme adapts to parent/global */
-  :global([data-theme="light"]) .theme-dynamic {
-    background: #ffffff;
-    color: #1a1a1a;
-    border-color: rgba(0, 0, 0, 0.05);
-    --text-main: #1a1a1a;
-    --text-dim: #666;
+    background: var(--bg-light);
+    color: var(--text-black);
+    border-color: rgba(0,0,0,0.1);
   }
   
-  :global([data-theme="dark"]) .theme-dynamic {
-    background: var(--bg-dark);
-    color: var(--text-main);
-    border-color: rgba(255, 255, 255, 0.1);
+  :global([data-theme="light"]) .theme-dynamic {
+    background: var(--bg-light);
+    color: var(--text-black);
+    border-color: rgba(0,0,0,0.1);
   }
 
-  /* Background Effects */
+  /* Background - More subtle */
   .ad-bg {
     position: absolute;
     inset: 0;
     z-index: 1;
     overflow: hidden;
-    pointer-events: none;
   }
 
-  .ad-blob {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    filter: blur(40px);
-    opacity: 0.15;
-    z-index: 1;
-  }
-
-  .ad-blob-1 {
-    top: -50px;
-    left: -50px;
-    background: var(--primary);
-    animation: blob-float 8s infinite alternate;
-  }
-
-  .ad-blob-2 {
-    bottom: -50px;
-    right: -50px;
-    background: var(--secondary);
-    animation: blob-float 10s infinite alternate-reverse;
-  }
-
-  .ad-grid-pattern {
+  .ad-gradient-overlay {
     position: absolute;
     inset: 0;
-    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 20px 20px;
-    z-index: 0;
+    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), transparent 60%);
   }
 
-  @keyframes blob-float {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(30px, 20px) scale(1.1); }
-  }
-
-  /* Shimmer / Shine */
-  .ad-shine {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.1) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 5;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .ad-container:hover .ad-shine {
-    opacity: 1;
-  }
-
-  /* HERO VARIANT */
+  /* HERO VARIANT - Recalibrated */
   .ad-hero {
-    min-height: 400px;
-    padding: 3rem;
+    min-height: 350px;
+    padding: 2.5rem;
   }
 
   .ad-hero-layout {
     display: grid;
-    grid-template-cols: 1.2fr 1fr;
-    gap: 2rem;
+    grid-template-cols: 1.1fr 1fr;
+    gap: 3rem;
     align-items: center;
     position: relative;
     z-index: 2;
@@ -255,91 +186,78 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
 
   .ad-badge {
     display: inline-block;
-    padding: 0.25rem 0.75rem;
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--primary);
+    font-size: 0.7rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1.5rem;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    opacity: 0.9;
   }
 
   .ad-title {
-    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-size: clamp(1.75rem, 4vw, 3rem);
     font-weight: 900;
     line-height: 1.1;
-    margin-bottom: 1.5rem;
-    letter-spacing: -0.02em;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.03em;
+    color: #fff;
   }
 
+  :global([data-theme="light"]) .theme-dynamic .ad-title { color: var(--text-black); }
+
   .text-gradient {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, #a78bfa, #f472b6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
   }
 
   .ad-desc {
-    font-size: 1.1rem;
-    color: var(--text-dim);
+    font-size: 1rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.6;
     margin-bottom: 2rem;
-    max-width: 400px;
+    max-width: 440px;
   }
+
+  :global([data-theme="light"]) .theme-dynamic .ad-desc { color: #555; }
 
   .ad-cta {
     display: inline-flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 1rem 2rem;
+    padding: 0.85rem 1.75rem;
+    background: #fff;
+    color: #000;
+    font-weight: 800;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+
+  :global([data-theme="light"]) .theme-dynamic .ad-cta {
     background: var(--primary);
-    color: white;
-    font-weight: 700;
-    border-radius: 99px;
-    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.4);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: #fff;
   }
 
   .ad-container:hover .ad-cta {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 15px 30px -5px rgba(139, 92, 246, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
   }
 
-  .ad-visual {
-    position: relative;
-  }
-
-  .ad-image-wrap {
-    position: relative;
+  .ad-image-container {
     border-radius: 12px;
     overflow: hidden;
-    transform: rotate(3deg);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-    transition: transform 0.5s ease;
+    box-shadow: 0 30px 60px -12px rgba(0,0,0,0.5);
+    background: #151518;
   }
 
-  .ad-container:hover .ad-image-wrap {
-    transform: rotate(0deg) scale(1.05);
-  }
+  .ad-main-img { width: 100%; height: auto; display: block; object-fit: cover; }
 
-  .ad-main-img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  .ad-img-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
-  }
-
-  /* LEADERBOARD VARIANT */
+  /* LEADERBOARD - Improved with image */
   .ad-leaderboard {
-    height: 90px;
-    padding: 0 1.5rem;
+    height: 100px;
+    padding: 0 1rem;
   }
 
   .ad-leaderboard-layout {
@@ -351,31 +269,43 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
     z-index: 2;
   }
 
-  .ad-title-small { font-weight: 800; font-size: 1rem; margin: 0; }
-  .ad-desc-small { font-size: 0.85rem; color: var(--text-dim); margin: 0; }
-
-  .ad-cta-small {
-    margin-left: auto;
-    background: var(--primary);
-    color: white;
-    padding: 0.5rem 1.25rem;
+  .ad-lb-img {
+    width: 140px;
+    height: 70px;
     border-radius: 8px;
-    font-weight: 700;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .ad-lb-img img { width: 100%; height: 100%; object-fit: cover; }
+
+  .ad-lb-text { flex: 1; }
+  .ad-title-lb { font-weight: 800; font-size: 1.1rem; margin: 0 0 0.25rem 0; color: #fff; }
+  :global([data-theme="light"]) .theme-dynamic .ad-title-lb { color: var(--text-black); }
+  .ad-desc-lb { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin: 0; }
+  :global([data-theme="light"]) .theme-dynamic .ad-desc-lb { color: #666; }
+
+  .ad-cta-lb {
+    padding: 0.5rem 1.25rem;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 6px;
+    font-weight: 800;
     font-size: 0.8rem;
+    white-space: nowrap;
   }
 
-  /* SQUARE VARIANT */
+  /* SQUARE */
   .ad-square {
     width: 300px;
     height: 250px;
-    padding: 1.25rem;
+    padding: 1rem;
   }
   
   .ad-square-layout {
     display: flex;
     flex-direction: column;
     height: 100%;
-    gap: 1rem;
+    gap: 0.75rem;
     position: relative;
     z-index: 2;
   }
@@ -385,78 +315,38 @@ const currentVariantClass = variantStyles[variant] || variantStyles.hero;
     border-radius: 8px;
     overflow: hidden;
   }
-
   .ad-image-sq img { width: 100%; height: 100%; object-fit: cover; }
+  .ad-title-sq { font-weight: 800; font-size: 1.1rem; margin: 0; color: #fff; }
+  :global([data-theme="light"]) .theme-dynamic .ad-title-sq { color: var(--text-black); }
+  .ad-desc-sq { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin: 0; line-height: 1.4; }
+  .ad-cta-sq { margin-top: auto; background: rgba(255,255,255,0.05); color: #fff; text-align: center; padding: 0.6rem; border-radius: 6px; font-weight: 700; border: 1px solid rgba(255,255,255,0.1); }
+  :global([data-theme="light"]) .theme-dynamic .ad-cta-sq { background: #f3f4f6; color: #111; border-color: rgba(0,0,0,0.05); }
 
-  .ad-title-sq { font-weight: 800; font-size: 1.1rem; margin: 0; }
-  .ad-desc-sq { font-size: 0.9rem; color: var(--text-dim); margin: 0; }
-  .ad-cta-sq { 
-    margin-top: auto; 
-    color: var(--primary); 
-    font-weight: 700; 
-    text-align: center;
-    padding: 0.5rem;
-    border: 1px solid var(--primary);
-    border-radius: 6px;
-  }
-
-  /* SKYSCRAPER VARIANT */
-  .ad-skyscraper {
-    width: 160px;
-    min-height: 500px;
-    padding: 1.5rem 1rem;
-  }
-
-  .ad-skyscraper-layout {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    gap: 1.5rem;
-    text-align: center;
-    position: relative;
-    z-index: 2;
-  }
-
-  .ad-logo-sky img { width: 50px; height: 50px; margin: 0 auto; border-radius: 10px; }
-  .ad-text-sky h2 { font-size: 0.9rem; font-weight: 900; margin-bottom: 0.5rem; }
-  .ad-text-sky p { font-size: 0.75rem; color: var(--text-dim); }
-  .ad-visual-sky { flex: 1; border-radius: 8px; overflow: hidden; max-height: 200px; }
+  /* SKYSCRAPER */
+  .ad-skyscraper { width: 160px; height: 600px; padding: 1.25rem 1rem; }
+  .ad-skyscraper-layout { display: flex; flex-direction: column; height: 100%; gap: 1.25rem; text-align: center; }
+  .ad-logo-sky img { width: 40px; height: 40px; margin: 0 auto; border-radius: 8px; }
+  .ad-visual-sky { flex: 1; border-radius: 6px; overflow: hidden; }
   .ad-visual-sky img { width: 100%; height: 100%; object-fit: cover; }
-  .ad-cta-sky { padding: 0.75rem; background: var(--primary); color: white; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
+  .ad-text-sky h2 { font-size: 0.85rem; font-weight: 900; color: #fff; margin-bottom: 0.5rem; }
+  .ad-text-sky p { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+  .ad-cta-sky { padding: 0.75rem; background: var(--primary); color: #fff; border-radius: 6px; font-weight: 800; font-size: 0.8rem; }
 
-  /* MINIMAL VARIANT */
-  .ad-minimal {
-    padding: 0.5rem 1rem;
-    border-radius: 99px;
-  }
+  /* MINIMAL */
+  .ad-minimal { padding: 0.6rem 1.25rem; border-radius: 30px; }
+  .ad-minimal-layout { display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.6); }
+  :global([data-theme="light"]) .theme-dynamic .ad-minimal-layout { color: #555; }
+  .min-logo { width: 18px; height: 18px; border-radius: 4px; }
+  .min-sep { width: 1px; height: 12px; background: rgba(255,255,255,0.1); }
+  .ad-minimal-layout .url { color: var(--primary); font-weight: 800; }
 
-  .ad-minimal-layout {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-    position: relative;
-    z-index: 2;
-  }
-
-  .ad-minimal-layout .dot {
-    width: 8px; height: 8px; background: var(--primary); border-radius: 50%;
-  }
-
-  .ad-minimal-layout .url {
-    font-weight: 700; color: var(--primary);
-  }
-
-  /* Mobile Tweaks */
   @media (max-width: 768px) {
-    .ad-hero-layout {
-      grid-template-cols: 1fr;
-      text-align: center;
-    }
-    .ad-image-wrap { transform: rotate(0); margin-top: 2rem; }
+    .ad-hero-layout { grid-template-cols: 1fr; gap: 2rem; text-align: center; }
     .ad-desc { margin-left: auto; margin-right: auto; }
-    .ad-leaderboard-layout { flex-wrap: wrap; justify-content: center; height: auto; padding: 1rem 0; }
-    .ad-cta-small { margin-left: 0; width: 100%; text-align: center; margin-top: 1rem; }
+    .ad-leaderboard { height: auto; padding: 1.25rem; }
+    .ad-leaderboard-layout { flex-direction: column; text-align: center; }
+    .ad-lb-img { width: 100%; height: 100px; }
+    .ad-cta-lb { width: 100%; }
   }
 </style>
 
