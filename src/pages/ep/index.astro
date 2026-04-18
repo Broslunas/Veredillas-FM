@@ -251,28 +251,30 @@ const buildNow = new Date();
             </div>
         </header>
 
-        <!-- Ad Placement -->
-        <div class="mb-12">
-            <AdImpresoras variant="leaderboard" />
-        </div>
-
         <div class="episodes-grid" id="episodes-grid">
             {episodesWithMeta.map(({ post, searchContent, participantsStr, tagsStr, durationMin, schoolYear }, index) => {
                  const isUpcomingAtBuildTime = post.data.pubDate > buildNow;
                  return (
-                    <div 
-                        class={`episode-item fade-in-up ${isUpcomingAtBuildTime ? 'is-upcoming-hidden' : ''}`}
-                        data-pub-date={post.data.pubDate.toISOString()}
-                        data-search-content={searchContent}
-                        data-season={post.data.season || 'unknown'}
-                        data-participants={participantsStr}
-                        data-tags={tagsStr}
-                        data-duration-min={durationMin}
-                        data-school-year={schoolYear}
-                        style={`--delay: ${index % 6}; view-transition-name: ep-${post.slug};`}
-                    >
-                         <EpisodeCard post={post} />
-                    </div>
+                    <>
+                        {index === 4 && (
+                            <div class="episodes-grid__ad" aria-hidden="true">
+                                <AdImpresoras variant="leaderboard" />
+                            </div>
+                        )}
+                        <div 
+                            class={`episode-item fade-in-up ${isUpcomingAtBuildTime ? 'is-upcoming-hidden' : ''}`}
+                            data-pub-date={post.data.pubDate.toISOString()}
+                            data-search-content={searchContent}
+                            data-season={post.data.season || 'unknown'}
+                            data-participants={participantsStr}
+                            data-tags={tagsStr}
+                            data-duration-min={durationMin}
+                            data-school-year={schoolYear}
+                            style={`--delay: ${index % 6}; view-transition-name: ep-${post.slug};`}
+                        >
+                             <EpisodeCard post={post} />
+                        </div>
+                    </>
                 );
             })}
         </div>
