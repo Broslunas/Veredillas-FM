@@ -9,6 +9,7 @@ import Newsletter from '../components/Newsletter.astro';
 import TopListenersWidget from '../components/TopListenersWidget.astro';
 import TrendingEpisodes from '../components/TrendingEpisodes.astro';
 import TopClipsWidget from '../components/TopClipsWidget.astro';
+import AdImpresoras from '../components/AdImpresoras.astro';
 import { getCollection } from 'astro:content';
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -183,6 +184,13 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
         </div>
     </section>
 
+    <!-- Ad Hero -->
+    <section class="py-12 gs-fade-up">
+        <div class="container">
+            <AdImpresoras variant="hero" />
+        </div>
+    </section>
+
     <!-- Upcoming Episodes Slider (Conditional) -->
     {upcomingCandidatePool.length > 0 && (
         <section id="upcoming-episodes" class="py-16 md:py-24 overflow-hidden relative border-y border-white/5">
@@ -339,6 +347,11 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
 
     <!-- Newsletter Section -->
     <Newsletter />
+
+    <!-- Ad Leaderboard before final CTA -->
+    <div class="container py-8 gs-fade-up">
+        <AdImpresoras variant="leaderboard" />
+    </div>
 
     <!-- CTA Final -->
     <section class="py-24 md:py-32 text-center relative border-t border-white/5 transition-colors duration-500 hover:bg-primary/5 final-cta">

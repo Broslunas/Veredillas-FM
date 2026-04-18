@@ -7,6 +7,7 @@ import ShareCardGenerator from '../../components/ShareCardGenerator.astro';
 import Comments from '../../components/Comments.astro';
 import SidebarWidget from '../../components/SidebarWidget.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import AdImpresoras from '../../components/AdImpresoras.astro';
 
 export const prerender = true;
 
@@ -123,6 +124,11 @@ const relativeOgImageUrl = entry.data.image || `/logo.webp`;
                 </div>
             </section>
 
+            <!-- Ad Before Comments -->
+            <div class="mb-12 section-fade">
+                <AdImpresoras variant="leaderboard" />
+            </div>
+
             <!-- COMMENTS AREA -->
             <section id="comments-wrapper" class="comments-section mb-20 section-fade">
                 <div class="flex items-center gap-4 mb-8">
@@ -176,6 +182,11 @@ const relativeOgImageUrl = entry.data.image || `/logo.webp`;
                         variant="sidebar"
                     />
                 </SidebarWidget>
+
+                <!-- Ad in Sidebar -->
+                <div class="section-fade">
+                    <AdImpresoras variant="skyscraper" />
+                </div>
 
             </div>
         </aside>

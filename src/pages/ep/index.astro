@@ -3,6 +3,7 @@ export const prerender = true;
 
 import Layout from '../../layouts/Layout.astro';
 import EpisodeCard from '../../components/EpisodeCard.astro';
+import AdImpresoras from '../../components/AdImpresoras.astro';
 import { getCollection } from 'astro:content';
 
 const allEpisodes = await getCollection('episodios');
@@ -249,6 +250,11 @@ const buildNow = new Date();
                 </div>
             </div>
         </header>
+
+        <!-- Ad Placement -->
+        <div class="mb-12">
+            <AdImpresoras variant="leaderboard" />
+        </div>
 
         <div class="episodes-grid" id="episodes-grid">
             {episodesWithMeta.map(({ post, searchContent, participantsStr, tagsStr, durationMin, schoolYear }, index) => {

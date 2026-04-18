@@ -2,6 +2,7 @@
 export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
+import AdImpresoras from '../../components/AdImpresoras.astro';
 
 const posts = await getCollection('blog');
 const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
@@ -53,57 +54,64 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
         <!-- Blog Grid Content using ep/index.astro layout patterns -->
         <div class="episodes-grid" id="blog-grid">
             {sortedPosts.map((post, index) => (
-                <article 
-                    class="episode-item post-item fade-in-up group relative flex flex-col h-full bg-[#131313] backdrop-blur-md rounded-[20px] border border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] hover:border-primary/50"
-                    data-tags={post.data.tags?.join(',') || ''}
-                    style={`--delay: ${index % 6}; view-transition-name: blog-${post.slug};`}
-                >
-                    <a href={`/blog/${post.slug}`} class="flex flex-col h-full">
-                        {post.data.image ? (
-                             <div class="relative w-full aspect-[16/9] overflow-hidden bg-black/20">
-                                <img
-                                    src={post.data.image}
-                                    alt={post.data.title}
-                                    loading="lazy"
-                                    class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
-                                />
-                                {/* Overlay gradient */}
-                                <div class="absolute inset-0 bg-gradient-to-t from-[#131313] via-[#131313]/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
-                            </div>
-                        ) : (
-                            <div class="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                                <span class="text-white/40 font-semibold tracking-widest uppercase">Veredillas FM</span>
-                            </div>
-                        )}
-
-                        <div class="flex flex-col flex-grow p-6">
-                            <div class="flex items-center justify-between mb-3 text-[0.75rem] text-zinc-400 uppercase font-semibold tracking-wider">
-                                <time datetime={post.data.pubDate.toISOString()}>
-                                    {post.data.pubDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                </time>
-                                {post.data.tags && post.data.tags[0] && (
-                                    <span class="text-secondary">
-                                        {post.data.tags[0]}
-                                    </span>
-                                )}
-                            </div>
-
-                            <h3 class="text-xl font-bold text-white mb-3 leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2">
-                                {post.data.title}
-                            </h3>
-
-                            <p class="text-[0.95rem] text-zinc-400 mb-6 line-clamp-3 leading-relaxed flex-grow">
-                                {post.data.description}
-                            </p>
-
-                            <div class="mt-auto flex justify-between items-center pt-4 border-t border-white/5 text-[0.875rem] text-zinc-500 font-semibold">
-                                <span class="text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                    Leer artículo
-                                </span>
-                            </div>
+                <>
+                    {index === 2 && (
+                        <div class="episode-item ad-item is-visible flex items-center justify-center p-4">
+                            <AdImpresoras variant="square" />
                         </div>
-                    </a>
-                </article>
+                    )}
+                    <article 
+                        class="episode-item post-item fade-in-up group relative flex flex-col h-full bg-[#131313] backdrop-blur-md rounded-[20px] border border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] hover:border-primary/50"
+                        data-tags={post.data.tags?.join(',') || ''}
+                        style={`--delay: ${index % 6}; view-transition-name: blog-${post.slug};`}
+                    >
+                        <a href={`/blog/${post.slug}`} class="flex flex-col h-full">
+                            {post.data.image ? (
+                                <div class="relative w-full aspect-[16/9] overflow-hidden bg-black/20">
+                                    <img
+                                        src={post.data.image}
+                                        alt={post.data.title}
+                                        loading="lazy"
+                                        class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
+                                    />
+                                    {/* Overlay gradient */}
+                                    <div class="absolute inset-0 bg-gradient-to-t from-[#131313] via-[#131313]/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
+                                </div>
+                            ) : (
+                                <div class="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                                    <span class="text-white/40 font-semibold tracking-widest uppercase">Veredillas FM</span>
+                                </div>
+                            )}
+
+                            <div class="flex flex-col flex-grow p-6">
+                                <div class="flex items-center justify-between mb-3 text-[0.75rem] text-zinc-400 uppercase font-semibold tracking-wider">
+                                    <time datetime={post.data.pubDate.toISOString()}>
+                                        {post.data.pubDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </time>
+                                    {post.data.tags && post.data.tags[0] && (
+                                        <span class="text-secondary">
+                                            {post.data.tags[0]}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <h3 class="text-xl font-bold text-white mb-3 leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                                    {post.data.title}
+                                </h3>
+
+                                <p class="text-[0.95rem] text-zinc-400 mb-6 line-clamp-3 leading-relaxed flex-grow">
+                                    {post.data.description}
+                                </p>
+
+                                <div class="mt-auto flex justify-between items-center pt-4 border-t border-white/5 text-[0.875rem] text-zinc-500 font-semibold">
+                                    <span class="text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                        Leer artículo
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </article>
+                </>
             ))}
         </div>
         

@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
+import AdImpresoras from '../components/AdImpresoras.astro';
 
 const episodios = await getCollection('episodios');
 
@@ -98,6 +99,11 @@ const tiers = [
           ))}
         </div>
       </section>
+    </div>
+
+    <!-- Ad Section -->
+    <div class="mt-16">
+      <AdImpresoras variant="leaderboard" />
     </div>
   </div>
 

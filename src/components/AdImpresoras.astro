@@ -1,0 +1,462 @@
+---
+/**
+ * AdImpresoras.astro
+ * Componente de anuncio profesional para impresoras.veredillasfm.es
+ * Soporta múltiples layouts: 'leaderboard', 'square', 'skyscraper', 'hero', 'minimal'
+ */
+
+interface Props {
+  variant?: 'leaderboard' | 'square' | 'skyscraper' | 'hero' | 'minimal';
+  class?: string;
+  theme?: 'dark' | 'light' | 'dynamic';
+}
+
+const { 
+  variant = 'hero', 
+  class: className = '',
+  theme = 'dynamic'
+} = Astro.props;
+
+const AD_URL = "https://impresoras.veredillasfm.es";
+
+// Mapping of variants to dimensions/styles
+const variantStyles = {
+  leaderboard: "ad-leaderboard", // 728x90 approx
+  square: "ad-square",           // 300x250 approx
+  skyscraper: "ad-skyscraper",   // 160x600 or 300x600
+  hero: "ad-hero",                 // Large featured area
+  minimal: "ad-minimal"           // Small text-based or icon-based
+};
+
+const currentVariantClass = variantStyles[variant] || variantStyles.hero;
+---
+
+<div class={`ad-container ${currentVariantClass} ${theme === 'dynamic' ? 'theme-dynamic' : `theme-${theme}`} ${className}`} id="ad-impresoras">
+  <a href={AD_URL} target="_blank" rel="noopener noreferrer" class="ad-link hover-3d-card">
+    
+    <!-- Background Elements -->
+    <div class="ad-bg">
+      <div class="ad-blob ad-blob-1"></div>
+      <div class="ad-blob ad-blob-2"></div>
+      <div class="ad-grid-pattern"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="ad-content">
+      {variant === 'hero' && (
+        <div class="ad-hero-layout">
+          <div class="ad-text-content">
+            <span class="ad-badge">Servicio Premium</span>
+            <h2 class="ad-title">Tus proyectos <span class="text-gradient">cobran vida</span></h2>
+            <p class="ad-desc">Impresión láser y 3D de alta precisión con la garantía de Veredillas FM.</p>
+            <div class="ad-cta">Visitar ahora <span class="arrow">→</span></div>
+          </div>
+          <div class="ad-visual">
+            <div class="ad-image-wrap">
+              <img src="/modern_printer_service_1776539921760.png" alt="Impresión Profesional" class="ad-main-img" />
+              <div class="ad-img-overlay"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {variant === 'leaderboard' && (
+        <div class="ad-leaderboard-layout">
+          <div class="ad-logo-small">
+            <img src="/logo.webp" alt="Veredillas FM" width="30" height="30" />
+          </div>
+          <div class="ad-text-content">
+            <h3 class="ad-title-small">Impresión Profesional Veredillas</h3>
+            <p class="ad-desc-small">Calidad láser y 3D al mejor precio.</p>
+          </div>
+          <div class="ad-cta-small">¡Empieza ya!</div>
+        </div>
+      )}
+
+      {variant === 'square' && (
+        <div class="ad-square-layout">
+          <div class="ad-image-sq">
+            <img src="/modern_printer_service_1776539921760.png" alt="Printer" />
+          </div>
+          <div class="ad-text-sq">
+            <h3 class="ad-title-sq">¿Necesitas imprimir?</h3>
+            <p class="ad-desc-sq">Resultados profesionales garantizados.</p>
+            <div class="ad-cta-sq">Ver servicios</div>
+          </div>
+        </div>
+      )}
+
+      {variant === 'skyscraper' && (
+        <div class="ad-skyscraper-layout">
+          <div class="ad-logo-sky">
+            <img src="/logo.webp" alt="VFM" />
+          </div>
+          <div class="ad-text-sky">
+             <h2>IMPRIME CON NOSOTROS</h2>
+             <p>Láser, 3D y gran formato.</p>
+          </div>
+          <div class="ad-visual-sky">
+             <img src="/modern_printer_service_1776539921760.png" alt="Printer" />
+          </div>
+          <div class="ad-cta-sky">Saber más</div>
+        </div>
+      )}
+
+      {variant === 'minimal' && (
+        <div class="ad-minimal-layout">
+          <span class="dot"></span>
+          <span>¿Buscas impresión de calidad?</span>
+          <span class="url">impresoras.veredillasfm.es</span>
+        </div>
+      )}
+    </div>
+
+    <!-- Interactive Layer -->
+    <div class="ad-shine"></div>
+  </a>
+</div>
+
+<style>
+  /* Base Container */
+  .ad-container {
+    --primary: #8b5cf6;
+    --secondary: #ec4899;
+    --accent: #0ea5e9;
+    --bg-dark: #09090b;
+    --text-main: #ffffff;
+    --text-dim: rgba(255, 255, 255, 0.7);
+    
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+  }
+
+  .ad-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Themes */
+  .theme-dark {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .theme-light {
+    background: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    --text-main: #1a1a1a;
+    --text-dim: #666;
+  }
+
+  /* Dynamic theme adapts to parent/global */
+  :global([data-theme="light"]) .theme-dynamic {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-color: rgba(0, 0, 0, 0.05);
+    --text-main: #1a1a1a;
+    --text-dim: #666;
+  }
+  
+  :global([data-theme="dark"]) .theme-dynamic {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Background Effects */
+  .ad-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ad-blob {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.15;
+    z-index: 1;
+  }
+
+  .ad-blob-1 {
+    top: -50px;
+    left: -50px;
+    background: var(--primary);
+    animation: blob-float 8s infinite alternate;
+  }
+
+  .ad-blob-2 {
+    bottom: -50px;
+    right: -50px;
+    background: var(--secondary);
+    animation: blob-float 10s infinite alternate-reverse;
+  }
+
+  .ad-grid-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: 0;
+  }
+
+  @keyframes blob-float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(30px, 20px) scale(1.1); }
+  }
+
+  /* Shimmer / Shine */
+  .ad-shine {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.1) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .ad-container:hover .ad-shine {
+    opacity: 1;
+  }
+
+  /* HERO VARIANT */
+  .ad-hero {
+    min-height: 400px;
+    padding: 3rem;
+  }
+
+  .ad-hero-layout {
+    display: grid;
+    grid-template-cols: 1.2fr 1fr;
+    gap: 2rem;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ad-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+  }
+
+  .ad-title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .ad-desc {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+    max-width: 400px;
+  }
+
+  .ad-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    border-radius: 99px;
+    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .ad-container:hover .ad-cta {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 15px 30px -5px rgba(139, 92, 246, 0.6);
+  }
+
+  .ad-visual {
+    position: relative;
+  }
+
+  .ad-image-wrap {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    transform: rotate(3deg);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    transition: transform 0.5s ease;
+  }
+
+  .ad-container:hover .ad-image-wrap {
+    transform: rotate(0deg) scale(1.05);
+  }
+
+  .ad-main-img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ad-img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
+  }
+
+  /* LEADERBOARD VARIANT */
+  .ad-leaderboard {
+    height: 90px;
+    padding: 0 1.5rem;
+  }
+
+  .ad-leaderboard-layout {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 1.5rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ad-title-small { font-weight: 800; font-size: 1rem; margin: 0; }
+  .ad-desc-small { font-size: 0.85rem; color: var(--text-dim); margin: 0; }
+
+  .ad-cta-small {
+    margin-left: auto;
+    background: var(--primary);
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+
+  /* SQUARE VARIANT */
+  .ad-square {
+    width: 300px;
+    height: 250px;
+    padding: 1.25rem;
+  }
+  
+  .ad-square-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 1rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ad-image-sq {
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .ad-image-sq img { width: 100%; height: 100%; object-fit: cover; }
+
+  .ad-title-sq { font-weight: 800; font-size: 1.1rem; margin: 0; }
+  .ad-desc-sq { font-size: 0.9rem; color: var(--text-dim); margin: 0; }
+  .ad-cta-sq { 
+    margin-top: auto; 
+    color: var(--primary); 
+    font-weight: 700; 
+    text-align: center;
+    padding: 0.5rem;
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+  }
+
+  /* SKYSCRAPER VARIANT */
+  .ad-skyscraper {
+    width: 160px;
+    min-height: 500px;
+    padding: 1.5rem 1rem;
+  }
+
+  .ad-skyscraper-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 1.5rem;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ad-logo-sky img { width: 50px; height: 50px; margin: 0 auto; border-radius: 10px; }
+  .ad-text-sky h2 { font-size: 0.9rem; font-weight: 900; margin-bottom: 0.5rem; }
+  .ad-text-sky p { font-size: 0.75rem; color: var(--text-dim); }
+  .ad-visual-sky { flex: 1; border-radius: 8px; overflow: hidden; max-height: 200px; }
+  .ad-visual-sky img { width: 100%; height: 100%; object-fit: cover; }
+  .ad-cta-sky { padding: 0.75rem; background: var(--primary); color: white; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
+
+  /* MINIMAL VARIANT */
+  .ad-minimal {
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+  }
+
+  .ad-minimal-layout {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ad-minimal-layout .dot {
+    width: 8px; height: 8px; background: var(--primary); border-radius: 50%;
+  }
+
+  .ad-minimal-layout .url {
+    font-weight: 700; color: var(--primary);
+  }
+
+  /* Mobile Tweaks */
+  @media (max-width: 768px) {
+    .ad-hero-layout {
+      grid-template-cols: 1fr;
+      text-align: center;
+    }
+    .ad-image-wrap { transform: rotate(0); margin-top: 2rem; }
+    .ad-desc { margin-left: auto; margin-right: auto; }
+    .ad-leaderboard-layout { flex-wrap: wrap; justify-content: center; height: auto; padding: 1rem 0; }
+    .ad-cta-small { margin-left: 0; width: 100%; text-align: center; margin-top: 1rem; }
+  }
+</style>
+
