@@ -1,352 +1,438 @@
 ---
 /**
- * AdImpresoras.astro
- * Componente de anuncio profesional para impresoras.veredillasfm.es
- * Soporta múltiples layouts: 'leaderboard', 'square', 'skyscraper', 'hero', 'minimal'
+ * AdImpresoras.astro — Bambu Lab Studio @ Veredillas FM
+ * Variantes: hero | leaderboard | square | skyscraper | minimal
  */
-
 interface Props {
-  variant?: 'leaderboard' | 'square' | 'skyscraper' | 'hero' | 'minimal';
+  variant?: 'hero' | 'leaderboard' | 'square' | 'skyscraper' | 'minimal';
   class?: string;
-  theme?: 'dark' | 'light' | 'dynamic';
 }
 
-const { 
-  variant = 'hero', 
-  class: className = '',
-  theme = 'dynamic'
-} = Astro.props;
-
-const AD_URL = "https://impresoras.veredillasfm.es";
-
-// Mapping of variants to dimensions/styles
-const variantStyles = {
-  leaderboard: "ad-leaderboard", // 728x90 approx
-  square: "ad-square",           // 300x250 approx
-  skyscraper: "ad-skyscraper",   // 160x600 or 300x600
-  hero: "ad-hero",                 // Large featured area
-  minimal: "ad-minimal"           // Small text-based or icon-based
-};
-
-const currentVariantClass = variantStyles[variant] || variantStyles.hero;
+const { variant = 'leaderboard', class: className = '' } = Astro.props;
+const URL = 'https://impresoras.veredillasfm.es';
 ---
 
-<div class={`ad-container ${currentVariantClass} ${theme === 'dynamic' ? 'theme-dynamic' : `theme-${theme}`} ${className}`} id="ad-impresoras">
-  <a href={AD_URL} target="_blank" rel="noopener noreferrer" class="ad-link">
-    
-    <!-- Background Elements - Subtler -->
-    <div class="ad-bg">
-      <div class="ad-gradient-overlay"></div>
-    </div>
-
-    <!-- Content -->
-    <div class="ad-content">
-      {variant === 'hero' && (
-        <div class="ad-hero-layout">
-          <div class="ad-text-content">
-            <span class="ad-badge">Servicio de Impresión Profesional</span>
-            <h2 class="ad-title">Calidad que puedes <span class="text-gradient">tocar</span></h2>
-            <p class="ad-desc">Desde documentos impecables hasta prototipos 3D. Rapidez y precisión para tus proyectos más exigentes.</p>
-            <div class="ad-cta">Empezar ahora <span class="arrow">→</span></div>
-          </div>
-          <div class="ad-visual">
-            <div class="ad-image-container">
-              <img src="/ad-printer.png" alt="Impresión Profesional" class="ad-main-img" />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {variant === 'leaderboard' && (
-        <div class="ad-leaderboard-layout">
-          <div class="ad-lb-img">
-            <img src="/ad-printer.png" alt="Printer" />
-          </div>
-          <div class="ad-lb-text">
-            <h3 class="ad-title-lb">Impresión Láser y 3D Veredillas</h3>
-            <p class="ad-desc-lb">Resultados profesionales. Visita impresoras.veredillasfm.es</p>
-          </div>
-          <div class="ad-cta-lb">Ver servicios</div>
-        </div>
-      )}
-
-      {variant === 'square' && (
-        <div class="ad-square-layout">
-          <div class="ad-image-sq">
-            <img src="/ad-printer.png" alt="Printer" />
-          </div>
-          <div class="ad-text-sq">
-            <h3 class="ad-title-sq">¿Necesitas imprimir?</h3>
-            <p class="ad-desc-sq">Láser, 3D y gran formato con acabado premium.</p>
-            <div class="ad-cta-sq">Saber más</div>
-          </div>
-        </div>
-      )}
-
-      {variant === 'skyscraper' && (
-        <div class="ad-skyscraper-layout">
-          <div class="ad-logo-sky">
-            <img src="/logo.webp" alt="VFM" />
-          </div>
-          <div class="ad-visual-sky">
-             <img src="/ad-printer.png" alt="Printer" />
-          </div>
-          <div class="ad-text-sky">
-             <h2>IMPRIME CON NOSOTROS</h2>
-             <p>Calidad industrial a tu alcance.</p>
-          </div>
-          <div class="ad-cta-sky">Ver precios</div>
-        </div>
-      )}
-
-      {variant === 'minimal' && (
-        <div class="ad-minimal-layout">
-          <img src="/logo.webp" alt="" class="min-logo" />
-          <span class="min-sep"></span>
-          <span>Impresión Profesional:</span>
-          <span class="url">impresoras.veredillasfm.es</span>
-        </div>
-      )}
+{variant === 'hero' && (
+  <a href={URL} target="_blank" rel="noopener noreferrer" class={`ad-hero ${className}`}>
+    <div class="ad-hero__inner">
+      <div class="ad-hero__content">
+        <span class="ad-hero__tag">🖨️ Bambu Lab Studio</span>
+        <h2 class="ad-hero__title">Impresión 3D <br/>de alta precisión</h2>
+        <p class="ad-hero__desc">Lleva tus ideas al mundo físico con la tecnología más avanzada. Rápido, preciso y asequible.</p>
+        <span class="ad-hero__btn">Solicitar impresión <span>→</span></span>
+      </div>
+      <div class="ad-hero__visual">
+        <img src="/ad-printer.png" alt="Bambu Lab 3D Printer" class="ad-hero__img" />
+        <div class="ad-hero__pill">impresoras.veredillasfm.es</div>
+      </div>
     </div>
   </a>
-</div>
+)}
+
+{variant === 'leaderboard' && (
+  <a href={URL} target="_blank" rel="noopener noreferrer" class={`ad-lb ${className}`}>
+    <div class="ad-lb__img-wrap">
+      <img src="/ad-printer.png" alt="Bambu Lab" />
+    </div>
+    <div class="ad-lb__divider"></div>
+    <div class="ad-lb__body">
+      <span class="ad-lb__tag">Bambu Lab Studio</span>
+      <p class="ad-lb__title">Impresión 3D en el IES Veredillas</p>
+    </div>
+    <span class="ad-lb__cta">Ver catálogo →</span>
+  </a>
+)}
+
+{variant === 'square' && (
+  <a href={URL} target="_blank" rel="noopener noreferrer" class={`ad-sq ${className}`}>
+    <div class="ad-sq__img-wrap">
+      <img src="/ad-printer.png" alt="Bambu Lab" />
+      <div class="ad-sq__overlay">
+        <span class="ad-sq__tag">Bambu Lab Studio</span>
+      </div>
+    </div>
+    <div class="ad-sq__body">
+      <p class="ad-sq__title">¿Necesitas <strong>impresión 3D</strong>?</p>
+      <p class="ad-sq__desc">Precisión industrial, entrega rápida.</p>
+      <span class="ad-sq__btn">Empezar →</span>
+    </div>
+  </a>
+)}
+
+{variant === 'skyscraper' && (
+  <a href={URL} target="_blank" rel="noopener noreferrer" class={`ad-sky ${className}`}>
+    <div class="ad-sky__logo">
+      <img src="/logo.webp" alt="Veredillas FM" />
+    </div>
+    <div class="ad-sky__img">
+      <img src="/ad-printer.png" alt="Bambu Lab" />
+    </div>
+    <div class="ad-sky__body">
+      <p class="ad-sky__title">Bambu Lab Studio</p>
+      <p class="ad-sky__sub">Impresión 3D de alta gama en el Veredillas</p>
+    </div>
+    <span class="ad-sky__btn">Solicitar 3D</span>
+    <span class="ad-sky__url">impresoras.veredillasfm.es</span>
+  </a>
+)}
+
+{variant === 'minimal' && (
+  <a href={URL} target="_blank" rel="noopener noreferrer" class={`ad-min ${className}`}>
+    <img src="/logo.webp" alt="" class="ad-min__logo" />
+    <span class="ad-min__text">Bambu Lab Studio</span>
+    <span class="ad-min__sep">·</span>
+    <span class="ad-min__url">impresoras.veredillasfm.es</span>
+    <span class="ad-min__arrow">→</span>
+  </a>
+)}
 
 <style>
-  /* Base Container */
-  .ad-container {
-    --primary: #8b5cf6;
-    --secondary: #ec4899;
-    --bg-dark: #0f0f12;
-    --bg-light: #ffffff;
-    --text-white: #ffffff;
-    --text-black: #1a1a1b;
-    
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: var(--bg-dark);
+  /* ─── SHARED TOKENS ─────────────────────────────────────── */
+  :root {
+    --ad-accent: #00c896;
+    --ad-accent-dark: #00a57c;
+    --ad-bg: #0d0d10;
+    --ad-border: rgba(255,255,255,0.07);
+    --ad-text: #f0f0f0;
+    --ad-muted: rgba(240,240,240,0.5);
+    --ad-font: 'Inter', 'Outfit', system-ui, sans-serif;
+    --ad-radius: 14px;
   }
 
-  .ad-container:hover {
-    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
-  }
-
-  .ad-link {
+  /* ─── HERO ───────────────────────────────────────────────── */
+  .ad-hero {
     display: block;
     text-decoration: none;
-    color: inherit;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* Themes */
-  .theme-light {
-    background: var(--bg-light);
-    color: var(--text-black);
-    border-color: rgba(0,0,0,0.1);
-  }
-  
-  :global([data-theme="light"]) .theme-dynamic {
-    background: var(--bg-light);
-    color: var(--text-black);
-    border-color: rgba(0,0,0,0.1);
-  }
-
-  /* Background - More subtle */
-  .ad-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
+    background: linear-gradient(115deg, #0d0d10 0%, #111317 100%);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius);
     overflow: hidden;
+    font-family: var(--ad-font);
+    transition: border-color 0.25s, box-shadow 0.25s;
   }
-
-  .ad-gradient-overlay {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), transparent 60%);
+  .ad-hero:hover {
+    border-color: rgba(0, 200, 150, 0.3);
+    box-shadow: 0 0 0 1px rgba(0,200,150,0.1), 0 24px 48px rgba(0,0,0,0.4);
   }
-
-  /* HERO VARIANT - Recalibrated */
-  .ad-hero {
-    min-height: 350px;
-    padding: 2.5rem;
-  }
-
-  .ad-hero-layout {
+  .ad-hero__inner {
     display: grid;
-    grid-template-cols: 1.1fr 1fr;
-    gap: 3rem;
+    grid-template-columns: 1fr 340px;
     align-items: center;
-    position: relative;
-    z-index: 2;
+    gap: 0;
   }
-
-  .ad-badge {
-    display: inline-block;
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--primary);
-    margin-bottom: 1rem;
-    opacity: 0.9;
+  .ad-hero__content {
+    padding: 2.25rem 2.5rem;
   }
-
-  .ad-title {
-    font-size: clamp(1.75rem, 4vw, 3rem);
-    font-weight: 900;
-    line-height: 1.1;
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.03em;
-    color: #fff;
-  }
-
-  :global([data-theme="light"]) .theme-dynamic .ad-title { color: var(--text-black); }
-
-  .text-gradient {
-    background: linear-gradient(135deg, #a78bfa, #f472b6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .ad-desc {
-    font-size: 1rem;
-    color: rgba(255,255,255,0.6);
-    line-height: 1.6;
-    margin-bottom: 2rem;
-    max-width: 440px;
-  }
-
-  :global([data-theme="light"]) .theme-dynamic .ad-desc { color: #555; }
-
-  .ad-cta {
+  .ad-hero__tag {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem 1.75rem;
-    background: #fff;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ad-accent);
+    background: rgba(0,200,150,0.08);
+    border: 1px solid rgba(0,200,150,0.2);
+    border-radius: 99px;
+    padding: 0.25rem 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .ad-hero__title {
+    font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    color: var(--ad-text);
+    margin: 0 0 1rem 0;
+  }
+  .ad-hero__desc {
+    font-size: 0.95rem;
+    color: var(--ad-muted);
+    line-height: 1.6;
+    margin: 0 0 1.75rem 0;
+    max-width: 380px;
+  }
+  .ad-hero__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    background: var(--ad-accent);
     color: #000;
     font-weight: 800;
+    font-size: 0.85rem;
     border-radius: 8px;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
+    transition: background 0.2s, transform 0.2s;
   }
-
-  :global([data-theme="light"]) .theme-dynamic .ad-cta {
-    background: var(--primary);
-    color: #fff;
-  }
-
-  .ad-container:hover .ad-cta {
+  .ad-hero:hover .ad-hero__btn {
+    background: var(--ad-accent-dark);
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
   }
-
-  .ad-image-container {
-    border-radius: 12px;
+  .ad-hero__visual {
+    position: relative;
+    height: 220px;
     overflow: hidden;
-    box-shadow: 0 30px 60px -12px rgba(0,0,0,0.5);
-    background: #151518;
+    border-left: 1px solid var(--ad-border);
+  }
+  .ad-hero__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .ad-hero:hover .ad-hero__img { transform: scale(1.04); }
+  .ad-hero__pill {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    color: rgba(255,255,255,0.7);
+    font-size: 0.65rem;
+    font-weight: 600;
+    font-family: var(--ad-font);
+    padding: 0.3rem 0.75rem;
+    border-radius: 99px;
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.1);
   }
 
-  .ad-main-img { width: 100%; height: auto; display: block; object-fit: cover; }
-
-  /* LEADERBOARD - Improved with image */
-  .ad-leaderboard {
-    height: 100px;
-    padding: 0 1rem;
-  }
-
-  .ad-leaderboard-layout {
+  /* ─── LEADERBOARD ───────────────────────────────────────── */
+  .ad-lb {
     display: flex;
     align-items: center;
-    height: 100%;
-    gap: 1.5rem;
-    position: relative;
-    z-index: 2;
+    gap: 1rem;
+    text-decoration: none;
+    background: #0d0d10;
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius);
+    padding: 0.75rem 1.25rem 0.75rem 0.75rem;
+    font-family: var(--ad-font);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    overflow: hidden;
   }
-
-  .ad-lb-img {
-    width: 140px;
-    height: 70px;
+  .ad-lb:hover {
+    border-color: rgba(0,200,150,0.3);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .ad-lb__img-wrap {
+    width: 100px;
+    height: 64px;
     border-radius: 8px;
     overflow: hidden;
     flex-shrink: 0;
   }
-  .ad-lb-img img { width: 100%; height: 100%; object-fit: cover; }
-
-  .ad-lb-text { flex: 1; }
-  .ad-title-lb { font-weight: 800; font-size: 1.1rem; margin: 0 0 0.25rem 0; color: #fff; }
-  :global([data-theme="light"]) .theme-dynamic .ad-title-lb { color: var(--text-black); }
-  .ad-desc-lb { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin: 0; }
-  :global([data-theme="light"]) .theme-dynamic .ad-desc-lb { color: #666; }
-
-  .ad-cta-lb {
-    padding: 0.5rem 1.25rem;
-    background: var(--primary);
-    color: #fff;
-    border-radius: 6px;
+  .ad-lb__img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .ad-lb__divider {
+    width: 1px;
+    height: 36px;
+    background: var(--ad-border);
+    flex-shrink: 0;
+  }
+  .ad-lb__body { flex: 1; min-width: 0; }
+  .ad-lb__tag {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ad-accent);
+    margin-bottom: 0.2rem;
+  }
+  .ad-lb__title {
+    font-size: 0.95rem;
     font-weight: 800;
-    font-size: 0.8rem;
+    color: var(--ad-text);
+    margin: 0;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+  .ad-lb__cta {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--ad-accent);
+    white-space: nowrap;
+    transition: letter-spacing 0.2s;
+  }
+  .ad-lb:hover .ad-lb__cta { letter-spacing: 0.02em; }
 
-  /* SQUARE */
-  .ad-square {
-    width: 300px;
-    height: 250px;
-    padding: 1rem;
-  }
-  
-  .ad-square-layout {
+  /* ─── SQUARE ────────────────────────────────────────────── */
+  .ad-sq {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    gap: 0.75rem;
-    position: relative;
-    z-index: 2;
+    text-decoration: none;
+    background: #0d0d10;
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius);
+    overflow: hidden;
+    font-family: var(--ad-font);
+    width: 280px;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
-
-  .ad-image-sq {
-    height: 120px;
-    border-radius: 8px;
+  .ad-sq:hover {
+    border-color: rgba(0,200,150,0.3);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+  }
+  .ad-sq__img-wrap {
+    position: relative;
+    height: 140px;
     overflow: hidden;
   }
-  .ad-image-sq img { width: 100%; height: 100%; object-fit: cover; }
-  .ad-title-sq { font-weight: 800; font-size: 1.1rem; margin: 0; color: #fff; }
-  :global([data-theme="light"]) .theme-dynamic .ad-title-sq { color: var(--text-black); }
-  .ad-desc-sq { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin: 0; line-height: 1.4; }
-  .ad-cta-sq { margin-top: auto; background: rgba(255,255,255,0.05); color: #fff; text-align: center; padding: 0.6rem; border-radius: 6px; font-weight: 700; border: 1px solid rgba(255,255,255,0.1); }
-  :global([data-theme="light"]) .theme-dynamic .ad-cta-sq { background: #f3f4f6; color: #111; border-color: rgba(0,0,0,0.05); }
+  .ad-sq__img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+  .ad-sq:hover .ad-sq__img-wrap img { transform: scale(1.05); }
+  .ad-sq__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(13,13,16,0.8) 0%, transparent 60%);
+    display: flex;
+    align-items: flex-end;
+    padding: 0.75rem;
+  }
+  .ad-sq__tag {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ad-accent);
+    background: rgba(0,200,150,0.1);
+    border: 1px solid rgba(0,200,150,0.25);
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+  }
+  .ad-sq__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 1rem;
+    gap: 0.4rem;
+  }
+  .ad-sq__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ad-text);
+    margin: 0;
+    line-height: 1.3;
+  }
+  .ad-sq__title strong { color: var(--ad-accent); font-weight: 900; }
+  .ad-sq__desc {
+    font-size: 0.8rem;
+    color: var(--ad-muted);
+    margin: 0;
+  }
+  .ad-sq__btn {
+    margin-top: auto;
+    display: block;
+    text-align: center;
+    padding: 0.55rem;
+    background: var(--ad-accent);
+    color: #000;
+    font-weight: 800;
+    font-size: 0.8rem;
+    border-radius: 7px;
+    transition: background 0.2s;
+  }
+  .ad-sq:hover .ad-sq__btn { background: var(--ad-accent-dark); }
 
-  /* SKYSCRAPER */
-  .ad-skyscraper { width: 160px; height: 600px; padding: 1.25rem 1rem; }
-  .ad-skyscraper-layout { display: flex; flex-direction: column; height: 100%; gap: 1.25rem; text-align: center; }
-  .ad-logo-sky img { width: 40px; height: 40px; margin: 0 auto; border-radius: 8px; }
-  .ad-visual-sky { flex: 1; border-radius: 6px; overflow: hidden; }
-  .ad-visual-sky img { width: 100%; height: 100%; object-fit: cover; }
-  .ad-text-sky h2 { font-size: 0.85rem; font-weight: 900; color: #fff; margin-bottom: 0.5rem; }
-  .ad-text-sky p { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
-  .ad-cta-sky { padding: 0.75rem; background: var(--primary); color: #fff; border-radius: 6px; font-weight: 800; font-size: 0.8rem; }
+  /* ─── SKYSCRAPER ────────────────────────────────────────── */
+  .ad-sky {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    background: #0d0d10;
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius);
+    padding: 1.25rem 1rem;
+    gap: 1rem;
+    font-family: var(--ad-font);
+    width: 160px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .ad-sky:hover { border-color: rgba(0,200,150,0.3); }
+  .ad-sky__logo img { width: 36px; height: 36px; border-radius: 8px; }
+  .ad-sky__img {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    flex: 1;
+    max-height: 280px;
+  }
+  .ad-sky__img img { width: 100%; height: 100%; object-fit: cover; }
+  .ad-sky__body {}
+  .ad-sky__title {
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: var(--ad-text);
+    margin: 0 0 0.3rem;
+    line-height: 1.2;
+  }
+  .ad-sky__sub {
+    font-size: 0.72rem;
+    color: var(--ad-muted);
+    margin: 0;
+    line-height: 1.4;
+  }
+  .ad-sky__btn {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    background: var(--ad-accent);
+    color: #000;
+    font-weight: 800;
+    font-size: 0.78rem;
+    border-radius: 7px;
+    transition: background 0.2s;
+  }
+  .ad-sky:hover .ad-sky__btn { background: var(--ad-accent-dark); }
+  .ad-sky__url {
+    font-size: 0.6rem;
+    color: var(--ad-muted);
+    word-break: break-all;
+  }
 
-  /* MINIMAL */
-  .ad-minimal { padding: 0.6rem 1.25rem; border-radius: 30px; }
-  .ad-minimal-layout { display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.6); }
-  :global([data-theme="light"]) .theme-dynamic .ad-minimal-layout { color: #555; }
-  .min-logo { width: 18px; height: 18px; border-radius: 4px; }
-  .min-sep { width: 1px; height: 12px; background: rgba(255,255,255,0.1); }
-  .ad-minimal-layout .url { color: var(--primary); font-weight: 800; }
+  /* ─── MINIMAL ───────────────────────────────────────────── */
+  .ad-min {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--ad-border);
+    border-radius: 99px;
+    padding: 0.45rem 1rem 0.45rem 0.5rem;
+    font-family: var(--ad-font);
+    font-size: 0.8rem;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .ad-min:hover {
+    border-color: rgba(0,200,150,0.3);
+    background: rgba(0,200,150,0.05);
+  }
+  .ad-min__logo { width: 20px; height: 20px; border-radius: 50%; }
+  .ad-min__text { font-weight: 700; color: var(--ad-text); }
+  .ad-min__sep { color: var(--ad-muted); }
+  .ad-min__url { color: var(--ad-accent); font-weight: 600; }
+  .ad-min__arrow { color: var(--ad-muted); font-size: 0.75rem; transition: transform 0.2s; }
+  .ad-min:hover .ad-min__arrow { transform: translateX(3px); }
 
+  /* ─── RESPONSIVE ────────────────────────────────────────── */
   @media (max-width: 768px) {
-    .ad-hero-layout { grid-template-cols: 1fr; gap: 2rem; text-align: center; }
-    .ad-desc { margin-left: auto; margin-right: auto; }
-    .ad-leaderboard { height: auto; padding: 1.25rem; }
-    .ad-leaderboard-layout { flex-direction: column; text-align: center; }
-    .ad-lb-img { width: 100%; height: 100px; }
-    .ad-cta-lb { width: 100%; }
+    .ad-hero__inner { grid-template-columns: 1fr; }
+    .ad-hero__visual { height: 180px; border-left: none; border-top: 1px solid var(--ad-border); }
+    .ad-hero__content { padding: 1.75rem; }
+    .ad-hero__title { font-size: 1.5rem; }
+
+    .ad-lb { flex-wrap: wrap; }
+    .ad-lb__img-wrap { width: 80px; height: 52px; }
+    .ad-lb__divider { display: none; }
+
+    .ad-sq { width: 100%; }
   }
 </style>
-
