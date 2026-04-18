@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 
-import { getUserFromCookie } from '../../../lib/auth';
+import { getUserFromCookie, syncSpotifyEpisodes } from '../../../lib/auth';
 import dbConnect from '../../../lib/mongodb';
 import User from '../../../models/User';
 import crypto from 'crypto';
@@ -57,6 +57,17 @@ export const GET: APIRoute = async ({ request }) => {
       user.maxStreak = maxStreak;
       user.lastActiveAt = lastActiveAt;
       await user.save();
+    }
+
+    // [NUEVO] Sincronizar episodios de Spotify en segundo plano si es usuario de Spotify
+    if (user.spotifyId) {
+      try {
+        // No bloqueamos excesivamente la respuesta del perfil, pero intentamos sincronizar
+        // syncSpotifyEpisodes ya tiene su propio rate-limit interno de 15 min
+        await syncSpotifyEpisodes(user._id.toString());
+      } catch (syncError) {
+        console.error('Error in background Spotify sync:', syncError);
+      }
     }
 
     return new Response(JSON.stringify({ 

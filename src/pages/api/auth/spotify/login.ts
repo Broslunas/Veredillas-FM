@@ -20,7 +20,7 @@ export const GET: APIRoute = async ({ redirect, url }) => {
   spotifyAuthUrl.searchParams.set('client_id', SPOTIFY_CLIENT_ID);
   spotifyAuthUrl.searchParams.set('redirect_uri', redirectUri);
   spotifyAuthUrl.searchParams.set('response_type', 'code');
-  spotifyAuthUrl.searchParams.set('scope', 'user-read-private user-read-email user-library-modify');
+  spotifyAuthUrl.searchParams.set('scope', 'user-read-private user-read-email user-library-modify user-library-read');
   spotifyAuthUrl.searchParams.set('show_dialog', 'true');
 
   return redirect(spotifyAuthUrl.toString());

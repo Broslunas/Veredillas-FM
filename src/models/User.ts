@@ -4,6 +4,10 @@ export interface IUser extends mongoose.Document {
   _id: mongoose.Types.ObjectId;
   googleId?: string;
   spotifyId?: string;
+  spotifyAccessToken?: string;
+  spotifyRefreshToken?: string;
+  spotifyTokenExpiresAt?: Date;
+  lastSpotifySync?: Date;
   email: string;
   name: string;
   picture?: string;
@@ -59,6 +63,10 @@ const userSchema = new mongoose.Schema<IUser>({
     unique: true,
     index: true
   },
+  spotifyAccessToken: String,
+  spotifyRefreshToken: String,
+  spotifyTokenExpiresAt: Date,
+  lastSpotifySync: Date,
   email: {
     type: String,
     required: true,

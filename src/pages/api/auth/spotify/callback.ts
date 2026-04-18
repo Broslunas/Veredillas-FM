@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { exchangeSpotifyCode, getSpotifyUserInfo, generateToken, followSpotifyShow } from '../../../../lib/auth';
+import { exchangeSpotifyCode, getSpotifyUserInfo, generateToken, followSpotifyShow, syncSpotifyEpisodes } from '../../../../lib/auth';
 import User from '../../../../models/User';
 import { createHash } from 'crypto';
 import { calculateStreakUpdate } from '../../../../lib/streak';
@@ -34,14 +34,14 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
 
     // Intercambiar el código por el access token
     const redirectUri = import.meta.env.SPOTIFY_REDIRECT_URI || `${url.origin}/api/auth/spotify/callback`;
-    const accessToken = await exchangeSpotifyCode(code, redirectUri);
+    const tokenData = await exchangeSpotifyCode(code, redirectUri);
+    const accessToken = tokenData.access_token;
 
     // [NUEVO] Seguir automáticamente el podcast oficial de Veredillas FM
     try {
       await followSpotifyShow(accessToken, VEREDILLAS_PODCAST_ID);
     } catch (followError) {
       console.error('Error following podcast:', followError);
-      // No bloqueamos el login si falla seguir el podcast
     }
 
     // Obtener información del usuario de Spotify
@@ -98,6 +98,9 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       // Crear nuevo usuario
       user = await User.create({
         spotifyId: spotifyUser.id,
+        spotifyAccessToken: tokenData.access_token,
+        spotifyRefreshToken: tokenData.refresh_token,
+        spotifyTokenExpiresAt: new Date(now.getTime() + (tokenData.expires_in || 3600) * 1000),
         email: spotifyUser.email,
         name: spotifyUser.display_name || spotifyUser.id,
         picture: userPicture,
@@ -130,6 +133,13 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
       if (!user.spotifyId || user.spotifyId !== spotifyUser.id) {
         user.spotifyId = spotifyUser.id;
       }
+      
+      // Actualizar tokens siempre
+      user.spotifyAccessToken = tokenData.access_token;
+      if (tokenData.refresh_token) {
+        user.spotifyRefreshToken = tokenData.refresh_token;
+      }
+      user.spotifyTokenExpiresAt = new Date(now.getTime() + (tokenData.expires_in || 3600) * 1000);
 
       // --- STREAK LOGIC FOR LOGIN EVENT ---
       const { currentStreak, maxStreak, lastActiveAt, updated } = calculateStreakUpdate(
@@ -149,6 +159,13 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         user.picture = userPicture;
       }
       await user.save();
+    }
+
+    // [NUEVO] Sincronizar episodios inteligentes de Spotify
+    try {
+      await syncSpotifyEpisodes(user._id.toString());
+    } catch (syncError) {
+      console.error('Error syncing Spotify episodes:', syncError);
     }
 
     // Generar JWT token
