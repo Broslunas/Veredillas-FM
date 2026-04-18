@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import dbConnect from '../lib/mongodb';
 import Comment from '../models/Comment';
+import { notifyNewComment } from '../lib/notifications';
 
 export const prerender = false;
 
@@ -20,6 +21,9 @@ if (token) {
       comment.isVerified = true;
       comment.verificationToken = undefined; // Remove token to prevent reuse
       await comment.save();
+      
+      // Notify about the new verified comment
+      await notifyNewComment(comment);
       
       success = true;
       message = '¡Tu comentario ha sido verificado correctamente!';

@@ -3,6 +3,7 @@ import dbConnect from '../../../lib/mongodb';
 import Comment from '../../../models/Comment';
 import crypto from 'node:crypto';
 import { getUserFromCookie } from '../../../lib/auth';
+import { notifyNewComment } from '../../../lib/notifications';
 
 export const prerender = false;
 
@@ -159,6 +160,9 @@ export const POST: APIRoute = async ({ params, request }) => {
     }
 
     if (isAuthenticated) {
+        // Trigger notifications for authenticated users
+        await notifyNewComment(comment);
+
         return new Response(JSON.stringify({ 
             success: true, 
             message: 'Comment published successfully.', 
@@ -192,6 +196,9 @@ export const POST: APIRoute = async ({ params, request }) => {
         } catch (webhookError) {
             console.error('Webhook dispatch failed:', webhookError);
         }
+
+        // Notify admin about pending comment
+        await notifyNewComment(comment, true);
         
         return new Response(JSON.stringify({ 
             success: true, 
