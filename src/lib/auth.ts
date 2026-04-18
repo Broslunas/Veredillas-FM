@@ -104,3 +104,50 @@ export async function getGoogleUserInfo(accessToken: string) {
 
   return await response.json();
 }
+
+/**
+ * Exchange Spotify OAuth code for user info
+ */
+export async function exchangeSpotifyCode(code: string, redirectUri: string) {
+  const tokenUrl = 'https://accounts.spotify.com/api/token';
+  
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + Buffer.from((import.meta.env.SPOTIFY_CLIENT_ID || '') + ':' + (import.meta.env.SPOTIFY_CLIENT_SECRET || '')).toString('base64')
+    },
+    body: new URLSearchParams({
+      code,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code',
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Spotify token exchange error:', errorData);
+    throw new Error('Failed to exchange code for token');
+  }
+
+  const data = await response.json();
+  return data.access_token;
+}
+
+/**
+ * Get Spotify user info from access token
+ */
+export async function getSpotifyUserInfo(accessToken: string) {
+  const response = await fetch('https://api.spotify.com/v1/me', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get user info from Spotify');
+  }
+
+  return await response.json();
+}
+

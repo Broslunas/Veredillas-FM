@@ -107,6 +107,14 @@ if (errorParam === 'InvalidToken') {
                         Continuar con Google
                     </a>
 
+                    <a href="/api/auth/spotify/login" class="btn btn-spotify btn-xl">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm5.508 17.302c-.216.354-.672.468-1.014.252-2.808-1.716-6.348-2.1-10.512-1.152-.402.096-.804-.15-.894-.546-.096-.402.15-.804.546-.894 4.566-1.038 8.484-.594 11.61 1.314.342.216.45.672.234 1.014h.02zm1.482-3.264c-.27.438-.846.576-1.284.306-3.216-1.974-8.118-2.55-11.916-1.398-.492.15-.978-.132-1.128-.624-.15-.492.132-.978.624-1.128 4.344-1.32 9.774-.672 13.41 1.56.438.27.576.846.294 1.284v.012zm.126-3.414c-3.858-2.286-10.23-2.502-13.938-1.374-.594.18-1.23-.156-1.41-.75-.18-.594.156-1.23.75-1.41 4.266-1.296 11.31-.99 15.762 1.65.534.312.708 1 .396 1.53-.312.534-1 .708-1.53.396l-.03-.006z"/>
+                        </svg>
+                        Continuar con Spotify
+                    </a>
+
+
                     <a href="#" id="btn-educacion" class="btn btn-canarian btn-xl">
                         <div class="btn-canarian-content">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Flag_of_the_Canary_Islands_%28simple%29.svg/250px-Flag_of_the_Canary_Islands_%28simple%29.svg.png" width="24" height="16" alt="Canarias" />
@@ -359,6 +367,24 @@ if (errorParam === 'InvalidToken') {
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 
+    .btn-spotify {
+        background: #1DB954;
+        color: white;
+        border: none;
+        width: 100%;
+        margin-top: 1rem;
+        gap: 0.75rem;
+        font-size: 1rem;
+        padding: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-spotify:hover {
+        background: #1ed760;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+    }
+
     .btn-canarian {
         background: linear-gradient(135deg, #00adef 0%, #007bb6 100%);
         color: white;
@@ -545,12 +571,33 @@ if (errorParam === 'InvalidToken') {
         );
     }
 
+    function openSpotifyLogin(e: Event) {
+        e.preventDefault();
+        const width = 500;
+        const height = 650;
+        const left = (window.innerWidth - width) / 2 + window.screenLeft;
+        const top = (window.innerHeight - height) / 2 + window.screenTop;
+        
+        window.open(
+            '/api/auth/spotify/login',
+            'spotify_login_popup',
+            `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
+        );
+    }
+
+
     // Attach event listener safely
     document.addEventListener('DOMContentLoaded', () => {
         const btn = document.querySelector('.btn-google');
         if (btn) {
             btn.addEventListener('click', openGoogleLogin);
         }
+
+        const spotifyBtn = document.querySelector('.btn-spotify');
+        if (spotifyBtn) {
+            spotifyBtn.addEventListener('click', openSpotifyLogin);
+        }
+
 
         const btnEducacion = document.getElementById('btn-educacion');
         if (btnEducacion) {

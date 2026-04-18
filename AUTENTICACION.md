@@ -4,7 +4,7 @@ Este documento explica cómo configurar y usar el sistema de autenticación de u
 
 ## 📋 Características
 
-- ✅ **Autenticación Multi-método**: Google OAuth 2.0 y Magic Link (Email)
+- ✅ **Autenticación Multi-método**: Google OAuth 2.0, Spotify OAuth y Magic Link (Email)
 - ✅ Gestión de sesiones seguras con JWT
 - ✅ Perfiles de usuario expansibles y analíticas de escucha
 - ✅ Almacenamiento ágil en MongoDB
@@ -35,6 +35,11 @@ GOOGLE_CLIENT_SECRET="tu-client-secret-aqui"
 
 # JWT Secret (genera una clave segura)
 JWT_SECRET="tu-clave-secreta-muy-segura-y-aleatoria"
+
+# Spotify OAuth
+SPOTIFY_CLIENT_ID="tu-spotify-client-id"
+SPOTIFY_CLIENT_SECRET="tu-spotify-client-secret"
+SPOTIFY_REDIRECT_URI="http://localhost:4321/api/auth/spotify/callback"
 ```
 
 > 💡 **Tip**: Puedes generar un JWT_SECRET seguro ejecutando:
@@ -71,6 +76,9 @@ src/
 │   │       ├── google/
 │   │       │   ├── login.ts      # Inicia OAuth flow
 │   │       │   └── callback.ts   # Maneja callback de Google
+│   │       ├── spotify/
+│   │       │   ├── login.ts      # Inicia OAuth flow
+│   │       │   └── callback.ts   # Maneja callback de Spotify
 │   │       ├── email/
 │   │       │   ├── send-magic-link.ts # Envía email con token
 │   │       │   └── verify.ts          # Verifica el token de email
@@ -84,15 +92,17 @@ src/
 
 ## 🔄 Flujo de Autenticación
 
-### Método 1: Google OAuth
-1. Usuario hace clic en "Entrar con Google"
-2. Se redirige a Google OAuth
+6. Se establece la sesión con JWT vía cookie y redirige a `/perfil`
+
+### Método 2: Spotify OAuth
+1. Usuario hace clic en "Entrar con Spotify"
+2. Se redirige a Spotify OAuth
 3. Usuario autoriza la aplicación
-4. Google redirige a `/api/auth/google/callback`
+4. Spotify redirige a `/api/auth/spotify/callback`
 5. Se crea o actualiza el usuario en MongoDB
 6. Se establece la sesión con JWT vía cookie y redirige a `/perfil`
 
-### Método 2: Magic Link (Email)
+### Método 3: Magic Link (Email)
 1. Usuario introduce su dirección de Email y hace clic en "Entrar con Email"
 2. Se genera un Magic Link transitorio y se envía a su bandeja de entrada
 3. El usuario hace clic en el enlace adjunto en su correo
@@ -142,6 +152,16 @@ Callback de Google OAuth. Crea/actualiza usuario y establece sesión.
 
 **Query params**:
 - `code`: Authorization code de Google
+- `error`: Error si el usuario rechazó
+
+### `GET /api/auth/spotify/login`
+Inicia el flujo de OAuth con Spotify.
+
+### `GET /api/auth/spotify/callback`
+Callback de Spotify OAuth. Crea/actualiza usuario y establece sesión.
+
+**Query params**:
+- `code`: Authorization code de Spotify
 - `error`: Error si el usuario rechazó
 
 ### `GET /api/auth/email/verify`
