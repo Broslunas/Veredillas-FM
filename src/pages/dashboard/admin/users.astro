@@ -596,7 +596,7 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
              </div>
              
              <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 100px);">
-                 <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
+                 <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr_1.5fr] gap-6">
                      <!-- Grouped Counts -->
                      <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
                          <h5 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Frecuencia por Episodio</h5>
@@ -605,8 +605,14 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
  
                      <!-- Full Event Log -->
                      <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
-                         <h5 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Timeline Detallado</h5>
+                         <h5 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Timeline Detallado (Audit)</h5>
                          <div id="viewAuditTimeline" class="space-y-1.5 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                     </div>
+
+                     <!-- Fallback / Recent History -->
+                     <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
+                         <h5 class="text-xs font-bold text-violet-400 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Últimas Sesiones (Estado)</h5>
+                         <div id="viewAuditPlaybackHistory" class="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
                      </div>
                  </div>
              </div>
@@ -698,11 +704,12 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
             document.getElementById('closeModal')?.addEventListener('click', () => closeModal(editModal));
             document.getElementById('cancelEdit')?.addEventListener('click', () => closeModal(editModal));
             document.getElementById('closeViewModal')?.addEventListener('click', () => closeModal(viewModal));
+            document.getElementById('closeAuditModal')?.addEventListener('click', () => closeModal(auditModal));
             if (closeConfirmBtn) closeConfirmBtn.onclick = () => closeModal(confirmModal);
             if (cancelConfirmBtn) cancelConfirmBtn.onclick = () => closeModal(confirmModal);
 
             // Click-outside close
-            [editModal, viewModal, confirmModal].forEach(m => {
+            [editModal, viewModal, auditModal, confirmModal].forEach(m => {
                 if (m) {
                     m.addEventListener('click', (e) => {
                         if (e.target === m) closeModal(m);
@@ -997,11 +1004,13 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
  
                      const auditGroupedEl = document.getElementById('viewAuditGrouped');
                      const auditTimelineEl = document.getElementById('viewAuditTimeline');
+                     const auditHistoryEl = document.getElementById('viewAuditPlaybackHistory');
                      const adminContainer = document.getElementById('adminContainer');
                      const episodesData = adminContainer ? JSON.parse(adminContainer.dataset.episodes || '{}') : {};
  
                      if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs">Analizando actividad...</div>';
-                     if (auditTimelineEl) auditTimelineEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs">Cargando timeline...</div>';
+                     if (auditTimelineEl) auditTimelineEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs text-amber-500/50">Consultando registros...</div>';
+                     if (auditHistoryEl) auditHistoryEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs text-violet-500/50">Recuperando sesiones...</div>';
  
                      openModal(auditModal);
  
@@ -1012,7 +1021,7 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                          if (auditGroupedEl) {
                              auditGroupedEl.innerHTML = '';
                              if (!auditData.grouped || auditData.grouped.length === 0) {
-                                 auditGroupedEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl">Sin registros de auditoría</div>';
+                                 auditGroupedEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl px-4">Sin registros granulares todavía. El audit rastrea sesiones desde hoy.</div>';
                              } else {
                                  auditData.grouped.forEach((g: any) => {
                                      const ep = episodesData[g._id];
@@ -1031,7 +1040,7 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                          if (auditTimelineEl) {
                              auditTimelineEl.innerHTML = '';
                              if (!auditData.events || auditData.events.length === 0) {
-                                 auditTimelineEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl">Sin eventos registrados</div>';
+                                 auditTimelineEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl px-4">Utiliza el historial de sesiones a la derecha para ver actividad reciente.</div>';
                              } else {
                                  auditData.events.forEach((ev: any) => {
                                      const dt = new Date(ev.timestamp);
@@ -1045,6 +1054,34 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                                          <span class="text-[0.7rem] font-bold text-zinc-500 truncate ml-4">${ev.episodeSlug}</span>
                                      `;
                                      auditTimelineEl.appendChild(div);
+                                 });
+                             }
+                         }
+
+                         if (auditHistoryEl) {
+                             auditHistoryEl.innerHTML = '';
+                             const history = auditData.playbackHistory || [];
+                             if (history.length === 0) {
+                                 auditHistoryEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl">Sin historial disponible.</div>';
+                             } else {
+                                 history.forEach((h: any) => {
+                                     const ep = episodesData[h.episodeSlug];
+                                     const title = ep ? ep.title : h.episodeSlug;
+                                     const div = document.createElement('div');
+                                     div.className = 'p-3 rounded-xl bg-white/[0.01] border border-white/[0.03]';
+                                     div.innerHTML = `
+                                         <div class="flex justify-between items-start mb-1">
+                                             <span class="text-[0.7rem] font-bold text-zinc-300 truncate pr-2">${title}</span>
+                                             <span class="text-[0.6rem] font-mono text-zinc-600 shrink-0">${new Date(h.listenedAt).toLocaleDateString()}</span>
+                                         </div>
+                                         <div class="flex items-center gap-2">
+                                             <div class="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                                                 <div class="h-full bg-violet-500/50" style="width: ${h.duration > 0 ? (h.progress/h.duration)*100 : 0}%"></div>
+                                             </div>
+                                             <span class="text-[0.6rem] font-bold ${h.completed ? 'text-emerald-500' : 'text-zinc-500'}">${h.completed ? 'COMPLETADO' : Math.round((h.progress/(h.duration||1))*100)+'%'}</span>
+                                         </div>
+                                     `;
+                                     auditHistoryEl.appendChild(div);
                                  });
                              }
                          }

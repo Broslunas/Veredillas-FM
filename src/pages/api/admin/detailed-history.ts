@@ -25,12 +25,18 @@ export const GET: APIRoute = async ({ request, url }) => {
       return new Response(JSON.stringify({ error: 'Missing userId' }), { status: 400 });
     }
 
-    // Get all listen events for this user, ordered by most recent first
+    // Get target user to include their standard history (last 100 episodes)
+    const targetUser = await User.findById(targetUserId).select('playbackHistory name').lean();
+    if (!targetUser) {
+      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+    }
+
+    // Get all granular listen events for this user (Audit log)
     const events = await ListenEvent.find({ userId: targetUserId })
       .sort({ timestamp: -1 })
       .lean();
 
-    // Group by episode to count "quantas veces"
+    // Group by episode to count "cuantas veces"
     const grouped = await ListenEvent.aggregate([
       { $match: { userId: targetUserId } },
       { $group: { 
@@ -41,7 +47,11 @@ export const GET: APIRoute = async ({ request, url }) => {
       { $sort: { lastListened: -1 } }
     ]);
 
-    return new Response(JSON.stringify({ events, grouped }), {
+    return new Response(JSON.stringify({ 
+      events, 
+      grouped, 
+      playbackHistory: targetUser.playbackHistory || [] 
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
