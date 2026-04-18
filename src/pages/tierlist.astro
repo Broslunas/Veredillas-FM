@@ -1,0 +1,247 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+
+const episodios = await getCollection('episodios');
+
+// Sort by date descending
+const sortedEpisodes = episodios.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const tiers = [
+  { label: 'S', color: '#ff7f7f' },
+  { label: 'A', color: '#ffbf7f' },
+  { label: 'B', color: '#ffdf7f' },
+  { label: 'C', color: '#ffff7f' },
+  { label: 'D', color: '#bfff7f' }
+];
+---
+
+<Layout title="Podcast Tier List | Veredillas FM">
+  <div class="max-w-6xl mx-auto px-4 py-16">
+    <header class="text-center mb-16 animate-fade-in">
+      <h1 class="text-6xl font-black mb-6 bg-gradient-to-r from-violet-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">
+        Podcast Tier Maker
+      </h1>
+      <p class="text-gray-400 text-xl max-w-2xl mx-auto leading-relaxed">Organiza todos los episodios de Veredillas FM. Crea tu ranking personal, personaliza las categorías y descarga el resultado para compartirlo.</p>
+    </header>
+
+    <div class="flex flex-col gap-8">
+      <!-- Tier List Container -->
+      <section id="tier-list-container" class="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl overflow-hidden relative">
+        <!-- Branding Logo (Visible in exports) -->
+        <div class="absolute bottom-4 right-6 opacity-20 pointer-events-none select-none flex items-center gap-2">
+           <img src="/logo.webp" alt="" class="w-6 h-6 grayscale" />
+           <span class="text-xs font-bold tracking-widest uppercase">Veredillas FM</span>
+        </div>
+
+        <div id="tier-rows" class="flex flex-col gap-2">
+          {tiers.map((tier) => (
+            <div class="tier-row group flex min-h-[100px] bg-white/5 rounded-xl overflow-hidden border border-white/5 transition-all hover:border-white/20">
+              <div 
+                class="tier-label flex items-center justify-center w-24 sm:w-32 text-2xl font-black text-black select-none cursor-pointer"
+                style={`background-color: ${tier.color}`}
+                contenteditable="true"
+                spellcheck="false"
+              >
+                {tier.label}
+              </div>
+              <div class="drop-zone flex-1 flex flex-wrap gap-2 p-3 transition-colors duration-300" data-tier={tier.label}>
+                <!-- Dropped items will go here -->
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap justify-center gap-4">
+        <button id="download-btn" class="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg active:scale-95">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Descargar Tier List
+        </button>
+        <button id="reset-btn" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg border border-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+          Reiniciar
+        </button>
+      </div>
+
+      <!-- Episodes Bank -->
+      <section class="bg-black/20 backdrop-blur-md border border-white/5 rounded-3xl p-8">
+        <h2 class="text-2xl font-bold mb-6 text-white/80 flex items-center gap-3">
+          <span class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-pink-400"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </span>
+          Episodios disponibles
+        </h2>
+        
+        <div id="episodes-bank" class="drop-zone min-h-[200px] flex flex-wrap justify-center gap-4 transition-all duration-500">
+          {sortedEpisodes.map((episode) => (
+            <div 
+              class="episode-item group relative w-24 h-24 sm:w-32 sm:h-32 cursor-grab active:cursor-grabbing transform transition-all hover:scale-110" 
+              draggable="true"
+              data-id={episode.id}
+              title={episode.data.title}
+            >
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl z-10 flex items-end p-2 pointer-events-none">
+                <span class="text-[10px] sm:text-xs font-medium text-white line-clamp-2">{episode.data.title}</span>
+              </div>
+              <img 
+                src={episode.data.image || '/logo.webp'} 
+                alt={episode.data.title}
+                class="w-full h-full object-cover rounded-xl shadow-lg border border-white/10 group-hover:border-white/40 transition-colors bg-white/5"
+                itemprop="image"
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .drop-zone.drag-over {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 0.75rem;
+    }
+    
+    .tier-row:nth-child(even) {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .episode-item.dragging {
+      opacity: 0.5;
+      scale: 0.9;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade-in {
+      animation: fade-in 0.8s ease-out forwards;
+    }
+  </style>
+
+  <script>
+    import { toPng } from 'html-to-image';
+
+    const episodesBank = document.getElementById('episodes-bank');
+    const tierListContainer = document.getElementById('tier-list-container');
+    const downloadBtn = document.getElementById('download-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const episodeItems = document.querySelectorAll('.episode-item');
+
+    let draggedItem = null;
+
+    // Drag and Drop Logic
+    episodeItems.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        draggedItem = item;
+        item.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', item.dataset.id);
+        
+        // Custom drag ghost
+        const ghost = item.cloneNode(true);
+        ghost.style.position = 'absolute';
+        ghost.style.top = '-1000px';
+        document.body.appendChild(ghost);
+        e.dataTransfer.setDragImage(ghost, 50, 50);
+        setTimeout(() => document.body.removeChild(ghost), 0);
+      });
+
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+        draggedItem = null;
+      });
+    });
+
+    dropZones.forEach(zone => {
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('drag-over');
+      });
+
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        
+        if (draggedItem) {
+          // If we drop inside a zone, append it
+          zone.appendChild(draggedItem);
+          
+          // Animation feedback
+          draggedItem.animate([
+            { transform: 'scale(1.2)', opacity: 0.8 },
+            { transform: 'scale(1)', opacity: 1 }
+          ], {
+            duration: 300,
+            easing: 'ease-out'
+          });
+        }
+      });
+    });
+
+    // Handle dropping back to bank or other zones
+    // (Already handled by the general dropZones listener)
+
+    // Download Logic
+    downloadBtn.addEventListener('click', async () => {
+      if (!tierListContainer) return;
+
+      const originalBtnText = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generando...';
+      downloadBtn.disabled = true;
+
+      try {
+        // Prepare for capture (remove shadows or tweak styles if needed)
+        const dataUrl = await toPng(tierListContainer, {
+          backgroundColor: '#0a0a0a',
+          pixelRatio: 2,
+          style: {
+             borderRadius: '0'
+          }
+        });
+
+        const link = document.createElement('a');
+        link.download = `veredillas-fm-tierlist-${new Date().getTime()}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (error) {
+        console.error('Error creating image:', error);
+        alert('Hubo un error al generar la imagen. Inténtalo de nuevo.');
+      } finally {
+        downloadBtn.innerHTML = originalBtnText;
+        downloadBtn.disabled = false;
+      }
+    });
+
+    // Reset Logic
+    resetBtn.addEventListener('click', () => {
+      if (confirm('¿Estás seguro de que quieres reiniciar la Tier List? Se moverán todos los episodios al banco.')) {
+        const items = document.querySelectorAll('.episode-item');
+        items.forEach(item => {
+          episodesBank.appendChild(item);
+        });
+      }
+    });
+
+    // Make labels editable but prevent line breaks
+    const labels = document.querySelectorAll('.tier-label');
+    labels.forEach(label => {
+      label.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          label.blur();
+        }
+      });
+    });
+  </script>
+</Layout>
