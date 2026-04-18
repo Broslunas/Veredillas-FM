@@ -112,8 +112,13 @@ const tiers = [
     }
 
     .episode-item.dragging {
-      opacity: 0.5;
-      scale: 0.9;
+      opacity: 0.4;
+      scale: 0.8;
+      filter: grayscale(1);
+    }
+
+    .drop-zone.drag-over * {
+      pointer-events: none;
     }
 
     @keyframes fade-in {
@@ -210,6 +215,9 @@ const tiers = [
           const originalFilter = tierListContainer.style.backdropFilter;
           tierListContainer.style.backdropFilter = 'none';
 
+          // Small delay for Firefox to ensure styles are applied
+          await new Promise(resolve => setTimeout(resolve, 100));
+
           const dataUrl = await toPng(tierListContainer, {
             backgroundColor: '#0a0a0a',
             pixelRatio: 2,
@@ -225,10 +233,16 @@ const tiers = [
           const link = document.createElement('a');
           link.download = `veredillas-fm-tierlist-${new Date().getTime()}.png`;
           link.href = dataUrl;
+          
+          // Brave and Firefox sometimes need the link in the DOM
+          link.style.display = 'none';
+          document.body.appendChild(link);
           link.click();
+          document.body.removeChild(link);
+
         } catch (error) {
           console.error('Error creating image:', error);
-          alert('Hubo un error al generar la imagen. Inténtalo de nuevo.');
+          alert('Error: ' + (error instanceof Error ? error.message : 'No se pudo generar la imagen. Prueba en otro navegador o revisa la configuración de privacidad.'));
         } finally {
           downloadBtn.innerHTML = originalBtnText;
           downloadBtn.disabled = false;
@@ -239,7 +253,7 @@ const tiers = [
     // Reset Logic
     if (resetBtn && episodesBank) {
       resetBtn.addEventListener('click', () => {
-        if (confirm('¿Estás seguro de que quieres reiniciar la Tier List? Se moverán todos los episodios al banco.')) {
+        if (confirm('¿Estás seguro de que quieres reiniciar la Tier List?')) {
           const items = document.querySelectorAll('.episode-item');
           items.forEach(item => {
             episodesBank.appendChild(item);
