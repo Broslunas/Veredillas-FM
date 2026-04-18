@@ -1542,6 +1542,12 @@ const buildNow = new Date();
         isolation: isolate; /* Improve performance for view transitions */
     }
 
+    /* Ad slot inside the grid — spans all columns */
+    .episodes-grid__ad {
+        grid-column: 1 / -1;
+        padding: 0.25rem 0;
+    }
+
     .episode-item {
         transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
         opacity: 0;
