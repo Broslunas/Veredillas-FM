@@ -236,7 +236,6 @@ export async function syncSpotifyEpisodes(userId: string) {
     let tokensUpdated = false;
 
     // 2. Verificar si el token ha expirado o no existe
-    const now = new Date();
     if (!accessToken || !user.spotifyTokenExpiresAt || now >= user.spotifyTokenExpiresAt) {
       console.log(`Refreshing Spotify token for user ${userId}...`);
       try {
