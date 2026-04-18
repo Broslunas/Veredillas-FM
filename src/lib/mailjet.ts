@@ -15,7 +15,7 @@ export interface SendEmailOptions {
   bcc?: { Email: string, Name?: string }[];
 }
 
-export async function sendEmail({ to, toName, subject, htmlContent, fromEmail = "newsletter@veredillasfm.es", fromName = "Veredillas FM", bcc }: SendEmailOptions) {
+export async function sendEmail({ to, toName, subject, htmlContent, fromEmail = "notifications@veredillasfm.es", fromName = "Veredillas FM", bcc }: SendEmailOptions) {
   try {
     const result = await mailjet
       .post('send', { version: 'v3.1' })

@@ -92,7 +92,8 @@ export async function processWeeklyNewsletter() {
         subject: isRecap 
             ? `✨ ${user.name}, hemos seleccionado lo mejor para ti en Veredillas FM` 
             : `🎙️ "${recommendations[0].data.title}" - Tu dosis semanal de Veredillas FM`,
-        htmlContent: html
+        htmlContent: html,
+        fromEmail: "newsletter@veredillasfm.es"
       });
 
       if (emailResult.success) {
