@@ -1,13 +1,23 @@
 ---
 export const prerender = true;
 import Layout from '../layouts/Layout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const filePath = path.join(process.cwd(), 'src/pages/cookies.astro');
+const stats = fs.statSync(filePath);
+const lastUpdated = stats.mtime.toLocaleDateString('es-ES', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
 ---
 
 <Layout title="Política de Cookies ">
   <main class="page-container">
     <div class="content-wrapper">
       <h1>Política de Cookies y Tecnologías de Almacenamiento Local</h1>
-      <p class="updated-date">Última actualización: {new Date().toLocaleDateString('es-ES')}</p>
+      <p class="updated-date">Última actualización: {lastUpdated}</p>
       
       <section>
         <h2>1. Contextualización sobre los Instrumentos de Almacenamiento</h2>

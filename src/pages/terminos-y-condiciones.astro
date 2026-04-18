@@ -1,13 +1,23 @@
 ---
 export const prerender = true;
 import Layout from '../layouts/Layout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const filePath = path.join(process.cwd(), 'src/pages/terminos-y-condiciones.astro');
+const stats = fs.statSync(filePath);
+const lastUpdated = stats.mtime.toLocaleDateString('es-ES', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
 ---
 
 <Layout title="Términos y Condiciones ">
   <main class="page-container">
     <div class="content-wrapper">
       <h1>Términos y Condiciones del Servicio</h1>
-      <p class="updated-date">Última actualización: {new Date().toLocaleDateString('es-ES')}</p>
+      <p class="updated-date">Última actualización: {lastUpdated}</p>
       
       <section>
         <h2>1. Aceptación Universal, Objeto y Ámbito de los Términos</h2>
@@ -80,8 +90,25 @@ import Layout from '../layouts/Layout.astro';
       </section>
 
       <section>
-        <h2>9. Exclusión de Garantías, Responsabilidad y Legislación</h2>
-        <p>Veredillas FM presta el servicio sin comprometerse a blindar posibles caídas de sistema o interrupciones de acceso, asumiéndose una provisión de la web "tal cual es" (As Is). Todo litigio que surja como disidencia en la interpretación del texto en vigencia queda subyugado única y exclusivamente a las imposiciones regulatorias del amparo ibérico; tribunales españoles competentes.</p>
+        <h2>9. Limitación de Responsabilidad y Renuncia de Garantías</h2>
+        <p>Veredillas FM se proporciona "tal cual" y "según disponibilidad". En la medida máxima permitida por la ley aplicable, Veredillas FM renuncia a todas las garantías, expresas o implícitas. No garantizamos que el servicio sea ininterrumpido, libre de errores o completamente seguro.</p>
+        <p>En ningún caso Veredillas FM, sus directores, empleados o agentes serán responsables por daños indirectos, incidentales, especiales, consecuentes o punitivos, incluyendo, sin limitación, la pérdida de beneficios, datos, uso o fondo de comercio, resultantes de (i) tu acceso o uso (o incapacidad de acceso o uso) del servicio; (ii) cualquier conducta o contenido de terceros en el servicio; o (iii) el acceso, uso o alteración no autorizados de tus transmisiones o contenido.</p>
+      </section>
+
+      <section>
+        <h2>10. Modificación de los Términos y del Servicio</h2>
+        <p>Veredillas FM se reserva el derecho, a su sola discreción, de modificar o sustituir estos Términos en cualquier momento. Si una revisión es sustancial, intentaremos proporcionar un aviso con al menos 30 días de antelación antes de que los nuevos términos entren en vigor. Lo que constituye un cambio sustancial será determinado a nuestra entera discreción.</p>
+        <p>Asimismo, nos reservamos el derecho de modificar, suspender o interrumpir el Servicio (o cualquier parte del mismo) en cualquier momento, con o sin previo aviso, y no seremos responsables ante ti ni ante terceros por cualquier modificación, suspensión o interrupción del mismo.</p>
+      </section>
+
+      <section>
+        <h2>11. Indemnización</h2>
+        <p>Aceptas defender, indemnizar y mantener indemne a Veredillas FM y sus licenciatarios de y contra cualquier reclamación, daño, obligación, pérdida, responsabilidad, coste o deuda y gasto (incluyendo, entre otros, los honorarios de abogados) que surjan de: a) tu uso y acceso al Servicio; b) tu violación de cualquier término de estos Términos; o c) tu infracción de cualquier derecho de terceros, incluyendo, sin limitación, cualquier derecho de autor, propiedad o derecho de privacidad.</p>
+      </section>
+
+      <section>
+        <h2>12. Legislación Aplicable y Jurisdicción</h2>
+        <p>Estos Términos se regirán e interpretarán de acuerdo con las leyes de España, sin tener en cuenta sus disposiciones sobre conflicto de leyes. Nuestra falta de cumplimiento de cualquier derecho o disposición de estos Términos no se considerará una renuncia a esos derechos. Para cualquier disputa que surja de estos términos, las partes se someten a la jurisdicción de los tribunales competentes de España.</p>
       </section>
     </div>
   </main>

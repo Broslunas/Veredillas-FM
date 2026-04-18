@@ -1,13 +1,23 @@
 ---
 export const prerender = true;
 import Layout from '../layouts/Layout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const filePath = path.join(process.cwd(), 'src/pages/politica-de-privacidad.astro');
+const stats = fs.statSync(filePath);
+const lastUpdated = stats.mtime.toLocaleDateString('es-ES', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
 ---
 
 <Layout title="Política de Privacidad ">
   <main class="page-container">
     <div class="content-wrapper">
       <h1>Política de Privacidad</h1>
-      <p class="updated-date">Última actualización: {new Date().toLocaleDateString('es-ES')}</p>
+      <p class="updated-date">Última actualización: {lastUpdated}</p>
       
       <section>
         <h2>1. Introducción y Responsable del Tratamiento</h2>
@@ -63,12 +73,12 @@ import Layout from '../layouts/Layout.astro';
 
       <section>
         <h2>6. Comunicación, Cesión de Datos y Transferencias Internacionales</h2>
-        <p>Veredillas FM no vende ni alquila tus datos. Compartiremos información estrictamente técnica con:</p>
+        <p>Veredillas FM no vende, alquila ni negocia con tus datos personales. Compartiremos información estrictamente necesaria con:</p>
         <ul class="policy-list">
-          <li><strong>Proveedores Cloud o de Bases de Datos:</strong> Empresas de alojamiento de servidores y CDNs.</li>
-          <li><strong>Analítica y Monitoreo:</strong> Herramientas de terceros integradas para medir el tráfico web.</li>
-          <li><strong>Servicios de IA:</strong> APIs que utilizamos de forma despersonalizada.</li>
+          <li><strong>Proveedores de Servicios:</strong> Terceros de confianza que nos ayudan a operar nuestra plataforma (hosting, bases de datos, servicios de correo electrónico como Mailjet). Estos proveedores actúan como Encargados del Tratamiento y están sujetos a estrictas cláusulas de confidencialidad.</li>
+          <li><strong>Cumplimiento Legal:</strong> Cuando seamos requeridos por ley, citación o proceso legal.</li>
         </ul>
+        <p>En caso de que algunos de nuestros proveedores se encuentren fuera del Espacio Económico Europeo (EEE), nos aseguramos de que existan garantías adecuadas, como las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea, para proteger tus datos.</p>
       </section>
 
       <section>
@@ -105,7 +115,13 @@ import Layout from '../layouts/Layout.astro';
 
       <section>
         <h2>11. Cambios en el Protocolo de Privacidad</h2>
-        <p>Nos reservamos el derecho unilateral de efectuar alteraciones sobre este documento, instruyendo avisos significativos para que puedas validarlos llegado el momento y con arreglo a las directivas tecnológicas de turno.</p>
+        <p>Nos reservamos el derecho de actualizar esta Política de Privacidad periódicamente para reflejar cambios en nuestras prácticas o por razones legales. Te notificaremos de cualquier cambio sustancial publicando la nueva política en esta página y, si es posible, mediante una notificación en la plataforma o por correo electrónico.</p>
+      </section>
+
+      <section>
+        <h2>12. Contacto y Reclamaciones</h2>
+        <p>Si tienes cualquier duda, inquietud o deseas ejercer tus derechos, puedes contactar con nuestro responsable de privacidad a través de los canales de soporte de la plataforma.</p>
+        <p>Asimismo, te informamos de que tienes derecho a presentar una reclamación ante la autoridad de control competente, en este caso la Agencia Española de Protección de Datos (AEPD), si consideras que el tratamiento de tus datos personales infringe la normativa vigente.</p>
       </section>
     </div>
   </main>
