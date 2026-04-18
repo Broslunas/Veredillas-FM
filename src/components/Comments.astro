@@ -312,8 +312,6 @@ const { slug } = Astro.props;
       return;
     }
 
-    countLabel.innerText = allComments.length;
-
     // Separate top level and replies
     const topLevel = allComments.filter(c => !c.parentId);
     const repliesMap = allComments.reduce((acc, c) => {
@@ -329,14 +327,42 @@ const { slug } = Astro.props;
     else if (currentSort === 'oldest') topLevel.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     else if (currentSort === 'top') topLevel.sort((a, b) => (b.rating + b.likesCount) - (a.rating + a.likesCount));
 
-    list.innerHTML = topLevel.map(c => renderCommentItem(c, repliesMap[c._id] || [])).join('');
+    // Render recursively
+    let visibleCount = 0;
+    const recursiveRender = (c, depth) => {
+        const html = renderCommentItem(c, repliesMap, depth);
+        if (html) {
+            visibleCount++;
+            // We don't need to manually traverse replies here because renderCommentItem already does it, 
+            // but we need to count them. Actually, let's just make renderCommentItem update a counter.
+        }
+        return html;
+    };
+
+    // Refactored to use a counter inside renderCommentItem or similar
+    window.visibleCommentCounter = 0; 
+    const html = topLevel.map(c => renderCommentItem(c, repliesMap, 0)).join('');
+
+    list.innerHTML = html;
+    countLabel.innerText = window.visibleCommentCounter;
   }
 
-  function renderCommentItem(c, replies = [], isReply = false) {
-    const hasOnlyRating = !c.text && c.rating > 0 && (!c.attachments || c.attachments.length === 0);
+  function renderCommentItem(c, repliesMap, depth = 0, parentName = null) {
+    const MAX_DEPTH = 6; 
     
+    if (depth >= MAX_DEPTH) return '';
+    window.visibleCommentCounter = (window.visibleCommentCounter || 0) + 1;
+
+    const replies = repliesMap[c._id] || [];
+    const hasOnlyRating = !c.text && c.rating > 0 && (!c.attachments || c.attachments.length === 0);
+    const canReply = depth < (MAX_DEPTH - 1);
+    
+    // Only indent the first level. Deeper levels stay at the same indentation (flat nesting).
+    // depth 1 gets the margin. depth > 1 is inside a margin div, so we use ml-0 to stay flat.
+    const indentClass = depth === 1 ? 'ml-8 sm:ml-12 border-l-2 border-zinc-800 pl-4 sm:pl-6' : (depth > 1 ? 'ml-0 border-l-2 border-zinc-800/30 pl-4 sm:pl-6' : '');
+
     return `
-      <div class="flex flex-col gap-3 ${isReply ? 'ml-8 sm:ml-12 border-l-2 border-zinc-800 pl-4 sm:pl-6' : ''}">
+      <div class="flex flex-col gap-3 ${indentClass}">
         <article class="flex gap-4 p-5 ${hasOnlyRating ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/[0.03] border-white/10'} border rounded-2xl transition-all hover:bg-white/[0.06] group relative overflow-hidden animate-fade-in-up" id="comment-${c._id}">
           <div class="shrink-0">
             <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white uppercase text-lg overflow-hidden shadow-lg border border-white/10" style="background-color: ${stringToColor(c.name)}">
@@ -347,6 +373,12 @@ const { slug } = Astro.props;
             <header class="flex justify-between items-start">
                <div class="flex items-center gap-2 flex-wrap">
                  <span class="font-bold text-sm text-zinc-100">${escapeHtml(c.name)}</span>
+                 ${(depth > 1 && parentName) ? `
+                  <span class="text-[10px] text-zinc-500 lowercase flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
+                    <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 10l-5 5-5-5"/></svg>
+                    respondiendo a <span class="text-primary/80 font-bold">${escapeHtml(parentName)}</span>
+                  </span>
+                 ` : ''}
                  ${c.rating > 0 ? renderStars(c.rating) : ''}
                </div>
                <div class="flex items-center gap-2 text-[11px] text-zinc-500">
@@ -371,17 +403,19 @@ const { slug } = Astro.props;
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="${c.isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                     ${c.likesCount || 0}
                 </button>
+                ${canReply ? `
                 <button onclick="handleReply('${c._id}', '${escapeHtml(c.name)}')" class="text-[11px] font-semibold text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     Responder
                 </button>
+                ` : ''}
                 ${(c.isMine || c.isModerator) ? `
                 <button class="text-[11px] text-zinc-600 hover:text-red-500 transition-colors ml-auto" onclick="requestDelete('${c._id}')">Eliminar</button>
                 ` : ''}
             </footer>
           </div>
         </article>
-        ${replies.length > 0 ? replies.map(r => renderCommentItem(r, [], true)).join('') : ''}
+        ${replies.length > 0 ? replies.map(r => renderCommentItem(r, repliesMap, depth + 1, c.name)).join('') : ''}
       </div>
     `;
   }
