@@ -262,14 +262,13 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                             <th class="px-6 py-5 text-center w-16">
                                 <input type="checkbox" id="selectAllUsers" class="w-5 h-5 rounded-lg border-white/10 bg-black/60 text-violet-500 focus:ring-violet-500/50 hover:border-violet-500/50 transition-all cursor-pointer accent-violet-500" />
                             </th>
-                            <th class="px-6 py-5 text-left min-w-[240px]">Usuario</th>
+                            <th class="px-6 py-5 text-left min-w-[280px]">Usuario / Info</th>
                             <th class="px-6 py-5 text-left min-w-[200px] hidden xl:table-cell">Email</th>
-                            <th class="px-6 py-5 text-center w-32 hidden sm:table-cell">Rol</th>
+                            <th class="px-6 py-5 text-center w-28 hidden xs:table-cell">Rol</th>
                             <th class="px-6 py-5 text-center w-36 hidden md:table-cell">Registro</th>
-                            <th class="px-6 py-5 text-center w-40 hidden lg:table-cell">Actividad</th>
-                            <th class="px-6 py-5 text-left w-44 hidden lg:table-cell">Progreso</th>
-                            <th class="px-6 py-5 text-center w-24 hidden sm:table-cell">Racha</th>
-                            <th class="px-8 py-5 text-right">Acciones</th>
+                            <th class="px-6 py-5 text-center w-36 hidden sm:table-cell">Actividad</th>
+                            <th class="px-6 py-5 text-left w-40 hidden lg:table-cell">Progreso</th>
+                            <th class="px-8 py-5 text-right whitespace-nowrap">Acciones Admin</th>
                         </tr>
                     </thead>
                     <tbody id="usersListContainer" class="divide-y divide-white/[0.03]">
@@ -309,21 +308,27 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                                                 <div class={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-[3px] border-zinc-900 ${isActive ? 'bg-emerald-500' : isInactive ? 'bg-zinc-700' : 'bg-amber-500'}`}></div>
                                             </div>
                                             <div class="flex flex-col min-w-0">
-                                                <div class="flex items-center gap-2">
+                                                <div class="flex items-center gap-2 mb-0.5">
                                                     <span class="font-bold text-white text-[0.95rem] tracking-tight group-hover:text-violet-300 transition-colors truncate">{user.name}</span>
                                                     {isCurrentUser && <span class="text-[0.6rem] px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded-lg font-black tracking-widest">TÚ</span>}
+                                                    {user.newsletter && <span class="text-sky-400" title="Suscrito a newsletter">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                                    </span>}
                                                 </div>
-                                                <span class="text-xs text-zinc-500 truncate xl:hidden max-w-[150px]">{user.email}</span>
+                                                <div class="flex items-center gap-3">
+                                                    <span class="text-[10px] text-zinc-500 truncate max-w-[140px] font-medium">{user.email}</span>
+                                                    <span class={`xs:hidden text-[9px] font-black uppercase tracking-tighter ${user.role === 'owner' ? 'text-pink-400' : user.role === 'admin' ? 'text-violet-400' : 'text-zinc-600'}`}>{user.role}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
 
                                     <td class="px-6 py-4 hidden xl:table-cell">
-                                        <span class="text-xs text-zinc-400 font-medium truncate max-w-[200px] block">{user.email}</span>
+                                        <span class="text-xs text-zinc-400 font-medium truncate max-w-[200px] block font-mono">{user.email}</span>
                                     </td>
 
-                                    <td class="px-6 py-4 text-center hidden sm:table-cell">
-                                        <div class={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.6rem] font-black uppercase tracking-widest ${
+                                    <td class="px-6 py-4 text-center hidden xs:table-cell">
+                                        <div class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[0.6rem] font-black uppercase tracking-widest ${
                                             user.role === 'owner' 
                                                 ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' 
                                                 : user.role === 'admin' 
@@ -336,42 +341,47 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
 
                                     <td class="px-6 py-4 text-center hidden md:table-cell">
                                         <span class="text-[11px] text-zinc-500 font-bold font-mono">
-                                            {new Date(user.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                                            {new Date(user.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })}
                                         </span>
                                     </td>
 
-                                    <td class="px-6 py-4 text-center hidden lg:table-cell">
-                                        <span class={`text-[11px] font-black font-mono ${isActive ? 'text-emerald-400' : isInactive ? 'text-zinc-600' : 'text-zinc-400'}`}>
-                                            {daysAgo === 0 ? 'Hoy' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
-                                        </span>
+                                    <td class="px-6 py-4 text-center hidden sm:table-cell">
+                                        <div class="flex flex-col items-center">
+                                            <span class={`text-[11px] font-black font-mono leading-none ${isActive ? 'text-emerald-400' : isInactive ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                                                {daysAgo === 0 ? 'Hoy' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
+                                            </span>
+                                            {(user.currentStreak || 0) > 0 && <span class="text-[9px] text-amber-500/60 font-black mt-1">🔥 {user.currentStreak}d</span>}
+                                        </div>
                                     </td>
 
                                     <td class="px-6 py-4 hidden lg:table-cell">
-                                        <div class="w-full max-w-[120px]">
+                                        <div class="w-full max-w-[110px]">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-[9px] text-zinc-500 font-bold font-mono">{formatTime(user.listeningTime || 0)}</span>
+                                            </div>
                                             <div class="h-1 w-full bg-white/[0.05] rounded-full overflow-hidden">
-                                                <div class="h-full bg-gradient-to-r from-violet-500 to-emerald-500" style={`width: ${Math.min(100, ((user.listeningTime || 0) / (avgListeningTime * 2)) * 100)}%`}></div>
+                                                <div class="h-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-emerald-500" style={`width: ${Math.min(100, ((user.listeningTime || 0) / (Math.max(1, avgListeningTime) * 2)) * 100)}%`}></div>
                                             </div>
                                         </div>
                                     </td>
 
-                                    <td class="px-6 py-4 text-center hidden sm:table-cell">
-                                        {(user.currentStreak || 0) > 0 ? <span class="text-sm font-black text-amber-500">🔥 {user.currentStreak}</span> : <span class="text-zinc-700">-</span>}
-                                    </td>
-
                                     <td class="px-8 py-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <button class="view-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-violet-600 transition-all" data-user={JSON.stringify(user)} title="Ver">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <button class="view-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-500 hover:text-white hover:bg-violet-600 transition-all" data-user={JSON.stringify(user)} title="Ver detalles">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 12 10 10 10-10-10-10Z"/><circle cx="12" cy="12" r="3"/></svg>
                                             </button>
-                                            <button class="edit-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-sky-500 transition-all" data-user={JSON.stringify(user)} title="Editar">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            <button class="edit-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-500 hover:text-white hover:bg-sky-500 transition-all" data-user={JSON.stringify(user)} title="Editar">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </button>
-                                            <button class="test-to-me-btn p-2 hidden sm:flex rounded-xl bg-white/[0.03] border border-white/[0.05] text-indigo-400 hover:text-white hover:bg-indigo-600 transition-all" data-id={user._id} data-name={user.name} title="Prueba">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                            <button class="test-to-me-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-indigo-400 hover:text-white hover:bg-indigo-600 transition-all" data-id={user._id} data-name={user.name} title="Enviarme prueba">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                            </button>
+                                            <button class="audit-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-amber-500 hover:text-white hover:bg-amber-600 transition-all" data-user={JSON.stringify(user)} title="Auditoría de actividad">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg>
                                             </button>
                                             {!isCurrentUser && (
-                                                <button class="delete-btn p-2 hidden sm:flex rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-600 hover:text-white hover:bg-red-600 transition-all" data-id={user._id} title="Borrar">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                <button class="delete-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-700 hover:text-white hover:bg-red-600 transition-all" data-id={user._id} title="Eliminar usuario">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                                 </button>
                                             )}
                                         </div>
