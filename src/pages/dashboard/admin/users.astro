@@ -117,144 +117,161 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
         <AdminNav />
 
         <!-- Stats Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
-            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-violet-500/30 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
+        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-10">
+            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-violet-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-violet-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-violet-400 shrink-0 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <div class="flex items-center gap-4 relative z-10 font-sans">
+                    <div class="w-12 h-12 rounded-2xl bg-violet-500/15 flex items-center justify-center text-violet-400 shrink-0 group-hover:scale-110 group-hover:bg-violet-500/30 transition-all duration-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
                     <div>
-                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold group-hover:text-zinc-400 transition-colors">Total</p>
-                        <p class="text-xl font-extrabold text-white">{totalUsers}</p>
+                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Total</p>
+                        <p class="text-2xl font-black text-white tracking-tight">{totalUsers}</p>
                     </div>
                 </div>
             </div>
-            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-emerald-500/30 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
+            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-emerald-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 shrink-0 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <div class="flex items-center gap-4 relative z-10 font-sans">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 shrink-0 group-hover:scale-110 group-hover:bg-emerald-500/30 transition-all duration-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                     </div>
                     <div>
-                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold group-hover:text-zinc-400 transition-colors">Activos 30d</p>
-                        <p class="text-xl font-extrabold text-white">{activeRecentCount}</p>
+                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Activos 30d</p>
+                        <p class="text-2xl font-black text-white tracking-tight">{activeRecentCount}</p>
                     </div>
                 </div>
             </div>
-            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-sky-500/30 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
+            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-sky-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-sky-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center text-sky-400 shrink-0 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                <div class="flex items-center gap-4 relative z-10 font-sans">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500/15 flex items-center justify-center text-sky-400 shrink-0 group-hover:scale-110 group-hover:bg-sky-500/30 transition-all duration-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                     </div>
                     <div>
-                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold group-hover:text-zinc-400 transition-colors">Suscritos</p>
-                        <p class="text-xl font-extrabold text-white">{subscribedCount}<span class="text-xs text-zinc-500 ml-1">/ {totalUsers}</span></p>
+                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Suscritos</p>
+                        <p class="text-2xl font-black text-white tracking-tight">{subscribedCount}<span class="text-xs text-zinc-600 ml-1.5 font-bold">/ {totalUsers}</span></p>
                     </div>
                 </div>
             </div>
-            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-amber-500/30 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
+            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-amber-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-amber-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-400 shrink-0 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+                <div class="flex items-center gap-4 relative z-10 font-sans">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/15 flex items-center justify-center text-amber-400 shrink-0 group-hover:scale-110 group-hover:bg-amber-500/30 transition-all duration-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
                     </div>
                     <div>
-                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold group-hover:text-zinc-400 transition-colors">Nuevos 7d</p>
-                        <p class="text-xl font-extrabold text-white">+{newThisWeek}</p>
+                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Nuevos 7d</p>
+                        <p class="text-2xl font-black text-white tracking-tight">+{newThisWeek}</p>
                     </div>
                 </div>
             </div>
-            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-pink-500/30 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
+            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-pink-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-pink-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-10 h-10 rounded-xl bg-pink-500/15 flex items-center justify-center text-pink-400 shrink-0 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div class="flex items-center gap-4 relative z-10 font-sans">
+                    <div class="w-12 h-12 rounded-2xl bg-pink-500/15 flex items-center justify-center text-pink-400 shrink-0 group-hover:scale-110 group-hover:bg-pink-500/30 transition-all duration-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
                     <div>
-                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold group-hover:text-zinc-400 transition-colors">Tiempo Total</p>
-                        <p class="text-xl font-extrabold text-white">{formatTime(totalListeningTime)}</p>
+                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Tiempo Total</p>
+                        <p class="text-2xl font-black text-white tracking-tight font-mono">{formatTime(totalListeningTime)}</p>
                     </div>
                 </div>
             </div>
-            <div class="group relative bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-xl hover:border-indigo-500/30 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-500/15 flex items-center justify-center text-indigo-400 shrink-0 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-fuchsia-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
+                <div class="absolute inset-0 bg-gradient-to-br from-fuchsia-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="flex items-center gap-4 relative z-10 font-sans">
+                    <div class="w-12 h-12 rounded-2xl bg-fuchsia-500/15 flex items-center justify-center text-fuchsia-400 shrink-0 group-hover:scale-110 group-hover:bg-fuchsia-500/30 transition-all duration-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
                     </div>
                     <div>
-                        <p class="text-[0.65rem] uppercase tracking-wider text-zinc-500 font-bold group-hover:text-zinc-400 transition-colors">Media/User</p>
-                        <p class="text-xl font-extrabold text-white">{formatTime(avgListeningTime)}</p>
+                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Media/Usuario</p>
+                        <p class="text-2xl font-black text-white tracking-tight font-mono">{formatTime(avgListeningTime)}</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Search & Filters Bar -->
-        <div class="bg-zinc-900/40 border border-white/[0.06] rounded-2xl p-4 mb-6 backdrop-blur-xl">
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="bg-zinc-900/40 border border-white/[0.06] rounded-3xl p-5 mb-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="relative z-10 flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
                 <!-- Search Input -->
                 <div class="relative flex-1 group">
-                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-violet-400 transition-colors pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-zinc-500 group-focus-within:text-violet-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                        </svg>
+                    </div>
                     <input 
                         type="text" 
                         id="searchInput" 
-                        placeholder="Buscar por nombre, email..." 
-                        class="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all font-medium"
+                        placeholder="Buscar por nombre, email o ID..." 
+                        class="w-full pl-11 pr-4 py-3 bg-black/40 border border-white/[0.08] rounded-2xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium"
                     />
-                    <div id="searchShimmer" class="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent w-full scale-x-0 transition-transform duration-500"></div>
+                    <div id="searchShimmer" class="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-violet-500 to-transparent scale-x-0 transition-transform duration-700"></div>
                 </div>
-                <!-- Filter: Role -->
-                <select id="filterRole" class="px-3 py-2.5 bg-black/30 border border-white/[0.08] rounded-xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none min-w-[140px]">
-                    <option value="all">Todos los roles</option>
-                    <option value="user">👤 Usuarios</option>
-                    <option value="admin">🛡️ Admins</option>
-                    <option value="owner">👑 Owners</option>
-                </select>
-                <!-- Filter: Newsletter -->
-                <select id="filterNewsletter" class="px-3 py-2.5 bg-black/30 border border-white/[0.08] rounded-xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none min-w-[140px]">
-                    <option value="all">Newsletter: Todos</option>
-                    <option value="subscribed">✅ Suscritos</option>
-                    <option value="unsubscribed">❌ No suscritos</option>
-                </select>
-                <!-- Sort -->
-                <select id="sortBy" class="px-3 py-2.5 bg-black/30 border border-white/[0.08] rounded-xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none min-w-[160px]">
-                    <option value="newest">📅 Más recientes</option>
-                    <option value="oldest">📅 Más antiguos</option>
-                    <option value="name">🔤 Nombre A-Z</option>
-                    <option value="listening">🎧 Más escuchado</option>
-                    <option value="streak">🔥 Mayor racha</option>
-                    <option value="lastActive">⚡ Último activo</option>
-                </select>
-                <!-- Results counter -->
-                <div id="resultsCounter" class="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-violet-500/10 border border-violet-500/20 rounded-xl text-xs font-bold text-violet-400 whitespace-nowrap">
-                    <span id="resultsCount">{totalUsers}</span> resultados
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Filter: Role -->
+                    <div class="relative min-w-[150px]">
+                        <select id="filterRole" class="w-full px-4 py-3 bg-black/30 border border-white/[0.08] rounded-2xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none hover:bg-black/50">
+                            <option value="all">Todos los roles</option>
+                            <option value="user">👤 Usuarios</option>
+                            <option value="admin">🛡️ Admins</option>
+                            <option value="owner">👑 Owners</option>
+                        </select>
+                    </div>
+
+                    <!-- Filter: Newsletter -->
+                    <div class="relative min-w-[170px]">
+                        <select id="filterNewsletter" class="w-full px-4 py-3 bg-black/30 border border-white/[0.08] rounded-2xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none hover:bg-black/50">
+                            <option value="all">Newsletter: Todos</option>
+                            <option value="subscribed">✅ Suscritos</option>
+                            <option value="unsubscribed">❌ No suscritos</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="relative min-w-[180px]">
+                        <select id="sortBy" class="w-full px-4 py-3 bg-black/30 border border-white/[0.08] rounded-2xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none hover:bg-black/50">
+                            <option value="newest">📅 Más recientes</option>
+                            <option value="oldest">📅 Más antiguos</option>
+                            <option value="name">🔤 Nombre A-Z</option>
+                            <option value="listening">🎧 Más escuchado</option>
+                            <option value="streak">🔥 Racha alta</option>
+                            <option value="lastActive">⚡ Activos hace poco</option>
+                        </select>
+                    </div>
+
+                    <!-- Results counter -->
+                    <div id="resultsCounter" class="flex items-center gap-2 px-4 py-3 bg-violet-500/10 border border-violet-500/20 rounded-2xl text-xs font-bold text-violet-400">
+                        <span id="resultsCount" class="text-white">{totalUsers}</span>
+                        <span class="opacity-60 whitespace-nowrap">usuarios</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Users Table / List -->
-        <div class="bg-zinc-900/40 border border-white/[0.06] rounded-2xl backdrop-blur-xl overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,0,0,0.4)]">
-            <!-- Table Header (Desktop) -->
-            <div class="hidden lg:grid grid-cols-[40px_minmax(250px,3fr)_minmax(200px,2fr)_100px_120px_120px_100px_80px_100px_140px] gap-2 px-5 py-4 border-b border-white/[0.05] text-[0.7rem] uppercase tracking-[0.12em] font-bold text-zinc-500 bg-white/[0.02]">
+        <!-- Users Table / List Container -->
+        <div class="relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] backdrop-blur-2xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-700">
+            <!-- Header (Desktop Only) -->
+            <div class="hidden lg:grid grid-cols-[60px_300px_minmax(200px,1.5fr)_100px_120px_130px_130px_80px_160px] gap-4 px-8 py-5 border-b border-white/[0.05] text-[0.65rem] uppercase tracking-[0.2em] font-black text-zinc-500 bg-white/[0.01]">
                 <div class="flex items-center justify-center">
-                    <input type="checkbox" id="selectAllUsers" class="w-4 h-4 rounded border-white/10 bg-black/40 text-violet-500 focus:ring-violet-500/50 transition-all cursor-pointer" />
+                    <input type="checkbox" id="selectAllUsers" class="w-5 h-5 rounded-lg border-white/10 bg-black/60 text-violet-500 focus:ring-violet-500/50 hover:border-violet-500/50 transition-all cursor-pointer accent-violet-500" />
                 </div>
                 <span>Usuario</span>
                 <span>Email</span>
-                <span>Rol</span>
-                <span>Registro</span>
-                <span>Último Acceso</span>
-                <span>Tiempo</span>
-                <span>Racha</span>
-                <span>Newsletter</span>
+                <span class="text-center">Rol</span>
+                <span class="text-center">Registro</span>
+                <span class="text-center">Última Actividad</span>
+                <span class="text-center">Tiempo / Meta</span>
+                <span class="text-center">Racha</span>
                 <span class="text-right">Acciones</span>
             </div>
 
-            <!-- User Rows -->
-            <div id="usersListContainer">
+            <!-- List Body -->
+            <div id="usersListContainer" class="divide-y divide-white/[0.03]">
                 {users.map((user, index) => {
                     const isCurrentUser = user._id.toString() === currentUser._id.toString();
                     const daysAgo = user.lastActiveAt ? Math.floor((now.getTime() - new Date(user.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24)) : -1;
@@ -263,7 +280,7 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                     
                     return (
                         <div 
-                            class="user-row group flex flex-col lg:grid lg:grid-cols-[40px_minmax(250px,3fr)_minmax(200px,2fr)_100px_120px_120px_100px_80px_100px_140px] gap-2 px-4 lg:px-5 py-4 lg:py-3.5 border-b border-white/[0.03] hover:bg-white/[0.04] active:bg-white/[0.06] transition-all duration-200 relative items-center"
+                            class="user-row group flex flex-col lg:grid lg:grid-cols-[60px_300px_minmax(200px,1.5fr)_100px_120px_130px_130px_80px_160px] gap-4 px-6 lg:px-8 py-5 lg:py-4 hover:bg-white/[0.03] active:bg-white/[0.05] transition-all duration-300 relative items-center"
                             data-id={user._id}
                             data-name={user.name.toLowerCase()}
                             data-email={user.email.toLowerCase()}
@@ -273,155 +290,140 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                             data-listening={user.listeningTime || 0}
                             data-streak={user.currentStreak || 0}
                             data-last-active={user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0}
-                            style={`animation-delay: ${index * 15}ms`}
+                            style={`animation-delay: ${index * 10}ms`}
                         >
-                            {/* Desktop Checkbox */}
+                            <!-- Checkbox (Desktop) -->
                             <div class="hidden lg:flex items-center justify-center">
-                                <input type="checkbox" class="user-checkbox w-4 h-4 rounded border-white/10 bg-black/40 text-violet-500 focus:ring-violet-500/50 transition-all cursor-pointer hover:border-violet-500/50" data-id={user._id} />
+                                <input type="checkbox" class="user-checkbox w-4 h-4 rounded border-white/10 bg-black/40 text-violet-500 focus:ring-violet-500/50 hover:border-violet-500/50 transition-all cursor-pointer accent-violet-500" data-id={user._id} />
                             </div>
 
-                            {/* Main User Info */}
-                            <div class="flex items-center justify-between lg:justify-start gap-4 w-full lg:w-auto min-w-0">
-                                <div class="flex items-center gap-3 min-w-0">
+                            <!-- User Identity -->
+                            <div class="flex items-center justify-between lg:justify-start gap-4 w-full">
+                                <div class="flex items-center gap-4 min-w-0">
                                     <div class="relative shrink-0">
-                                        <div class={`absolute inset-0 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-500 animate-pulse-slow blur-[4px] opacity-0 group-hover:opacity-40 transition-opacity`}></div>
+                                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-violet-500/40 to-fuchsia-500/40 blur-[8px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                         <img 
                                             src={user.picture || `https://ui-avatars.com/api/?name=${user.name}&background=7c3aed&color=fff&size=80`} 
                                             alt={user.name} 
-                                            class="relative w-10 h-10 rounded-full object-cover ring-2 ring-white/10 shadow-lg group-hover:ring-violet-500/30 transition-all"
+                                            class="relative w-12 h-12 lg:w-11 lg:h-11 rounded-2xl object-cover ring-1 ring-white/10 shadow-xl group-hover:ring-violet-500/40 transition-all duration-500 group-hover:scale-105"
                                             loading="lazy"
                                         />
-                                        <div class={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-zinc-900 ${isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : isInactive ? 'bg-zinc-600' : 'bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.6)]'}`}></div>
+                                        <div class={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-[3px] border-zinc-900 ${isActive ? 'bg-emerald-500 shadow-[0_0_12px_rgba(52,211,153,0.8)]' : isInactive ? 'bg-zinc-700' : 'bg-amber-500 animate-pulse-slow shadow-[0_0_12px_rgba(245,158,11,0.6)]'}`}></div>
                                     </div>
                                     <div class="min-w-0 flex flex-col">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-bold text-white text-[0.9rem] lg:text-sm truncate group-hover:text-violet-300 transition-colors">{user.name}</span>
-                                            {isCurrentUser && <span class="text-[0.6rem] px-1.5 py-0.5 bg-violet-500/20 text-violet-400 rounded-md font-bold ring-1 ring-violet-500/30 shrink-0">TU</span>}
+                                        <div class="flex items-center gap-2 mb-0.5">
+                                            <span class="font-bold text-white text-base lg:text-[0.95rem] tracking-tight group-hover:text-violet-300 transition-colors truncate">{user.name}</span>
+                                            {isCurrentUser && <span class="text-[0.6rem] px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded-lg font-black ring-1 ring-violet-500/30 whitespace-nowrap">TÚ</span>}
                                         </div>
-                                        <span class="lg:hidden text-xs text-zinc-500 truncate">{user.email}</span>
+                                        <span class="text-xs text-zinc-500 font-medium truncate lg:hidden">{user.email}</span>
+                                        {user.bio && <span class="text-[0.65rem] text-zinc-600 truncate max-w-[220px] hidden lg:block italic leading-tight">{user.bio}</span>}
                                     </div>
                                 </div>
-
-                                {/* Mobile Actions (Mirror of desktop actions but always visible on mobile) */}
-                                <div class="flex lg:hidden items-center gap-1">
-                                    <button class="view-btn p-2 rounded-lg bg-white/[0.05] border border-white/10 text-zinc-300" data-user={JSON.stringify(user)}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    </button>
-                                    <button class="edit-btn p-2 rounded-lg bg-white/[0.05] border border-white/10 text-zinc-300" data-user={JSON.stringify(user)}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                    </button>
+                                <!-- Mobile Checkbox -->
+                                <div class="lg:hidden">
+                                    <input type="checkbox" class="user-checkbox w-6 h-6 rounded-xl border-white/10 bg-black/40 text-violet-500 focus:ring-violet-500/50 accent-violet-500" data-id={user._id} />
                                 </div>
                             </div>
-                            
-                            {/* Email */}
+
+                            <!-- Email (Desktop Only) -->
                             <div class="hidden lg:flex items-center min-w-0">
-                                <span class="text-xs text-zinc-400 truncate hover:text-zinc-200 transition-colors" title={user.email}>{user.email}</span>
+                                <span class="text-xs text-zinc-400 font-medium hover:text-white transition-colors cursor-default truncate" title={user.email}>{user.email}</span>
                             </div>
-                            
-                            {/* Role Badge */}
-                            <div class="hidden lg:flex items-center">
-                                <div class={`role-badge px-2.5 py-1 rounded-lg text-[0.65rem] font-black uppercase tracking-wider flex items-center gap-1 ${
+
+                            <!-- Role Badge -->
+                            <div class="hidden lg:flex items-center justify-center">
+                                <div class={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.6rem] font-black uppercase tracking-widest ${
                                     user.role === 'owner' 
-                                        ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20 shadow-[0_0_12px_rgba(244,114,182,0.1)]' 
+                                        ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' 
                                         : user.role === 'admin' 
-                                        ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20 shadow-[0_0_12px_rgba(139,92,246,0.1)]' 
+                                        ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20' 
                                         : 'bg-white/[0.04] text-zinc-500 border border-white/[0.08]'
                                 }`}>
-                                    <span class="text-[10px]">{user.role === 'owner' ? '👑' : user.role === 'admin' ? '🛡️' : '👤'}</span>
+                                    <span class="text-[10px] scale-110">{user.role === 'owner' ? '👑' : user.role === 'admin' ? '🛡️' : '👤'}</span>
                                     {user.role}
                                 </div>
                             </div>
-                            
-                            {/* Registration Date */}
-                            <div class="hidden lg:flex items-center">
-                                <span class="text-[11px] text-zinc-500 font-medium font-mono" title={new Date(user.createdAt).toLocaleString()}>
+
+                            <!-- Registration Date -->
+                            <div class="hidden lg:flex items-center justify-center">
+                                <span class="text-[11px] text-zinc-500 font-bold font-mono tracking-tighter" title={new Date(user.createdAt).toLocaleString()}>
                                     {new Date(user.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })}
                                 </span>
                             </div>
-                            
-                            {/* Last Active */}
-                            <div class="hidden lg:flex items-center">
-                                <div class="flex flex-col">
-                                    <span class={`text-[11px] font-bold font-mono ${isActive ? 'text-emerald-400' : isInactive ? 'text-zinc-600' : 'text-zinc-400'}`} title={user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : 'Nunca'}>
-                                        {daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
-                                    </span>
-                                    {isActive && <span class="text-[8px] text-emerald-500/60 font-black tracking-tighter uppercase leading-none">Activo ahora</span>}
-                                </div>
-                            </div>
-                            
-                            {/* Listening Time */}
-                            <div class="hidden lg:flex items-center pr-4">
-                                <div class="w-full">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-[11px] text-zinc-300 font-mono font-black">{formatTime(user.listeningTime || 0)}</span>
+
+                            <!-- Last Activity -->
+                            <div class="hidden lg:flex flex-col items-center justify-center shrink-0">
+                                <span class={`text-[11px] font-black font-mono tracking-tight ${isActive ? 'text-emerald-400' : isInactive ? 'text-zinc-600' : 'text-zinc-400'}`} title={user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : 'Sin datos'}>
+                                    {daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
+                                </span>
+                                {isActive && (
+                                    <div class="flex items-center gap-1 mt-0.5">
+                                        <div class="w-1 h-1 rounded-full bg-emerald-500 animate-ping"></div>
+                                        <span class="text-[7px] text-emerald-500/60 font-black tracking-widest uppercase">Live</span>
                                     </div>
-                                    <div class="h-1 w-full bg-white/[0.05] rounded-full overflow-hidden">
+                                )}
+                            </div>
+
+                            <!-- Listening Progress -->
+                            <div class="hidden lg:flex items-center justify-center w-full max-w-[130px]">
+                                <div class="w-full">
+                                    <div class="flex items-center justify-between mb-1.5 px-0.5">
+                                        <span class="text-[10px] text-white font-black font-mono">{formatTime(user.listeningTime || 0)}</span>
+                                        <span class="text-[9px] text-zinc-600 font-bold">{Math.round(((user.listeningTime || 0) / (avgListeningTime * 2)) * 100)}%</span>
+                                    </div>
+                                    <div class="h-1.5 w-full bg-white/[0.03] rounded-full overflow-hidden flex items-center shadow-inner">
                                         <div 
-                                            class="h-full bg-gradient-to-r from-violet-500 to-emerald-500 rounded-full transition-all duration-1000 group-hover:brightness-125" 
+                                            class="h-[2px] bg-gradient-to-r from-violet-500 via-fuchsia-500 to-emerald-500 rounded-full transition-all duration-1000 group-hover:brightness-125" 
                                             style={`width: ${Math.min(100, ((user.listeningTime || 0) / (avgListeningTime * 2)) * 100)}%`}
                                         ></div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            {/* Streak */}
-                            <div class="hidden lg:flex items-center">
-                                <span class="text-xs font-mono">
-                                    {(user.currentStreak || 0) > 0 
-                                        ? <span class="flex items-center gap-0.5 text-amber-500 font-black drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-amber-500"><path d="M17.5 12.5a5 5 0 0 1-5 5c-2.76 0-5-2.24-5-5s2.24-5 5-5a5 5 0 0 1 5 5z"/><path d="M12 2c-.64 0-1.28.16-1.84.48L3.24 7.15c-.75.44-1.24 1.27-1.24 2.15v5.4c0 .88.49 1.71 1.24 2.15l6.92 4.67c.56.32 1.2.48 1.84.48s1.28-.16 1.84-.48l6.92-4.67c.75-.44 1.24-1.27 1.24-2.15V9.3c0-.88-.49-1.71-1.24-2.15l-6.92-4.67c-.56-.32-1.2-.48-1.84-.48z"/></svg>
-                                            {user.currentStreak}
-                                          </span> 
-                                        : <span class="text-zinc-700 font-black">-</span>
-                                    }
-                                </span>
-                            </div>
-                            
-                            {/* Newsletter Status */}
-                            <div class="hidden lg:flex items-center">
-                                {user.newsletter 
-                                    ? <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-all">
-                                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span> SÍ
-                                      </span>
-                                    : <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-zinc-500/10 text-zinc-500 border border-white/[0.05]">
-                                        NO
-                                      </span>
+
+                            <!-- Streak -->
+                            <div class="hidden lg:flex items-center justify-center">
+                                {(user.currentStreak || 0) > 0 
+                                    ? <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-amber-500"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                                        <span class="text-sm font-black text-amber-500">{user.currentStreak}</span>
+                                      </div> 
+                                    : <span class="text-zinc-700 font-black">-</span>
                                 }
                             </div>
-                            
-                            {/* Actions (Desktop) */}
-                            <div class="hidden lg:flex items-center justify-end gap-1 px-1">
-                                <button class="view-btn p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,92,246,0.2)] transition-all duration-200" data-user={JSON.stringify(user)} aria-label="Ver detalles" title="Ver Detalles">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                </button>
-                                <button class="edit-btn p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-sky-500/20 hover:border-sky-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(14,165,233,0.2)] transition-all duration-200" data-user={JSON.stringify(user)} aria-label="Editar usuario" title="Editar">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                </button>
-                                
-                                <div class="hidden group-hover:flex items-center gap-1 animate-in fade-in slide-in-from-right-2 duration-300">
-                                    <button class="test-to-me-btn p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(99,102,241,0.2)] transition-all duration-200" data-id={user._id} data-name={user.name} aria-label="Enviarme prueba" title="Enviarme prueba a mí">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                                    </button>
-                                    <button class="audit-btn p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-violet-400 hover:text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,92,246,0.2)] transition-all duration-200" data-user={JSON.stringify(user)} aria-label="Audit de actividad" title="Audit de Actividad">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                                    </button>
-                                    {!isCurrentUser && (
-                                        <button class="delete-btn p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-500 hover:text-red-400 hover:bg-red-500/20 hover:border-red-500/40 hover:-translate-y-0.5 transition-all duration-200" data-id={user._id} aria-label="Eliminar" title="Eliminar">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                        </button>
-                                    )}
+
+                            <!-- Actions -->
+                            <div class="flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto mt-4 lg:mt-0 pt-4 lg:pt-0 border-t border-white/[0.03] lg:border-none">
+                                <!-- Mobile Stats (Visible only on mobile) -->
+                                <div class="flex lg:hidden items-center gap-3">
+                                    <div class={`px-2.5 py-1 rounded-lg text-[0.6rem] font-black uppercase ${user.role === 'owner' ? 'bg-pink-500/10 text-pink-400' : user.role === 'admin' ? 'bg-violet-500/10 text-violet-400' : 'bg-white/5 text-zinc-500'}`}>{user.role}</div>
+                                    <div class="flex items-center gap-1 text-[0.65rem] text-zinc-500 font-mono font-bold">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                        {formatTime(user.listeningTime || 0)}
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            {/* Mobile extra info row */}
-                            <div class="lg:hidden flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-white/[0.03]">
-                                <span class={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.65rem] font-bold uppercase ${
-                                    user.role === 'owner' ? 'bg-pink-500/15 text-pink-300' : user.role === 'admin' ? 'bg-violet-500/15 text-violet-300' : 'bg-white/[0.04] text-zinc-500'
-                                }`}>{user.role}</span>
-                                <span class="text-[0.65rem] text-zinc-600 font-mono">{formatTime(user.listeningTime || 0)}</span>
-                                <span class="text-[0.65rem] text-zinc-600">•</span>
-                                {user.newsletter ? <span class="text-[0.65rem] text-emerald-400">✓ Newsletter</span> : <span class="text-[0.65rem] text-zinc-600">No News</span>}
-                                {(user.currentStreak || 0) > 0 && <span class="text-[0.65rem] text-amber-500 font-black">🔥 {user.currentStreak}</span>}
+                                <div class="flex items-center gap-1.5">
+                                    <button class="view-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-violet-600 hover:border-violet-500 hover:-translate-y-1 transition-all shadow-lg overflow-hidden relative group/btn" data-user={JSON.stringify(user)} title="Ver Detalles">
+                                        <div class="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="relative z-10"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </button>
+                                    <button class="edit-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-sky-500 hover:border-sky-400 hover:-translate-y-1 transition-all shadow-lg overflow-hidden relative group/btn" data-user={JSON.stringify(user)} title="Editar">
+                                        <div class="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="relative z-10"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </button>
+                                    <div class="flex items-center gap-1.5 overflow-hidden w-0 lg:group-hover:w-auto transition-all duration-500 ease-out">
+                                        <button class="test-to-me-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-indigo-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 hover:-translate-y-1 transition-all shadow-lg" data-id={user._id} data-name={user.name} title="Enviarme prueba">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                        </button>
+                                        <button class="audit-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-amber-500 hover:text-white hover:bg-amber-500 hover:border-amber-400 hover:-translate-y-1 transition-all shadow-lg" data-user={JSON.stringify(user)} title="Auditoría">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                        </button>
+                                        {!isCurrentUser && (
+                                            <button class="delete-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-600 hover:text-white hover:bg-red-600 hover:border-red-500 hover:-translate-y-1 transition-all shadow-lg" data-id={user._id} title="Borrar">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     );
@@ -429,17 +431,32 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
             </div>
 
             <!-- No Results -->
-            <div id="noResults" class="hidden py-24 text-center">
-                <div class="relative w-24 h-24 mx-auto mb-6">
-                    <div class="absolute inset-0 bg-violet-500/20 blur-3xl rounded-full"></div>
-                    <div class="relative w-full h-full rounded-3xl bg-zinc-900/50 border border-white/[0.08] flex items-center justify-center text-zinc-600 shadow-2xl">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
+            <div id="noResults" class="hidden py-32 text-center animate-in fade-in slide-in-from-bottom-8 duration-500">
+                <div class="relative w-28 h-28 mx-auto mb-8">
+                    <div class="absolute inset-0 bg-violet-500/30 blur-3xl rounded-full animate-pulse"></div>
+                    <div class="relative w-full h-full rounded-[2.5rem] bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-700 shadow-3xl rotate-12 group-hover:rotate-0 transition-transform duration-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><line x1="8" y1="11" x2="14" y2="11"/>
+                        </svg>
                     </div>
                 </div>
-                <h3 class="text-white font-black text-xl mb-2 tracking-tight">Cero coincidencias</h3>
-                <p class="text-zinc-500 text-sm max-w-xs mx-auto mb-8 font-medium">No hemos encontrado ningún usuario que encaje con esos filtros. Quizás sea el momento de probar algo menos específico.</p>
-                <button onclick="document.getElementById('searchInput').value=''; document.getElementById('filterRole').value='all'; document.getElementById('filterNewsletter').value='all'; document.querySelectorAll('select').forEach(s => s.dispatchEvent(new Event('change'))); document.getElementById('searchInput').dispatchEvent(new Event('input'));" class="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white transition-all">Limpiar filtros</button>
+                <h3 class="text-white font-black text-2xl mb-3 tracking-tight">Sin coincidencias</h3>
+                <p class="text-zinc-500 text-base max-w-sm mx-auto mb-10 font-medium leading-relaxed">No hemos encontrado ningún usuario con esos criterios. Prueba a simplificar tu búsqueda.</p>
+                <button onclick="document.getElementById('searchInput').value=''; document.getElementById('filterRole').value='all'; document.getElementById('filterNewsletter').value='all'; document.querySelectorAll('select').forEach(s => s.dispatchEvent(new Event('change'))); document.getElementById('searchInput').dispatchEvent(new Event('input'));" class="px-8 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-sm font-bold text-zinc-300 hover:bg-white/10 hover:text-white transition-all hover:scale-105 active:scale-95 shadow-xl">Limpiar todos los filtros</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Floating Bulk Actions Bar -->
+    <div id="bulkActionsBar" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] bg-black/80 backdrop-blur-2xl border border-white/10 px-6 py-4 rounded-[2rem] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8)] flex items-center gap-6 opacity-0 pointer-events-none translate-y-10 transition-all duration-500 ring-1 ring-white/5">
+        <div class="flex items-center gap-3 pr-6 border-r border-white/10">
+            <span id="selectedCount" class="w-10 h-10 rounded-full bg-violet-500 flex items-center justify-center text-white font-black text-lg shadow-[0_0_20px_rgba(139,92,246,0.5)]">0</span>
+            <span class="text-sm font-bold text-zinc-300 uppercase tracking-widest">Seleccionados</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="bulkWarnBtn" class="px-5 py-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-amber-500 hover:text-white transition-all duration-300">Avisar</button>
+            <button id="bulkDeleteBtn" class="px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all duration-300">Eliminar</button>
+            <button id="cancelBulk" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 transition-all font-black text-xl ml-2">&times;</button>
         </div>
     </div>
 
