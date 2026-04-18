@@ -253,196 +253,147 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
             </div>
         </div>
 
-        <!-- Users Table / List Container -->
-        <div class="relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] backdrop-blur-2xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-700">
-            <!-- Header (Desktop Only) -->
-            <div class="hidden lg:grid grid-cols-[60px_300px_minmax(200px,1.5fr)_100px_120px_130px_130px_80px_160px] gap-4 px-8 py-5 border-b border-white/[0.05] text-[0.65rem] uppercase tracking-[0.2em] font-black text-zinc-500 bg-white/[0.01]">
-                <div class="flex items-center justify-center">
-                    <input type="checkbox" id="selectAllUsers" class="w-5 h-5 rounded-lg border-white/10 bg-black/60 text-violet-500 focus:ring-violet-500/50 hover:border-violet-500/50 transition-all cursor-pointer accent-violet-500" />
-                </div>
-                <span>Usuario</span>
-                <span>Email</span>
-                <span class="text-center">Rol</span>
-                <span class="text-center">Registro</span>
-                <span class="text-center">Última Actividad</span>
-                <span class="text-center">Tiempo / Meta</span>
-                <span class="text-center">Racha</span>
-                <span class="text-right">Acciones</span>
-            </div>
-
-            <!-- List Body -->
-            <div id="usersListContainer" class="divide-y divide-white/[0.03]">
-                {users.map((user, index) => {
-                    const isCurrentUser = user._id.toString() === currentUser._id.toString();
-                    const daysAgo = user.lastActiveAt ? Math.floor((now.getTime() - new Date(user.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24)) : -1;
-                    const isActive = daysAgo >= 0 && 7 >= daysAgo;
-                    const isInactive = daysAgo >= 31 || daysAgo === -1;
-                    
-                    return (
-                        <div 
-                            class="user-row group flex flex-col lg:grid lg:grid-cols-[60px_300px_minmax(200px,1.5fr)_100px_120px_130px_130px_80px_160px] gap-4 px-6 lg:px-8 py-5 lg:py-4 hover:bg-white/[0.03] active:bg-white/[0.05] transition-all duration-300 relative items-center"
-                            data-id={user._id}
-                            data-name={user.name.toLowerCase()}
-                            data-email={user.email.toLowerCase()}
-                            data-role={user.role}
-                            data-newsletter={user.newsletter ? 'subscribed' : 'unsubscribed'}
-                            data-created={new Date(user.createdAt).getTime()}
-                            data-listening={user.listeningTime || 0}
-                            data-streak={user.currentStreak || 0}
-                            data-last-active={user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0}
-                            style={`animation-delay: ${index * 10}ms`}
-                        >
-                            <!-- Checkbox (Desktop) -->
-                            <div class="hidden lg:flex items-center justify-center">
-                                <input type="checkbox" class="user-checkbox w-4 h-4 rounded border-white/10 bg-black/40 text-violet-500 focus:ring-violet-500/50 hover:border-violet-500/50 transition-all cursor-pointer accent-violet-500" data-id={user._id} />
-                            </div>
-
-                            <!-- User Identity -->
-                            <div class="flex items-center justify-between lg:justify-start gap-4 w-full">
-                                <div class="flex items-center gap-4 min-w-0">
-                                    <div class="relative shrink-0">
-                                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-violet-500/40 to-fuchsia-500/40 blur-[8px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                        <img 
-                                            src={user.picture || `https://ui-avatars.com/api/?name=${user.name}&background=7c3aed&color=fff&size=80`} 
-                                            alt={user.name} 
-                                            class="relative w-12 h-12 lg:w-11 lg:h-11 rounded-2xl object-cover ring-1 ring-white/10 shadow-xl group-hover:ring-violet-500/40 transition-all duration-500 group-hover:scale-105"
-                                            loading="lazy"
-                                        />
-                                        <div class={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-[3px] border-zinc-900 ${isActive ? 'bg-emerald-500 shadow-[0_0_12px_rgba(52,211,153,0.8)]' : isInactive ? 'bg-zinc-700' : 'bg-amber-500 animate-pulse-slow shadow-[0_0_12px_rgba(245,158,11,0.6)]'}`}></div>
-                                    </div>
-                                    <div class="min-w-0 flex flex-col">
-                                        <div class="flex items-center gap-2 mb-0.5">
-                                            <span class="font-bold text-white text-base lg:text-[0.95rem] tracking-tight group-hover:text-violet-300 transition-colors truncate">{user.name}</span>
-                                            {isCurrentUser && <span class="text-[0.6rem] px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded-lg font-black ring-1 ring-violet-500/30 whitespace-nowrap">TÚ</span>}
+        <!-- Users Table Container -->
+        <div class="relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] backdrop-blur-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-700 overflow-hidden">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="text-[0.65rem] uppercase tracking-[0.2em] font-black text-zinc-500 border-b border-white/[0.05] bg-white/[0.01]">
+                            <th class="px-6 py-5 text-center w-16">
+                                <input type="checkbox" id="selectAllUsers" class="w-5 h-5 rounded-lg border-white/10 bg-black/60 text-violet-500 focus:ring-violet-500/50 hover:border-violet-500/50 transition-all cursor-pointer accent-violet-500" />
+                            </th>
+                            <th class="px-6 py-5 text-left min-w-[240px]">Usuario</th>
+                            <th class="px-6 py-5 text-left min-w-[200px] hidden xl:table-cell">Email</th>
+                            <th class="px-6 py-5 text-center w-32 hidden sm:table-cell">Rol</th>
+                            <th class="px-6 py-5 text-center w-36 hidden md:table-cell">Registro</th>
+                            <th class="px-6 py-5 text-center w-40 hidden lg:table-cell">Actividad</th>
+                            <th class="px-6 py-5 text-left w-44 hidden lg:table-cell">Progreso</th>
+                            <th class="px-6 py-5 text-center w-24 hidden sm:table-cell">Racha</th>
+                            <th class="px-8 py-5 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersListContainer" class="divide-y divide-white/[0.03]">
+                        {users.map((user, index) => {
+                            const isCurrentUser = user._id.toString() === currentUser._id.toString();
+                            const daysAgo = user.lastActiveAt ? Math.floor((now.getTime() - new Date(user.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24)) : -1;
+                            const isActive = daysAgo >= 0 && 7 >= daysAgo;
+                            const isInactive = daysAgo >= 31 || daysAgo === -1;
+                            
+                            return (
+                                <tr 
+                                    class="user-row group hover:bg-white/[0.02] active:bg-white/[0.04] transition-all duration-300"
+                                    data-id={user._id}
+                                    data-name={user.name.toLowerCase()}
+                                    data-email={user.email.toLowerCase()}
+                                    data-role={user.role}
+                                    data-newsletter={user.newsletter ? 'subscribed' : 'unsubscribed'}
+                                    data-created={new Date(user.createdAt).getTime()}
+                                    data-listening={user.listeningTime || 0}
+                                    data-streak={user.currentStreak || 0}
+                                    data-last-active={user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0}
+                                    style={`animation-delay: ${index * 15}ms`}
+                                >
+                                    <td class="px-6 py-4 text-center">
+                                        <input type="checkbox" class="user-checkbox w-4 h-4 rounded border-white/10 bg-black/40 text-violet-500 focus:ring-violet-500/50 accent-violet-500 transition-all cursor-pointer" data-id={user._id} />
+                                    </td>
+                                    
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-4">
+                                            <div class="relative shrink-0">
+                                                <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-violet-500/40 to-fuchsia-500/40 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                                <img 
+                                                    src={user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=7c3aed&color=fff&size=80`} 
+                                                    alt={user.name} 
+                                                    class="relative w-11 h-11 rounded-2xl object-cover ring-1 ring-white/10 group-hover:ring-violet-500/40 transition-all duration-500"
+                                                />
+                                                <div class={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-[3px] border-zinc-900 ${isActive ? 'bg-emerald-500' : isInactive ? 'bg-zinc-700' : 'bg-amber-500'}`}></div>
+                                            </div>
+                                            <div class="flex flex-col min-w-0">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold text-white text-[0.95rem] tracking-tight group-hover:text-violet-300 transition-colors truncate">{user.name}</span>
+                                                    {isCurrentUser && <span class="text-[0.6rem] px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded-lg font-black tracking-widest">TÚ</span>}
+                                                </div>
+                                                <span class="text-xs text-zinc-500 truncate xl:hidden max-w-[150px]">{user.email}</span>
+                                            </div>
                                         </div>
-                                        <span class="text-xs text-zinc-500 font-medium truncate lg:hidden">{user.email}</span>
-                                        {user.bio && <span class="text-[0.65rem] text-zinc-600 truncate max-w-[220px] hidden lg:block italic leading-tight">{user.bio}</span>}
-                                    </div>
-                                </div>
-                                <!-- Mobile Checkbox -->
-                                <div class="lg:hidden">
-                                    <input type="checkbox" class="user-checkbox w-6 h-6 rounded-xl border-white/10 bg-black/40 text-violet-500 focus:ring-violet-500/50 accent-violet-500" data-id={user._id} />
-                                </div>
-                            </div>
+                                    </td>
 
-                            <!-- Email (Desktop Only) -->
-                            <div class="hidden lg:flex items-center min-w-0">
-                                <span class="text-xs text-zinc-400 font-medium hover:text-white transition-colors cursor-default truncate" title={user.email}>{user.email}</span>
-                            </div>
+                                    <td class="px-6 py-4 hidden xl:table-cell">
+                                        <span class="text-xs text-zinc-400 font-medium truncate max-w-[200px] block">{user.email}</span>
+                                    </td>
 
-                            <!-- Role Badge -->
-                            <div class="hidden lg:flex items-center justify-center">
-                                <div class={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.6rem] font-black uppercase tracking-widest ${
-                                    user.role === 'owner' 
-                                        ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' 
-                                        : user.role === 'admin' 
-                                        ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20' 
-                                        : 'bg-white/[0.04] text-zinc-500 border border-white/[0.08]'
-                                }`}>
-                                    <span class="text-[10px] scale-110">{user.role === 'owner' ? '👑' : user.role === 'admin' ? '🛡️' : '👤'}</span>
-                                    {user.role}
-                                </div>
-                            </div>
+                                    <td class="px-6 py-4 text-center hidden sm:table-cell">
+                                        <div class={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.6rem] font-black uppercase tracking-widest ${
+                                            user.role === 'owner' 
+                                                ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' 
+                                                : user.role === 'admin' 
+                                                ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20' 
+                                                : 'bg-white/[0.04] text-zinc-500 border border-white/[0.08]'
+                                        }`}>
+                                            {user.role}
+                                        </div>
+                                    </td>
 
-                            <!-- Registration Date -->
-                            <div class="hidden lg:flex items-center justify-center">
-                                <span class="text-[11px] text-zinc-500 font-bold font-mono tracking-tighter" title={new Date(user.createdAt).toLocaleString()}>
-                                    {new Date(user.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })}
-                                </span>
-                            </div>
+                                    <td class="px-6 py-4 text-center hidden md:table-cell">
+                                        <span class="text-[11px] text-zinc-500 font-bold font-mono">
+                                            {new Date(user.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                                        </span>
+                                    </td>
 
-                            <!-- Last Activity -->
-                            <div class="hidden lg:flex flex-col items-center justify-center shrink-0">
-                                <span class={`text-[11px] font-black font-mono tracking-tight ${isActive ? 'text-emerald-400' : isInactive ? 'text-zinc-600' : 'text-zinc-400'}`} title={user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : 'Sin datos'}>
-                                    {daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
-                                </span>
-                                {isActive && (
-                                    <div class="flex items-center gap-1 mt-0.5">
-                                        <div class="w-1 h-1 rounded-full bg-emerald-500 animate-ping"></div>
-                                        <span class="text-[7px] text-emerald-500/60 font-black tracking-widest uppercase">Live</span>
-                                    </div>
-                                )}
-                            </div>
+                                    <td class="px-6 py-4 text-center hidden lg:table-cell">
+                                        <span class={`text-[11px] font-black font-mono ${isActive ? 'text-emerald-400' : isInactive ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                                            {daysAgo === 0 ? 'Hoy' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
+                                        </span>
+                                    </td>
 
-                            <!-- Listening Progress -->
-                            <div class="hidden lg:flex items-center justify-center w-full max-w-[130px]">
-                                <div class="w-full">
-                                    <div class="flex items-center justify-between mb-1.5 px-0.5">
-                                        <span class="text-[10px] text-white font-black font-mono">{formatTime(user.listeningTime || 0)}</span>
-                                        <span class="text-[9px] text-zinc-600 font-bold">{Math.round(((user.listeningTime || 0) / (avgListeningTime * 2)) * 100)}%</span>
-                                    </div>
-                                    <div class="h-1.5 w-full bg-white/[0.03] rounded-full overflow-hidden flex items-center shadow-inner">
-                                        <div 
-                                            class="h-[2px] bg-gradient-to-r from-violet-500 via-fuchsia-500 to-emerald-500 rounded-full transition-all duration-1000 group-hover:brightness-125" 
-                                            style={`width: ${Math.min(100, ((user.listeningTime || 0) / (avgListeningTime * 2)) * 100)}%`}
-                                        ></div>
-                                    </div>
-                                </div>
-                            </div>
+                                    <td class="px-6 py-4 hidden lg:table-cell">
+                                        <div class="w-full max-w-[120px]">
+                                            <div class="h-1 w-full bg-white/[0.05] rounded-full overflow-hidden">
+                                                <div class="h-full bg-gradient-to-r from-violet-500 to-emerald-500" style={`width: ${Math.min(100, ((user.listeningTime || 0) / (avgListeningTime * 2)) * 100)}%`}></div>
+                                            </div>
+                                        </div>
+                                    </td>
 
-                            <!-- Streak -->
-                            <div class="hidden lg:flex items-center justify-center">
-                                {(user.currentStreak || 0) > 0 
-                                    ? <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/5 border border-amber-500/20">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-amber-500"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-                                        <span class="text-sm font-black text-amber-500">{user.currentStreak}</span>
-                                      </div> 
-                                    : <span class="text-zinc-700 font-black">-</span>
-                                }
-                            </div>
+                                    <td class="px-6 py-4 text-center hidden sm:table-cell">
+                                        {(user.currentStreak || 0) > 0 ? <span class="text-sm font-black text-amber-500">🔥 {user.currentStreak}</span> : <span class="text-zinc-700">-</span>}
+                                    </td>
 
-                            <!-- Actions -->
-                            <div class="flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto mt-4 lg:mt-0 pt-4 lg:pt-0 border-t border-white/[0.03] lg:border-none">
-                                <!-- Mobile Stats (Visible only on mobile) -->
-                                <div class="flex lg:hidden items-center gap-3">
-                                    <div class={`px-2.5 py-1 rounded-lg text-[0.6rem] font-black uppercase ${user.role === 'owner' ? 'bg-pink-500/10 text-pink-400' : user.role === 'admin' ? 'bg-violet-500/10 text-violet-400' : 'bg-white/5 text-zinc-500'}`}>{user.role}</div>
-                                    <div class="flex items-center gap-1 text-[0.65rem] text-zinc-500 font-mono font-bold">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                        {formatTime(user.listeningTime || 0)}
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-1.5">
-                                    <button class="view-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-violet-600 hover:border-violet-500 hover:-translate-y-1 transition-all shadow-lg overflow-hidden relative group/btn" data-user={JSON.stringify(user)} title="Ver Detalles">
-                                        <div class="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="relative z-10"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    </button>
-                                    <button class="edit-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-sky-500 hover:border-sky-400 hover:-translate-y-1 transition-all shadow-lg overflow-hidden relative group/btn" data-user={JSON.stringify(user)} title="Editar">
-                                        <div class="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="relative z-10"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                    </button>
-                                    <div class="flex items-center gap-1.5 overflow-hidden w-0 lg:group-hover:w-auto transition-all duration-500 ease-out">
-                                        <button class="test-to-me-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-indigo-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 hover:-translate-y-1 transition-all shadow-lg" data-id={user._id} data-name={user.name} title="Enviarme prueba">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                                        </button>
-                                        <button class="audit-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-amber-500 hover:text-white hover:bg-amber-500 hover:border-amber-400 hover:-translate-y-1 transition-all shadow-lg" data-user={JSON.stringify(user)} title="Auditoría">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                                        </button>
-                                        {!isCurrentUser && (
-                                            <button class="delete-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-600 hover:text-white hover:bg-red-600 hover:border-red-500 hover:-translate-y-1 transition-all shadow-lg" data-id={user._id} title="Borrar">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    <td class="px-8 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="view-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-violet-600 transition-all" data-user={JSON.stringify(user)} title="Ver">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                             </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+                                            <button class="edit-btn p-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-sky-500 transition-all" data-user={JSON.stringify(user)} title="Editar">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <button class="test-to-me-btn p-2 hidden sm:flex rounded-xl bg-white/[0.03] border border-white/[0.05] text-indigo-400 hover:text-white hover:bg-indigo-600 transition-all" data-id={user._id} data-name={user.name} title="Prueba">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                            </button>
+                                            {!isCurrentUser && (
+                                                <button class="delete-btn p-2 hidden sm:flex rounded-xl bg-white/[0.03] border border-white/[0.05] text-zinc-600 hover:text-white hover:bg-red-600 transition-all" data-id={user._id} title="Borrar">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
             </div>
 
             <!-- No Results -->
-            <div id="noResults" class="hidden py-32 text-center animate-in fade-in slide-in-from-bottom-8 duration-500">
-                <div class="relative w-28 h-28 mx-auto mb-8">
-                    <div class="absolute inset-0 bg-violet-500/30 blur-3xl rounded-full animate-pulse"></div>
-                    <div class="relative w-full h-full rounded-[2.5rem] bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-700 shadow-3xl rotate-12 group-hover:rotate-0 transition-transform duration-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><line x1="8" y1="11" x2="14" y2="11"/>
-                        </svg>
+            <div id="noResults" class="hidden py-32 text-center">
+                <div class="relative w-20 h-20 mx-auto mb-6">
+                    <div class="absolute inset-0 bg-violet-500/20 blur-2xl rounded-full"></div>
+                    <div class="relative w-full h-full rounded-3xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     </div>
                 </div>
-                <h3 class="text-white font-black text-2xl mb-3 tracking-tight">Sin coincidencias</h3>
-                <p class="text-zinc-500 text-base max-w-sm mx-auto mb-10 font-medium leading-relaxed">No hemos encontrado ningún usuario con esos criterios. Prueba a simplificar tu búsqueda.</p>
-                <button onclick="document.getElementById('searchInput').value=''; document.getElementById('filterRole').value='all'; document.getElementById('filterNewsletter').value='all'; document.querySelectorAll('select').forEach(s => s.dispatchEvent(new Event('change'))); document.getElementById('searchInput').dispatchEvent(new Event('input'));" class="px-8 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-sm font-bold text-zinc-300 hover:bg-white/10 hover:text-white transition-all hover:scale-105 active:scale-95 shadow-xl">Limpiar todos los filtros</button>
+                <h3 class="text-white font-bold text-xl mb-2">No hay resultados</h3>
+                <p class="text-zinc-500 text-sm mb-6">Ajusta los filtros para encontrar lo que buscas.</p>
+                <button onclick="window.location.reload()" class="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:bg-white/10 transition-all">Limpiar todo</button>
             </div>
         </div>
     </div>
