@@ -244,12 +244,18 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
             const currentAudioTime = audioRef.current?.currentTime || 0;
             const progressDelta = Math.abs(currentAudioTime - lastReportedTime.current);
             
+            // Check visibility and mute status
+            const isVisible = document.visibilityState === 'visible';
+            const isAudioMuted = audioRef.current?.muted || isMuted || volume === 0;
+
             if (progressDelta > 1) {
                 syncPlaybackData({
                     slug,
                     increment: deltaSeconds,
                     progress: currentAudioTime,
-                    duration: audioRef.current?.duration || 0
+                    duration: audioRef.current?.duration || 0,
+                    isVisible,
+                    isMuted: isAudioMuted
                 });
                 
                 // Also save to localStorage for instant restore
@@ -274,7 +280,9 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                     slug,
                     increment: deltaSeconds,
                     progress: currentAudioTime,
-                    duration: audioRef.current?.duration || 0
+                    duration: audioRef.current?.duration || 0,
+                    isVisible: document.visibilityState === 'visible',
+                    isMuted: audioRef.current?.muted || isMuted || volume === 0
                 });
             }
         };

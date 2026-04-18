@@ -38,21 +38,47 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    let { episodeSlug, progress, duration, completed, increment } = body;
+    let { episodeSlug, progress, duration, completed, increment, isVisible, isMuted } = body;
 
-    // Use explicit increment if provided, or fallback to 0
-    const listenIncrement = typeof increment === 'number' && isFinite(increment) && increment > 0 ? Math.min(increment, 300) : 0;
+    // The heartbeat is every 15s. A normal increment should be ~15-20s.
+    // Reverting strict 45s cap to 300s as requested by user.
+    let listenIncrement = typeof increment === 'number' && isFinite(increment) && increment > 0 ? Math.min(increment, 300) : 0;
 
+    // If the audio is muted, we don't count it towards the leaderboard.
+    // Loop-abusers typically leave it on mute in a background tab.
+    if (isMuted === true) {
+        listenIncrement = 0;
+    }
+
+    // Basic User retrieval for pattern checking
+    const user = await User.findById(userPayload.userId);
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // --- ANTI-LOOPING DETECTION ---
+    // If they report progress < 30s for an episode they've already completed
+    // and it's happening too frequently, we could flag it. For now, we'll just
+    // ensure they don't get double listening time for the same second.
+    
     // Basic user update (always update listeningTime if increment > 0)
     if (listenIncrement > 0) {
-      await User.findByIdAndUpdate(userPayload.userId, {
-        $inc: { listeningTime: listenIncrement }
-      });
+      user.listeningTime = (user.listeningTime || 0) + listenIncrement;
+      user.lastActiveAt = new Date();
+      // We don't save yet, we'll save at the end of the request
     }
 
     // If no episodeSlug, we just return here (only updated general listeningTime)
     if (!episodeSlug || typeof episodeSlug !== 'string') {
-        return new Response(JSON.stringify({ success: true, listeningTimeUpdated: listenIncrement > 0 }), {
+        await user.save();
+        return new Response(JSON.stringify({ 
+            success: true, 
+            listeningTimeUpdated: listenIncrement > 0,
+            delta: listenIncrement
+        }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
@@ -62,14 +88,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     progress = typeof progress === 'number' && isFinite(progress) && progress >= 0 ? progress : 0;
     duration = typeof duration === 'number' && isFinite(duration) && duration > 0 ? duration : 0;
     completed = completed === true;
-
-    const user = await User.findById(userPayload.userId);
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'User not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
 
     // ── Retrieve previous entry for this episode ─────────────────────────────
     const existingIdx = user.playbackHistory?.findIndex(h => h.episodeSlug === episodeSlug) ?? -1;

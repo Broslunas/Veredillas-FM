@@ -5,16 +5,24 @@ export const syncPlaybackData = async ({
     increment = 0, 
     progress = 0, 
     duration = 0, 
-    completed = false 
+    completed = false,
+    isVisible = true,
+    isMuted = false
 }: { 
     slug?: string | null, 
     increment?: number, 
     progress?: number, 
     duration?: number, 
-    completed?: boolean 
+    completed?: boolean,
+    isVisible?: boolean,
+    isMuted?: boolean
 }) => {
     try {
-        const body: any = { increment };
+        const body: any = { 
+            increment,
+            isVisible,
+            isMuted
+        };
         if (slug) {
             body.episodeSlug = slug;
             body.progress = progress;

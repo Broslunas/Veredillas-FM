@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import dbConnect from '../../../lib/mongodb';
+import { getUserFromCookie } from '../../../lib/auth';
 import ListenEvent from '../../../models/ListenEvent';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -12,12 +13,13 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Missing episodeSlug' }), { status: 400 });
     }
 
-    // Basic validation to prevent simple spam (could be expanded)
-    // For now, trust the client logic (e.g. 60s delay)
+    const cookieHeader = request.headers.get('cookie');
+    const userPayload = getUserFromCookie(cookieHeader);
+    const authUserId = userPayload?.userId;
 
     await ListenEvent.create({
       episodeSlug,
-      userId: userId || null,
+      userId: userId || authUserId || null,
       timestamp: new Date()
     });
 

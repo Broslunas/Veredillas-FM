@@ -565,6 +565,28 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                         </div>
                     </div>
                 </div>
+
+                <!-- ── Detailed Audit History (NEW) ── -->
+                <div class="mt-8 pt-8 border-t border-white/[0.06]">
+                    <h4 class="text-xs uppercase tracking-[0.1em] font-bold text-amber-400 mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        Registro de Actividad Detallado (Audit)
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
+                        <!-- Grouped Counts (How many times each episode) -->
+                        <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4">
+                            <h5 class="text-[0.65rem] font-bold text-zinc-500 uppercase mb-3">Frecuencia por Episodio</h5>
+                            <div id="viewAuditGrouped" class="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
+                        </div>
+
+                        <!-- Full Event Log (When exactly) -->
+                        <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4">
+                            <h5 class="text-[0.65rem] font-bold text-zinc-500 uppercase mb-3">Log de Eventos (Timeline)</h5>
+                            <div id="viewAuditTimeline" class="space-y-1.5 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -933,6 +955,57 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                             });
                         }
                     }
+
+                    // ── Detailed Audit Fetch ──
+                    const auditGroupedEl = document.getElementById('viewAuditGrouped');
+                    const auditTimelineEl = document.getElementById('viewAuditTimeline');
+                    if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-4 text-center animate-pulse text-zinc-600 text-xs">Cargando audit...</div>';
+                    if (auditTimelineEl) auditTimelineEl.innerHTML = '<div class="py-4 text-center animate-pulse text-zinc-600 text-xs">Cargando timeline...</div>';
+
+                    fetch(`/api/admin/detailed-history?userId=${userData._id}`)
+                        .then(res => res.json())
+                        .then(auditData => {
+                            if (auditGroupedEl) {
+                                auditGroupedEl.innerHTML = '';
+                                if (!auditData.grouped || auditData.grouped.length === 0) {
+                                    auditGroupedEl.innerHTML = '<div class="py-4 text-center text-zinc-600 text-xs italic">Sin registros de auditoría</div>';
+                                } else {
+                                    auditData.grouped.forEach((g: any) => {
+                                        const ep = episodesData[g._id];
+                                        const title = ep ? ep.title : g._id;
+                                        const div = document.createElement('div');
+                                        div.className = 'flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]';
+                                        div.innerHTML = `
+                                            <span class="text-[0.7rem] font-medium text-zinc-300 truncate mr-2" title="${title}">${title}</span>
+                                            <span class="text-[0.7rem] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded shrink-0">${g.count}x</span>
+                                        `;
+                                        auditGroupedEl.appendChild(div);
+                                    });
+                                }
+                            }
+
+                            if (auditTimelineEl) {
+                                auditTimelineEl.innerHTML = '';
+                                if (!auditData.events || auditData.events.length === 0) {
+                                    auditTimelineEl.innerHTML = '<div class="py-4 text-center text-zinc-600 text-xs italic">Sin eventos registrados</div>';
+                                } else {
+                                    auditData.events.forEach((ev: any) => {
+                                        const dt = new Date(ev.timestamp);
+                                        const div = document.createElement('div');
+                                        div.className = 'flex items-center justify-between px-3 py-1.5 rounded-md bg-white/[0.01] hover:bg-white/[0.03] transition-colors';
+                                        div.innerHTML = `
+                                            <span class="text-[0.65rem] text-zinc-400 font-mono">${dt.toLocaleDateString('es-ES')} ${dt.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'})}</span>
+                                            <span class="text-[0.65rem] font-bold text-zinc-500 truncate ml-4">${ev.episodeSlug}</span>
+                                        `;
+                                        auditTimelineEl.appendChild(div);
+                                    });
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-4 text-center text-red-500/50 text-xs">Error al cargar audit</div>';
+                            console.error('Audit fetch error:', err);
+                        });
 
                     openModal(viewModal);
                 });
