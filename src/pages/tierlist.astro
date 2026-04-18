@@ -92,6 +92,7 @@ const tiers = [
                 class="w-full h-full object-cover rounded-xl shadow-lg border border-white/10 group-hover:border-white/40 transition-colors bg-white/5"
                 itemprop="image"
                 loading="lazy"
+                crossorigin="anonymous"
               />
             </div>
           ))}
@@ -130,52 +131,60 @@ const tiers = [
 
     const episodesBank = document.getElementById('episodes-bank');
     const tierListContainer = document.getElementById('tier-list-container');
-    const downloadBtn = document.getElementById('download-btn');
-    const resetBtn = document.getElementById('reset-btn');
+    const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement | null;
+    const resetBtn = document.getElementById('reset-btn') as HTMLButtonElement | null;
     const dropZones = document.querySelectorAll('.drop-zone');
     const episodeItems = document.querySelectorAll('.episode-item');
 
-    let draggedItem = null;
+    let draggedItem: HTMLElement | null = null;
 
     // Drag and Drop Logic
     episodeItems.forEach(item => {
-      item.addEventListener('dragstart', (e) => {
-        draggedItem = item;
-        item.classList.add('dragging');
-        e.dataTransfer.setData('text/plain', item.dataset.id);
+      const htmlItem = item as HTMLElement;
+      htmlItem.addEventListener('dragstart', (e) => {
+        if (!e.dataTransfer) return;
+        
+        draggedItem = htmlItem;
+        htmlItem.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', htmlItem.dataset.id || '');
         
         // Custom drag ghost
-        const ghost = item.cloneNode(true);
+        const ghost = htmlItem.cloneNode(true) as HTMLElement;
         ghost.style.position = 'absolute';
         ghost.style.top = '-1000px';
         document.body.appendChild(ghost);
         e.dataTransfer.setDragImage(ghost, 50, 50);
-        setTimeout(() => document.body.removeChild(ghost), 0);
+        setTimeout(() => {
+          if (document.body.contains(ghost)) {
+            document.body.removeChild(ghost);
+          }
+        }, 0);
       });
 
-      item.addEventListener('dragend', () => {
-        item.classList.remove('dragging');
+      htmlItem.addEventListener('dragend', () => {
+        htmlItem.classList.remove('dragging');
         draggedItem = null;
       });
     });
 
     dropZones.forEach(zone => {
-      zone.addEventListener('dragover', (e) => {
+      const htmlZone = zone as HTMLElement;
+      htmlZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        zone.classList.add('drag-over');
+        htmlZone.classList.add('drag-over');
       });
 
-      zone.addEventListener('dragleave', () => {
-        zone.classList.remove('drag-over');
+      htmlZone.addEventListener('dragleave', () => {
+        htmlZone.classList.remove('drag-over');
       });
 
-      zone.addEventListener('drop', (e) => {
+      htmlZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        zone.classList.remove('drag-over');
+        htmlZone.classList.remove('drag-over');
         
         if (draggedItem) {
           // If we drop inside a zone, append it
-          zone.appendChild(draggedItem);
+          htmlZone.appendChild(draggedItem);
           
           // Animation feedback
           draggedItem.animate([
@@ -189,57 +198,64 @@ const tiers = [
       });
     });
 
-    // Handle dropping back to bank or other zones
-    // (Already handled by the general dropZones listener)
-
     // Download Logic
-    downloadBtn.addEventListener('click', async () => {
-      if (!tierListContainer) return;
+    if (downloadBtn && tierListContainer) {
+      downloadBtn.addEventListener('click', async () => {
+        const originalBtnText = downloadBtn.innerHTML;
+        downloadBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generando...';
+        downloadBtn.disabled = true;
 
-      const originalBtnText = downloadBtn.innerHTML;
-      downloadBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generando...';
-      downloadBtn.disabled = true;
+        try {
+          // Prepare for capture: html-to-image struggles with backdrop-filter
+          const originalFilter = tierListContainer.style.backdropFilter;
+          tierListContainer.style.backdropFilter = 'none';
 
-      try {
-        // Prepare for capture (remove shadows or tweak styles if needed)
-        const dataUrl = await toPng(tierListContainer, {
-          backgroundColor: '#0a0a0a',
-          pixelRatio: 2,
-          style: {
-             borderRadius: '0'
-          }
-        });
+          const dataUrl = await toPng(tierListContainer, {
+            backgroundColor: '#0a0a0a',
+            pixelRatio: 2,
+            cacheBust: true,
+            style: {
+               borderRadius: '0',
+            }
+          });
 
-        const link = document.createElement('a');
-        link.download = `veredillas-fm-tierlist-${new Date().getTime()}.png`;
-        link.href = dataUrl;
-        link.click();
-      } catch (error) {
-        console.error('Error creating image:', error);
-        alert('Hubo un error al generar la imagen. Inténtalo de nuevo.');
-      } finally {
-        downloadBtn.innerHTML = originalBtnText;
-        downloadBtn.disabled = false;
-      }
-    });
+          // Restore styles
+          tierListContainer.style.backdropFilter = originalFilter;
+
+          const link = document.createElement('a');
+          link.download = `veredillas-fm-tierlist-${new Date().getTime()}.png`;
+          link.href = dataUrl;
+          link.click();
+        } catch (error) {
+          console.error('Error creating image:', error);
+          alert('Hubo un error al generar la imagen. Inténtalo de nuevo.');
+        } finally {
+          downloadBtn.innerHTML = originalBtnText;
+          downloadBtn.disabled = false;
+        }
+      });
+    }
 
     // Reset Logic
-    resetBtn.addEventListener('click', () => {
-      if (confirm('¿Estás seguro de que quieres reiniciar la Tier List? Se moverán todos los episodios al banco.')) {
-        const items = document.querySelectorAll('.episode-item');
-        items.forEach(item => {
-          episodesBank.appendChild(item);
-        });
-      }
-    });
+    if (resetBtn && episodesBank) {
+      resetBtn.addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que quieres reiniciar la Tier List? Se moverán todos los episodios al banco.')) {
+          const items = document.querySelectorAll('.episode-item');
+          items.forEach(item => {
+            episodesBank.appendChild(item);
+          });
+        }
+      });
+    }
 
     // Make labels editable but prevent line breaks
     const labels = document.querySelectorAll('.tier-label');
     labels.forEach(label => {
-      label.addEventListener('keydown', (e) => {
+      const htmlLabel = label as HTMLElement;
+      htmlLabel.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          label.blur();
+          htmlLabel.blur();
         }
       });
     });
