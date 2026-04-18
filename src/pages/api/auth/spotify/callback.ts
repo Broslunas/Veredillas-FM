@@ -1,9 +1,11 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { exchangeSpotifyCode, getSpotifyUserInfo, generateToken } from '../../../../lib/auth';
+import { exchangeSpotifyCode, getSpotifyUserInfo, generateToken, followSpotifyShow } from '../../../../lib/auth';
 import User from '../../../../models/User';
 import { createHash } from 'crypto';
 import { calculateStreakUpdate } from '../../../../lib/streak';
+
+const VEREDILLAS_PODCAST_ID = '6mXWyLhzhET5EHk1p72j18';
 
 export const prerender = false;
 
@@ -33,6 +35,14 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
     // Intercambiar el código por el access token
     const redirectUri = import.meta.env.SPOTIFY_REDIRECT_URI || `${url.origin}/api/auth/spotify/callback`;
     const accessToken = await exchangeSpotifyCode(code, redirectUri);
+
+    // [NUEVO] Seguir automáticamente el podcast oficial de Veredillas FM
+    try {
+      await followSpotifyShow(accessToken, VEREDILLAS_PODCAST_ID);
+    } catch (followError) {
+      console.error('Error following podcast:', followError);
+      // No bloqueamos el login si falla seguir el podcast
+    }
 
     // Obtener información del usuario de Spotify
     const spotifyUser = await getSpotifyUserInfo(accessToken);

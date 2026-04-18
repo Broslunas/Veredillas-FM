@@ -151,3 +151,24 @@ export async function getSpotifyUserInfo(accessToken: string) {
   return await response.json();
 }
 
+/**
+ * Follow a Spotify show (podcast)
+ */
+export async function followSpotifyShow(accessToken: string, showId: string) {
+  const response = await fetch(`https://api.spotify.com/v1/me/shows?ids=${showId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error(`Failed to follow show ${showId}:`, errorBody);
+    return false;
+  }
+
+  return true;
+}
+
