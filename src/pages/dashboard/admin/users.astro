@@ -338,6 +338,12 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                                 <button class="test-to-me-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(99,102,241,0.2)] transition-all duration-200" data-id={user._id} data-name={user.name} aria-label="Enviarme prueba" title="Enviarme prueba a mí">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                                 </button>
+                                <button class="warn-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-amber-500/70 hover:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(245,158,11,0.2)] transition-all duration-200" data-id={user._id} data-name={user.name} aria-label="Enviar advertencia" title="Enviar Advertencia por Email">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                </button>
+                                <button class="audit-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-violet-400 hover:text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,92,246,0.2)] transition-all duration-200" data-user={JSON.stringify(user)} aria-label="Audit de actividad" title="Audit de Actividad Detallado">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                                </button>
                                 {!isCurrentUser && (
                                     <button class="delete-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-zinc-400 hover:text-red-400 hover:bg-red-500/20 hover:border-red-500/40 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(239,68,68,0.2)] transition-all duration-200" data-id={user._id} aria-label="Eliminar usuario" title="Eliminar">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -566,30 +572,46 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                     </div>
                 </div>
 
-                <!-- ── Detailed Audit History (NEW) ── -->
-                <div class="mt-8 pt-8 border-t border-white/[0.06]">
-                    <h4 class="text-xs uppercase tracking-[0.1em] font-bold text-amber-400 mb-4 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                        Registro de Actividad Detallado (Audit)
-                    </h4>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
-                        <!-- Grouped Counts (How many times each episode) -->
-                        <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4">
-                            <h5 class="text-[0.65rem] font-bold text-zinc-500 uppercase mb-3">Frecuencia por Episodio</h5>
-                            <div id="viewAuditGrouped" class="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
-                        </div>
-
-                        <!-- Full Event Log (When exactly) -->
-                        <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4">
-                            <h5 class="text-[0.65rem] font-bold text-zinc-500 uppercase mb-3">Log de Eventos (Timeline)</h5>
-                            <div id="viewAuditTimeline" class="space-y-1.5 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+ 
+     <!-- ═══════════════════════════════════════════════════ -->
+     <!-- AUDIT USER MODAL (NEW) -->
+     <!-- ═══════════════════════════════════════════════════ -->
+     <div id="auditUserModal" class="fixed inset-0 bg-black/60 backdrop-blur-xl z-[100] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="display:none;">
+         <div class="modal-inner bg-zinc-950/95 border border-white/10 w-full max-w-[950px] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6)] max-h-[90vh] overflow-hidden transform translate-y-5 scale-95 transition-all duration-300">
+             <div class="flex items-center justify-between p-6 border-b border-white/[0.06]">
+                 <div class="flex items-center gap-3">
+                     <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-400">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                     </div>
+                     <div>
+                         <h3 class="text-xl font-extrabold text-white">Audit de Actividad</h3>
+                         <p class="text-xs text-zinc-500 mt-0.5">Usuario: <span id="auditUserName" class="text-zinc-300"></span></p>
+                     </div>
+                 </div>
+                 <button id="closeAuditModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
+             </div>
+             
+             <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 100px);">
+                 <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
+                     <!-- Grouped Counts -->
+                     <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
+                         <h5 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Frecuencia por Episodio</h5>
+                         <div id="viewAuditGrouped" class="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                     </div>
+ 
+                     <!-- Full Event Log -->
+                     <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
+                         <h5 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Timeline Detallado</h5>
+                         <div id="viewAuditTimeline" class="space-y-1.5 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </div>
 
     <!-- ═══════════════════════════════════════════════════ -->
     <!-- CONFIRMATION MODAL -->
@@ -646,6 +668,7 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
             // ── Modal References ──
             const editModal = document.getElementById('editUserModal');
             const viewModal = document.getElementById('viewUserModal');
+            const auditModal = document.getElementById('auditUserModal');
             const confirmModal = document.getElementById('confirmModal');
             const form = document.getElementById('editUserForm') as HTMLFormElement;
 
@@ -956,58 +979,79 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                         }
                     }
 
-                    // ── Detailed Audit Fetch ──
-                    const auditGroupedEl = document.getElementById('viewAuditGrouped');
-                    const auditTimelineEl = document.getElementById('viewAuditTimeline');
-                    if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-4 text-center animate-pulse text-zinc-600 text-xs">Cargando audit...</div>';
-                    if (auditTimelineEl) auditTimelineEl.innerHTML = '<div class="py-4 text-center animate-pulse text-zinc-600 text-xs">Cargando timeline...</div>';
-
-                    fetch(`/api/admin/detailed-history?userId=${userData._id}`)
-                        .then(res => res.json())
-                        .then(auditData => {
-                            if (auditGroupedEl) {
-                                auditGroupedEl.innerHTML = '';
-                                if (!auditData.grouped || auditData.grouped.length === 0) {
-                                    auditGroupedEl.innerHTML = '<div class="py-4 text-center text-zinc-600 text-xs italic">Sin registros de auditoría</div>';
-                                } else {
-                                    auditData.grouped.forEach((g: any) => {
-                                        const ep = episodesData[g._id];
-                                        const title = ep ? ep.title : g._id;
-                                        const div = document.createElement('div');
-                                        div.className = 'flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]';
-                                        div.innerHTML = `
-                                            <span class="text-[0.7rem] font-medium text-zinc-300 truncate mr-2" title="${title}">${title}</span>
-                                            <span class="text-[0.7rem] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded shrink-0">${g.count}x</span>
-                                        `;
-                                        auditGroupedEl.appendChild(div);
-                                    });
-                                }
-                            }
-
-                            if (auditTimelineEl) {
-                                auditTimelineEl.innerHTML = '';
-                                if (!auditData.events || auditData.events.length === 0) {
-                                    auditTimelineEl.innerHTML = '<div class="py-4 text-center text-zinc-600 text-xs italic">Sin eventos registrados</div>';
-                                } else {
-                                    auditData.events.forEach((ev: any) => {
-                                        const dt = new Date(ev.timestamp);
-                                        const div = document.createElement('div');
-                                        div.className = 'flex items-center justify-between px-3 py-1.5 rounded-md bg-white/[0.01] hover:bg-white/[0.03] transition-colors';
-                                        div.innerHTML = `
-                                            <span class="text-[0.65rem] text-zinc-400 font-mono">${dt.toLocaleDateString('es-ES')} ${dt.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'})}</span>
-                                            <span class="text-[0.65rem] font-bold text-zinc-500 truncate ml-4">${ev.episodeSlug}</span>
-                                        `;
-                                        auditTimelineEl.appendChild(div);
-                                    });
-                                }
-                            }
-                        })
-                        .catch(err => {
-                            if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-4 text-center text-red-500/50 text-xs">Error al cargar audit</div>';
-                            console.error('Audit fetch error:', err);
-                        });
-
-                    openModal(viewModal);
+                     openModal(viewModal);
+                 });
+             });
+ 
+             // ── AUDIT BUTTONS ──
+             document.querySelectorAll('.audit-btn').forEach(btn => {
+                 const newBtn = btn.cloneNode(true);
+                 btn.parentNode?.replaceChild(newBtn, btn);
+ 
+                 newBtn.addEventListener('click', async (e) => {
+                     const target = e.currentTarget as HTMLElement;
+                     const userData = JSON.parse(target.dataset.user || '{}');
+ 
+                     const auditNameEl = document.getElementById('auditUserName');
+                     if (auditNameEl) auditNameEl.textContent = userData.name;
+ 
+                     const auditGroupedEl = document.getElementById('viewAuditGrouped');
+                     const auditTimelineEl = document.getElementById('viewAuditTimeline');
+                     const adminContainer = document.getElementById('adminContainer');
+                     const episodesData = adminContainer ? JSON.parse(adminContainer.dataset.episodes || '{}') : {};
+ 
+                     if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs">Analizando actividad...</div>';
+                     if (auditTimelineEl) auditTimelineEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs">Cargando timeline...</div>';
+ 
+                     openModal(auditModal);
+ 
+                     try {
+                         const res = await fetch(`/api/admin/detailed-history?userId=${userData._id}`);
+                         const auditData = await res.json();
+ 
+                         if (auditGroupedEl) {
+                             auditGroupedEl.innerHTML = '';
+                             if (!auditData.grouped || auditData.grouped.length === 0) {
+                                 auditGroupedEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl">Sin registros de auditoría</div>';
+                             } else {
+                                 auditData.grouped.forEach((g: any) => {
+                                     const ep = episodesData[g._id];
+                                     const title = ep ? ep.title : g._id;
+                                     const div = document.createElement('div');
+                                     div.className = 'flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-all';
+                                     div.innerHTML = `
+                                         <span class="text-[0.7rem] font-medium text-zinc-300 truncate mr-2" title="${title}">${title}</span>
+                                         <span class="text-[0.7rem] font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg shrink-0">${g.count}x</span>
+                                     `;
+                                     auditGroupedEl.appendChild(div);
+                                 });
+                             }
+                         }
+ 
+                         if (auditTimelineEl) {
+                             auditTimelineEl.innerHTML = '';
+                             if (!auditData.events || auditData.events.length === 0) {
+                                 auditTimelineEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl">Sin eventos registrados</div>';
+                             } else {
+                                 auditData.events.forEach((ev: any) => {
+                                     const dt = new Date(ev.timestamp);
+                                     const div = document.createElement('div');
+                                     div.className = 'flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] transition-colors';
+                                     div.innerHTML = `
+                                         <div class="flex items-center gap-3">
+                                             <div class="w-1.5 h-1.5 rounded-full bg-amber-500/40"></div>
+                                             <span class="text-[0.7rem] text-zinc-400 font-mono">${dt.toLocaleDateString('es-ES')} ${dt.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'})}</span>
+                                         </div>
+                                         <span class="text-[0.7rem] font-bold text-zinc-500 truncate ml-4">${ev.episodeSlug}</span>
+                                     `;
+                                     auditTimelineEl.appendChild(div);
+                                 });
+                             }
+                         }
+                     } catch (err) {
+                         if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-12 text-center text-red-500/50 text-xs">Error al cargar audit</div>';
+                         console.error('Audit fetch error:', err);
+                     }
                 });
             });
 
@@ -1045,6 +1089,40 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                             } finally {
                                 target.style.opacity = '1';
                                 target.style.pointerEvents = 'auto';
+                            }
+                        }
+                    );
+                });
+            });
+
+            // ── WARNING BUTTONS ──
+            document.querySelectorAll('.warn-btn').forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode?.replaceChild(newBtn, btn);
+
+                newBtn.addEventListener('click', (e) => {
+                    const target = e.currentTarget as HTMLElement;
+                    const userId = target.dataset.id;
+                    const userName = target.dataset.name;
+
+                    window.customConfirm(
+                        'Enviar Advertencia',
+                        `¿Estás seguro de que quieres enviar una advertencia formal por email a ${userName} por incumplimiento de términos (abuso de estadísticas)?`,
+                        async () => {
+                            try {
+                                const res = await fetch('/api/admin/users/send-warning', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ userId })
+                                });
+                                if (res.ok) {
+                                    window.showToast('Advertencia enviada correctamente', 'success');
+                                } else {
+                                    const err = await res.json();
+                                    window.showToast('Error: ' + err.error, 'error');
+                                }
+                            } catch (e) {
+                                window.showToast('Error de conexión', 'error');
                             }
                         }
                     );

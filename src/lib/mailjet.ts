@@ -12,9 +12,10 @@ export interface SendEmailOptions {
   htmlContent: string;
   fromEmail?: string;
   fromName?: string;
+  bcc?: { Email: string, Name?: string }[];
 }
 
-export async function sendEmail({ to, toName, subject, htmlContent, fromEmail = "newsletter@veredillasfm.es", fromName = "Veredillas FM" }: SendEmailOptions) {
+export async function sendEmail({ to, toName, subject, htmlContent, fromEmail = "newsletter@veredillasfm.es", fromName = "Veredillas FM", bcc }: SendEmailOptions) {
   try {
     const result = await mailjet
       .post('send', { version: 'v3.1' })
@@ -31,6 +32,7 @@ export async function sendEmail({ to, toName, subject, htmlContent, fromEmail = 
                 Name: toName
               }
             ],
+            Bcc: bcc,
             Subject: subject,
             HTMLPart: htmlContent,
             CustomID: "WeeklyNewsletter"
