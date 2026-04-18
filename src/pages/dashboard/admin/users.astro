@@ -595,24 +595,58 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                  <button id="closeAuditModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
              </div>
              
-             <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 100px);">
-                 <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr_1.5fr] gap-6">
+             <div class="p-8 overflow-y-auto" style="max-height: calc(90vh - 100px);">
+                 <!-- Summary Stats Bar -->
+                 <div id="auditStatsContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                     <div class="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col justify-between">
+                         <span class="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Eventos Totales</span>
+                         <div class="flex items-baseline gap-2">
+                             <span id="statTotalEvents" class="text-3xl font-black text-white">0</span>
+                             <span class="text-xs text-amber-500/50">logs</span>
+                         </div>
+                     </div>
+                     <div class="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col justify-between">
+                         <span class="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Top Episodio</span>
+                         <span id="statTopEpisode" class="text-sm font-bold text-amber-400 truncate">N/A</span>
+                     </div>
+                     <div class="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col justify-between">
+                         <span class="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Actividad Últ. 24h</span>
+                         <span id="statRecentActivity" class="text-xl font-bold text-white">0</span>
+                     </div>
+                     <div class="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col justify-between ring-1 ring-amber-500/10">
+                         <span class="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Índice de Repetición</span>
+                         <div id="statRepeatIndex" class="text-xl font-bold text-white">0%</div>
+                     </div>
+                 </div>
+
+                 <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_1.5fr_1.3fr] gap-8">
                      <!-- Grouped Counts -->
-                     <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
-                         <h5 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Frecuencia por Episodio</h5>
-                         <div id="viewAuditGrouped" class="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                     <div class="space-y-4">
+                         <div class="flex items-center justify-between">
+                            <h5 class="text-xs font-bold text-amber-500 uppercase tracking-wider flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+                                Ranking de Frecuencia
+                            h5>
+                         </div>
+                         <div id="viewAuditGrouped" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar"></div>
                      </div>
  
                      <!-- Full Event Log -->
-                     <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
-                         <h5 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Timeline Detallado (Audit)</h5>
-                         <div id="viewAuditTimeline" class="space-y-1.5 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                     <div class="space-y-4">
+                        <h5 class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Timeline de Auditoría
+                        h5>
+                        <div id="viewAuditTimeline" class="space-y-1.5 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar"></div>
                      </div>
 
                      <!-- Fallback / Recent History -->
-                     <div class="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
-                         <h5 class="text-xs font-bold text-violet-400 uppercase tracking-wider mb-4 border-b border-white/[0.05] pb-2">Últimas Sesiones (Estado)</h5>
-                         <div id="viewAuditPlaybackHistory" class="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                     <div class="space-y-4">
+                        <h5 class="text-xs font-bold text-violet-400 uppercase tracking-wider flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                            Últimas 100 Sesiones
+                        h5>
+                        <div id="viewAuditPlaybackHistory" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar"></div>
                      </div>
                  </div>
              </div>
@@ -1018,19 +1052,60 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                          const res = await fetch(`/api/admin/detailed-history?userId=${userData._id}`);
                          const auditData = await res.json();
  
+                         const totalEvents = auditData.events?.length || 0;
+                         const groupedCount = auditData.grouped?.length || 0;
+                         const topEpObj = auditData.grouped?.[0];
+                         const recentCount = auditData.events?.filter((ev: any) => {
+                             const hours = (new Date().getTime() - new Date(ev.timestamp).getTime()) / 3600000;
+                             return hours <= 24;
+                         }).length || 0;
+ 
+                         // Repeat Index: (Total Events - Unique Episodes) / Total Events
+                         const repeatIndex = totalEvents > 0 
+                             ? Math.round(((totalEvents - groupedCount) / totalEvents) * 100) 
+                             : 0;
+ 
+                         // Populate Stats
+                         const statTotal = document.getElementById('statTotalEvents');
+                         const statTop = document.getElementById('statTopEpisode');
+                         const statRecent = document.getElementById('statRecentActivity');
+                         const statRepeat = document.getElementById('statRepeatIndex');
+ 
+                         if (statTotal) statTotal.textContent = totalEvents.toString();
+                         if (statTop) {
+                             const ep = episodesData[topEpObj?._id];
+                             statTop.textContent = topEpObj ? (ep ? ep.title : topEpObj._id) : 'Ninguno';
+                         }
+                         if (statRecent) statRecent.textContent = recentCount.toString();
+                         if (statRepeat) {
+                             statRepeat.textContent = `${repeatIndex}%`;
+                             statRepeat.className = `text-xl font-bold ${repeatIndex > 70 ? 'text-red-500' : repeatIndex > 40 ? 'text-amber-500' : 'text-emerald-500'}`;
+                         }
+ 
                          if (auditGroupedEl) {
                              auditGroupedEl.innerHTML = '';
                              if (!auditData.grouped || auditData.grouped.length === 0) {
-                                 auditGroupedEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl px-4">Sin registros granulares todavía. El audit rastrea sesiones desde hoy.</div>';
+                                 auditGroupedEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl px-4">Sin registros granulares todavía.</div>';
                              } else {
+                                 const maxCount = auditData.grouped[0].count;
                                  auditData.grouped.forEach((g: any) => {
                                      const ep = episodesData[g._id];
                                      const title = ep ? ep.title : g._id;
+                                     const percent = Math.round((g.count / maxCount) * 100);
                                      const div = document.createElement('div');
-                                     div.className = 'flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-all';
+                                     div.className = 'group relative p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-all overflow-hidden';
                                      div.innerHTML = `
-                                         <span class="text-[0.7rem] font-medium text-zinc-300 truncate mr-2" title="${title}">${title}</span>
-                                         <span class="text-[0.7rem] font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg shrink-0">${g.count}x</span>
+                                         <div class="absolute inset-0 bg-amber-500/5 transition-all w-0 group-hover:w-[${percent}%]" style="width: ${percent}%; opacity: 0.3;"></div>
+                                         <div class="relative flex items-center justify-between">
+                                             <div class="min-w-0">
+                                                 <p class="text-[0.75rem] font-bold text-zinc-200 truncate" title="${title}">${title}</p>
+                                                 <p class="text-[0.6rem] text-zinc-500 uppercase tracking-tighter mt-0.5">${g._id}</p>
+                                             </div>
+                                             <div class="flex items-center gap-2">
+                                                 <span class="text-[0.8rem] font-black text-amber-500">${g.count}</span>
+                                                 <span class="text-[0.6rem] text-zinc-600 font-bold">REPLAYS</span>
+                                             </div>
+                                         </div>
                                      `;
                                      auditGroupedEl.appendChild(div);
                                  });
@@ -1040,18 +1115,24 @@ const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalU
                          if (auditTimelineEl) {
                              auditTimelineEl.innerHTML = '';
                              if (!auditData.events || auditData.events.length === 0) {
-                                 auditTimelineEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl px-4">Utiliza el historial de sesiones a la derecha para ver actividad reciente.</div>';
+                                 auditTimelineEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl px-4">Utiliza el historial de sesiones a la derecha.</div>';
                              } else {
                                  auditData.events.forEach((ev: any) => {
                                      const dt = new Date(ev.timestamp);
                                      const div = document.createElement('div');
-                                     div.className = 'flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] transition-colors';
+                                     div.className = 'flex items-start gap-4 p-3 rounded-xl hover:bg-white/[0.02] transition-colors border-l-2 border-transparent hover:border-amber-500/30';
                                      div.innerHTML = `
-                                         <div class="flex items-center gap-3">
-                                             <div class="w-1.5 h-1.5 rounded-full bg-amber-500/40"></div>
-                                             <span class="text-[0.7rem] text-zinc-400 font-mono">${dt.toLocaleDateString('es-ES')} ${dt.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'})}</span>
+                                         <div class="shrink-0 flex flex-col items-center">
+                                             <span class="text-[0.65rem] font-black text-white/40">${dt.getHours()}:${dt.getMinutes().toString().padStart(2,'0')}</span>
+                                             <div class="w-px h-full bg-white/10 my-1"></div>
                                          </div>
-                                         <span class="text-[0.7rem] font-bold text-zinc-500 truncate ml-4">${ev.episodeSlug}</span>
+                                         <div class="flex-1 min-w-0">
+                                             <p class="text-[0.7rem] font-bold text-zinc-300 truncate">${ev.episodeSlug}</p>
+                                             <p class="text-[0.6rem] text-zinc-600">${dt.toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'})}</p>
+                                         </div>
+                                         <div class="shrink-0">
+                                             <div class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                                         </div>
                                      `;
                                      auditTimelineEl.appendChild(div);
                                  });
