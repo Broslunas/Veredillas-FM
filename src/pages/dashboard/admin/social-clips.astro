@@ -301,10 +301,10 @@ const WEBHOOK_SECRET = import.meta.env.CONTACT_WEBHOOK_SECRET;
             addLog('Carga en R2 exitosa. Sincronizando n8n...', 'text-emerald-400');
             overlayStatus.innerText = 'NOTIFICANDO FLUJO...';
 
-            // 3. Notify n8n with the public R2 URL and metadata
-            const n8nRes = await fetch(WEBHOOK_URL, {
+            // 3. Notify n8n via our Server-Side Proxy (Avoids CORS)
+            const n8nRes = await fetch('/api/admin/social-webhook', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${WEBHOOK_SECRET}` },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     fileUrl: publicUrl,
                     key: key,
@@ -316,7 +316,7 @@ const WEBHOOK_SECRET = import.meta.env.CONTACT_WEBHOOK_SECRET;
                 })
             });
             
-            if (!n8nRes.ok) throw new Error('n8n no respondió correctamente.');
+            if (!n8nRes.ok) throw new Error('El servidor no pudo notificar a n8n.');
 
             addLog(`¡Sincronizado! ${currentTitle} terminado.`, 'text-emerald-500');
 
