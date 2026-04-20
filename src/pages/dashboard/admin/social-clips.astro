@@ -23,12 +23,6 @@ if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner
 
 const N8N_WEBHOOK_URL = "https://n8n.broslunas.com/webhook/clips-upload-vfm";
 const WEBHOOK_SECRET = import.meta.env.CONTACT_WEBHOOK_SECRET;
-const DRIVE_FOLDER_ID = "1Bbc-VKX-k5ndMGKp2X05wdDQNk5I5LE7";
-
-const N8N_WEBHOOK_URL_PIXELS = "https://n8n.broslunas.com/webhook/clips-upload-pixelsintetico";
-const DRIVE_FOLDER_ID_PIXELS = "1paJgUlopCz5bdEpaR6FxtqooKN0pKZ3q";
-
-const isOwner = currentUser && currentUser.role === 'owner';
 ---
 
 <Layout title="Social Clips Manager" robots="noindex, nofollow">
@@ -48,32 +42,12 @@ const isOwner = currentUser && currentUser.role === 'owner';
         </div>
         <div class="flex items-center gap-3 bg-slate-900/50 backdrop-blur-xl border border-white/5 px-6 py-3 rounded-2xl shadow-2xl">
             <span class="flex h-3 w-3 relative">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
             </span>
-            <span class="text-emerald-400 font-bold text-sm tracking-widest uppercase">Drive Conectado</span>
+            <span class="text-cyan-400 font-bold text-sm tracking-widest uppercase">R2 Conectado</span>
         </div>
     </header>
-
-    {isOwner && (
-        <div class="mb-10 flex flex-col items-center gap-4 fade-in">
-            <span class="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">Destino de Carga</span>
-            <div class="bg-slate-900/50 backdrop-blur-3xl border border-white/5 p-1.5 rounded-[2rem] flex gap-2 shadow-2xl">
-                <button 
-                    id="dest-vfm" 
-                    class="px-8 py-3 rounded-[1.5rem] text-sm font-black transition-all duration-500 bg-violet-600 text-white shadow-lg shadow-violet-500/20"
-                >
-                    VEREDILLAS FM
-                </button>
-                <button 
-                    id="dest-pixels" 
-                    class="px-8 py-3 rounded-[1.5rem] text-sm font-black transition-all duration-500 text-slate-500 hover:text-white"
-                >
-                    PIXELSINTETICO
-                </button>
-            </div>
-        </div>
-    )}
 
     <main id="main-container" class="min-h-[500px]">
         <!-- Step 1: Initial Multi-Selection -->
@@ -183,7 +157,7 @@ const isOwner = currentUser && currentUser.role === 'owner';
                 <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
             <h2 class="text-5xl font-black text-white italic mb-4">¡TODO LISTO!</h2>
-            <p class="text-slate-400 text-lg mb-10 max-w-md">Todos los clips se han subido a Drive y n8n ha sido notificado.</p>
+            <p class="text-slate-400 text-lg mb-10 max-w-md">Todos los clips se han subido a R2 y n8n ha sido notificado.</p>
             <button onclick="location.reload()" class="bg-violet-600 hover:bg-violet-500 text-white font-black px-12 py-5 rounded-[2rem] shadow-2xl shadow-violet-500/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">Nueva carga</button>
         </div>
     </main>
@@ -192,16 +166,10 @@ const isOwner = currentUser && currentUser.role === 'owner';
 
 <script define:vars={{ 
     WEBHOOK_URL: N8N_WEBHOOK_URL, 
-    WEBHOOK_SECRET: WEBHOOK_SECRET, 
-    FOLDER_ID: DRIVE_FOLDER_ID,
-    WEBHOOK_URL_PIXELS: N8N_WEBHOOK_URL_PIXELS,
-    FOLDER_ID_PIXELS: DRIVE_FOLDER_ID_PIXELS,
-    isOwner: isOwner
+    WEBHOOK_SECRET: WEBHOOK_SECRET
 }}>
     let queue = [];
     let currentIndex = 0;
-    let currentFolderId = FOLDER_ID;
-    let currentWebhookUrl = WEBHOOK_URL;
 
     // UI Elements
     const dropZone = document.getElementById('drop-zone');
@@ -229,32 +197,6 @@ const isOwner = currentUser && currentUser.role === 'owner';
     // Initialization
     dropZone.onclick = () => fileInput.click();
     fileInput.onchange = (e) => startWizard(e.target.files);
-
-    if (isOwner) {
-        const destVfm = document.getElementById('dest-vfm');
-        const destPixels = document.getElementById('dest-pixels');
-
-        if (destVfm && destPixels) {
-            destVfm.onclick = () => {
-                currentFolderId = FOLDER_ID;
-                currentWebhookUrl = WEBHOOK_URL;
-                destVfm.classList.add('bg-violet-600', 'text-white', 'shadow-lg', 'shadow-violet-500/20');
-                destVfm.classList.remove('text-slate-500');
-                destPixels.classList.remove('bg-violet-600', 'text-white', 'shadow-lg', 'shadow-violet-500/20');
-                destPixels.classList.add('text-slate-500');
-                addLog('Destino cambiado a: <span class="text-violet-400 font-bold">Veredillas FM</span>');
-            };
-            destPixels.onclick = () => {
-                currentFolderId = FOLDER_ID_PIXELS;
-                currentWebhookUrl = WEBHOOK_URL_PIXELS;
-                destPixels.classList.add('bg-violet-600', 'text-white', 'shadow-lg', 'shadow-violet-500/20');
-                destPixels.classList.remove('text-slate-500');
-                destVfm.classList.remove('bg-violet-600', 'text-white', 'shadow-lg', 'shadow-violet-500/20');
-                destVfm.classList.add('text-slate-500');
-                addLog('Destino cambiado a: <span class="text-emerald-400 font-bold">Pixelsintetico</span>');
-            };
-        }
-    }
 
     function addLog(msg, color = 'text-slate-400') {
         const div = document.createElement('div');
@@ -315,43 +257,34 @@ const isOwner = currentUser && currentUser.role === 'owner';
         
         wizardNextBtn.disabled = true;
         uploadOverlay.classList.remove('hidden');
-        overlayStatus.innerText = 'OBTENIENDO LLAVE...';
+        overlayStatus.innerText = 'OBTENIENDO URL DE CARGA...';
         overlayBar.style.width = '0%';
         overlayPercent.innerText = '0%';
         
-        addLog('Generando token de acceso...');
+        addLog('Solicitando URL de subida a R2...');
 
         try {
-            // 1. Refresh Token Internal API
-            const tokenRes = await fetch('/api/admin/drive-token');
-            if (!tokenRes.ok) throw new Error('Error de seguridad interno.');
-            const { access_token } = await tokenRes.json();
-
-            addLog('Conexión con Drive abierta.');
-            overlayStatus.innerText = 'INICIANDO SESIÓN...';
-
-            // 2. Drive Resumable Session
-            const metadata = { name: item.file.name, mimeType: item.file.type, parents: [currentFolderId] };
-            const initRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
+            // 1. Get presigned URL from our API
+            const presignRes = await fetch('/api/admin/r2-presign', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${access_token}`,
-                    'X-Upload-Content-Type': item.file.type,
-                    'X-Upload-Content-Length': item.file.size.toString(),
-                    'Content-Type': 'application/json; charset=UTF-8',
-                },
-                body: JSON.stringify(metadata),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fileName: item.file.name,
+                    contentType: item.file.type,
+                }),
             });
-            if (!initRes.ok) throw new Error('Drive rechazó la petición.');
-            const uploadUrl = initRes.headers.get('Location');
 
-            overlayStatus.innerText = 'SUBIENDO DATOS...';
-            addLog(`Subiendo ${formatBytes(item.file.size)} directamente a Google...`);
+            if (!presignRes.ok) throw new Error('Error al obtener URL de carga.');
+            const { presignedUrl, publicUrl, key } = await presignRes.json();
 
-            // 3. Real PUT with Progress
-            const fileId = await new Promise((resolve, reject) => {
+            addLog('URL de carga obtenida. Conectando con R2...');
+            overlayStatus.innerText = 'SUBIENDO A R2...';
+
+            // 2. Upload directly to R2 via presigned URL with progress
+            await new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
-                xhr.open('PUT', uploadUrl, true);
+                xhr.open('PUT', presignedUrl, true);
+                xhr.setRequestHeader('Content-Type', item.file.type);
                 xhr.upload.onprogress = (e) => {
                     if (e.lengthComputable) {
                         const p = Math.round((e.loaded / e.total) * 100);
@@ -360,22 +293,25 @@ const isOwner = currentUser && currentUser.role === 'owner';
                         overlayBytes.innerText = `${formatBytes(e.loaded)} / ${formatBytes(item.file.size)}`;
                     }
                 };
-                xhr.onload = () => (xhr.status === 200 || xhr.status === 201) ? resolve(JSON.parse(xhr.response).id) : reject(new Error('Drive upload failed'));
-                xhr.onerror = () => reject(new Error('Conexión perdida.'));
+                xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error(`R2 respondió con error ${xhr.status}`));
+                xhr.onerror = () => reject(new Error('Conexión perdida durante la subida.'));
                 xhr.send(item.file);
             });
 
-            addLog('Carga en Drive exitosa. Sincronizando n8n...', 'text-emerald-400');
+            addLog('Carga en R2 exitosa. Sincronizando n8n...', 'text-emerald-400');
             overlayStatus.innerText = 'NOTIFICANDO FLUJO...';
 
-            // 4. Notify n8n
-            const n8nRes = await fetch(currentWebhookUrl, {
+            // 3. Notify n8n with the public R2 URL and metadata
+            const n8nRes = await fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${WEBHOOK_SECRET}` },
                 body: JSON.stringify({
-                    fileId,
+                    fileUrl: publicUrl,
+                    key: key,
                     title: currentTitle,
                     fileName: item.file.name,
+                    fileSize: item.file.size,
+                    contentType: item.file.type,
                     timestamp: new Date().toISOString()
                 })
             });
