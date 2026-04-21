@@ -1952,6 +1952,22 @@ clips:
     url: 'https://youtu.be/W4tTOJnmuug'
   - title: Mi Secreto para Dejar de Ser un _Tronco_ en los Estudios
     url: 'https://youtu.be/8rkUKciNUtc'
+  - title: 'Segundo Bachillerato_ ¡El mejor curso, si te juntas bien!(1)'
+    url: 'https://youtu.be/GsCsvjRnIzY'
+  - title: Despeja tu mente_ Técnicas sencillas para aliviar el estrés
+    url: 'https://youtu.be/98k_QfPTDBw'
+  - title: Curso_ Claves para Sobrevivir y Prosperar
+    url: 'https://youtu.be/CgeJ9qCO68w'
+  - title: ¡Estudia Hablando en Voz Alta! Mi Método Secreto
+    url: 'https://youtu.be/1MNgnuNCzic'
+  - title: Desorientada_ ¿Qué Carrera Estudiar_ ¡Ayuda!
+    url: 'https://youtu.be/YtMfOwUkH6A'
+  - title: El Curso_ Mi Mayor Presión Académica
+    url: 'https://youtu.be/GLHXhwG5NrM'
+  - title: Mi Segundo de Bachiller_ ¡El Año Que Más He Estudiado Y Reído!
+    url: 'https://youtu.be/aGENK-YNEAc'
+  - title: PAU_ El Miedo y la Realidad de los Exámenes(1)
+    url: 'https://youtu.be/WgquBwcbuw4'
 ---
 ¿Alguna vez te has preguntado qué pasa por la mente de quienes siempre están en lo más alto de la lista de notas? En este episodio nos acompañan Paola, Nayara, Daniela y Nerea, las cuatro alumnas con los mejores expedientes de su promoción. Pero no venimos a hablar de fórmulas matemáticas ni de fechas históricas.
 
