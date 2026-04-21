@@ -6,21 +6,6 @@ tags:
   - TecnoDependencia
   - Productividad
   - DebateTech
-isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/3ad38b3b-8f2f-4341-b0eb-39b160d6820a.webp'
-participants:
-  - Elio
-  - Zi Cheng
-season: 2
-episode: 8
-duration: 32 min
-pubDate: '2026-04-17T16:00:00.000Z'
-description: >-
-  ¿La IA te domina o tú a ella? Súmate a Elio y Zi Cheng para debatir seguridad,
-  creatividad y el uso responsable de la Inteligencia Artificial. ¡Escucha ya!
-videoUrl: 'https://www.youtube.com/embed/XQgKKVYDMm4'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/118597965/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-3-17%2F422258250-44100-2-fcaac0ce6362a.mp3
 transcription:
   - time: '00:01'
     text: >-
@@ -556,6 +541,21 @@ transcription:
     text: Gracias a ti.
   - time: '32:35'
     text: Gracias.
+isPremiere: true
+image: 'https://cdn.veredillasfm.es/images/3ad38b3b-8f2f-4341-b0eb-39b160d6820a.webp'
+participants:
+  - Elio
+  - Zi Cheng
+season: 2
+episode: 8
+duration: 32 min
+pubDate: '2026-04-17T16:00:00.000Z'
+description: >-
+  ¿La IA te domina o tú a ella? Súmate a Elio y Zi Cheng para debatir seguridad,
+  creatividad y el uso responsable de la Inteligencia Artificial. ¡Escucha ya!
+videoUrl: 'https://www.youtube.com/embed/XQgKKVYDMm4'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/118597965/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-3-17%2F422258250-44100-2-fcaac0ce6362a.mp3
 sections:
   - time: '00:01'
     title: 'Veredillas FM: ¡Bienvenidos Elio y Zi Cheng!'
@@ -632,6 +632,18 @@ clips:
     url: 'https://youtu.be/zvoZ1jZwUIo'
   - title: Reflexión Crítica  La Soledad y la Realidad Social
     url: 'https://youtu.be/SmePb9a3xGo'
+  - title: 'IA: ¿Amigo, Terapeuta o Secreto de Soledad?'
+    url: 'https://youtu.be/MzqH1Z62J54'
+  - title: '¿Privacidad Real? IA, Cámaras y Tecnología en 2026'
+    url: 'https://youtu.be/vr5OeYdCfZQ'
+  - title: IA_ El Riesgo de Usarla Mal y la Opción Fácil
+    url: 'https://youtu.be/FQQ6sM0P4fw'
+  - title: IA en Programación_ ¿Reemplazo o Herramienta_
+    url: 'https://youtu.be/xOFiyGOMuls'
+  - title: IA Crea Términos Falsos_ ¿De Qué Fiarse En Internet_
+    url: 'https://youtu.be/H7j88GoXD-I'
+  - title: ¡Vuelta a los Libros! Adiós Ordenadores y Móviles
+    url: 'https://youtu.be/GWL2L-eC49s'
 ---
 ¿Estamos dominando a la tecnología o ella nos domina a nosotros? En este episodio nos sentamos con Elio y Zi Cheng para desmenuzar la realidad de vivir en un mundo donde la Inteligencia Artificial parece estar en todas partes.
 
