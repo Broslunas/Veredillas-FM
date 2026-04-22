@@ -508,6 +508,43 @@ transcription:
       Sin duda alguna, reflexión es muy bonita. Les agradezco mucho por venir y,
       recuerden, los mantenemos al pendiente, los dejamos más candentes en
       Verillas FM. Gracias.
+clips:
+  - title: Bachillerato y Deporte  Mi Clave para el Éxito
+    url: 'https://youtu.be/AyTs11SUSDw'
+  - title: Amistad y Estrés  El Poder de Tus Colegas
+    url: 'https://youtu.be/mxSAuJ3kAJo'
+  - title: Amistad Real  De la Cancha a la Vida
+    url: 'https://youtu.be/dSBxbuSv-dw'
+  - title: Amistad Real  ¿Online vs  En Persona
+    url: 'https://youtu.be/g2boKssgOMY'
+  - title: Competitividad Extrema  ¡Nunca Perderemos!
+    url: 'https://youtu.be/foCxAeKnEBc'
+  - title: Competencia Fraternal  Piques y Apoyo en el Baloncesto
+    url: 'https://youtu.be/Nv1RrWh25mM'
+  - title: El Trío Mosqueteras  Conversación Íntima en Verillas FM
+    url: 'https://youtu.be/apVCnQOqfhY'
+  - title: 'Amistad Verdadera: Apoyo Incondicional en Caminos Diferentes'
+    url: 'https://youtu.be/7drTiRfwsjk'
+  - title: Verano Mágico  La Amistad Nació en la Cancha
+    url: 'https://youtu.be/g0pSt7Ms1qQ'
+  - title: Superando el Estrés del Bachillerato Juntos  Apoyo Mutuo
+    url: 'https://youtu.be/-3pMmjUCgNg'
+  - title: Deporte y Estudios  ¿Cómo Equilibrar tu Pasión
+    url: 'https://youtu.be/VZr80XHqKEk'
+  - title: Redes Sociales vs  Amistad Real  ¿Dónde Está la Conexión
+    url: 'https://youtu.be/u8efFvN2lUI'
+  - title: Profesor de Educación Física  Mi Camino Ideal
+    url: 'https://youtu.be/NqfwXKjXu1w'
+  - title: Momentos Felices en Clase  ¡Amigos y Buenas Vibras!
+    url: 'https://youtu.be/HzW7hd9_IUg'
+  - title: Hermanos Baloncestistas  Pasión y Competición Desde Niños
+    url: 'https://youtu.be/RNWqPnvMSWc'
+  - title: Amistad Profunda  La Unidad es Nuestra Fuerza
+    url: 'https://youtu.be/DUTH81YP1nI'
+  - title: Baloncesto  ¿Carga o Escape de tu Vida
+    url: 'https://youtu.be/Gf1UF0Nmn9M'
+  - title: Amigos que te sacan una sonrisa en clase
+    url: 'https://youtu.be/eziL0Pj8ypA'
 ---
 ¿Qué pesa más: los principios o los kilómetros en la caminadora? En este episodio nos sentamos con Damian, Pablo Quintero y Diego Quintero para descifrar esa extraña (pero necesaria) conexión entre la fidelidad a los amigos y la disciplina del entrenamiento.
 En este episodio hablamos de:
