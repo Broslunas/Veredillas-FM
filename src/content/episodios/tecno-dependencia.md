@@ -644,6 +644,16 @@ clips:
     url: 'https://youtu.be/H7j88GoXD-I'
   - title: ¡Vuelta a los Libros! Adiós Ordenadores y Móviles
     url: 'https://youtu.be/GWL2L-eC49s'
+  - title: 'Regreso a los Libros: ¿El Futuro de la Educación?'
+    url: 'https://youtu.be/iPUdMdk_wOs'
+  - title: 'Redes Sociales: ¿Roban Nuestro Tiempo o Nos Conectan?'
+    url: 'https://youtu.be/mrqYshxuFQc'
+  - title: 'Redes Sociales: ¿Diseñadas para la Adicción?'
+    url: 'https://youtu.be/pvtloqkpHiU'
+  - title: 'IA: El Riesgo de Usarla Mal y la Opción Fácil'
+    url: 'https://youtu.be/EksonnimfXE'
+  - title: 'IA: ¿Solución a nuestra Soledad o Problema?'
+    url: 'https://youtu.be/nDQ8ACIACYI'
 ---
 ¿Estamos dominando a la tecnología o ella nos domina a nosotros? En este episodio nos sentamos con Elio y Zi Cheng para desmenuzar la realidad de vivir en un mundo donde la Inteligencia Artificial parece estar en todas partes.
 
