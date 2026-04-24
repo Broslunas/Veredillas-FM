@@ -2,6 +2,6 @@
 name: Diego Quintero
 role: Alumno de 2º Bachillerato
 description: Alumno de 2º Bachillerato
-image: 'https://cdn.veredillasfm.es/guest/fb1bdea9-d62e-4bf7-bc3a-880674d9fb1b.webp'
+image: 'https://cdn.veredillasfm.es/guest/d9b2f295-3a6d-492d-a753-6bc29ea43ef4.webp'
 ---
 
