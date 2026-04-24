@@ -7,7 +7,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "send:newsletter": "node scripts/send-newsletter.js"
+    "send:newsletter": "node scripts/send-newsletter.js",
+    "update:readme": "node scripts/update-readme-episodes.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",
