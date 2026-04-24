@@ -1,0 +1,341 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const filePath = path.join(process.cwd(), 'src/pages/aviso-legal.astro');
+let lastUpdated = 'Recientemente';
+try {
+  const stats = fs.statSync(filePath);
+  lastUpdated = stats.mtime.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+} catch (e) {
+  lastUpdated = new Date().toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
+const year = new Date().getFullYear();
+---
+
+<Layout title="Aviso Legal — Veredillas FM">
+  <main class="page-container">
+    <div class="content-wrapper">
+      <Breadcrumbs items={[{ label: 'Legales', href: '/politica-de-privacidad' }, { label: 'Aviso Legal' }]} />
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Información Obligatoria
+        </div>
+        <h1>Aviso Legal</h1>
+        <p class="hero-subtitle">Cumplimiento de la Ley 34/2002 de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE).</p>
+        <p class="updated-date">Última actualización: {lastUpdated}</p>
+      </div>
+
+      <!-- TL;DR Summary -->
+      <div class="summary-card">
+        <h3>Resumen rápido (TL;DR)</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <strong>Titular:</strong> Veredillas FM (Broslunas)
+          </div>
+          <div class="summary-item">
+            <strong>Contacto:</strong> contacto@veredillasfm.es
+          </div>
+          <div class="summary-item">
+            <strong>Actividad:</strong> Divulgación de contenido auditivo y podcasting.
+          </div>
+          <div class="summary-item">
+            <strong>Sede:</strong> Santa Cruz de Tenerife, España.
+          </div>
+        </div>
+      </div>
+
+      <section>
+        <h2>1. Usuarios</h2>
+        <p>El acceso y/o uso de este portal de Veredillas FM atribuye la condición de USUARIO, que acepta, desde dicho acceso y/o uso, las Condiciones Generales de Uso aquí reflejadas. Las citadas Condiciones serán de aplicación independientemente de las Condiciones Generales de Contratación que en su caso resulten de obligado cumplimiento.</p>
+      </section>
+
+      <section>
+        <h2>2. Uso del Portal</h2>
+        <p>Veredillas FM proporciona el acceso a multitud de informaciones, servicios, programas o datos (en adelante, "los contenidos") en Internet pertenecientes a Veredillas FM o a sus licenciantes a los que el USUARIO pueda tener acceso. El USUARIO asume la responsabilidad del uso del portal.</p>
+        <p>Dicha responsabilidad se extiende al registro que fuese necesario para acceder a determinados servicios o contenidos. En dicho registro el USUARIO será responsable de aportar información veraz y lícita. El USUARIO se compromete a hacer un uso adecuado de los contenidos y servicios que Veredillas FM ofrece a través de su portal y con carácter enunciativo pero no limitativo, a no emplearlos para:</p>
+        <ul class="legal-list">
+          <li>Incurrir en actividades ilícitas, ilegales o contrarias a la buena fe y al orden público.</li>
+          <li>Difundir contenidos o propaganda de carácter racista, xenófobo, pornográfico-ilegal, de apología del terrorismo o atentatorio contra los derechos humanos.</li>
+          <li>Provocar daños en los sistemas físicos y lógicos de Veredillas FM, de sus proveedores o de terceras personas.</li>
+          <li>Intentar acceder y, en su caso, utilizar las cuentas de correo electrónico de otros usuarios y modificar o manipular sus mensajes.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>3. Propiedad Intelectual e Industrial</h2>
+        <p>Veredillas FM por sí o como cesionaria, es titular de todos los derechos de propiedad intelectual e industrial de su página web, así como de los elementos contenidos en la misma (a título enunciativo, imágenes, sonido, audio, vídeo, software o textos; marcas o logotipos, combinaciones de colores, estructura y diseño, selección de materiales usados, programas de ordenador necesarios para su funcionamiento, acceso y uso, etc.).</p>
+        <p>Todos los derechos reservados. En virtud de lo dispuesto en los artículos 8 y 32.1, párrafo segundo, de la Ley de Propiedad Intelectual, quedan expresamente prohibidas la reproducción, la distribución y la comunicación pública, incluida su modalidad de puesta a disposición, de la totalidad o parte de los contenidos de esta página web, con fines comerciales, en cualquier soporte y por cualquier medio técnico, sin la autorización de Veredillas FM.</p>
+      </section>
+
+      <section>
+        <h2>4. Exclusión de Garantías y Responsabilidad</h2>
+        <p>Veredillas FM no se hace responsable, en ningún caso, de los daños y perjuicios de cualquier naturaleza que pudieran ocasionar, a título enunciativo: errores u omisiones en los contenidos, falta de disponibilidad del portal o la transmisión de virus o programas maliciosos o lesivos en los contenidos, a pesar de haber adoptado todas las medidas tecnológicas necesarias para evitarlo.</p>
+      </section>
+
+      <section>
+        <h2>5. Modificaciones</h2>
+        <p>Veredillas FM se reserva el derecho de efectuar sin previo aviso las modificaciones que considere oportunas en su portal, pudiendo cambiar, suprimir o añadir tanto los contenidos y servicios que se presten a través de la misma como la forma en la que éstos aparezcan presentados o localizados en su portal.</p>
+      </section>
+
+      <section>
+        <h2>6. Enlaces</h2>
+        <p>Los enlaces o hipervínculos hacía otros sitios de Internet, Veredillas FM no ejercerá ningún tipo de control sobre dichos sitios y contenidos. En ningún caso Veredillas FM asumirá responsabilidad alguna por los contenidos de algún enlace perteneciente a un sitio web ajeno.</p>
+      </section>
+
+      <section>
+        <h2>7. Derecho de Exclusión</h2>
+        <p>Veredillas FM se reserva el derecho a denegar o retirar el acceso a portal y/o los servicios ofrecidos sin necesidad de preaviso, a instancia propia o de un tercero, a aquellos usuarios que incumplan las presentes Condiciones Generales de Uso.</p>
+      </section>
+
+      <section>
+        <h2>8. Generalidades</h2>
+        <p>Veredillas FM perseguirá el incumplimiento de las presentes condiciones así como cualquier utilización indebida de su portal ejerciendo todas las acciones civiles y penales que le puedan corresponder en derecho.</p>
+      </section>
+
+      <section>
+        <h2>9. Legislación Aplicable y Jurisdicción</h2>
+        <p>La relación entre Veredillas FM y el USUARIO se regirá por la normativa española vigente y cualquier controversia se someterá a los Juzgados y tribunales de la ciudad de Madrid.</p>
+      </section>
+
+      <!-- Related links -->
+      <div class="related-links">
+        <h3>Documentos Relacionados</h3>
+        <div class="related-grid">
+          <a href="/politica-de-privacidad" class="related-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+            <span>Política de Privacidad</span>
+          </a>
+          <a href="/terminos-y-condiciones" class="related-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14.5 2 14.5 7.5 20 7.5"/></svg>
+            <span>Términos y Condiciones</span>
+          </a>
+          <a href="/cookies" class="related-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5Z"/></svg>
+            <span>Política de Cookies</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .page-container {
+    padding: var(--spacing-4xl) var(--spacing-lg);
+    min-height: 80vh;
+  }
+
+  .content-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  /* Hero */
+  .hero {
+    margin-bottom: 3rem;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+    color: var(--color-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-heading);
+    letter-spacing: -0.02em;
+    font-weight: 800;
+  }
+
+  .hero-subtitle {
+    font-size: 1.15rem;
+    color: var(--color-text-body);
+    line-height: 1.7;
+    max-width: 680px;
+    margin-bottom: 0.75rem;
+  }
+
+  .updated-date {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Summary Card */
+  .summary-card {
+    background: color-mix(in srgb, var(--color-text-heading) 4%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-text-heading) 10%, transparent);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    margin-bottom: 4rem;
+  }
+
+  .summary-card h3 {
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    color: var(--color-text-heading);
+    font-weight: 700;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .summary-item {
+    font-size: 0.95rem;
+    color: var(--color-text-body);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .summary-item strong {
+    color: var(--color-primary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Sections */
+  section {
+    margin-bottom: 3.5rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1.25rem;
+    color: var(--color-text-heading);
+    font-weight: 700;
+    line-height: 1.3;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text-heading) 10%, transparent);
+  }
+
+  p {
+    color: var(--color-text-body);
+    line-height: 1.8;
+    margin-bottom: 1.25rem;
+    font-size: 1.05rem;
+  }
+
+  .legal-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.25rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .legal-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    line-height: 1.7;
+    color: var(--color-text-body);
+  }
+
+  .legal-list li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+    font-weight: bold;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  strong {
+    color: var(--color-text-heading);
+  }
+
+  /* Related links */
+  .related-links {
+    margin-top: 4rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-text-heading) 10%, transparent);
+  }
+
+  .related-links h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.25rem;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .related-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: color-mix(in srgb, var(--color-text-heading) 4%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-text-heading) 8%, transparent);
+    border-radius: 0.75rem;
+    color: var(--color-text-body);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .related-card:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 2.25rem; }
+    h2 { font-size: 1.4rem; }
+    .summary-card { padding: 1.5rem; }
+  }
+</style>

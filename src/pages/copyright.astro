@@ -1,22 +1,33 @@
 ---
 export const prerender = true;
 import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const filePath = path.join(process.cwd(), 'src/pages/copyright.astro');
-const stats = fs.statSync(filePath);
-const lastUpdated = stats.mtime.toLocaleDateString('es-ES', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric'
-});
+let lastUpdated = 'Recientemente';
+try {
+  const stats = fs.statSync(filePath);
+  lastUpdated = stats.mtime.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+} catch (e) {
+  lastUpdated = new Date().toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
 const year = new Date().getFullYear();
 ---
 
 <Layout title="Copyright y Derechos de Autor — Veredillas FM">
   <main class="page-container">
     <div class="content-wrapper">
+      <Breadcrumbs items={[{ label: 'Legales', href: '/aviso-legal' }, { label: 'Copyright' }]} />
 
       <!-- Hero -->
       <div class="hero">
@@ -28,6 +39,26 @@ const year = new Date().getFullYear();
         <p class="hero-subtitle">Todo el contenido de Veredillas FM está protegido por la legislación española e internacional sobre propiedad intelectual.</p>
         <p class="updated-date">Última actualización: {lastUpdated}</p>
       </div>
+
+      <!-- TL;DR Summary -->
+      <div class="summary-card">
+        <h3>Resumen rápido (TL;DR)</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <strong>Titularidad:</strong> Todo el contenido original es propiedad exclusiva de Veredillas FM.
+          </div>
+          <div class="summary-item">
+            <strong>Uso permitido:</strong> Escucha personal y compartir enlaces oficiales.
+          </div>
+          <div class="summary-item">
+            <strong>Prohibido:</strong> Copiar, redistribuir o lucrarse con nuestro contenido sin permiso.
+          </div>
+          <div class="summary-item">
+            <strong>IA:</strong> Se prohíbe el uso de nuestro contenido para entrenamiento de modelos de IA sin autorización.
+          </div>
+        </div>
+      </div>
+
 
       <!-- Copyright notice destacado -->
       <div class="notice-card">
@@ -293,6 +324,43 @@ const year = new Date().getFullYear();
     font-weight: 600;
     font-size: 0.85rem;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Summary Card */
+  .summary-card {
+    background: color-mix(in srgb, var(--color-text-heading) 4%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-text-heading) 10%, transparent);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    margin-bottom: 4rem;
+  }
+
+  .summary-card h3 {
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    color: var(--color-text-heading);
+    font-weight: 700;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .summary-item {
+    font-size: 0.95rem;
+    color: var(--color-text-body);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .summary-item strong {
+    color: var(--color-primary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
     letter-spacing: 0.05em;
   }
 
