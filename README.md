@@ -53,6 +53,35 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 ## 🎙️ Últimos Episodios
 
 <!-- EPISODES_START -->
+<div align="center">
+
+<a href="https://veredillasfm.es/ep/lealtad-y-cardio">
+<img src="https://cdn.veredillasfm.es/images/05792a09-ea30-4901-9f7f-621f6d1e9198.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Lealtad y Cardio ft. Damian, Pablo Quintero & Diego Quintero"/>
+</a>
+<a href="https://veredillasfm.es/ep/tecno-dependencia">
+<img src="https://cdn.veredillasfm.es/images/3ad38b3b-8f2f-4341-b0eb-39b160d6820a.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Tecno-Dependencia ft. Elio & Zi Cheng"/>
+</a>
+<a href="https://veredillasfm.es/ep/mas-alla-del-10">
+<img src="https://cdn.veredillasfm.es/images/234c216b-4561-4bfe-a3b3-8ce4ff6a34ce.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Más allá del 10 ft. Paola, Nayara, Daniela & Nerea"/>
+</a>
+<a href="https://veredillasfm.es/ep/debate-historico">
+<img src="https://cdn.veredillasfm.es/images/6300df1d-f250-47ff-8308-f1e1c06e3740.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Debate Histórico: Profesor vs. Alumno ft. Prof. Ulises & Gustavo"/>
+</a>
+
+
+**[Lealtad y Cardio ft. Damian, Pablo Quintero & Diego Quintero](https://veredillasfm.es/ep/lealtad-y-cardio)**<br/>
+*21 de abril de 2026 • Temporada 2, Episodio 9*
+
+**[Tecno-Dependencia ft. Elio & Zi Cheng](https://veredillasfm.es/ep/tecno-dependencia)**<br/>
+*17 de abril de 2026 • Temporada 2, Episodio 8*
+
+**[Más allá del 10 ft. Paola, Nayara, Daniela & Nerea](https://veredillasfm.es/ep/mas-alla-del-10)**<br/>
+*15 de abril de 2026 • Temporada 2, Episodio 7*
+
+**[Debate Histórico: Profesor vs. Alumno ft. Prof. Ulises & Gustavo](https://veredillasfm.es/ep/debate-historico)**<br/>
+*08 de abril de 2026 • Temporada 2, Episodio 6*
+
+</div>
 <!-- EPISODES_END -->
 
 ---
