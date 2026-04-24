@@ -113,7 +113,7 @@ export const GET: APIRoute = async ({ url }) => {
     const [fontRegular, fontBold, coverDataUrl, bgDataUrl, logoDataUrl] = await Promise.all([
         fetchFont(400),
         fetchFont(700),
-        loadImage(image, 700, 700),
+        loadImage(image, 900, 506),
         loadImage(image, 400, 711, 50), // Low res blurred background
         loadImage('/logo.webp', 80, 80)
     ]);
@@ -155,12 +155,13 @@ export const GET: APIRoute = async ({ url }) => {
                                 width: '100%',
                                 height: '100%',
                                 objectFit: 'cover',
-                                opacity: 0.4,
+                                opacity: 0.6,
+                                filter: 'blur(100px)',
                             },
                         }
                     } : null,
 
-                    // ── Dark overlay ──
+                    // ── Dark gradient overlay ──
                     {
                         type: 'div',
                         props: {
@@ -170,25 +171,25 @@ export const GET: APIRoute = async ({ url }) => {
                                 left: 0,
                                 right: 0,
                                 bottom: 0,
-                                backgroundColor: 'rgba(0,0,0,0.6)',
+                                backgroundImage: 'linear-gradient(to bottom, rgba(9,9,11,0.3) 0%, rgba(9,9,11,0.85) 60%, rgba(9,9,11,1) 100%)',
                             }
                         }
                     },
 
-                    // ── Content layer ──
+                    // ── Main Content Container ──
                     {
                         type: 'div',
                         props: {
                             style: {
                                 display: 'flex',
                                 flexDirection: 'column',
-                                position: 'relative',
                                 width: '100%',
                                 height: '100%',
-                                padding: '120px 80px 100px 80px',
+                                padding: '100px 70px',
+                                position: 'relative',
                             },
                             children: [
-                                // ── Top bar: Logo + Episode pill ──
+                                // ── HEADER ──
                                 {
                                     type: 'div',
                                     props: {
@@ -196,21 +197,19 @@ export const GET: APIRoute = async ({ url }) => {
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
-                                            marginBottom: '80px',
-                                            width: '100%',
+                                            marginBottom: '60px',
                                         },
                                         children: [
-                                            // Brand badge
                                             {
                                                 type: 'div',
                                                 props: {
                                                     style: {
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        gap: '24px',
-                                                        padding: '16px 36px 16px 16px',
+                                                        gap: '20px',
+                                                        padding: '12px 30px 12px 12px',
                                                         borderRadius: '100px',
-                                                        border: '1px solid rgba(255,255,255,0.15)',
+                                                        border: '1.5px solid rgba(255,255,255,0.15)',
                                                         background: 'rgba(255,255,255,0.05)',
                                                     },
                                                     children: [
@@ -218,19 +217,16 @@ export const GET: APIRoute = async ({ url }) => {
                                                             type: 'img',
                                                             props: {
                                                                 src: logoDataUrl,
-                                                                width: 64,
-                                                                height: 64,
-                                                                style: {
-                                                                    borderRadius: 32,
-                                                                    border: '2px solid rgba(255,255,255,0.2)',
-                                                                }
+                                                                width: 56,
+                                                                height: 56,
+                                                                style: { borderRadius: 28 }
                                                             }
                                                         } : null,
                                                         {
                                                             type: 'span',
                                                             props: {
                                                                 style: {
-                                                                    fontSize: '32px',
+                                                                    fontSize: '28px',
                                                                     fontWeight: 800,
                                                                     letterSpacing: '0.15em',
                                                                     color: 'white',
@@ -238,54 +234,38 @@ export const GET: APIRoute = async ({ url }) => {
                                                                 children: 'VEREDILLAS FM'
                                                             }
                                                         }
-                                                    ].filter(Boolean)
+                                                    ]
                                                 }
                                             },
-                                            // Escucha pill
                                             {
                                                 type: 'div',
                                                 props: {
                                                     style: {
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '16px',
                                                         background: 'rgba(255,255,255,0.95)',
                                                         color: '#000',
-                                                        padding: '20px 40px',
+                                                        padding: '16px 36px',
                                                         borderRadius: '100px',
-                                                        fontSize: '26px',
-                                                        fontWeight: 800,
-                                                        letterSpacing: '0.1em',
+                                                        fontSize: '24px',
+                                                        fontWeight: 900,
+                                                        letterSpacing: '0.05em',
                                                     },
-                                                    children: [
-                                                        {
-                                                            type: 'div',
-                                                            props: {
-                                                                style: {
-                                                                    width: '14px',
-                                                                    height: '14px',
-                                                                    background: '#e11d48',
-                                                                    borderRadius: '50%',
-                                                                }
-                                                            }
-                                                        },
-                                                        season && epNum ? `T${season} : E${epNum}` : 'ESCUCHA'
-                                                    ]
+                                                    children: season && epNum ? `T${season} : E${epNum}` : 'ESCUCHA'
                                                 }
                                             }
                                         ]
                                     }
                                 },
 
-                                // ── Cover image (centered) ──
+                                // ── IMAGE SECTION (Hero) ──
                                 {
                                     type: 'div',
                                     props: {
                                         style: {
                                             display: 'flex',
-                                            flex: 1,
-                                            alignItems: 'center',
                                             justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginTop: '40px',
+                                            marginBottom: '80px',
                                         },
                                         children: coverDataUrl ? [
                                             {
@@ -293,18 +273,18 @@ export const GET: APIRoute = async ({ url }) => {
                                                 props: {
                                                     style: {
                                                         display: 'flex',
-                                                        position: 'relative',
-                                                        borderRadius: '40px',
-                                                        overflow: 'hidden',
-                                                        border: '2px solid rgba(255,255,255,0.1)',
+                                                        padding: '24px',
+                                                        background: 'rgba(255,255,255,0.03)',
+                                                        border: '1.5px solid rgba(255,255,255,0.1)',
+                                                        borderRadius: '60px',
                                                     },
                                                     children: [
                                                         {
                                                             type: 'img',
                                                             props: {
                                                                 src: coverDataUrl,
-                                                                width: 700,
-                                                                height: 700,
+                                                                width: 880,
+                                                                height: 495,
                                                                 style: {
                                                                     borderRadius: '40px',
                                                                     objectFit: 'cover',
@@ -318,72 +298,62 @@ export const GET: APIRoute = async ({ url }) => {
                                     }
                                 },
 
-                                // ── Text content ──
+                                // ── INFO SECTION ──
                                 {
                                     type: 'div',
                                     props: {
                                         style: {
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            marginTop: '80px',
-                                            padding: '0 40px',
+                                            marginTop: 'auto',
                                         },
                                         children: [
-                                            // Title
                                             {
                                                 type: 'h1',
                                                 props: {
                                                     style: {
-                                                        fontSize: '85px',
+                                                        fontSize: '92px',
                                                         lineHeight: 1.05,
                                                         fontWeight: 900,
-                                                        letterSpacing: '-0.02em',
-                                                        margin: '0 0 40px 0',
-                                                        maxWidth: '920px',
-                                                        overflow: 'hidden',
+                                                        letterSpacing: '-0.04em',
+                                                        margin: '0 0 45px 0',
+                                                        maxWidth: '940px',
                                                     },
                                                     children: displayTitle
                                                 }
                                             },
-
-                                            // Guests (if any)
                                             ...(guests.length > 0 ? [{
                                                 type: 'div',
                                                 props: {
                                                     style: {
                                                         display: 'flex',
                                                         flexDirection: 'column' as const,
-                                                        gap: '12px',
-                                                        marginBottom: '50px',
+                                                        gap: '15px',
                                                     },
                                                     children: [
                                                         {
                                                             type: 'span',
                                                             props: {
                                                                 style: {
-                                                                    fontSize: '22px',
-                                                                    fontWeight: 800,
-                                                                    padding: '6px 16px',
-                                                                    borderRadius: '6px',
-                                                                    color: '#fff',
-                                                                    backgroundColor: accent,
-                                                                    display: 'flex',
-                                                                    alignSelf: 'flex-start',
+                                                                    fontSize: '24px',
+                                                                    fontWeight: 900,
+                                                                    letterSpacing: '0.25em',
+                                                                    color: accent,
+                                                                    marginBottom: '5px',
                                                                 },
-                                                                children: 'FEATURING'
+                                                                children: 'CON'
                                                             }
                                                         },
                                                         {
                                                             type: 'span',
                                                             props: {
                                                                 style: {
-                                                                    fontSize: '56px',
+                                                                    fontSize: '52px',
                                                                     fontWeight: 800,
-                                                                    lineHeight: 1.1,
-                                                                    color: accent,
-                                                                    marginTop: '10px',
+                                                                    lineHeight: 1.2,
+                                                                    color: 'rgba(255,255,255,0.95)',
                                                                 },
-                                                                children: guests.join(', ')
+                                                                children: guests.join('  •  ')
                                                             }
                                                         }
                                                     ]
@@ -393,27 +363,15 @@ export const GET: APIRoute = async ({ url }) => {
                                     }
                                 },
 
-                                // ── Spacer to push footer down ──
+                                // ── FOOTER CTA ──
                                 {
                                     type: 'div',
                                     props: {
                                         style: {
                                             display: 'flex',
-                                            flex: 1,
-                                        }
-                                    }
-                                },
-
-                                // ── Footer ──
-                                {
-                                    type: 'div',
-                                    props: {
-                                        style: {
-                                            display: 'flex',
-                                            flexDirection: 'column',
                                             alignItems: 'center',
-                                            paddingTop: '40px',
-                                            gap: '40px',
+                                            gap: '30px',
+                                            marginTop: '100px',
                                             width: '100%',
                                         },
                                         children: [
@@ -421,49 +379,59 @@ export const GET: APIRoute = async ({ url }) => {
                                                 type: 'div',
                                                 props: {
                                                     style: {
+                                                        width: '84px',
+                                                        height: '84px',
+                                                        borderRadius: 42,
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        gap: '24px',
-                                                        padding: '16px 48px 16px 16px',
-                                                        borderRadius: '100px',
-                                                        background: 'rgba(255,255,255,0.05)',
+                                                        justifyContent: 'center',
+                                                        backgroundColor: accent,
                                                     },
                                                     children: [
                                                         {
                                                             type: 'div',
                                                             props: {
                                                                 style: {
-                                                                    width: '64px',
-                                                                    height: '64px',
-                                                                    borderRadius: '50%',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    backgroundColor: accent,
-                                                                },
-                                                                children: []
+                                                                    width: 0,
+                                                                    height: 0,
+                                                                    borderTop: '16px solid transparent',
+                                                                    borderBottom: '16px solid transparent',
+                                                                    borderLeft: '24px solid white',
+                                                                    marginLeft: '6px',
+                                                                }
                                                             }
-                                                        },
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                type: 'div',
+                                                props: {
+                                                    style: {
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                    },
+                                                    children: [
                                                         {
                                                             type: 'span',
                                                             props: {
                                                                 style: {
-                                                                    fontSize: '32px',
+                                                                    fontSize: '28px',
                                                                     fontWeight: 500,
-                                                                    color: 'rgba(255,255,255,0.9)',
+                                                                    color: 'rgba(255,255,255,0.6)',
                                                                 },
-                                                                children: 'Escucha en '
+                                                                children: 'Escúchalo ahora'
                                                             }
                                                         },
                                                         {
                                                             type: 'span',
                                                             props: {
                                                                 style: {
-                                                                    fontSize: '32px',
-                                                                    fontWeight: 800,
-                                                                    color: accent,
+                                                                    fontSize: '42px',
+                                                                    fontWeight: 900,
+                                                                    color: 'white',
                                                                 },
-                                                                children: 'vrdfm.es'
+                                                                children: 'veredillasfm.es'
                                                             }
                                                         }
                                                     ]
@@ -471,11 +439,11 @@ export const GET: APIRoute = async ({ url }) => {
                                             }
                                         ]
                                     }
-                                },
+                                }
                             ]
                         }
                     }
-                ].filter(Boolean),
+                ],
             },
         } as any,
         {
