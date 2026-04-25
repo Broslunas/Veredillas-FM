@@ -1,6 +1,5 @@
 ---
 import { getCollection } from 'astro:content';
-import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import SocialShare from '../../components/SocialShare.astro';
 import ShareCardGenerator from '../../components/ShareCardGenerator.astro';
@@ -45,7 +44,7 @@ const relativeOgImageUrl = entry.data.image || `/logo.webp`;
     <div class="page-bg"></div>
 
     <div class="cinema-layout container">
-        <Breadcrumbs className="col-span-full mb-4" customLabel={entry.data.title} />
+        <Breadcrumbs className="col-span-full mb-4" items={[{ label: 'Blog', href: '/blog' }]} customLabel={entry.data.title} />
         <main class="main-content" style="overflow-x: hidden; min-width: 0;">
             <!-- HERO / BANNER -->
             <section class="player-section section-fade">

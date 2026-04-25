@@ -1,6 +1,5 @@
 ---
 import { getCollection } from "astro:content";
-import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import Comments from "../../components/Comments.astro";
 import SocialShare from "../../components/SocialShare.astro";
@@ -270,7 +269,7 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     />
 
     <div class="cinema-layout container">
-        <Breadcrumbs className="col-span-full mb-4" customLabel={entry.data.title} />
+        <Breadcrumbs className="col-span-full mb-4" items={[{ label: 'Episodios', href: '/ep' }]} customLabel={entry.data.title} />
         {
             isPremiere && (
                 /* 0. PREMIERE STAGE (Player + Chat side-by-side)
