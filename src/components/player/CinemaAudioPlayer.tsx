@@ -110,28 +110,72 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
     // Function to apply saved progress to audio element
     const applyRestore = () => {
         const audio = audioRef.current;
-        if (!audio || hasRestoredRef.current || savedProgressRef.current <= 0) return;
+        if (!audio || hasRestoredRef.current) return;
         
-        // Only apply if audio has enough data (readyState >= 1 means metadata is loaded)
-        if (audio.readyState >= 1 && audio.duration > 0) {
-            // Don't restore if we're near the end (within last 5% = completed)
-            if (savedProgressRef.current >= audio.duration * 0.95) {
-                hasRestoredRef.current = true;
-                return;
+        // --- 1. Check URL for timestamp (highest priority) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTime = urlParams.get('t') || urlParams.get('time');
+        let initialTime = 0;
+
+        if (urlTime) {
+            // Support MM:SS or seconds
+            if (urlTime.includes(':')) {
+                initialTime = parseTime(urlTime);
+            } else {
+                initialTime = parseFloat(urlTime);
             }
-            
-            audio.currentTime = savedProgressRef.current;
-            setCurrentTime(savedProgressRef.current);
+        }
+
+        // --- 2. If no URL time, use saved progress ---
+        if (initialTime <= 0 && savedProgressRef.current > 0) {
+            // Don't restore if we're near the end (within last 5% = completed)
+            if (savedProgressRef.current < audio.duration * 0.95) {
+                initialTime = savedProgressRef.current;
+            }
+        }
+
+        // Only apply if audio has enough data (readyState >= 1 means metadata is loaded)
+        if (initialTime > 0 && audio.readyState >= 1 && audio.duration > 0) {
+            audio.currentTime = initialTime;
+            setCurrentTime(initialTime);
             hasRestoredRef.current = true;
             
             // @ts-ignore
             if (window.showToast) {
-                const mins = Math.floor(savedProgressRef.current / 60);
-                const secs = Math.floor(savedProgressRef.current % 60);
+                const mins = Math.floor(initialTime / 60);
+                const secs = Math.floor(initialTime % 60);
+                const label = urlTime ? "Saltando al momento" : "Progreso restaurado";
                 // @ts-ignore
-                window.showToast(`Progreso restaurado en ${mins}:${secs.toString().padStart(2, '0')} 🎧`, "info");
+                window.showToast(`${label} ${mins}:${secs.toString().padStart(2, '0')} 🎧`, "info");
             }
         }
+    };
+
+    // Helper to parse time strings like "MM:SS", "HH:MM:SS" or "1h2m3s"
+    const parseTime = (t: string) => {
+        if (!t) return 0;
+        
+        // If it's just a number, return it
+        if (!isNaN(Number(t))) return parseFloat(t);
+
+        // Handle HH:MM:SS or MM:SS
+        if (t.includes(':')) {
+            const parts = t.split(':').map(Number);
+            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            if (parts.length === 2) return parts[0] * 60 + parts[1];
+        }
+
+        // Handle 1h2m3s format
+        const h = t.match(/(\d+)h/);
+        const m = t.match(/(\d+)m/);
+        const s = t.match(/(\d+)s/);
+        let total = 0;
+        if (h) total += parseInt(h[1]) * 3600;
+        if (m) total += parseInt(m[1]) * 60;
+        if (s) total += parseInt(s[1]);
+        if (total > 0) return total;
+
+        return parseFloat(t) || 0;
     };
 
     // Handle initial load and core metadata
@@ -440,13 +484,6 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
-    const parseTime = (t: string) => {
-        const parts = t.split(':').map(Number);
-        if (parts.length === 2) return parts[0] * 60 + parts[1];
-        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-        return 0;
-    };
-
     const PROXY_URL = 'https://broslunas-veredillasfm-proxy.hf.space/stream?url=';
     
     // Check if the URL should be proxied (if it's not from our own CDN or a relative path)
@@ -624,6 +661,22 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
         if (cast && cast.framework) {
             cast.framework.CastContext.getInstance().requestSession();
         }
+    };
+
+    const copyShareLink = () => {
+        const url = new URL(window.location.href);
+        // Remove existing t/time params to avoid duplication
+        url.searchParams.delete('t');
+        url.searchParams.delete('time');
+        url.searchParams.set('t', Math.floor(currentTime).toString());
+        
+        navigator.clipboard.writeText(url.toString()).then(() => {
+            // @ts-ignore
+            if (window.showToast) {
+                // @ts-ignore
+                window.showToast("Enlace copiado con el minuto actual 🔗", "success");
+            }
+        });
     };
 
     return (
@@ -805,6 +858,16 @@ const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><line x1="2" y1="20" x2="2.01" y2="20" strokeWidth="3"/></svg>
                                 </button>
                             )}
+
+                            {/* Share at time */}
+                            <button 
+                                onClick={copyShareLink}
+                                className="text-white/60 hover:text-white transition-colors"
+                                title="Copiar enlace en este momento"
+                                aria-label="Copiar enlace en este momento"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            </button>
 
                             {/* Captions Toggle */}
                             {transcription && transcription.length > 0 && (
