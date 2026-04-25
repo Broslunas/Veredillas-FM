@@ -8,23 +8,6 @@ tags:
   - Motivación
   - Superación
   - Gimnasio
-isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/05792a09-ea30-4901-9f7f-621f6d1e9198.webp'
-participants:
-  - Damian
-  - Pablo Quintero
-  - Diego Quintero
-season: 2
-episode: 9
-duration: 24 min
-pubDate: '2026-04-21T16:00:00.000Z'
-description: >-
-  ¿Qué pesa más: principios o kilómetros? Explora el poder de la amistad y la
-  lealtad en el entrenamiento. Historias personales que te inspirarán a
-  superarte junto a tus amigos.
-videoUrl: 'https://www.youtube.com/embed/0RCFNhJttYE'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/118790661/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-3-21%2F422515058-44100-2-3e60dcf0c06c.mp3
 transcription:
   - time: '00:01'
     text: >-
@@ -508,6 +491,23 @@ transcription:
       Sin duda alguna, reflexión es muy bonita. Les agradezco mucho por venir y,
       recuerden, los mantenemos al pendiente, los dejamos más candentes en
       Verillas FM. Gracias.
+isPremiere: true
+image: 'https://cdn.veredillasfm.es/images/05792a09-ea30-4901-9f7f-621f6d1e9198.webp'
+participants:
+  - Damian
+  - Pablo Quintero
+  - Diego Quintero
+season: 2
+episode: 9
+duration: 24 min
+pubDate: '2026-04-21T16:00:00.000Z'
+description: >-
+  ¿Qué pesa más: principios o kilómetros? Explora el poder de la amistad y la
+  lealtad en el entrenamiento. Historias personales que te inspirarán a
+  superarte junto a tus amigos.
+videoUrl: 'https://www.youtube.com/embed/0RCFNhJttYE'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/118790661/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-3-21%2F422515058-44100-2-3e60dcf0c06c.mp3
 clips:
   - title: Bachillerato y Deporte  Mi Clave para el Éxito
     url: 'https://youtu.be/AyTs11SUSDw'
@@ -545,6 +545,16 @@ clips:
     url: 'https://youtu.be/Gf1UF0Nmn9M'
   - title: Amigos que te sacan una sonrisa en clase
     url: 'https://youtu.be/eziL0Pj8ypA'
+  - title: 'Tu Futuro en Deporte: CAFYD, Bombero o Forestal'
+    url: 'https://youtu.be/Cp1bZNoSf-g'
+  - title: 'Filosofía, Amistad y Autenticidad: Claves de la Vida Universitaria'
+    url: 'https://youtu.be/V5J6ib2sASE'
+  - title: 'Deporte y Estudios: ¿Competencia o Diversión?'
+    url: 'https://youtu.be/FMWa-kRwXWo'
+  - title: 'Baloncesto: Mi vida, mi escape y mis notas'
+    url: 'https://youtu.be/7a0gNLxV8qk'
+  - title: 'Bachillerato: Mi Experiencia y Mejora Académica'
+    url: 'https://youtu.be/JZ6INNKPDnM'
 ---
 ¿Qué pesa más: los principios o los kilómetros en la caminadora? En este episodio nos sentamos con Damian, Pablo Quintero y Diego Quintero para descifrar esa extraña (pero necesaria) conexión entre la fidelidad a los amigos y la disciplina del entrenamiento.
 En este episodio hablamos de:
