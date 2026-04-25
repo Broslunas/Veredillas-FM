@@ -555,6 +555,89 @@ clips:
     url: 'https://youtu.be/7a0gNLxV8qk'
   - title: 'Bachillerato: Mi Experiencia y Mejora Académica'
     url: 'https://youtu.be/JZ6INNKPDnM'
+sections:
+  - time: '00:01'
+    title: 'Bienvenidos: El Trío Mosquetero'
+  - time: '00:16'
+    title: Primeras Impresiones y Nervios
+  - time: '00:30'
+    title: 'Temas Clave: Amistad, Deporte y Estudios'
+  - time: '01:16'
+    title: El Origen de una Amistad Inquebrantable
+  - time: '01:51'
+    title: Conexiones que Forjaron la Amistad
+  - time: '02:32'
+    title: La Amistad como Apoyo en el Estrés
+  - time: '02:51'
+    title: 'Hermanos en la Cancha: Rivalidad y Apoyo'
+  - time: '03:17'
+    title: Competencia Fraternal en Baloncesto
+  - time: '03:59'
+    title: Crítica Constructiva entre Hermanos
+  - time: '04:53'
+    title: La Visión de Damián sobre la Dinámica
+  - time: '05:24'
+    title: 'Deporte: ¿Carga o Vía de Escape en Bachillerato?'
+  - time: '06:12'
+    title: 'Baloncesto: Mi Vía de Escape Personal'
+  - time: '07:22'
+    title: Deporte y Responsabilidad Estudiantil
+  - time: '07:55'
+    title: La Actitud Personal ante el Deporte
+  - time: '08:42'
+    title: ¿El Final del Deporte? Planes Futuros
+  - time: '09:26'
+    title: Sueños de Carrera en el Deporte
+  - time: '10:09'
+    title: 'Aspiración: Profesor de Educación Física'
+  - time: '10:45'
+    title: 'Otros Horizontes: Bombero, Guardia Forestal'
+  - time: '11:15'
+    title: El Futuro de la Amistad Post-Instituto
+  - time: '11:34'
+    title: Una Amistad que Perdura
+  - time: '11:41'
+    title: La Esencia de la Amistad Verdadera
+  - time: '12:06'
+    title: ¿La Distancia Refuerza la Amistad?
+  - time: '12:44'
+    title: Ejemplos de Amistades Duraderas
+  - time: '13:03'
+    title: Valorando el Tiempo Compartido
+  - time: '13:16'
+    title: Amistad Real vs. Conexiones Digitales
+  - time: '14:02'
+    title: Vulnerabilidad y Emociones en la Amistad
+  - time: '14:47'
+    title: El Apoyo Emocional entre Amigos
+  - time: '15:24'
+    title: Desafíos Académicos en el Bachillerato
+  - time: '15:34'
+    title: Luchando con las Calificaciones Actuales
+  - time: '15:49'
+    title: Superando el Reto del Segundo Bachillerato
+  - time: '16:45'
+    title: El Esfuerzo Conjunto ante los Estudios
+  - time: '17:05'
+    title: 'Clima de Clase y Amistad: Claves para Estudiar'
+  - time: '17:32'
+    title: El Valor Irremplazable de la Amistad
+  - time: '18:19'
+    title: 'Consejos: La Amistad Nace Sola'
+  - time: '19:02'
+    title: La Importancia del Buen Ambiente en Clase
+  - time: '19:45'
+    title: 'Momentos Felices: Pequeños Recuerdos Duraderos'
+  - time: '20:11'
+    title: La Efímera Vida y Reflexiones Finales
+  - time: '20:33'
+    title: 'Reflexión: Menos Preocupación, Más Felicidad'
+  - time: '20:54'
+    title: Pasión por el Deporte y Amistad Constante
+  - time: '22:20'
+    title: Busca tu Propia Vía de Escape y Apoyo
+  - time: '23:16'
+    title: Despedida y Agradecimientos Finales
 ---
 ¿Qué pesa más: los principios o los kilómetros en la caminadora? En este episodio nos sentamos con Damian, Pablo Quintero y Diego Quintero para descifrar esa extraña (pero necesaria) conexión entre la fidelidad a los amigos y la disciplina del entrenamiento.
 En este episodio hablamos de:
