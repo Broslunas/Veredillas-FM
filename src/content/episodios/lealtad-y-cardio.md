@@ -638,6 +638,81 @@ sections:
     title: Busca tu Propia Vía de Escape y Apoyo
   - time: '23:16'
     title: Despedida y Agradecimientos Finales
+quiz:
+  - question: ¿Cuál es la conexión principal explorada en la discusión?
+    options:
+      - La importancia de la dieta en el rendimiento deportivo.
+      - >-
+        La relación entre la fidelidad a los amigos y la disciplina en el
+        entrenamiento.
+      - Cómo evitar lesiones en el gimnasio.
+      - Las diferencias entre cardio y levantamiento de pesas.
+    correctAnswer: 1
+  - question: >-
+      Según lo discutido, ¿cómo puede la presencia de amigos influir en una
+      actividad como el cardio?
+    options:
+      - Hace que el equipo sea más eficiente.
+      - >-
+        Convierte el sufrimiento en una experiencia más llevadera o incluso
+        fácil.
+      - Reduce la necesidad de calentar.
+      - Aumenta la competitividad de forma negativa.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué significa 'mantenerse firme en un mundo donde todo es desechable' en
+      el contexto de la conversación?
+    options:
+      - Resistirse a comprar productos de un solo uso.
+      - >-
+        Preservar relaciones significativas y rutinas de ejercicio a largo
+        plazo.
+      - Evitar las modas pasajeras en la vestimenta.
+      - No cambiar de gimnasio con frecuencia.
+    correctAnswer: 1
+  - question: >-
+      En días donde no hay motivación para entrenar, ¿qué es lo que a menudo
+      impulsa a cumplir con la rutina, según las anécdotas compartidas?
+    options:
+      - El remordimiento por haber comido en exceso el día anterior.
+      - La obligación económica de haber pagado una membresía.
+      - La lealtad y el compromiso con el grupo o amigos.
+      - El deseo de superar un récord personal.
+    correctAnswer: 2
+  - question: ¿Cómo se describe el impacto del apoyo mutuo entre los participantes?
+    options:
+      - Principalmente en la mejora de la técnica de levantamiento de pesas.
+      - >-
+        Como una transformación de la mentalidad, tanto en el entrenamiento como
+        fuera de él.
+      - En la capacidad de conseguir mejores descuentos en suplementos.
+      - Solamente en un aumento de la resistencia física.
+    correctAnswer: 1
+  - question: >-
+      La frase 'La lealtad es un músculo que se entrena todos los días, y a
+      veces quema más que diez minutos de sprint en la banda' sugiere que la
+      lealtad:
+    options:
+      - Se fortalece sin esfuerzo constante.
+      - >-
+        Requiere práctica y dedicación continua, y puede ser tan desafiante como
+        el ejercicio físico intenso.
+      - Es un concepto innato que no necesita desarrollo.
+      - Solo es relevante en el contexto de la actividad física.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué concepto clave se enfatiza sobre la disciplina y las relaciones
+      personales?
+    options:
+      - Son incompatibles y deben mantenerse separadas.
+      - El éxito individual no depende de las interacciones sociales.
+      - >-
+        El apoyo mutuo y la lealtad pueden ser fundamentales para fomentar la
+        disciplina y el crecimiento.
+      - >-
+        La disciplina es puramente una cuestión de fuerza de voluntad
+        individual.
+    correctAnswer: 2
 ---
 ¿Qué pesa más: los principios o los kilómetros en la caminadora? En este episodio nos sentamos con Damian, Pablo Quintero y Diego Quintero para descifrar esa extraña (pero necesaria) conexión entre la fidelidad a los amigos y la disciplina del entrenamiento.
 En este episodio hablamos de:
