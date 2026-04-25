@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../../lib/mongodb';
-import { getUserFromCookie } from '../../../../lib/auth';
-import User from '../../../../models/User';
-import { sendEmail } from '../../../../lib/mailjet';
+import dbConnect from '@/lib/mongodb';
+import { getUserFromCookie } from '@/lib/auth';
+import User from '@/models/User';
+import { sendEmail } from '@/lib/mailjet';
 
 export const prerender = false;
 

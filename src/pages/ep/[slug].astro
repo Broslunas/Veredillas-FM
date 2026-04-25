@@ -1,28 +1,28 @@
 ---
 import { getCollection } from "astro:content";
-import Layout from "../../layouts/Layout.astro";
-import Comments from "../../components/Comments.astro";
-import SocialShare from "../../components/SocialShare.astro";
-import RelatedEpisodes from "../../components/RelatedEpisodes.astro";
-import EpisodeParticipants from "../../components/EpisodeParticipants.astro";
-import TranscriptionWidget from "../../components/TranscriptionWidget.astro";
-import EpisodeSections from "../../components/EpisodeSections.astro";
-import EpisodeClips from "../../components/EpisodeClips.astro";
-import SidebarWidget from "../../components/SidebarWidget.astro";
-import FavoriteButton from "../../components/FavoriteButton.astro";
-import EpisodeRating from "../../components/EpisodeRating.astro";
-import LikeDislikeGroup from "../../components/LikeDislikeGroup.astro";
-import PlaylistManager from "../../components/PlaylistManager.astro";
-import PlaylistSidebar from "../../components/PlaylistSidebar.astro";
+import Layout from '@/layouts/Layout.astro';
+import Comments from '@/components/Comments.astro';
+import SocialShare from '@/components/SocialShare.astro';
+import RelatedEpisodes from '@/components/RelatedEpisodes.astro';
+import EpisodeParticipants from '@/components/EpisodeParticipants.astro';
+import TranscriptionWidget from '@/components/TranscriptionWidget.astro';
+import EpisodeSections from '@/components/EpisodeSections.astro';
+import EpisodeClips from '@/components/EpisodeClips.astro';
+import SidebarWidget from '@/components/SidebarWidget.astro';
+import FavoriteButton from '@/components/FavoriteButton.astro';
+import EpisodeRating from '@/components/EpisodeRating.astro';
+import LikeDislikeGroup from '@/components/LikeDislikeGroup.astro';
+import PlaylistManager from '@/components/PlaylistManager.astro';
+import PlaylistSidebar from '@/components/PlaylistSidebar.astro';
 
-import PremiereCountdown from "../../components/PremiereCountdown.astro";
-import LiveChat from "../../components/LiveChat.astro";
-import ListenerCount from "../../components/ListenerCount.astro";
-import EpisodeActions from "../../components/EpisodeActions.astro";
-import CinemaAudioPlayer from "../../components/player/CinemaAudioPlayer.tsx";
-import EpisodeQuiz from "../../components/EpisodeQuiz.tsx";
-import QuizModal from "../../components/QuizModal.tsx";
-import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import PremiereCountdown from '@/components/PremiereCountdown.astro';
+import LiveChat from '@/components/LiveChat.astro';
+import ListenerCount from '@/components/ListenerCount.astro';
+import EpisodeActions from '@/components/EpisodeActions.astro';
+import CinemaAudioPlayer from '@/components/player/CinemaAudioPlayer.tsx';
+import EpisodeQuiz from '@/components/EpisodeQuiz.tsx';
+import QuizModal from '@/components/QuizModal.tsx';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
 
 export const prerender = true;
 
@@ -1177,7 +1177,7 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     import {
         syncPlaybackData,
         recordListen,
-    } from "../../services/player/playbackSync";
+    } from '@/services/player/playbackSync';
 
     const parseTime = (t: string) => {
         const parts = t.split(":").map(Number);

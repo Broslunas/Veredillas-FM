@@ -1,10 +1,10 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../lib/mongodb';
-import ActiveListener from '../../../models/ActiveListener';
-import { getUserFromCookie } from '../../../lib/auth';
-import User from '../../../models/User';
+import dbConnect from '@/lib/mongodb';
+import ActiveListener from '@/models/ActiveListener';
+import { getUserFromCookie } from '@/lib/auth';
+import User from '@/models/User';
 
 export const POST: APIRoute = async ({ request }) => {
   try {

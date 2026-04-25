@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../../lib/mongodb';
-import ChatBan from '../../../../models/ChatBan';
-import User from '../../../../models/User';
-import { verifyToken } from '../../../../lib/auth';
+import dbConnect from '@/lib/mongodb';
+import ChatBan from '@/models/ChatBan';
+import User from '@/models/User';
+import { verifyToken } from '@/lib/auth';
 
 export const prerender = false;
 
@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request, params }) => {
          const { targetValue, targetType, messageId } = body; 
 
          if (messageId) {
-             const ChatMessage = (await import('../../../../models/ChatMessage')).default;
+             const ChatMessage = (await import('@/models/ChatMessage')).default;
              const msg = await ChatMessage.findById(messageId);
              
              if (!msg) {

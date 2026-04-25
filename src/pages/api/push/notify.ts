@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
 import webpush from 'web-push';
-import { getUserFromCookie } from '../../../lib/auth';
-import dbConnect from '../../../lib/mongodb';
-import User from '../../../models/User';
-import GuestSubscription from '../../../models/GuestSubscription';
+import { getUserFromCookie } from '@/lib/auth';
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
+import GuestSubscription from '@/models/GuestSubscription';
 import { getCollection } from 'astro:content';
 
 export const prerender = false;

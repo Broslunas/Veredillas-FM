@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './SharedPlayerStyles.css';
+import '@/components/player/SharedPlayerStyles.css';
 
 // Declare Plyr and Cast globally for TypeScript
 declare var Plyr: any;
@@ -37,7 +37,7 @@ interface CinemaAudioPlayerProps {
     }[];
 }
 
-import { syncPlaybackData, recordListen } from '../../services/player/playbackSync';
+import { syncPlaybackData, recordListen } from '@/services/player/playbackSync';
 
 const CinemaAudioPlayer: React.FC<CinemaAudioPlayerProps> = ({ 
     audioUrl, 

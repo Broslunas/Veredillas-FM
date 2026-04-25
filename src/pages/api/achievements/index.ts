@@ -1,13 +1,13 @@
 // GET /api/achievements — Returns all achievements with unlock status for the current user
 import type { APIRoute } from 'astro';
-import { getUserFromCookie } from '../../../lib/auth';
+import { getUserFromCookie } from '@/lib/auth';
 import mongoose from 'mongoose';
-import User from '../../../models/User';
-import UserAchievement from '../../../models/UserAchievement';
-import QuizResult from '../../../models/QuizResult';
-import Comment from '../../../models/Comment';
-import UnlockedCard from '../../../models/UnlockedCard';
-import ChatMessage from '../../../models/ChatMessage';
+import User from '@/models/User';
+import UserAchievement from '@/models/UserAchievement';
+import QuizResult from '@/models/QuizResult';
+import Comment from '@/models/Comment';
+import UnlockedCard from '@/models/UnlockedCard';
+import ChatMessage from '@/models/ChatMessage';
 import { getCollection } from 'astro:content';
 import {
   ACHIEVEMENTS,
@@ -16,7 +16,7 @@ import {
   RARITY_COLORS,
   RARITY_LABELS,
   CATEGORY_LABELS,
-} from '../../../lib/achievements';
+} from '@/lib/achievements';
 
 export const prerender = false;
 

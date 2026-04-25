@@ -1,12 +1,12 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import Layout from '@/layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 import mongoose from 'mongoose';
-import User, { type IUser } from '../../models/User';
-import UserAchievement from '../../models/UserAchievement';
-import { ACHIEVEMENTS, RARITY_COLORS, RARITY_LABELS, CATEGORY_LABELS } from '../../lib/achievements';
-import { getLevel, getNextLevel, getProgressToNextLevel } from '../../lib/gamification';
-import { getUserFromCookie } from '../../lib/auth';
+import User, { type IUser } from '@/models/User';
+import UserAchievement from '@/models/UserAchievement';
+import { ACHIEVEMENTS, RARITY_COLORS, RARITY_LABELS, CATEGORY_LABELS } from '@/lib/achievements';
+import { getLevel, getNextLevel, getProgressToNextLevel } from '@/lib/gamification';
+import { getUserFromCookie } from '@/lib/auth';
 
 export const prerender = false;
 

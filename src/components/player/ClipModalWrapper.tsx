@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import ClipEditor from './ClipEditor';
+import ClipEditor from '@/components/player/ClipEditor';
 
 interface ClipData {
     audioUrl: string;

@@ -1,5 +1,5 @@
 ---
-import { getShortLink } from '../utils/shortLink';
+import { getShortLink } from '@/utils/shortLink';
 
 interface Props {
   title: string;
@@ -212,7 +212,7 @@ const shareTitle = encodeURIComponent(title);
 </div>
 
 <script>
-  import { getShortLink } from '../utils/shortLink';
+  import { getShortLink } from '@/utils/shortLink';
 
   // Global listener for opening the share modal - outside setup to avoid duplicates
   window.addEventListener('veredillas:open-share-modal', () => {

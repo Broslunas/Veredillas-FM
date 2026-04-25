@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import dbConnect from '../../../lib/mongodb';
-import ListenEvent from '../../../models/ListenEvent';
-import User from '../../../models/User';
+import dbConnect from '@/lib/mongodb';
+import ListenEvent from '@/models/ListenEvent';
+import User from '@/models/User';
 
 export const prerender = false;
 

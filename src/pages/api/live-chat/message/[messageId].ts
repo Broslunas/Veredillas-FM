@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../../lib/mongodb';
-import ChatMessage from '../../../../models/ChatMessage';
-import { verifyToken } from '../../../../lib/auth';
-import User from '../../../../models/User';
-import DeletedMessageLog from '../../../../models/DeletedMessageLog';
+import dbConnect from '@/lib/mongodb';
+import ChatMessage from '@/models/ChatMessage';
+import { verifyToken } from '@/lib/auth';
+import User from '@/models/User';
+import DeletedMessageLog from '@/models/DeletedMessageLog';
 
 export const prerender = false;
 

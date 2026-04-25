@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './ClipEditorStyles.css';
-import { getProxiedAudioUrl } from '../../utils/audioProxy';
+import '@/components/player/ClipEditorStyles.css';
+import { getProxiedAudioUrl } from '@/utils/audioProxy';
 
 // Helpers for TimeInput
 function formatTime(seconds: number) {

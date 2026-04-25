@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
 
-import { getUserFromCookie, syncSpotifyEpisodes } from '../../../lib/auth';
-import dbConnect from '../../../lib/mongodb';
-import User from '../../../models/User';
+import { getUserFromCookie, syncSpotifyEpisodes } from '@/lib/auth';
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
 import crypto from 'crypto';
-import { calculateStreakUpdate } from '../../../lib/streak';
+import { calculateStreakUpdate } from '@/lib/streak';
 
 export const prerender = false;
 

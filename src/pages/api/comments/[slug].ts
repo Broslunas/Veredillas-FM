@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../lib/mongodb';
-import Comment from '../../../models/Comment';
+import dbConnect from '@/lib/mongodb';
+import Comment from '@/models/Comment';
 import crypto from 'node:crypto';
-import { getUserFromCookie } from '../../../lib/auth';
-import { notifyNewComment } from '../../../lib/notifications';
+import { getUserFromCookie } from '@/lib/auth';
+import { notifyNewComment } from '@/lib/notifications';
 
 export const prerender = false;
 
@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     let isModerator = false;
     
     if (userPayload) {
-        const User = (await import('../../../models/User')).default;
+        const User = (await import('@/models/User')).default;
         const user = await User.findById(userPayload.userId);
         if (user) {
             currentUserEmail = user.email.toLowerCase();
@@ -247,7 +247,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     let isAuthorized = false;
     if (userPayload) {
         // Find full user to check role
-        const User = (await import('../../../models/User')).default;
+        const User = (await import('@/models/User')).default;
         const user = await User.findById(userPayload.userId);
         if (user) {
             const isAdmin = user.role === 'admin' || user.role === 'owner';

@@ -1,10 +1,10 @@
 // POST /api/achievements/unlock — Manually unlock a specific achievement (for special/secret ones)
 import type { APIRoute } from 'astro';
-import { getUserFromCookie } from '../../../lib/auth';
+import { getUserFromCookie } from '@/lib/auth';
 import mongoose from 'mongoose';
-import User from '../../../models/User';
-import UserAchievement from '../../../models/UserAchievement';
-import { getAchievementById } from '../../../lib/achievements';
+import User from '@/models/User';
+import UserAchievement from '@/models/UserAchievement';
+import { getAchievementById } from '@/lib/achievements';
 
 export const prerender = false;
 

@@ -1,11 +1,11 @@
 // GET /api/cards — Returns all guest cards with unlock status for logged-in user
 import type { APIRoute } from 'astro';
-import { getUserFromCookie } from '../../../lib/auth';
+import { getUserFromCookie } from '@/lib/auth';
 import { getCollection } from 'astro:content';
 import mongoose from 'mongoose';
-import UnlockedCard from '../../../models/UnlockedCard';
-import User from '../../../models/User';
-import { syncAllUserCards } from '../../../lib/cards';
+import UnlockedCard from '@/models/UnlockedCard';
+import User from '@/models/User';
+import { syncAllUserCards } from '@/lib/cards';
 
 export const prerender = false;
 

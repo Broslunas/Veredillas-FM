@@ -1,12 +1,12 @@
 // POST /api/cards/unlock — Check if an episode's guests should unlock cards for a user
 // Called automatically when an episode is marked as completed (≥80% listened)
 import type { APIRoute } from 'astro';
-import { getUserFromCookie } from '../../../lib/auth';
+import { getUserFromCookie } from '@/lib/auth';
 import { getCollection } from 'astro:content';
 import mongoose from 'mongoose';
-import UnlockedCard from '../../../models/UnlockedCard';
-import User from '../../../models/User';
-import { checkAndUnlockCards } from '../../../lib/cards';
+import UnlockedCard from '@/models/UnlockedCard';
+import User from '@/models/User';
+import { checkAndUnlockCards } from '@/lib/cards';
 
 export const prerender = false;
 

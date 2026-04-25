@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content';
 import mongoose from 'mongoose';
-import UnlockedCard from '../models/UnlockedCard';
-import User from '../models/User';
+import UnlockedCard from '@/models/UnlockedCard';
+import User from '@/models/User';
 
 /**
  * Normalizes strings for matching (lowercase and trimmed)

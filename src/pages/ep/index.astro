@@ -1,9 +1,9 @@
 ---
 export const prerender = true;
 
-import Layout from '../../layouts/Layout.astro';
-import EpisodeCard from '../../components/EpisodeCard.astro';
-import AdImpresoras from '../../components/AdImpresoras.astro';
+import Layout from '@/layouts/Layout.astro';
+import EpisodeCard from '@/components/EpisodeCard.astro';
+import AdImpresoras from '@/components/AdImpresoras.astro';
 import { getCollection } from 'astro:content';
 
 const allEpisodes = await getCollection('episodios');

@@ -1,11 +1,11 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import AchievementsPanel from '../components/AchievementsPanel.astro';
-import { getUserFromCookie } from '../lib/auth';
+import Layout from '@/layouts/Layout.astro';
+import AchievementsPanel from '@/components/AchievementsPanel.astro';
+import { getUserFromCookie } from '@/lib/auth';
 import mongoose from 'mongoose';
-import User from '../models/User';
-import UserAchievement from '../models/UserAchievement';
-import { ACHIEVEMENTS, RARITY_COLORS } from '../lib/achievements';
+import User from '@/models/User';
+import UserAchievement from '@/models/UserAchievement';
+import { ACHIEVEMENTS, RARITY_COLORS } from '@/lib/achievements';
 
 export const prerender = false;
 

@@ -1,15 +1,15 @@
 import type { APIRoute } from 'astro';
-import { getUserFromCookie } from '../../../lib/auth';
-import dbConnect from '../../../lib/mongodb';
-import User from '../../../models/User';
-import Comment from '../../../models/Comment';
-import EpisodeReaction from '../../../models/EpisodeReaction';
-import ChatMessage from '../../../models/ChatMessage';
-import UserAchievement from '../../../models/UserAchievement';
-import QuizResult from '../../../models/QuizResult';
-import ListenEvent from '../../../models/ListenEvent';
-import UnlockedCard from '../../../models/UnlockedCard';
-import InterviewRequest from '../../../models/InterviewRequest';
+import { getUserFromCookie } from '@/lib/auth';
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
+import Comment from '@/models/Comment';
+import EpisodeReaction from '@/models/EpisodeReaction';
+import ChatMessage from '@/models/ChatMessage';
+import UserAchievement from '@/models/UserAchievement';
+import QuizResult from '@/models/QuizResult';
+import ListenEvent from '@/models/ListenEvent';
+import UnlockedCard from '@/models/UnlockedCard';
+import InterviewRequest from '@/models/InterviewRequest';
 import AdmZip from 'adm-zip';
 
 export const prerender = false;

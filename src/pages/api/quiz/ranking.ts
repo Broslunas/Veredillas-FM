@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import User from '../../../models/User';
-import QuizResult from '../../../models/QuizResult';
+import User from '@/models/User';
+import QuizResult from '@/models/QuizResult';
 
 export const prerender = false;
 

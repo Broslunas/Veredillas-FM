@@ -7,7 +7,7 @@
 
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { PendingCanariasAuth } from '../../../../models/PendingCanariasAuth';
+import { PendingCanariasAuth } from '@/models/PendingCanariasAuth';
 
 export const prerender = false;
 

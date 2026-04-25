@@ -12,8 +12,8 @@
 
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { PendingCanariasAuth } from '../../../../models/PendingCanariasAuth';
-import { isValidToken, isAllowedDomain } from '../../../../lib/canariaseducacion-auth';
+import { PendingCanariasAuth } from '@/models/PendingCanariasAuth';
+import { isValidToken, isAllowedDomain } from '@/lib/canariaseducacion-auth';
 
 export const prerender = false;
 

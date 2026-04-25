@@ -1,9 +1,9 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { getUserFromCookie } from '../lib/auth';
+import Layout from '@/layouts/Layout.astro';
+import { getUserFromCookie } from '@/lib/auth';
 import { getCollection } from 'astro:content';
 import mongoose from 'mongoose';
-import User from '../models/User';
+import User from '@/models/User';
 
 export const prerender = false;
 

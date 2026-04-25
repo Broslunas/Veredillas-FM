@@ -1,8 +1,8 @@
 ---
 export const prerender = true;
-import Layout from '../../layouts/Layout.astro';
+import Layout from '@/layouts/Layout.astro';
 import { getCollection } from 'astro:content';
-import AdImpresoras from '../../components/AdImpresoras.astro';
+import AdImpresoras from '@/components/AdImpresoras.astro';
 
 const posts = await getCollection('blog');
 const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());

@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
-import Layout from '../layouts/Layout.astro';
-import { getUserFromCookie } from '../lib/auth';
+import Layout from '@/layouts/Layout.astro';
+import { getUserFromCookie } from '@/lib/auth';
 
 const cookieHeader = Astro.request.headers.get('cookie');
 const userPayload = getUserFromCookie(cookieHeader);

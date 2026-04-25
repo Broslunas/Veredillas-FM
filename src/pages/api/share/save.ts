@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../lib/mongodb';
-import ShareDesign from '../../../models/ShareDesign';
+import dbConnect from '@/lib/mongodb';
+import ShareDesign from '@/models/ShareDesign';
 
 export const POST: APIRoute = async ({ request }) => {
     try {

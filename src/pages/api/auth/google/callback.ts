@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { exchangeGoogleCode, getGoogleUserInfo, generateToken } from '../../../../lib/auth';
-import User from '../../../../models/User';
+import { exchangeGoogleCode, getGoogleUserInfo, generateToken } from '@/lib/auth';
+import User from '@/models/User';
 import { createHash } from 'crypto';
-import { calculateStreakUpdate } from '../../../../lib/streak';
+import { calculateStreakUpdate } from '@/lib/streak';
 
 export const prerender = false;
 

@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { exchangeSpotifyCode, getSpotifyUserInfo, generateToken, followSpotifyShow, syncSpotifyEpisodes } from '../../../../lib/auth';
-import User from '../../../../models/User';
+import { exchangeSpotifyCode, getSpotifyUserInfo, generateToken, followSpotifyShow, syncSpotifyEpisodes } from '@/lib/auth';
+import User from '@/models/User';
 import { createHash } from 'crypto';
-import { calculateStreakUpdate } from '../../../../lib/streak';
+import { calculateStreakUpdate } from '@/lib/streak';
 
 const VEREDILLAS_PODCAST_ID = '6mXWyLhzhET5EHk1p72j18';
 

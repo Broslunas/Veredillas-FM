@@ -1,6 +1,6 @@
 
 ---
-import ClipEditor from './ClipEditor';
+import ClipEditor from '@/components/player/ClipEditor';
 ---
 
 <div id="clip-modal-root" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
@@ -13,7 +13,7 @@ import ClipEditor from './ClipEditor';
 <script>
     import React from 'react';
     import { createRoot } from 'react-dom/client';
-    import ClipEditor from './ClipEditor';
+    import ClipEditor from '@/components/player/ClipEditor';
 
     const rootEl = document.getElementById('clip-modal-root');
     const container = document.getElementById('clip-editor-container');

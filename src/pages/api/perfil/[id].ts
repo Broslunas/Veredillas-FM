@@ -1,11 +1,11 @@
 // GET /api/perfil/[id] — Public user profile data
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import User from '../../../models/User';
-import UserAchievement from '../../../models/UserAchievement';
-import Comment from '../../../models/Comment';
-import { ACHIEVEMENTS, RARITY_COLORS, RARITY_LABELS, CATEGORY_LABELS } from '../../../lib/achievements';
-import { getLevel } from '../../../lib/gamification';
+import User from '@/models/User';
+import UserAchievement from '@/models/UserAchievement';
+import Comment from '@/models/Comment';
+import { ACHIEVEMENTS, RARITY_COLORS, RARITY_LABELS, CATEGORY_LABELS } from '@/lib/achievements';
+import { getLevel } from '@/lib/gamification';
 
 export const prerender = false;
 

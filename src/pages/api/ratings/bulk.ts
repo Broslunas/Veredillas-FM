@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../lib/mongodb';
-import Comment from '../../../models/Comment';
+import dbConnect from '@/lib/mongodb';
+import Comment from '@/models/Comment';
 
 export const prerender = false;
 

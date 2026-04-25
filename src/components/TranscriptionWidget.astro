@@ -6,7 +6,7 @@ interface Props {
 
 const { transcription, isPremiere = false } = Astro.props;
 
-import SidebarWidget from './SidebarWidget.astro';
+import SidebarWidget from '@/components/SidebarWidget.astro';
 
 if (!transcription || transcription.length === 0) {
   return;

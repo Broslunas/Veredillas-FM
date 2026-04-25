@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import dbConnect from '../../../lib/mongodb';
-import ListenEvent from '../../../models/ListenEvent';
+import dbConnect from '@/lib/mongodb';
+import ListenEvent from '@/models/ListenEvent';
 
 export const GET: APIRoute = async ({ request }) => {
   try {

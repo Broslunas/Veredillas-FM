@@ -1,8 +1,8 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import dbConnect from '../lib/mongodb';
-import Comment from '../models/Comment';
-import { notifyNewComment } from '../lib/notifications';
+import Layout from '@/layouts/Layout.astro';
+import dbConnect from '@/lib/mongodb';
+import Comment from '@/models/Comment';
+import { notifyNewComment } from '@/lib/notifications';
 
 export const prerender = false;
 

@@ -1,17 +1,17 @@
 ---
-import "../styles/global.css";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-import "../components/player/SharedPlayerStyles.css";
-import CookieConsent from "../components/CookieConsent.astro";
-import Toast from "../components/Toast.astro";
-import Chatbox from "../components/Chatbox.astro";
-import AuthPromptModal from "../components/AuthPromptModal.astro";
-import KonamiCode from "../components/KonamiCode.astro";
-import LivePopupPlayer from "../components/LivePopupPlayer.astro";
-import ClipModalWrapper from "../components/player/ClipModalWrapper";
-import AchievementToaster from "../components/AchievementToaster.astro";
-import PushNotifier from "../components/PushNotifier.astro";
+import '@/styles/global.css';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import '@/components/player/SharedPlayerStyles.css';
+import CookieConsent from '@/components/CookieConsent.astro';
+import Toast from '@/components/Toast.astro';
+import Chatbox from '@/components/Chatbox.astro';
+import AuthPromptModal from '@/components/AuthPromptModal.astro';
+import KonamiCode from '@/components/KonamiCode.astro';
+import LivePopupPlayer from '@/components/LivePopupPlayer.astro';
+import ClipModalWrapper from '@/components/player/ClipModalWrapper';
+import AchievementToaster from '@/components/AchievementToaster.astro';
+import PushNotifier from '@/components/PushNotifier.astro';
 
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
@@ -59,7 +59,8 @@ const {
 // Asegurar que la imagen sea una URL completa
 const ogImage = image.startsWith("http")
 	? image
-	: new URL(image, Astro.site).href;const siteUrl = Astro.site?.href?.replace(/\/$/, "") ?? "https://www.veredillasfm.es";
+	: new URL(image, Astro.site).href;
+const siteUrl = Astro.site?.href?.replace(/\/$/, "") ?? "https://www.veredillasfm.es";
 const siteName = "Veredillas FM";
 const twitterHandle = "@VeredillasFM";
 

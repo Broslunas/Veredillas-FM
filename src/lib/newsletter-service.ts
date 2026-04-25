@@ -1,8 +1,8 @@
 import { getCollection } from 'astro:content';
-import User from '../models/User';
-import { sendEmail } from './mailjet';
+import User from '@/models/User';
+import { sendEmail } from '@/lib/mailjet';
 import mongoose from 'mongoose';
-import dbConnect from './mongodb';
+import dbConnect from '@/lib/mongodb';
 
 export async function processWeeklyNewsletter() {
   await dbConnect();

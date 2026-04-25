@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { generateToken } from '../../../../lib/auth';
-import User from '../../../../models/User';
-import { calculateStreakUpdate } from '../../../../lib/streak';
+import { generateToken } from '@/lib/auth';
+import User from '@/models/User';
+import { calculateStreakUpdate } from '@/lib/streak';
 import { createHash } from 'crypto';
 
 const JWT_SECRET = import.meta.env.JWT_SECRET || 'your-secret-key-change-this-in-production';

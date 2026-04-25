@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import Clip from '../../../models/Clip';
+import Clip from '@/models/Clip';
 import { getCollection } from 'astro:content';
 
 export const prerender = false;

@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { getUserFromCookie } from '../../../lib/auth';
-import User from '../../../models/User';
-import QuizResult from '../../../models/QuizResult';
-import UserAchievement from '../../../models/UserAchievement';
-import { ACHIEVEMENTS } from '../../../lib/achievements';
+import { getUserFromCookie } from '@/lib/auth';
+import User from '@/models/User';
+import QuizResult from '@/models/QuizResult';
+import UserAchievement from '@/models/UserAchievement';
+import { ACHIEVEMENTS } from '@/lib/achievements';
 
 export const prerender = false;
 

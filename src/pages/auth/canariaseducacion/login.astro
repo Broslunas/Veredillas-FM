@@ -8,7 +8,7 @@
  */
 export const prerender = false;
 
-import { BRIDGE_SCRIPT_URL } from '../../../lib/canariaseducacion-auth';
+import { BRIDGE_SCRIPT_URL } from '@/lib/canariaseducacion-auth';
 
 const authId = Astro.url.searchParams.get('authId') ?? '';
 const scriptUrl = `${BRIDGE_SCRIPT_URL}?authId=${encodeURIComponent(authId)}`;

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../../lib/mongodb';
-import ChatReaction from '../../../../models/ChatReaction';
+import dbConnect from '@/lib/mongodb';
+import ChatReaction from '@/models/ChatReaction';
 
 export const prerender = false
 

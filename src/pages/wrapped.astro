@@ -1,12 +1,12 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import User from '../models/User';
-import WrappedSettings from '../models/WrappedSettings';
-import dbConnect from '../lib/mongodb';
-import { getUserFromCookie } from '../lib/auth';
+import Layout from '@/layouts/Layout.astro';
+import User from '@/models/User';
+import WrappedSettings from '@/models/WrappedSettings';
+import dbConnect from '@/lib/mongodb';
+import { getUserFromCookie } from '@/lib/auth';
 import { getCollection } from 'astro:content';
-import Comment from '../models/Comment';
-import ChatMessage from '../models/ChatMessage';
+import Comment from '@/models/Comment';
+import ChatMessage from '@/models/ChatMessage';
 
 export const prerender = false;
 

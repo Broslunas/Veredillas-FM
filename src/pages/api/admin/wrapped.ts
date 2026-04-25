@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
-import WrappedSettings from '../../../models/WrappedSettings';
-import dbConnect from '../../../lib/mongodb';
-import User from '../../../models/User';
-import { getUserFromCookie } from '../../../lib/auth';
+import WrappedSettings from '@/models/WrappedSettings';
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
+import { getUserFromCookie } from '@/lib/auth';
 
 export const POST: APIRoute = async ({ request }) => {
   try {

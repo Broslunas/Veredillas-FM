@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import jwt from 'jsonwebtoken';
-import { sendEmail } from '../../../../lib/mailjet';
+import { sendEmail } from '@/lib/mailjet';
 import { createHash } from 'crypto';
 
 const JWT_SECRET = import.meta.env.JWT_SECRET || 'your-secret-key-change-this-in-production';

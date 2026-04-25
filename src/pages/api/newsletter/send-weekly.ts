@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { processWeeklyNewsletter } from '../../../lib/newsletter-service';
+import { processWeeklyNewsletter } from '@/lib/newsletter-service';
 
 export const prerender = false;
 

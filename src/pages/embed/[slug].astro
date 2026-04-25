@@ -1,8 +1,8 @@
 ---
 export const prerender = true;
 import { getCollection, getEntry } from 'astro:content';
-import '../../styles/global.css';
-import { getProxiedAudioUrl } from '../../utils/audioProxy';
+import '@/styles/global.css';
+import { getProxiedAudioUrl } from '@/utils/audioProxy';
 
 // Required for dynamic routes in static builds
 export async function getStaticPaths() {

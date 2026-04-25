@@ -1,7 +1,7 @@
 
-import { sendEmail } from './mailjet';
-import Comment from '../models/Comment';
-import dbConnect from './mongodb';
+import { sendEmail } from '@/lib/mailjet';
+import Comment from '@/models/Comment';
+import dbConnect from '@/lib/mongodb';
 
 const ADMIN_EMAIL = 'pablo.luna.perez.008@gmail.com';
 const SITE_URL = import.meta.env.SITE || 'https://veredillasfm.es';

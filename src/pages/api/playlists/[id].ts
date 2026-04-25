@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import { getCollection } from 'astro:content';
-import { getUserFromCookie } from '../../../lib/auth';
-import User from '../../../models/User';
+import { getUserFromCookie } from '@/lib/auth';
+import User from '@/models/User';
 
 export const prerender = false;
 

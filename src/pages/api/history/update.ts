@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { verifyToken } from '../../../lib/auth';
-import User from '../../../models/User';
-import { checkAndUnlockCards } from '../../../lib/cards';
+import { verifyToken } from '@/lib/auth';
+import User from '@/models/User';
+import { checkAndUnlockCards } from '@/lib/cards';
 
 export const prerender = false;
 

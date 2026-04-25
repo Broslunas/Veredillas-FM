@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../lib/mongodb';
-import ChatMessage from '../../../models/ChatMessage';
-import ChatReaction from '../../../models/ChatReaction';
-import DeletedMessageLog from '../../../models/DeletedMessageLog';
-import ChatBan from '../../../models/ChatBan';
-import { getUserFromCookie } from '../../../lib/auth';
+import dbConnect from '@/lib/mongodb';
+import ChatMessage from '@/models/ChatMessage';
+import ChatReaction from '@/models/ChatReaction';
+import DeletedMessageLog from '@/models/DeletedMessageLog';
+import ChatBan from '@/models/ChatBan';
+import { getUserFromCookie } from '@/lib/auth';
 import crypto from 'node:crypto';
 
 export const prerender = false;

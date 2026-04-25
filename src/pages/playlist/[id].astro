@@ -1,10 +1,10 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import EpisodeCard from '../../components/EpisodeCard.astro';
+import Layout from '@/layouts/Layout.astro';
+import EpisodeCard from '@/components/EpisodeCard.astro';
 import { getCollection } from 'astro:content';
-import User from '../../models/User';
+import User from '@/models/User';
 import mongoose from 'mongoose';
-import { getUserFromCookie } from '../../lib/auth';
+import { getUserFromCookie } from '@/lib/auth';
 
 export const prerender = false;
 

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../lib/mongodb';
-import InterviewRequest from '../../../models/InterviewRequest';
+import dbConnect from '@/lib/mongodb';
+import InterviewRequest from '@/models/InterviewRequest';
 
 export const prerender = false;
 

@@ -1,5 +1,5 @@
 import { getCollection } from 'astro:content';
-import { teamMembers } from '../../data/team';
+import { teamMembers } from '@/data/team';
 
 export async function GET() {
   const episodios = await getCollection('episodios');

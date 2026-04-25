@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { verifyToken } from '../../../lib/auth';
-import User from '../../../models/User';
+import { verifyToken } from '@/lib/auth';
+import User from '@/models/User';
 import mongoose from 'mongoose';
 
 export const GET: APIRoute = async ({ request, url, cookies }) => {

@@ -1,16 +1,16 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import EpisodeCard from '../components/EpisodeCard.astro';
+import Layout from '@/layouts/Layout.astro';
+import EpisodeCard from '@/components/EpisodeCard.astro';
 import { getCollection } from 'astro:content';
-import User from '../models/User';
-import { getUserFromCookie } from '../lib/auth';
-import type { IUser } from '../models/User';
+import User from '@/models/User';
+import { getUserFromCookie } from '@/lib/auth';
+import type { IUser } from '@/models/User';
 import mongoose from 'mongoose';
-import { getLevel, getNextLevel, getProgressToNextLevel } from '../lib/gamification';
-import LevelsModal from '../components/LevelsModal.astro';
-import AchievementsPanel from '../components/AchievementsPanel.astro';
-import EpisodeReaction from '../models/EpisodeReaction';
-import WrappedSettings from '../models/WrappedSettings';
+import { getLevel, getNextLevel, getProgressToNextLevel } from '@/lib/gamification';
+import LevelsModal from '@/components/LevelsModal.astro';
+import AchievementsPanel from '@/components/AchievementsPanel.astro';
+import EpisodeReaction from '@/models/EpisodeReaction';
+import WrappedSettings from '@/models/WrappedSettings';
 
 export const prerender = false;
 
@@ -27,7 +27,7 @@ if (!userPayload) {
 }
 
 // DB Connect
-import dbConnect from '../lib/mongodb';
+import dbConnect from '@/lib/mongodb';
 await dbConnect();
 
 // Fetch User

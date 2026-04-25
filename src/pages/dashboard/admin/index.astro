@@ -1,12 +1,12 @@
 
 ---
-import Layout from '../../../layouts/Layout.astro';
-import AdminNav from '../../../components/admin/AdminNav.astro';
-import { getUserFromCookie } from '../../../lib/auth';
-import User from '../../../models/User';
-import ActiveListener from '../../../models/ActiveListener';
-import Comment from '../../../models/Comment';
-import dbConnect from '../../../lib/mongodb';
+import Layout from '@/layouts/Layout.astro';
+import AdminNav from '@/components/admin/AdminNav.astro';
+import { getUserFromCookie } from '@/lib/auth';
+import User from '@/models/User';
+import ActiveListener from '@/models/ActiveListener';
+import Comment from '@/models/Comment';
+import dbConnect from '@/lib/mongodb';
 import { getCollection } from 'astro:content';
 
 export const prerender = false;

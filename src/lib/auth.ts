@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import type { IUser } from '../models/User';
+import type { IUser } from '@/models/User';
 
 const JWT_SECRET = import.meta.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
 
@@ -218,7 +218,7 @@ export async function syncSpotifyEpisodes(userId: string) {
   try {
     // 1. Conectar a la DB si es necesario
     const mongoose = (await import('mongoose')).default;
-    const User = (await import('../models/User')).default;
+    const User = (await import('@/models/User')).default;
 
     const user = await User.findById(userId);
     if (!user || !user.spotifyId || !user.spotifyRefreshToken) return;

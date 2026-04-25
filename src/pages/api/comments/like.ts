@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import dbConnect from '../../../lib/mongodb';
-import Comment from '../../../models/Comment';
-import { getUserFromCookie } from '../../../lib/auth';
+import dbConnect from '@/lib/mongodb';
+import Comment from '@/models/Comment';
+import { getUserFromCookie } from '@/lib/auth';
 
 export const POST: APIRoute = async ({ request }) => {
     try {

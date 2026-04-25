@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import EpisodeQuiz from './EpisodeQuiz';
+import EpisodeQuiz from '@/components/EpisodeQuiz';
 import { gsap } from 'gsap';
 
 interface QuizQuestion {

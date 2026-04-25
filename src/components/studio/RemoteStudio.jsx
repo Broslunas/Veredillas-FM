@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import '../../styles/RemoteStudio.css';
+import '@/styles/RemoteStudio.css';
 
 const RemoteStudio = ({ mode = 'guest', roomId: initialRoomId = '' }) => {
   const [roomId, setRoomId] = useState(initialRoomId || '');

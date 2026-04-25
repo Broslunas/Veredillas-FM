@@ -1,10 +1,10 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { getUserFromCookie } from '../lib/auth';
+import Layout from '@/layouts/Layout.astro';
+import { getUserFromCookie } from '@/lib/auth';
 import mongoose from 'mongoose';
-import User, { type IUser } from '../models/User';
-import { getLevel, getNextLevel, getProgressToNextLevel } from '../lib/gamification';
-import LevelsModal from '../components/LevelsModal.astro';
+import User, { type IUser } from '@/models/User';
+import { getLevel, getNextLevel, getProgressToNextLevel } from '@/lib/gamification';
+import LevelsModal from '@/components/LevelsModal.astro';
 import { getCollection } from 'astro:content';
 const allEpisodes = await getCollection('episodios');
 

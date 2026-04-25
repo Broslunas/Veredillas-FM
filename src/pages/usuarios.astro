@@ -1,9 +1,9 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from '@/layouts/Layout.astro';
 import mongoose from 'mongoose';
-import User, { type IUser } from '../models/User';
-import { getLevel } from '../lib/gamification';
-import { getUserFromCookie } from '../lib/auth';
+import User, { type IUser } from '@/models/User';
+import { getLevel } from '@/lib/gamification';
+import { getUserFromCookie } from '@/lib/auth';
 
 export const prerender = false;
 

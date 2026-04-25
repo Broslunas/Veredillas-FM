@@ -16,8 +16,8 @@
 
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import User from '../../../../models/User';
-import { generateToken } from '../../../../lib/auth';
+import User from '@/models/User';
+import { generateToken } from '@/lib/auth';
 import {
   isValidToken,
   isAllowedDomain,
@@ -25,7 +25,7 @@ import {
   nameFromEmail,
   resolveProfilePicture,
   calculateStreak,
-} from '../../../../lib/canariaseducacion-auth';
+} from '@/lib/canariaseducacion-auth';
 
 export const prerender = false;
 

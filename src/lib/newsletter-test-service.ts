@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content';
-import User from '../models/User';
-import dbConnect from './mongodb';
-import { sendEmail } from './mailjet';
+import User from '@/models/User';
+import dbConnect from '@/lib/mongodb';
+import { sendEmail } from '@/lib/mailjet';
 
 export async function processTestNewsletter(userId: string, overrideRecipientEmail?: string) {
   await dbConnect();
