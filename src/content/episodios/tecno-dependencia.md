@@ -654,6 +654,74 @@ clips:
     url: 'https://youtu.be/EksonnimfXE'
   - title: 'IA: ¿Solución a nuestra Soledad o Problema?'
     url: 'https://youtu.be/nDQ8ACIACYI'
+quiz:
+  - question: >-
+      ¿Cuál es la principal pregunta que se aborda sobre la interacción humana
+      con la Inteligencia Artificial?
+    options:
+      - ¿Estamos dominando a la tecnología o ella nos domina a nosotros?
+      - ¿Cuál es la velocidad de desarrollo de la IA en la actualidad?
+      - ¿Qué empresas lideran la investigación en IA?
+      - ¿Cómo afecta la IA a los mercados financieros globales?
+    correctAnswer: 0
+  - question: >-
+      Uno de los puntos clave analizados sobre la Inteligencia Artificial es su
+      fiabilidad. ¿Qué aspecto se discute en relación con esto?
+    options:
+      - La capacidad de la IA para generar contenido artístico original.
+      - >-
+        Los mitos y realidades sobre la privacidad y seguridad de nuestros
+        datos.
+      - El potencial de la IA para predecir eventos climáticos extremos.
+      - La facilidad de implementación de sistemas de IA en pequeñas empresas.
+    correctAnswer: 1
+  - question: >-
+      La discusión sobre la Inteligencia Artificial enfatiza su rol ideal. ¿Cómo
+      debería la IA interactuar con los humanos según el análisis?
+    options:
+      - La IA debe reemplazar completamente las tareas humanas repetitivas.
+      - 'La IA debe trabajar junto a nosotros, no sustituirnos.'
+      - La IA debe ser la principal fuente de toma de decisiones estratégicas.
+      - La IA debe gestionar toda nuestra agenda personal y profesional.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué riesgo se menciona que podría surgir si dejamos que la Inteligencia
+      Artificial trabaje completamente por nosotros?
+    options:
+      - Un aumento en la eficiencia operativa general.
+      - La oxidación de nuestra creatividad.
+      - Una mejora en la calidad de vida a largo plazo.
+      - La simplificación excesiva de procesos complejos.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué se aconseja para integrar las herramientas de Inteligencia Artificial
+      en el día a día sin caer en una situación indeseable?
+    options:
+      - Evitar su uso para no generar ningún tipo de dependencia.
+      - >-
+        Delegar todas las tareas posibles a la IA para maximizar el tiempo
+        libre.
+      - Integrarlas sin caer en la dependencia absoluta.
+      - Utilizarlas únicamente para entretenimiento y ocio.
+    correctAnswer: 2
+  - question: >-
+      La analogía de la Inteligencia Artificial como un 'copiloto increíble'
+      subraya la importancia de:
+    options:
+      - Dejar que la IA tome todas las decisiones importantes.
+      - Mantener nuestro propio criterio como conductores principales.
+      - Entregar el control total a la tecnología para mayor velocidad.
+      - Usar la IA solo para navegación y no para dirección.
+    correctAnswer: 1
+  - question: >-
+      ¿Qué afirmación se hace sobre el futuro y la Inteligencia Artificial al
+      cierre del análisis?
+    options:
+      - El futuro de la IA aún está muy lejano.
+      - La IA es una tecnología que ya está aquí.
+      - La IA es una promesa que tardará décadas en materializarse.
+      - El desarrollo de la IA se ha estancado recientemente.
+    correctAnswer: 1
 ---
 ¿Estamos dominando a la tecnología o ella nos domina a nosotros? En este episodio nos sentamos con Elio y Zi Cheng para desmenuzar la realidad de vivir en un mundo donde la Inteligencia Artificial parece estar en todas partes.
 
