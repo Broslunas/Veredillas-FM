@@ -717,12 +717,12 @@ quiz:
 ¿Qué pesa más: los principios o los kilómetros en la caminadora? En este episodio nos sentamos con Damian, Pablo Quintero y Diego Quintero para descifrar esa extraña (pero necesaria) conexión entre la fidelidad a los amigos y la disciplina del entrenamiento.
 En este episodio hablamos de:
 
-    La hermandad en el gimnasio: ¿Es el cardio más fácil cuando sufres con amigos? La dinámica entre los Quintero y Damian.
+La hermandad en el gimnasio: ¿Es el cardio más fácil cuando sufres con amigos? La dinámica entre los Quintero y Damian.
 
-    Códigos de lealtad: Qué significa mantenerse firme en un mundo donde todo es desechable, desde las relaciones hasta las rutinas de ejercicio.
+Códigos de lealtad: Qué significa mantenerse firme en un mundo donde todo es desechable, desde las relaciones hasta las rutinas de ejercicio.
 
-    Superación y sudor: Anécdotas personales sobre esos días donde no quieres levantarte, pero la lealtad al grupo te obliga a cumplir.
+Superación y sudor: Anécdotas personales sobre esos días donde no quieres levantarte, pero la lealtad al grupo te obliga a cumplir.
 
-    Crecimiento compartido: Cómo el apoyo mutuo ha transformado su mentalidad dentro y fuera del entrenamiento.
+Crecimiento compartido: Cómo el apoyo mutuo ha transformado su mentalidad dentro y fuera del entrenamiento.
 
-    "La lealtad es un músculo que se entrena todos los días, y a veces quema más que diez minutos de sprint en la banda."
+"La lealtad es un músculo que se entrena todos los días, y a veces quema más que diez minutos de sprint en la banda."
