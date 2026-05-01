@@ -1,0 +1,50 @@
+---
+import EpisodeCard from './EpisodeCard.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+    title: string;
+    subtitle: string;
+    episodes: CollectionEntry<'episodios'>[];
+    badgeText: string;
+    colorClass?: string; // e.g., 'text-primary', 'text-secondary', 'text-purple-400'
+    bgClass?: string; // e.g., 'bg-primary', 'bg-secondary', 'bg-purple-500'
+    id: string;
+}
+
+const { title, subtitle, episodes, badgeText, colorClass = 'text-primary', bgClass = 'bg-primary', id } = Astro.props;
+---
+
+<section id={id} class="py-16 md:py-24 overflow-hidden border-t border-white/5">
+    <div class="container">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gs-fade-up">
+            <div class="space-y-4">
+                <div class={`flex items-center gap-3 ${colorClass} font-black tracking-[0.3em] uppercase text-[0.65rem] md:text-xs`}>
+                    <span class={`w-12 h-[2px] ${bgClass} rounded-full`}></span>
+                    {badgeText}
+                </div>
+                <h2 class="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter">
+                    {title.split(' ').map((word, i, arr) => (
+                        i === arr.length - 1 ? <span class="text-gradient">{word}</span> : word + ' '
+                    ))}
+                </h2>
+                <p class="text-zinc-400 text-lg">{subtitle}</p>
+            </div>
+            <div class="hidden sm:flex gap-4">
+                <button class="w-[50px] h-[50px] rounded-full border border-zinc-800 bg-[#0e0e11] text-white flex items-center justify-center cursor-pointer transition-all duration-300 text-xl hover:bg-primary hover:border-primary swiper-button-prev-custom" aria-label="Previous slide">←</button>
+                <button class="w-[50px] h-[50px] rounded-full border border-zinc-800 bg-[#0e0e11] text-white flex items-center justify-center cursor-pointer transition-all duration-300 text-xl hover:bg-primary hover:border-primary swiper-button-next-custom" aria-label="Next slide">→</button>
+            </div>
+        </div>
+
+        <div class="swiper episodes-swiper gs-fade-up">
+            <div class="swiper-wrapper">
+                {episodes.map((post) => (
+                    <div class="swiper-slide">
+                        <EpisodeCard post={post} />
+                    </div>
+                ))}
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+</section>

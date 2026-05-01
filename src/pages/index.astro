@@ -5,6 +5,7 @@ import Layout from '@/layouts/Layout.astro';
 import EpisodeCard from '@/components/EpisodeCard.astro';
 import PostCard from '@/components/PostCard.astro';
 import FeaturedSlider from '@/components/FeaturedSlider.astro';
+import EpisodeCarousel from '@/components/EpisodeCarousel.astro';
 import Newsletter from '@/components/Newsletter.astro';
 import TopListenersWidget from '@/components/TopListenersWidget.astro';
 import TrendingEpisodes from '@/components/TrendingEpisodes.astro';
@@ -21,6 +22,23 @@ const allPosts = await getCollection('blog');
 // For SSG, we provide a wide pool of episodes. 
 // The client will filter them accurately.
 const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Filtered categories (only published)
+const now = new Date();
+const teacherEpisodes = sortedEpisodes.filter(ep => 
+    ep.data.pubDate <= now &&
+    ep.data.tags?.some(tag => ['Profesorado', 'Docencia'].includes(tag))
+).slice(0, 8);
+
+const studentEpisodes = sortedEpisodes.filter(ep => 
+    ep.data.pubDate <= now &&
+    ep.data.tags?.some(tag => ['Juventud', 'Vida Estudiantil', 'Alumnos', 'Estudiantes'].includes(tag))
+).slice(0, 8);
+
+const techEpisodes = sortedEpisodes.filter(ep => 
+    ep.data.pubDate <= now &&
+    ep.data.tags?.some(tag => ['Tecnología', 'Informática', 'Ciencia', 'IA'].includes(tag))
+).slice(0, 8);
 
 // Recent episodes pool (top 12)
 const recentEpisodesPool = sortedEpisodes.filter(ep => ep.data.pubDate <= new Date()).slice(0, 12);
@@ -232,6 +250,42 @@ const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pu
 
     <!-- Trending Episodes (Most Listened) -->
     <TrendingEpisodes />
+
+    {teacherEpisodes.length > 0 && (
+        <EpisodeCarousel 
+            id="teacher-episodes"
+            title="Sala de Profesores"
+            subtitle="Perspectivas y experiencias de nuestros docentes"
+            episodes={teacherEpisodes}
+            badgeText="Docencia"
+            colorClass="text-secondary"
+            bgClass="bg-secondary"
+        />
+    )}
+
+    {studentEpisodes.length > 0 && (
+        <EpisodeCarousel 
+            id="student-episodes"
+            title="Voz Estudiantil"
+            subtitle="La realidad del instituto contada por sus alumnos"
+            episodes={studentEpisodes}
+            badgeText="Juventud"
+            colorClass="text-accent"
+            bgClass="bg-accent"
+        />
+    )}
+
+    {techEpisodes.length > 0 && (
+        <EpisodeCarousel 
+            id="tech-episodes"
+            title="Tecnología y Futuro"
+            subtitle="Explorando el impacto de la innovación en nuestras vidas"
+            episodes={techEpisodes}
+            badgeText="Tech"
+            colorClass="text-primary"
+            bgClass="bg-primary"
+        />
+    )}
 
     <!-- Marquee Text -->
     <div class="py-8 bg-primary overflow-hidden -rotate-2 scale-105 my-16">
