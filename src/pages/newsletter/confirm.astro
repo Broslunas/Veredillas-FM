@@ -55,7 +55,11 @@ if (!email || !token) {
 }
 ---
 
-<Layout title={success ? "Suscripción Confirmada" : "Error de Confirmación"}>
+<Layout title={success ? "Suscripción Confirmada" : "Error de Confirmación"}
+  description="Has confirmado tu suscripción a la newsletter de Veredillas FM. Gracias por unirte a nuestra comunidad."
+
+  robots="noindex, nofollow"
+>
   <main class="confirm-page">
     <div class="confirm-card">
       <div class={`icon-wrapper ${success ? 'success' : 'error'}`}>

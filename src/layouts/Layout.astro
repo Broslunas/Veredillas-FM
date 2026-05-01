@@ -105,6 +105,32 @@ const websiteSchema = {
 		"query-input": "required name=search_term_string"
 	}
 };
+
+const pathname = new URL(Astro.url.pathname, Astro.site || "https://www.veredillasfm.es").pathname;
+const pathParts = pathname.split('/').filter(p => p !== '');
+const breadcrumbItemList = pathParts.map((part, index) => {
+	const url = `${siteUrl}/${pathParts.slice(0, index + 1).join('/')}`;
+	return {
+		"@type": "ListItem",
+		"position": index + 2,
+		"name": part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' '),
+		"item": url
+	};
+});
+
+const breadcrumbSchema = {
+	"@context": "https://schema.org",
+	"@type": "BreadcrumbList",
+	"itemListElement": [
+		{
+			"@type": "ListItem",
+			"position": 1,
+			"name": "Inicio",
+			"item": siteUrl
+		},
+		...breadcrumbItemList
+	]
+};
 ---
 
 <!doctype html>
@@ -212,6 +238,7 @@ const websiteSchema = {
 		<!-- Schema.org JSON-LD -->
 		<script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
 		<script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+		<script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 		{type === "article" && (
 			<script type="application/ld+json" set:html={JSON.stringify({
 				"@context": "https://schema.org",

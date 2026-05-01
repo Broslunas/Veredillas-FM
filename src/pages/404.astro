@@ -3,7 +3,9 @@ export const prerender = true;
 import Layout from '@/layouts/Layout.astro';
 ---
 
-<Layout title="404 - Frecuencia Desconocida" robots="noindex, follow">
+<Layout title="404 - Frecuencia Desconocida" robots="noindex, follow"
+  description="La página que buscas no existe en Veredillas FM. Vuelve al inicio para seguir disfrutando de nuestro podcast escolar."
+>
   <div class="relative min-h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,#0a0a0c_0%,var(--color-bg)_100%)]">
     <!-- Dynamic Background Elements -->
     <div id="mouse-glow" class="fixed w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(139,92,246,0.1)_0%,transparent_70%)] blur-[60px] pointer-events-none z-0 -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-100 ease-out"></div>

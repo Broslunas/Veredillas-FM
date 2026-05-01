@@ -65,7 +65,9 @@ const hueVal = parseInt(id.substring(18, 24), 16) % 360;
 
 ---
 
-<Layout title={`${foundPlaylist.name} `} robots={foundPlaylist.isPublic ? "index, follow" : "noindex, nofollow"}>
+<Layout title={`${foundPlaylist.name} `} robots={foundPlaylist.isPublic ? "index, follow" : "noindex, nofollow"}
+  description="Escucha esta playlist exclusiva de episodios y clips seleccionados por la comunidad de Veredillas FM. Disfruta de la mejor radio escolar."
+>
     <div class="playlist-world relative overflow-hidden min-h-screen pb-16">
         <!-- Ambient animated blobs -->
         <div class="ambient-orb orb-main" style={`background: radial-gradient(circle, hsl(${hueVal}, 80%, 40%) 0%, transparent 70%);`}></div>
