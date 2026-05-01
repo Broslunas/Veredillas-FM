@@ -6,7 +6,13 @@ import { getCollection } from 'astro:content';
 
 const navItems = [
   // Links directos prominentes
-  { label: 'Episodios',  href: '/ep' },
+  { 
+    label: 'Episodios',  
+    href: '/ep',
+    dropdown: [
+      { label: 'Próximos estrenos', href: '/ep?proximos=true', badge: 'Nuevos' }
+    ]
+  },
   { label: 'Blog',       href: '/blog' },
 
   // Dropdown: dónde escuchar + clips
@@ -82,13 +88,20 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
       <!-- ── Desktop Nav ────────────────────── -->
       <nav class="sh-nav" aria-label="Navegación principal">
         {navItems.map((item) => (
-          <div class={`sh-nav-item${'dropdown' in item && item.dropdown ? ' has-dd' : ''}${'dropdown' in item && item.dropdown ? (isDropdownActive(item.dropdown) ? ' is-active' : '') : (isActive(item.href ?? '') ? ' is-active' : '')}`}>
+          <div class={`sh-nav-item${'dropdown' in item && item.dropdown ? ' has-dd' : ''}${'dropdown' in item && item.dropdown ? (isDropdownActive(item.dropdown) || (item.href && isActive(item.href)) ? ' is-active' : '') : (isActive(item.href ?? '') ? ' is-active' : '')}`}>
             {'dropdown' in item && item.dropdown ? (
               <>
-                <button class="sh-nav-btn" aria-haspopup="true">
-                  {item.label}
-                  <svg class="sh-caret" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
+                {item.href ? (
+                  <a href={item.href} class="sh-nav-btn" aria-haspopup="true">
+                    {item.label}
+                    <svg class="sh-caret" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </a>
+                ) : (
+                  <button class="sh-nav-btn" aria-haspopup="true">
+                    {item.label}
+                    <svg class="sh-caret" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                )}
                 <div class="sh-dd" role="menu">
                   <div class="sh-dd-inner">
                     {item.dropdown.map(sub => (
@@ -168,12 +181,13 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
   <nav class="sh-overlay-nav">
     <!-- Direct links -->
     <div class="sh-ov-group" style="--i:0">
-      <a href="/ep"   class={`sh-ov-big${isActive('/ep')   ? ' is-active' : ''}`}>Episodios</a>
-      <a href="/blog" class={`sh-ov-big${isActive('/blog') ? ' is-active' : ''}`}>Blog</a>
+      {navItems.filter(i => !('dropdown' in i) || i.label === 'Episodios').map(item => (
+        <a href={item.href} class={`sh-ov-big${isActive(item.href!) ? ' is-active' : ''}`}>{item.label}</a>
+      ))}
     </div>
 
     <!-- Grouped sections -->
-    {navItems.filter(i => 'dropdown' in i && i.dropdown).map((item, i) => (
+    {navItems.filter(i => 'dropdown' in i && i.dropdown && i.label !== 'Episodios').map((item, i) => (
       <div class="sh-ov-group" style={`--i:${i + 1}`}>
         <span class="sh-ov-label">{item.label}</span>
         <div class="sh-ov-links">
