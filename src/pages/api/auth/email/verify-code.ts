@@ -69,7 +69,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           lastActiveAt: now,
           currentStreak: 1,
           maxStreak: 1,
-          referredBy: referredByObjId
+          referredBy: referredByObjId,
+          googleId: undefined,
+          spotifyId: undefined
         });
 
         if (referredByObjId) {

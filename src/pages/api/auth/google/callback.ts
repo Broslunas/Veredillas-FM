@@ -84,7 +84,8 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
         lastActiveAt: now,
         currentStreak: 1,
         maxStreak: 1,
-        referredBy: referredByObjId
+        referredBy: referredByObjId,
+        spotifyId: undefined
       });
       
       if (referredByObjId) {
