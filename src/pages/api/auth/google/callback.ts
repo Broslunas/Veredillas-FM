@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import mongoose from 'mongoose';
+import dbConnect from '@/lib/mongodb';
 import { exchangeGoogleCode, getGoogleUserInfo, generateToken } from '@/lib/auth';
 import User from '@/models/User';
 import { createHash } from 'crypto';
 import { calculateStreakUpdate } from '@/lib/streak';
+import mongoose from 'mongoose';
 
 export const prerender = false;
 
@@ -22,13 +23,7 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
 
   try {
     // Conectar a MongoDB
-    if (mongoose.connection.readyState !== 1) {
-      const MONGODB_URI = import.meta.env.MONGODB_URI;
-      if (!MONGODB_URI) {
-        throw new Error('MONGODB_URI not configured');
-      }
-      await mongoose.connect(MONGODB_URI);
-    }
+    await dbConnect();
 
     // Intercambiar el código por el access token
     const redirectUri = import.meta.env.GOOGLE_REDIRECT_URI || `${url.origin}/api/auth/google/callback`;

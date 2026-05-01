@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import dbConnect from '@/lib/mongodb';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '@/lib/mailjet';
 import { createHash } from 'crypto';
@@ -11,18 +12,21 @@ export const POST: APIRoute = async ({ request }) => {
     const email = data.get('email')?.toString().trim().toLowerCase();
 
     if (!email) {
-      return new Response(JSON.stringify({ error: 'Email requerido' }), { 
+      return new Response(JSON.stringify({ error: 'El correo electrónico es obligatorio.' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
     if (!/^\S+@\S+\.\S+$/.test(email)) {
-      return new Response(JSON.stringify({ error: 'Email inválido' }), { 
+      return new Response(JSON.stringify({ error: 'El formato del correo electrónico no es válido.' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    // Conectar a la DB (opcional aquí pero bueno para validar conexión)
+    await dbConnect();
 
     // Generar OTP de 6 dígitos
     const otp = Math.floor(100000 + Math.random() * 900000).toString();

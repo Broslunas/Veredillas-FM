@@ -15,7 +15,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import mongoose from 'mongoose';
+import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import { generateToken } from '@/lib/auth';
 import {
@@ -26,17 +26,11 @@ import {
   resolveProfilePicture,
   calculateStreak,
 } from '@/lib/canariaseducacion-auth';
+import mongoose from 'mongoose';
 
 export const prerender = false;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-async function connectDB(): Promise<void> {
-  if (mongoose.connection.readyState === 1) return;
-  const uri = import.meta.env.MONGODB_URI;
-  if (!uri) throw new Error('MONGODB_URI is not configured');
-  await mongoose.connect(uri);
-}
 
 function getSharedDomain(host: string): string | undefined {
   // Share the session cookie across www.veredillasfm.es and veredillasfm.es
@@ -76,7 +70,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 
   // ── 4. Database operations ─────────────────────────────────────────────────
   try {
-    await connectDB();
+    await dbConnect();
 
     const now = new Date();
     const virtualGoogleId = generateVirtualGoogleId(email);

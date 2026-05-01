@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import mongoose from 'mongoose';
+import dbConnect from '@/lib/mongodb';
 import { exchangeSpotifyCode, getSpotifyUserInfo, generateToken, followSpotifyShow, syncSpotifyEpisodes } from '@/lib/auth';
 import User from '@/models/User';
 import { createHash } from 'crypto';
 import { calculateStreakUpdate } from '@/lib/streak';
+import mongoose from 'mongoose';
 
 const VEREDILLAS_PODCAST_ID = '6mXWyLhzhET5EHk1p72j18';
 
@@ -24,13 +25,7 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
 
   try {
     // Conectar a MongoDB
-    if (mongoose.connection.readyState !== 1) {
-      const MONGODB_URI = import.meta.env.MONGODB_URI;
-      if (!MONGODB_URI) {
-        throw new Error('MONGODB_URI not configured');
-      }
-      await mongoose.connect(MONGODB_URI);
-    }
+    await dbConnect();
 
     // Intercambiar el código por el access token
     const redirectUri = import.meta.env.SPOTIFY_REDIRECT_URI || `${url.origin}/api/auth/spotify/callback`;
@@ -46,6 +41,11 @@ export const GET: APIRoute = async ({ url, redirect, cookies }) => {
 
     // Obtener información del usuario de Spotify
     const spotifyUser = await getSpotifyUserInfo(accessToken);
+
+    if (!spotifyUser.email) {
+      console.error('[SpotifyAuth] Spotify user has no email:', spotifyUser.id);
+      return redirect('/?auth=error&reason=no_email');
+    }
 
     // Spotify user image handling
     let spotifyPicture = undefined;

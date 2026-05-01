@@ -22,6 +22,8 @@ if (errorParam === 'InvalidToken') {
     errorMessage = 'Faltan parámetros de autenticación. Contacta con soporte.';
 } else if (errorParam === 'ServerBootstrap') {
     errorMessage = 'Error en el servidor al procesar el login. Revisa tu conexión.';
+} else if (Astro.url.searchParams.get('reason') === 'no_email') {
+    errorMessage = 'Tu cuenta de Spotify no tiene un correo electrónico asociado o no has dado permiso para acceder a él. Es necesario un correo para crear tu cuenta.';
 } else if (errorParam) {
     errorMessage = 'Ocurrió un error al iniciar sesión. Intenta de nuevo.';
 }
@@ -88,8 +90,8 @@ if (errorParam === 'InvalidToken') {
 
             <div class="login-right-col">
                 <div class="login-card">
-                    <h2>Bienvenido</h2>
-                    <p class="login-sub">Inicia sesión para continuar</p>
+                    <h2>¡Hola de nuevo!</h2>
+                    <p class="login-sub">Inicia sesión o regístrate para continuar</p>
                     
                     {errorMessage && (
                         <div class="login-error-banner" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.9rem;">
