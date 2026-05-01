@@ -1,0 +1,210 @@
+---
+import Layout from '@/layouts/Layout.astro';
+export const prerender = true
+const platforms = [
+  {
+    name: 'Spotify',
+    description: 'Nuestra plataforma principal. Escucha todos los episodios, vota en encuestas y disfruta de videopodcasts seleccionados.',
+    url: 'https://open.spotify.com/show/6mXWyLhzhET5EHk1p72j18',
+    color: '#1DB954',
+    icon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>`,
+    badge: 'Recomendado'
+  },
+  {
+    name: 'Apple Podcasts',
+    description: 'Perfecto si usas iPhone, iPad o Mac. No olvides dejarnos una reseña de 5 estrellas si te gusta el contenido.',
+    url: 'https://podcasts.apple.com/es/podcast/veredillas-fm/id1870103081',
+    color: '#A335EE',
+    icon: `<div style="width:100%; height:100%; background-color:currentColor; mask-image:url('/svg/apple-podcasts.svg'); mask-size:contain; mask-repeat:no-repeat; mask-position:center; -webkit-mask-image:url('/svg/apple-podcasts.svg'); -webkit-mask-size:contain; -webkit-mask-repeat:no-repeat; -webkit-mask-position:center;"></div>`
+  },
+  {
+    name: 'Amazon Music',
+    description: 'Disfruta de Veredillas FM sin anuncios si tienes Amazon Prime, directamente en tus dispositivos Echo y Alexa.',
+    url: 'https://music.amazon.es/podcasts/8d708ffa-7ef7-42f0-878d-fe3575491bef/veredillas-fm',
+    color: '#3cd0d9',
+    icon: `<div style="width:100%; height:100%; background-color:currentColor; mask-image:url('/svg/amazon-music.svg'); mask-size:contain; mask-repeat:no-repeat; mask-position:center; -webkit-mask-image:url('/svg/amazon-music.svg'); -webkit-mask-size:contain; -webkit-mask-repeat:no-repeat; -webkit-mask-position:center;"></div>`
+  },
+  {
+    name: 'iVoox',
+    description: 'La plataforma pionera de podcasts en español. Únete a nuestra comunidad de oyentes, dale a me gusta y comenta en los episodios.',
+    url: 'https://go.ivoox.com/sq/3098219',
+    color: '#F45F31',
+    icon: `<div style="width:100%; height:100%; background-color:currentColor; mask-image:url('/svg/ivoox.svg'); mask-size:contain; mask-repeat:no-repeat; mask-position:center; -webkit-mask-image:url('/svg/ivoox.svg'); -webkit-mask-size:contain; -webkit-mask-repeat:no-repeat; -webkit-mask-position:center;"></div>`
+  },
+  {
+    name: 'YouTube',
+    description: 'Míranos las caras. Subimos videopodcasts y clips de los mejores momentos en nuestro canal oficial.',
+    url: 'https://www.youtube.com/@VeredillasFM',
+    color: '#FF0000',
+    icon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.54 6.46a2.5 2.5 0 0 0-1.77-1.77C18.58 4 12 4 12 4s-6.58 0-7.77.69A2.5 2.5 0 0 0 2.23 6.46C1.53 7.64 1 9.08 1 12s.53 4.36 1.23 5.54a2.5 2.5 0 0 0 1.77 1.77C5.42 20 12 20 12 20s6.58 0 7.77-.69a2.5 2.5 0 0 0 1.77-1.77C22.47 16.36 23 14.92 23 12s-.53-4.36-1.23-5.54zM10 16V8l6 4-6 4z"/></svg>`
+  },
+  {
+    name: 'TikTok',
+    description: 'Los clips más graciosos, detrás de cámaras y contenido vertical exclusivo para que te eches unas risas.',
+    url: 'https://www.tiktok.com/@veredillas.fm',
+    color: '#00F2EA',
+    icon: `<svg fill="currentColor" viewBox="0 0 16 16"> <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z"/></svg>`
+  },
+  {
+    name: 'Instagram',
+    description: 'Entérate de las novedades antes que nadie, participa en encuestas y conéctate con nuestro equipo.',
+    url: 'https://www.instagram.com/veredillasfm.es/',
+    color: '#E4405F',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>`
+  }
+];
+---
+
+<Layout 
+  title="Plataformas | Dónde escucharnos"
+  description="Encuentra Veredillas FM en tu plataforma de podcasting favorita. Disponible en Spotify, Apple Podcasts y Amazon Music."
+  image="/logo.webp"
+>
+  <div class="page-bg"></div>
+
+  <div class="container mx-auto px-6 pt-32 pb-24 max-w-[1200px] relative z-10">
+    <header class="text-center mb-16 fade-in">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6 backdrop-blur-sm shadow-xl">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+        <span class="text-sm font-semibold tracking-widest text-white/80 uppercase">Escúchanos en todos lados</span>
+      </div>
+      
+      <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight font-display">
+        El podcast en tu <br/>
+        <span class="text-gradient">bolsillo</span>
+      </h1>
+      
+      <p class="text-lg md:text-xl text-white/60 max-w-2xl mx-auto font-medium">
+        Elige tu plataforma favorita y no te pierdas ningún episodio. Estamos en todas las grandes aplicaciones de podcasting para acompañarte donde vayas.
+      </p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 fade-in" style="--delay: 1;">
+      
+      <!-- Left side: Platform Cards -->
+      <div class="lg:col-span-3 flex flex-col gap-4">
+        {platforms.map(p => (
+          <a href={p.url} target="_blank" rel="noopener noreferrer" class="platform-card group">
+            <div class="absolute inset-0 bg-gradient-to-r from-[var(--p-color)]/0 via-[var(--p-color)]/5 to-[var(--p-color)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+            
+            <div class="relative flex items-center gap-6 p-6 md:p-8 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md transition-all duration-300 group-hover:border-[var(--p-color)]/50 group-hover:bg-white/[0.08] overflow-hidden" style={`--p-color: ${p.color}`}>
+              <!-- Background Glow -->
+              <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none" style={`background-color: ${p.color}`}></div>
+              
+              <!-- Icon -->
+              <div class="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-white bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500 shadow-xl relative z-10" style={`color: ${p.color}`}>
+                <div class="w-8 h-8 md:w-10 md:h-10" set:html={p.icon} />
+              </div>
+              
+              <!-- Content -->
+              <div class="flex-1 relative z-10">
+                <div class="flex items-center gap-3 mb-2">
+                  <h2 class="text-xl md:text-2xl font-bold font-display tracking-tight text-white group-hover:text-[var(--p-color)] transition-colors">{p.name}</h2>
+                  {p.badge && (
+                    <span class="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full bg-[var(--p-color)]/20 text-[var(--p-color)] border border-[var(--p-color)]/30 shadow-[0_0_15px_var(--p-color)_inset]">
+                      {p.badge}
+                    </span>
+                  )}
+                </div>
+                <p class="text-sm md:text-base text-white/60 leading-relaxed font-medium">
+                  {p.description}
+                </p>
+              </div>
+              
+              <!-- Arrow -->
+              <div class="hidden md:flex flex-shrink-0 w-12 h-12 rounded-full border border-white/10 items-center justify-center text-white/40 group-hover:text-white group-hover:bg-[var(--p-color)] group-hover:border-[var(--p-color)] transition-all duration-300 relative z-10 transform group-hover:translate-x-2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <!-- Right side: Embed Player -->
+      <div class="lg:col-span-2 relative">
+        <div class="sticky top-28 bg-white/[0.03] border border-white/10 p-6 md:p-8 rounded-3xl backdrop-blur-xl shadow-2xl">
+          <div class="absolute -top-10 -right-10 w-40 h-40 bg-[var(--color-primary)]/30 rounded-full blur-[60px] pointer-events-none"></div>
+          <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-[var(--color-secondary)]/30 rounded-full blur-[60px] pointer-events-none"></div>
+          
+          <h3 class="text-xl font-bold font-display mb-2 text-white flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#1DB954]"><path d="M2 12h4l2-9 5 18 3-9h5"/></svg>
+            Lo último de Veredillas FM
+          </h3>
+          <p class="text-sm text-white/50 mb-6 font-medium">Dale al play directamente desde la web y descubre de qué estamos hablando.</p>
+          
+          <div class="relative w-full rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(29,185,84,0.15)] border border-white/5 bg-[#282828] hover:scale-[1.02] transition-transform duration-500">
+            <iframe 
+              style="border-radius:16px; background-color: #282828;" 
+              src="https://open.spotify.com/embed/show/6mXWyLhzhET5EHk1p72j18?utm_source=generator&theme=0" 
+              width="100%" 
+              height="352" 
+              frameBorder="0" 
+              allowfullscreen="" 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy"
+              class="relative z-10"
+            ></iframe>
+          </div>
+          
+          <div class="mt-8 flex justify-center">
+            <a href="/ep" class="group relative inline-flex items-center justify-center px-8 py-3.5 font-bold text-white transition-all duration-200 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 hover:scale-105">
+              Explorar el catálogo
+              <svg class="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .page-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100vh;
+    background: radial-gradient(circle at 70% 10%, rgba(139, 92, 246, 0.15), transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.1), transparent 50%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: gradientFlow 5s ease infinite;
+  }
+
+  @keyframes gradientFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .fade-in {
+    opacity: 0;
+    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: calc(var(--delay, 0) * 0.15s);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .platform-card {
+    position: relative;
+    display: block;
+    border-radius: 1rem;
+    text-decoration: none;
+    outline: none;
+    isolation: isolate;
+  }
+
+  .platform-card:focus-visible > div:nth-child(2) {
+    border-color: var(--p-color);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+  }
+</style>
