@@ -90,6 +90,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
         currentStreak: 1,
         maxStreak: 1,
         role: 'user',
+        spotifyId: undefined
       });
 
       // Notify n8n webhook about new registration (non-blocking)

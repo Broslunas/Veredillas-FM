@@ -53,16 +53,10 @@ export interface IUser extends mongoose.Document {
 const userSchema = new mongoose.Schema<IUser>({
   googleId: {
     type: String,
-    sparse: true,
-    unique: true,
-    index: true,
     default: undefined
   },
   spotifyId: {
     type: String,
-    sparse: true,
-    unique: true,
-    index: true,
     default: undefined
   },
   spotifyAccessToken: String,
@@ -165,6 +159,23 @@ const userSchema = new mongoose.Schema<IUser>({
   strict: true,
   strictQuery: false
 });
+
+// Índices únicos parciales para permitir múltiples usuarios sin googleId o spotifyId
+userSchema.index(
+  { googleId: 1 }, 
+  { 
+    unique: true, 
+    partialFilterExpression: { googleId: { $type: "string" } } 
+  }
+);
+
+userSchema.index(
+  { spotifyId: 1 }, 
+  { 
+    unique: true, 
+    partialFilterExpression: { spotifyId: { $type: "string" } } 
+  }
+);
 
 // Prevent model recompilation in development
 // Delete existing model if schema changed
