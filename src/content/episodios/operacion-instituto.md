@@ -1,5 +1,5 @@
 ---
-title: 'Operación Instituto ft. Alberto, Dariel & Lucas'
+title: Operación Instituto ft. Alberto & Lucas
 tags:
   - Transición Escolar
   - ESO
@@ -9,7 +9,6 @@ isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/f1d02c44-eca3-4281-8bf6-17a07468dea5.webp'
 participants:
   - Alberto
-  - Dariel
   - Lucas
 season: 2
 episode: 10
