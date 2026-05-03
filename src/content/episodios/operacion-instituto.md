@@ -13,7 +13,7 @@ participants:
 season: 2
 episode: 10
 duration: ¿? min
-pubDate: '2026-05-04T16:00:00.000Z'
+pubDate: '2026-05-05T16:00:00.000Z'
 description: >-
   Desclasificamos la misión de sobrevivir a 1º de la ESO en el Veredillas.
   Anécdotas, miedos y risas de los nuevos reclutas en su aterrizaje al
