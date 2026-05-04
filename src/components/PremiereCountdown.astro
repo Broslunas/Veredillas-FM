@@ -49,10 +49,11 @@ const isoDate = targetDate.toISOString();
                 <div class="grid-center">
                     <div class="custom-select-wrapper">
                         <div class="custom-select-trigger" tabindex="0">
-                            <span class="selection">Los 40 Urban</span>
+                            <span class="selection">Veredillas FM Radio</span>
                             <div class="arrow"></div>
                         </div>
                         <div class="custom-options">
+                            <div class="custom-option" data-value="https://radio.veredillasfm.es/stream">Veredillas FM Radio</div>
                             <div class="custom-option" data-value="https://27833.live.streamtheworld.com/LOS40_URBAN.mp3">Los 40 Urban</div>
                             <div class="custom-option selected" data-value="https://stream.zeno.fm/0r0xa792kwzuv">Lofi Chill</div>
                             <div class="custom-option" data-value="https://s1.we4stream.com:2020/stream/locaurban">Loca Urban</div>
@@ -742,7 +743,7 @@ const isoDate = targetDate.toISOString();
             this.volumeSlider = el.querySelector('.volume-slider');
             this.volumeContainer = el.querySelector('.vertical-volume-container');
 
-            this.currentUrl = "https://27833.live.streamtheworld.com/LOS40_URBAN.mp3"; // Default
+            this.currentUrl = "https://radio.veredillasfm.es/stream"; // Default
             
             this.loadSettings();
             this.setupAudio();
