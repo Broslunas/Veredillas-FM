@@ -1,5 +1,5 @@
 ---
-title: 'Operación Instituto ft. Alberto, Dariel & Lucas'
+title: Operación Instituto ft. Alberto & Lucas
 tags:
   - Transición Escolar
   - ESO
@@ -9,12 +9,11 @@ isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/f1d02c44-eca3-4281-8bf6-17a07468dea5.webp'
 participants:
   - Alberto
-  - Dariel
   - Lucas
 season: 2
 episode: 10
 duration: ¿? min
-pubDate: '2026-05-04T16:00:00.000Z'
+pubDate: '2026-05-05T16:00:00.000Z'
 description: >-
   Desclasificamos la misión de sobrevivir a 1º de la ESO en el Veredillas.
   Anécdotas, miedos y risas de los nuevos reclutas en su aterrizaje al
