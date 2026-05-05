@@ -12,7 +12,7 @@ participants:
   - Lucas
 season: 2
 episode: 10
-duration: ¿? min
+duration: 15 min
 pubDate: '2026-05-05T16:00:00.000Z'
 description: >-
   Desclasificamos la misión de sobrevivir a 1º de la ESO en el Veredillas.
