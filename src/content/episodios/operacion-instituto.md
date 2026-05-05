@@ -472,6 +472,41 @@ quiz:
       - El salto de primaria a secundaria
       - Ganar una competición escolar
     correctAnswer: 2
+clips:
+  - title: Superando la Incertidumbre  Amistad y Miedo a lo Mayor
+    url: 'https://youtu.be/aC0wjBJT7rE'
+  - title: Volver al Pasado  ¡Consejos Para Tu Yo De Primaria!
+    url: 'https://youtu.be/iycXtvwpTeU'
+  - title: Sentimientos de Estudiantes  Nostalgia y Futuro Educativo
+    url: 'https://youtu.be/WgN5Bqbp7GQ'
+  - title: Primeros Pasos ESO  ¡Experiencia Increíble y Nuevas Amistades!
+    url: 'https://youtu.be/SzxaVbQAb4k'
+  - title: Mi Experiencia Universitaria  ¡Éxito y Desafíos!
+    url: 'https://youtu.be/yCzkj8UVPMg'
+  - title: Mi Cambio de Instituto  Anécdotas Divertidas y Experiencias
+    url: 'https://youtu.be/4SMsvBYgZII'
+  - title: Jugar Sin Miedo  Consejos para Nuevos Jugadores
+    url: 'https://youtu.be/vlYaLKmf4Tc'
+  - title: Del Colegio al Instituto  La Presión de Dar el Ejemplo
+    url: 'https://youtu.be/rTJFvvV2n1g'
+  - title: Consejos para Principiantes  ¡Disfruta Tu Primaria!
+    url: 'https://youtu.be/fDtfa4CSJ0U'
+  - title: Consejo de Sexto Primaria  ¡No Tengas Vergüenza!
+    url: 'https://youtu.be/QF6-88xgBuY'
+  - title: 'Bachillerato  Amigos, Futuro y Motivación Real'
+    url: 'https://youtu.be/jfiQLdwxSbU'
+  - title: Anécdotas Divertidas de Primerizos y Profesores Estrictos
+    url: 'https://youtu.be/pcvdwWfGJiU'
+  - title: Amistades en el Instituto  ¿Se Pierden o Se Hacen
+    url: 'https://youtu.be/8E4o1EQizuU'
+  - title: ¡Nuevos Invitados en Berellas FM  Alberto y Lucas!
+    url: 'https://youtu.be/vjyq_aLWnao'
+  - title: ¡Mi Gran Idea de FÚTBOL! ¿Te Atreves a Arriesgar
+    url: 'https://youtu.be/IT1--VMY9TY'
+  - title: ¡Clases Perdidas! Anécdotas Divertidas del Colegio
+    url: 'https://youtu.be/ujbd_B4xvFY'
+  - title: Sin rumbo  ¿Qué estudiamos o qué será de nosotros
+    url: 'https://youtu.be/RPhmZbWOalY'
 ---
 El salto de primaria a secundaria es un gran paso, y en Veredillas FM queremos darle voz a quienes acaban de aterrizar. En este episodio de Operación Instituto, nuestros alumnos de 1º de la ESO se ponen frente al micrófono para compartir sus experiencias, miedos y las risas que han marcado sus primeros meses en el centro.
 
