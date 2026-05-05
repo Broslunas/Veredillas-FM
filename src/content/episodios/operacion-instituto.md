@@ -6,7 +6,7 @@ tags:
   - Experiencias
   - Vida Estudiantil
 isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/f1d02c44-eca3-4281-8bf6-17a07468dea5.webp'
+image: 'https://cdn.veredillasfm.es/images/9e36ff9b-2cc1-42d1-a576-538e508ba9d1.webp'
 participants:
   - Alberto
   - Lucas
@@ -18,7 +18,7 @@ description: >-
   Desclasificamos la misión de sobrevivir a 1º de la ESO en el Veredillas.
   Anécdotas, miedos y risas de los nuevos reclutas en su aterrizaje al
   instituto.
-videoUrl: 'https://www.youtube.com/embed/[ID]'
+videoUrl: 'https://youtube.com/embed/xFclKTpqLPY'
 ---
 El salto de primaria a secundaria es un gran paso, y en Veredillas FM queremos darle voz a quienes acaban de aterrizar. En este episodio de Operación Instituto, nuestros alumnos de 1º de la ESO se ponen frente al micrófono para compartir sus experiencias, miedos y las risas que han marcado sus primeros meses en el centro.
 
