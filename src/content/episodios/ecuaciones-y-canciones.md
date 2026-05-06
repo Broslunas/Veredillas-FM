@@ -1,5 +1,5 @@
 ---
-title: Entre Ccuaciones y Canciones ft. Ángel
+title: Entre Ecuaciones y Canciones ft. Ángel
 tags:
   - Bachillerato
   - Interdisciplinariedad
