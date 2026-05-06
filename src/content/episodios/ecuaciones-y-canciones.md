@@ -20,7 +20,7 @@ description: >-
   ¿Ciencias o Letras? Ángel, un bachiller que rompe moldes, te muestra cómo unir
   matemáticas, música y teatro. Inspírate con su historia de disciplina, pasión
   y arte.
-videoUrl: 'https://youtu.be/vxUkw9Z0Dh8'
+videoUrl: 'https://youtube.com/embed/vxUkw9Z0Dh8'
 audioUrl: ''
 ---
 ¿Quién dijo que las ciencias y las letras no se llevan bien? En este episodio de Entre Ecuaciones y Canciones, nos acompaña Ángel, un estudiante de 2º de Bachillerato que rompe todos los moldes.
