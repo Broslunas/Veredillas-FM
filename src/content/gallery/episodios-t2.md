@@ -1,6 +1,15 @@
 ---
 category: Episodios Temporada 2
 images:
+  - title: 'T2 E11 - Entre Ecuaciones y Canciones '
+    src: >-
+      https://cdn.veredillasfm.es/images/e1b51f71-d6b9-4209-8c2d-1319b1b9c210.webp
+  - title: 'T2 E10 - Operación Instituto '
+    src: >-
+      https://cdn.veredillasfm.es/images/9e36ff9b-2cc1-42d1-a576-538e508ba9d1.webp
+  - title: 'T2 E9 - Lealtad y Cardio '
+    src: >-
+      https://cdn.veredillasfm.es/images/05792a09-ea30-4901-9f7f-621f6d1e9198.webp
   - title: T2 E8 - Tecno-Dependencia
     src: >-
       https://cdn.veredillasfm.es/images/3ad38b3b-8f2f-4341-b0eb-39b160d6820a.webp
