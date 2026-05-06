@@ -8,21 +8,6 @@ tags:
   - Pasión
   - Música
   - Teatro
-isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/e1b51f71-d6b9-4209-8c2d-1319b1b9c210.webp'
-participants:
-  - Ángel
-season: 2
-episode: 11
-duration: 43 min
-pubDate: '2026-05-06T16:00:00.000Z'
-description: >-
-  ¿Ciencias o Letras? Ángel, un bachiller que rompe moldes, te muestra cómo unir
-  matemáticas, música y teatro. Inspírate con su historia de disciplina, pasión
-  y arte.
-videoUrl: 'https://youtube.com/embed/vxUkw9Z0Dh8'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/119577558/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-4-6%2F423596807-44100-2-ac717f7821ee4.mp3
 transcription:
   - time: '00:01'
     text: >-
@@ -921,6 +906,21 @@ transcription:
     text: >-
       Recuerden, sigan escuchando desde Verifes FM, donde los mantenemos al
       pendiente de los temas más candentes. Hasta luego, gracias.
+isPremiere: true
+image: 'https://cdn.veredillasfm.es/images/e1b51f71-d6b9-4209-8c2d-1319b1b9c210.webp'
+participants:
+  - Ángel
+season: 2
+episode: 11
+duration: 43 min
+pubDate: '2026-05-06T16:00:00.000Z'
+description: >-
+  ¿Ciencias o Letras? Ángel, un bachiller que rompe moldes, te muestra cómo unir
+  matemáticas, música y teatro. Inspírate con su historia de disciplina, pasión
+  y arte.
+videoUrl: 'https://youtube.com/embed/vxUkw9Z0Dh8'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/119577558/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-4-6%2F423596807-44100-2-ac717f7821ee4.mp3
 sections:
   - time: '00:01'
     title: 'Bienvenidos a Veredillas FM: Conociendo a Ángel'
@@ -1092,6 +1092,77 @@ quiz:
         La importancia exclusiva y primordial de las artes en el currículo de la
         educación secundaria.
     correctAnswer: 1
+clips:
+  - title: ¡Adiós Adicción a las Redes Sociales! Mi Secreto Revelado
+    url: 'https://youtu.be/QjfpX9I0Igs'
+  - title: ¡Sin Redes Sociales! Mi Secreto para Estudiar Mejor
+    url: 'https://youtu.be/tWRjy1Gw-Zc'
+  - title: Adiós Distracciones_ Mi Estrategia para el Éxito Académico
+    url: 'https://youtu.be/1btbIQsRloY'
+  - title: Ángel_ De Profesor a Compositor de su Primer Álbum
+    url: 'https://youtu.be/_syan-zZo9g'
+  - title: 'Arte, Coches y Matemáticas_ Mi Pasión Desde Niño'
+    url: 'https://youtu.be/tt3jWAjh990'
+  - title: Bachillerato_ ¡El Caos de los Exámenes y Pocas Horas de Sueño!
+    url: 'https://youtu.be/4qKmdGL77gk'
+  - title: Bachillerato_ ¿Buenas Notas o Alternativas_ ¡Decisión Clave!
+    url: 'https://youtu.be/kHpqeS7yIF0'
+  - title: Bachillerato_ ¿La Mejor Opción para Tu Futuro_
+    url: 'https://youtu.be/ugyrdgh-cgQ'
+  - title: Canto en el Coro de la Iglesia_ Mi Pasión
+    url: 'https://youtu.be/FI9NrR1T8ak'
+  - title: Consejos Valiosos_ Charla Relajada con Ángel
+    url: 'https://youtu.be/Eth3-MUGRSc'
+  - title: Descubre la Magia del Teatro_ ¡Interpreta y Desconecta!
+    url: 'https://youtu.be/QEai5sDON3s'
+  - title: Enseñar es Bonito_ Mi Experiencia Docente y Retos
+    url: 'https://youtu.be/Fjyj6NvIRTo'
+  - title: Estudia a tu Manera_ Consejos para Aprendizaje Efectivo
+    url: 'https://youtu.be/yvTtcvQwa8o'
+  - title: 'Estudiante Estrella_ Canta, Actúa y Brilla en Matemáticas'
+    url: 'https://youtu.be/LynzLLIDxbU'
+  - title: IA en Educación_ ¿Amenaza o Aliada_ Mi Opinión
+    url: 'https://youtu.be/1c5pvblPiaM'
+  - title: IA en la Música_ ¿Adiós al Alma de las Canciones_
+    url: 'https://youtu.be/CBpGQNERH6s'
+  - title: Informática_ ¿Física y Matemáticas o Videojuegos_
+    url: 'https://youtu.be/H9NeE4Otxlw'
+  - title: La Carretera Me Relaja_ Correr y Pasear en Coche
+    url: 'https://youtu.be/GkcTLeSaDUE'
+  - title: Matemáticas_ Mi Pasión y Talento Sobresaliente
+    url: 'https://youtu.be/vDTkumbS7no'
+  - title: 'Mi Nuevo Álbum_ Amor, Tristeza y Alegría Revelados'
+    url: 'https://youtu.be/sBjySxPei7U'
+  - title: Mi Pasión Docente_ Matemáticas y Tecnología Sorprenden
+    url: 'https://youtu.be/fSxMjcK2OJQ'
+  - title: Mi Podcast Chuchurrido_ ¡Una Experiencia Honesta!
+    url: 'https://youtu.be/HGcBPr9A7D8'
+  - title: Mi Primer Álbum Propio_ Ángel Caído
+    url: 'https://youtu.be/IdT4MyK-0xU'
+  - title: Mi viaje vocal_ Aprendiendo técnica con Luisa María
+    url: 'https://youtu.be/RdAziBFXi-I'
+  - title: Mis Notas de Matemáticas y PAO_ Honestamente
+    url: 'https://youtu.be/XNzW3gNw_UQ'
+  - title: Olvidar lo Aprendido_ ¿Por Qué Sucede y Cómo Combatirlo_
+    url: 'https://youtu.be/E-Pc1vo02q8'
+  - title: Pasión por las Matemáticas_ Mi Camino Hacia la Enseñanza
+    url: 'https://youtu.be/F1IxNACbt1w'
+  - title: 'Pasiones Múltiples_ Matemáticas, Arte, Coches y Más'
+    url: 'https://youtu.be/lkh4z7udxXw'
+  - title: Perfeccionismo Académico_ Mi Estrategia para Notas Altas
+    url: 'https://youtu.be/XcSDu4QCKoU'
+  - title: Sé tú mismo_ Libérate de la opinión ajena
+    url: 'https://youtu.be/Gaprzboizks'
+  - title: 'Segundo Bachillerato_ Caos, Sueño y Videojuegos para Desconectar'
+    url: 'https://youtu.be/Qj2cp88_0iw'
+  - title: 'Sigue Tu Instinto_ La Vocación Importa, Sin Importar Qué'
+    url: 'https://youtu.be/cmPpzdae78Y'
+  - title: Sobrevive a la Universidad_ Estrategia para Exámenes Universitarios
+    url: 'https://youtu.be/HVCKRvUxtB0'
+  - title: Suspensos y Apoyos_ Mi Viaje Hacia la Perfección
+    url: 'https://youtu.be/z9oI0CTE2qM'
+  - title: Vive la Vida con Optimismo_ Tu Dosis de Energía Diaria
+    url: 'https://youtu.be/8KN5qARgyw8'
 ---
 ¿Quién dijo que las ciencias y las letras no se llevan bien? En este episodio de Entre Ecuaciones y Canciones, nos acompaña Ángel, un estudiante de 2º de Bachillerato que rompe todos los moldes.
 
