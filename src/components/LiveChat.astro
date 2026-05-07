@@ -11,17 +11,6 @@ const { slug } = Astro.props;
     id="live-chat-widget" 
     data-slug={slug} 
 >
-    <!-- Overlay de Carga -->
-    <div id="chat-load-overlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center z-[100] p-6 text-center transition-all duration-500">
-        <div class="max-width-[260px] animate-fade-in-up">
-            <div class="text-5xl mb-4 filter drop-shadow-[0_0_15px_rgba(139,92,246,0.5)] animate-bounce">💬</div>
-            <p class="text-white text-lg font-medium mb-6 leading-relaxed">Únete a la conversación en directo.</p>
-            <button id="load-chat-btn" class="bg-primary hover:bg-primary/90 text-white py-3 px-10 rounded-full font-bold transition-all duration-300 shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 uppercase tracking-widest text-xs">
-                Cargar Chat
-            </button>
-        </div>
-    </div>
-    
     <!-- Header -->
     <div class="p-3 px-5 bg-black/40 border-b border-white/5 flex justify-between items-center backdrop-blur-md">
         <div class="flex items-center gap-2.5 text-[0.65rem] font-bold text-red-500 bg-red-500/10 px-3 py-1 rounded-full uppercase tracking-widest">
@@ -69,11 +58,26 @@ const { slug } = Astro.props;
         </div>
         
         <!-- Reacciones -->
-        <div class="flex justify-center gap-4 mt-4">
-            <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="heart">❤️</button>
-            <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="fire">🔥</button>
-            <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="clap">👏</button>
-            <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="100">💯</button>
+        <div class="flex items-center justify-between mt-4">
+            <div class="flex gap-3">
+                <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="heart">❤️</button>
+                <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="fire">🔥</button>
+                <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="clap">👏</button>
+                <button class="reaction-btn text-xl p-1.5 transition-all duration-200 hover:scale-125 hover:rotate-6 active:scale-90" data-type="100">💯</button>
+            </div>
+            <!-- Sync toggle button -->
+            <button
+                id="live-sync-btn"
+                title="Activar sincronización en directo"
+                class="flex items-center gap-1.5 text-[0.6rem] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-slate-500 hover:border-primary/60 hover:text-primary transition-all duration-300"
+            >
+                <svg id="sync-icon" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <polyline points="23 20 23 14 17 14"></polyline>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                </svg>
+                <span id="sync-label">En directo</span>
+            </button>
         </div>
         
         <div id="reactions-container" class="fixed inset-0 pointer-events-none overflow-hidden z-[9999]"></div>
@@ -112,6 +116,13 @@ const { slug } = Astro.props;
         animation: floatUp 2s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
         bottom: 0;
         pointer-events: none;
+    }
+    @keyframes spinSlow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+        animation: spinSlow 2s linear infinite;
     }
 </style>
 
@@ -152,9 +163,12 @@ const { slug } = Astro.props;
         toastEl: HTMLElement | null;
         confirmEl: HTMLElement | null;
         confirmCallback: (() => void) | null = null;
-        isLoaded: boolean = false;
-        overlay: HTMLElement | null;
-        loadBtn: HTMLElement | null;
+        syncBtn: HTMLElement | null;
+        syncLabel: HTMLElement | null;
+        syncIcon: SVGElement | null;
+
+        // Live sync state — false means history-only, no polling
+        isSyncActive: boolean = false;
     
         // POLLING CONFIG
         baseInterval = 20000;
@@ -177,8 +191,9 @@ const { slug } = Astro.props;
             this.pinnedContainer = el.querySelector('#pinned-message-container');
             this.toastEl = el.querySelector('#live-chat-toast');
             this.confirmEl = el.querySelector('#live-chat-confirm');
-            this.overlay = el.querySelector('#chat-load-overlay');
-            this.loadBtn = el.querySelector('#load-chat-btn');
+            this.syncBtn = el.querySelector('#live-sync-btn');
+            this.syncLabel = el.querySelector('#sync-label');
+            this.syncIcon = el.querySelector('#sync-icon');
             
             this.init();
         }
@@ -214,13 +229,14 @@ const { slug } = Astro.props;
         }
 
         init() {
-            if (this.loadBtn) {
-                this.loadBtn.addEventListener('click', () => {
-                    this.enableChat();
+            // Sync toggle button
+            if (this.syncBtn) {
+                this.syncBtn.addEventListener('click', () => {
+                    this.toggleLiveSync();
                 });
             }
 
-            // Interaction tracking
+            // Interaction tracking (only affects polling cadence when sync is active)
             const track = () => this.recordInteraction();
             this.el.addEventListener('mousemove', track);
             this.el.addEventListener('click', track);
@@ -229,7 +245,7 @@ const { slug } = Astro.props;
             // Visibility detection
             document.addEventListener('visibilitychange', () => {
                 this.isTabVisible = document.visibilityState === 'visible';
-                if (this.isTabVisible && this.isLoaded) {
+                if (this.isTabVisible && this.isSyncActive) {
                     this.resetInterval();
                     this.fetchMessages();
                 } else {
@@ -246,6 +262,14 @@ const { slug } = Astro.props;
                    if(type) this.sendReaction(type); 
                 });
             });
+
+            // Send button & enter key — wire up immediately
+            this.sendBtn.addEventListener('click', () => {
+                this.sendMessage();
+            });
+            this.input.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') this.sendMessage();
+            });
             
             // Modal Events
             this.el.querySelector('#confirm-cancel')?.addEventListener('click', () => {
@@ -256,37 +280,48 @@ const { slug } = Astro.props;
                 if(this.confirmCallback) this.confirmCallback();
                 if(this.confirmEl) this.confirmEl.style.display = 'none';
             });
+
+            // Load user session and fetch history immediately on init
+            this.fetchUserSession();
+            this.fetchMessages();
         }
 
         recordInteraction() {
-            if (!this.isLoaded) return;
+            if (!this.isSyncActive) return;
             this.lastInteractionTime = Date.now();
             if (this.currentInterval !== this.baseInterval && this.isTabVisible) {
                 this.resetInterval();
             }
         }
 
-        enableChat() {
-            this.isLoaded = true;
-            if (this.overlay) {
-                this.overlay.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => this.overlay?.remove(), 500);
+        /** Toggle live synchronization on/off */
+        toggleLiveSync() {
+            this.isSyncActive = !this.isSyncActive;
+            this.applySyncUI();
+            if (this.isSyncActive) {
+                // Fetch latest messages immediately, then start polling
+                this.fetchMessages();
+                this.startPolling();
+            } else {
+                this.stopPolling();
             }
-            
-            // Hydrate user info
-            this.fetchUserSession();
-            
-            this.sendBtn.addEventListener('click', () => {
-                this.recordInteraction();
-                this.sendMessage();
-            });
-            this.input.addEventListener('keypress', (e) => {
-                this.recordInteraction();
-                if(e.key === 'Enter') this.sendMessage();
-            });
+        }
 
-            this.fetchMessages();
-            this.startPolling();
+        applySyncUI() {
+            if (!this.syncBtn || !this.syncLabel) return;
+            if (this.isSyncActive) {
+                this.syncBtn.classList.remove('text-slate-500', 'border-white/10', 'bg-white/5');
+                this.syncBtn.classList.add('text-emerald-400', 'border-emerald-400/60', 'bg-emerald-500/10');
+                if (this.syncLabel) this.syncLabel.textContent = 'En vivo';
+                if (this.syncIcon) this.syncIcon.classList.add('animate-spin-slow');
+                this.syncBtn.title = 'Desactivar sincronización en directo';
+            } else {
+                this.syncBtn.classList.add('text-slate-500', 'border-white/10', 'bg-white/5');
+                this.syncBtn.classList.remove('text-emerald-400', 'border-emerald-400/60', 'bg-emerald-500/10');
+                if (this.syncLabel) this.syncLabel.textContent = 'Sincronizar';
+                if (this.syncIcon) this.syncIcon.classList.remove('animate-spin-slow');
+                this.syncBtn.title = 'Activar sincronización en directo';
+            }
         }
 
         resetInterval() {
@@ -296,7 +331,7 @@ const { slug } = Astro.props;
 
         startPolling() {
             this.stopPolling();
-            if (!this.isTabVisible || !this.isLoaded) return;
+            if (!this.isTabVisible || !this.isSyncActive) return;
             this.polling = window.setInterval(() => {
                 const idleTime = Date.now() - this.lastInteractionTime;
                 if (idleTime > this.idleThreshold) {
@@ -372,7 +407,7 @@ const { slug } = Astro.props;
         }
 
         async fetchMessages() {
-            if (!this.isTabVisible || !this.isLoaded) return;
+            if (!this.isTabVisible) return;
             try {
                 let url = `/api/live-chat/${this.slug}`;
                 if (this.lastPollTime > 0) url += `?since=${this.lastPollTime}`;
@@ -389,7 +424,7 @@ const { slug } = Astro.props;
                         data.deletedIds.forEach((id: string) => this.animateMessageDelete(id));
                     }
 
-                    if (data.reactions && Object.keys(data.reactions).length > 0) {
+                    if (this.isSyncActive && data.reactions && Object.keys(data.reactions).length > 0) {
                         Object.keys(data.reactions).forEach(type => {
                             const count = Math.min(data.reactions[type], 5);
                             for(let i=0; i<count; i++) {
@@ -431,6 +466,12 @@ const { slug } = Astro.props;
                 const data = await res.json();
                 if(data.success && data.message) {
                     this.renderMessages([data.message]);
+                    // Activate live sync automatically when the user sends a message
+                    if (!this.isSyncActive) {
+                        this.isSyncActive = true;
+                        this.applySyncUI();
+                        this.startPolling();
+                    }
                 } else {
                     this.input.value = originalValue;
                     this.showToast(data.error || "Error enviando", "error");
