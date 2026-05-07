@@ -173,7 +173,6 @@ function getWrappedEmailHtml(userName: string, academicLabel: string) {
                       &#x1F381; Descubrir mi Wrapped
                     </a>
                     <!--<![endif]-->
-                    </a>
                   </td>
                 </tr>
               </table>
