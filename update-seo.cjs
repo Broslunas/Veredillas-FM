@@ -24,7 +24,7 @@ const pageSEOData = {
 	},
 	'src/pages/copyright.astro': {
 		title: 'Derechos de Autor',
-		description: 'Información sobre los derechos de autor y el contenido publicado en Veredillas FM. Todos los derechos reservados por el IES Veredillas y sus creadores.',
+		description: 'Información sobre los derechos de autor y el contenido publicado en Veredillas FM. Todos los derechos reservados por el IES Las Veredillas y sus creadores.',
 	},
 	'src/pages/politica-de-privacidad.astro': {
 		title: 'Política de Privacidad',
@@ -36,7 +36,7 @@ const pageSEOData = {
 	},
 	'src/pages/aviso-legal.astro': {
 		title: 'Aviso Legal',
-		description: 'Aviso legal y condiciones de uso del portal web oficial de Veredillas FM, la radio del IES Veredillas.',
+		description: 'Aviso legal y condiciones de uso del portal web oficial de Veredillas FM, la radio del IES Las Veredillas.',
 	},
 	'src/pages/404.astro': {
 		title: 'Página no encontrada',

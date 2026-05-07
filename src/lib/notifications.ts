@@ -72,7 +72,7 @@ function getEmailTemplate(tag: string, title: string, contentHtml: string, actio
                     </td>
                   </tr>
                 </table>
-                <p class="copyright">© 2026 VEREDILLAS FM | LA VOZ DEL IES VEREDILLAS</p>
+                <p class="copyright">© 2026 VEREDILLAS FM | LA VOZ DEL IES Las Veredillas</p>
                 <p class="disclaimer">Has recibido este correo por tu actividad en Veredillas FM.</p>
               </div>
             </td>

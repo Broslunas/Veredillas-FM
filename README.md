@@ -4,7 +4,7 @@
 
 ![Veredillas FM Logo](public/logo.webp)
 
-**La plataforma digital oficial del IES Veredillas**
+**La plataforma digital oficial del IES Las Veredillas**
 
 Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por alumnos, para el mundo.
 
@@ -39,7 +39,7 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 
 ## 🎯 Sobre el Proyecto
 
-**Veredillas FM** ha evolucionado de ser un simple podcast escolar a una plataforma digital completa de medios estudiantiles. Desarrollada por estudiantes de 2º de Bachillerato del IES Veredillas, integra audio, video, interactividad social y gamificación en una experiencia web premium de alto rendimiento.
+**Veredillas FM** ha evolucionado de ser un simple podcast escolar a una plataforma digital completa de medios estudiantiles. Desarrollada por estudiantes de 2º de Bachillerato del IES Las Veredillas, integra audio, video, interactividad social y gamificación en una experiencia web premium de alto rendimiento.
 
 ### ¿Qué nos hace diferentes?
 

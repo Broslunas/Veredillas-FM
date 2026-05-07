@@ -326,7 +326,7 @@ function generateNewsletterHtml(user: any, recommendations: any[], upcoming: any
                       </tr>
                     </table>
                     
-                    <p style="margin:30px 0 10px; font-size: 11px; color: #52525b; letter-spacing: 0.5px; font-weight:700;">© 2026 VEREDILLAS FM | LA VOZ DEL IES VEREDILLAS</p>
+                    <p style="margin:30px 0 10px; font-size: 11px; color: #52525b; letter-spacing: 0.5px; font-weight:700;">© 2026 VEREDILLAS FM | LA VOZ DEL IES Las Veredillas</p>
                     <div style="margin-top: 20px;">
                       <a href="${siteUrl}" style="color:#71717a; font-size:12px; margin:0 12px; text-decoration: underline;">Web Oficial</a>
                       <span style="color:#2d2d2d;">•</span>

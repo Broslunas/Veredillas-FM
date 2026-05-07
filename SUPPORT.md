@@ -19,7 +19,7 @@ Si has encontrado un bug, por favor abre un **Issue** en GitHub:
 ## 💡 Sugerencias y Features
 Si tienes una idea increíble para el podcast o la web:
 1. Abre un **Issue** pero selecciona la categoría "Enancement/Feature Request".
-2. Describe tu idea y cómo beneficiaría a la comunidad del IES Veredillas.
+2. Describe tu idea y cómo beneficiaría a la comunidad del IES Las Veredillas.
 
 ## 📧 Contacto Directo
 Para asuntos que no puedan tratarse en público o temas relacionados con la radio escolar:

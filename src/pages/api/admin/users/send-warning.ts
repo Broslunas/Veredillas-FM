@@ -114,7 +114,7 @@ export const POST: APIRoute = async ({ request }) => {
           <!-- Footer -->
           <tr style="background:#050505; border-top:1px solid #2d2d2d;">
             <td align="center" style="padding:40px 32px;">
-              <p style="margin:0 0 20px; font-size:12px; font-weight:700; color:#52525b; text-transform:uppercase; letter-spacing:1px;">Veredillas FM | La voz del IES Veredillas</p>
+              <p style="margin:0 0 20px; font-size:12px; font-weight:700; color:#52525b; text-transform:uppercase; letter-spacing:1px;">Veredillas FM | La voz del IES Las Veredillas</p>
               
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>

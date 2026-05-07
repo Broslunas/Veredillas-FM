@@ -117,7 +117,7 @@ export const POST: APIRoute = async ({ request }) => {
                       </tr>
                     </table>
                     
-                    <p style="margin:30px 0 10px; font-size: 11px; color: #52525b; letter-spacing: 0.5px; font-weight:700;">© 2026 VEREDILLAS FM | LA VOZ DEL IES VEREDILLAS</p>
+                    <p style="margin:30px 0 10px; font-size: 11px; color: #52525b; letter-spacing: 0.5px; font-weight:700;">© 2026 VEREDILLAS FM | LA VOZ DEL IES Las Veredillas</p>
                     <p style="margin:10px 0; font-size: 11px; color: #3f3f46; letter-spacing: 0.5px; font-weight:400;">Si no solicitaste este correo, puedes ignorarlo de forma segura.</p>
                   </td>
                 </tr>

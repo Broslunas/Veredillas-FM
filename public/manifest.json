@@ -1,7 +1,7 @@
 {
-  "name": "Veredillas FM - El Podcast del IES Veredillas",
+  "name": "Veredillas FM - El Podcast del IES Las Veredillas",
   "short_name": "Veredillas FM",
-  "description": "El podcast oficial del IES Veredillas. Escucha entrevistas exclusivas, noticias del instituto, cultura estudiantil y mucho más. Una radio hecha por alumnos, para alumnos.",
+  "description": "El podcast oficial del IES Las Veredillas. Escucha entrevistas exclusivas, noticias del instituto, cultura estudiantil y mucho más. Una radio hecha por alumnos, para alumnos.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",
