@@ -1,7 +1,7 @@
 ---
 title: Tecno-Dependencia ft. Elio & Zi Cheng
 tags:
-  - Tecnologia
+  - Tecnología
   - InteligenciaArtificial
   - TecnoDependencia
   - Productividad
