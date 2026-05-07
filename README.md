@@ -55,6 +55,9 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 <!-- EPISODES_START -->
 <div align="center">
 
+<a href="https://veredillasfm.es/ep/ecuaciones-y-canciones">
+<img src="https://cdn.veredillasfm.es/images/e1b51f71-d6b9-4209-8c2d-1319b1b9c210.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Entre Ecuaciones y Canciones ft. Ángel"/>
+</a>
 <a href="https://veredillasfm.es/ep/operacion-instituto">
 <img src="https://cdn.veredillasfm.es/images/9e36ff9b-2cc1-42d1-a576-538e508ba9d1.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Operación Instituto ft. Alberto & Lucas"/>
 </a>
@@ -64,10 +67,10 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 <a href="https://veredillasfm.es/ep/tecno-dependencia">
 <img src="https://cdn.veredillasfm.es/images/3ad38b3b-8f2f-4341-b0eb-39b160d6820a.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Tecno-Dependencia ft. Elio & Zi Cheng"/>
 </a>
-<a href="https://veredillasfm.es/ep/mas-alla-del-10">
-<img src="https://cdn.veredillasfm.es/images/234c216b-4561-4bfe-a3b3-8ce4ff6a34ce.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Más allá del 10 ft. Paola, Nayara, Daniela & Nerea"/>
-</a>
 
+
+**[Entre Ecuaciones y Canciones ft. Ángel](https://veredillasfm.es/ep/ecuaciones-y-canciones)**<br/>
+*06 de mayo de 2026 • Temporada 2, Episodio 11*
 
 **[Operación Instituto ft. Alberto & Lucas](https://veredillasfm.es/ep/operacion-instituto)**<br/>
 *05 de mayo de 2026 • Temporada 2, Episodio 10*
@@ -77,9 +80,6 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 
 **[Tecno-Dependencia ft. Elio & Zi Cheng](https://veredillasfm.es/ep/tecno-dependencia)**<br/>
 *17 de abril de 2026 • Temporada 2, Episodio 8*
-
-**[Más allá del 10 ft. Paola, Nayara, Daniela & Nerea](https://veredillasfm.es/ep/mas-alla-del-10)**<br/>
-*15 de abril de 2026 • Temporada 2, Episodio 7*
 
 </div>
 <!-- EPISODES_END -->
