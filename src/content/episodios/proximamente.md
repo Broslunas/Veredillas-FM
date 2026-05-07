@@ -6,7 +6,7 @@ isPremiere: true
 image: 'https://cdn.veredillasfm.es/images/f1d02c44-eca3-4281-8bf6-17a07468dea5.webp'
 participants: []
 season: 2
-episode: 11
+episode: 12
 duration: ¿? min
 pubDate: '2026-05-08T16:00:00.000Z'
 description: coming soon
