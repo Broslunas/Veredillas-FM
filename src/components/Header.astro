@@ -165,6 +165,14 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
     <span class="sh-live-arrow">→</span>
   </a>
 
+  <!-- ── Wrapped Banner ────────────────────── -->
+  <a id="sh-wrapped" class="sh-wrapped hidden" href="/wrapped">
+    <span class="sh-wrapped-dot"></span>
+    <span id="sh-wrapped-label">WRAPPED</span>
+    <span id="sh-wrapped-title" class="sh-live-title">Tu resumen <span id="sh-wrapped-year"></span> está listo</span>
+    <span class="sh-wrapped-arrow">→</span>
+  </a>
+
 </header>
 
 <!-- ── Mobile Overlay ─────────────────────── -->
@@ -720,6 +728,52 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 }
 
 /* ─────────────────────────────────────────
+   WRAPPED BANNER
+───────────────────────────────────────── */
+.sh-wrapped {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 32px;
+  background: rgba(139,92,246,0.15);
+  border-bottom: 1px solid rgba(139,92,246,0.3);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  transition: background 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.sh-wrapped:hover { background: rgba(139,92,246,0.25); }
+.sh-wrapped.hidden { display: none !important; }
+
+.sh-wrapped-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #c084fc;
+  animation: sh-pulse-wrapped 2s ease-in-out infinite;
+}
+
+@keyframes sh-pulse-wrapped {
+  0%,100% { box-shadow: 0 0 0 0 rgba(192,132,252,0.6); }
+  50%      { box-shadow: 0 0 0 5px rgba(192,132,252,0); }
+}
+
+#sh-wrapped-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #e9d5ff;
+}
+
+.sh-wrapped-arrow {
+  color: #f9a8d4;
+  font-size: 0.9rem;
+}
+
+/* ─────────────────────────────────────────
    HAMBURGER
 ───────────────────────────────────────── */
 .sh-ham {
@@ -1087,6 +1141,29 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 
     // Close on link click
     overlay?.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+
+    // ── Check Wrapped Status ──
+    async function checkWrapped() {
+      if (window.location.pathname === '/wrapped') return; // Don't show on the wrapped page
+      
+      try {
+        const res = await fetch('/api/wrapped/status');
+        const data = await res.json();
+        if (data.active) {
+          const banner = document.getElementById('sh-wrapped');
+          const yearEl = document.getElementById('sh-wrapped-year');
+          if (banner && yearEl) {
+            yearEl.textContent = data.yearLabel;
+            banner.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check wrapped status:', err);
+      }
+    }
+    
+    // Slight delay to not block main thread loading
+    setTimeout(checkWrapped, 500);
   });
 </script>
 
