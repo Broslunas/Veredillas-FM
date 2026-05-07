@@ -44,7 +44,8 @@ if (!user) return Astro.redirect('/');
 
 const wrappedSettings = await WrappedSettings.findOne();
 if (!wrappedSettings || !wrappedSettings.isActive) {
-    return Astro.redirect('/dashboard');
+    const wy = wrappedSettings?.year || new Date().getFullYear();
+    return Astro.redirect(`/dashboard?wrapped=unavailable&year=${wy}`);
 }
 
 // ── Academic year ──────────────────────────────────────────

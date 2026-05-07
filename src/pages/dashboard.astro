@@ -88,6 +88,36 @@ const wrappedYear = wrappedSettings?.year || new Date().getFullYear();
         <div class="ambient-orb orb-2"></div>
         
         <div class="container-dashboard relative z-10">
+             <!-- Wrapped Unavailable Message -->
+            <div id="wrapped-unavailable-msg" class="mb-8 rounded-[24px] overflow-hidden relative hidden animate-fade-in-up" style="animation-delay: 0.05s;">
+                <div class="absolute inset-0 bg-gradient-to-r from-zinc-800 to-zinc-900 opacity-95"></div>
+                <div class="absolute inset-0 border border-white/10 rounded-[24px] pointer-events-none"></div>
+                <div class="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-start gap-5">
+                    <div class="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 border border-white/10">
+                        🎁
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-2">Wrapped no disponible</h3>
+                        <p class="text-zinc-400 text-sm leading-relaxed mb-3" id="wrapped-unavailable-text">
+                            El Wrapped del curso <strong class="text-white" id="wrapped-unavailable-year"></strong> no está habilitado en este momento. 
+                            Puede que aún no esté disponible para ti o que el periodo para verlo haya finalizado.
+                        </p>
+                        <p class="text-zinc-500 text-sm leading-relaxed mb-4">
+                            🕐 <strong class="text-zinc-300">Ten paciencia</strong> — cuando esté listo, recibirás un correo electrónico avisándote. 
+                            Si crees que es un error, no dudes en contactarnos.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="/contacto" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all">
+                                ✉️ Formulario de contacto
+                            </a>
+                            <a href="mailto:contacto@veredillasfm.es" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all">
+                                📧 contacto@veredillasfm.es
+                            </a>
+                        </div>
+                    </div>
+                    <button onclick="this.closest('#wrapped-unavailable-msg').remove(); history.replaceState(null, '', '/dashboard');" class="text-white/30 hover:text-white text-xl transition-colors flex-shrink-0 mt-1 cursor-pointer bg-transparent border-none">✕</button>
+                </div>
+            </div>
             <!-- Mega Header -->
             <header class="hero-header animate-fade-in glass-panel-premium mb-12">
                 <div class="hero-inner flex flex-col md:flex-row items-center gap-8">
@@ -602,3 +632,17 @@ const wrappedYear = wrappedSettings?.year || new Date().getFullYear();
         }
     }
 </style>
+
+<script>
+    // Show wrapped unavailable message if redirected from /wrapped
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('wrapped') === 'unavailable') {
+        const msg = document.getElementById('wrapped-unavailable-msg');
+        const yearEl = document.getElementById('wrapped-unavailable-year');
+        const yearParam = params.get('year') || '';
+        if (yearEl && yearParam) {
+            yearEl.textContent = `${yearParam}/${parseInt(yearParam) + 1}`;
+        }
+        if (msg) msg.classList.remove('hidden');
+    }
+</script>
