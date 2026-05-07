@@ -1,0 +1,28 @@
+---
+interface Props { episodeCoverage: number; totalEpisodesInPlatform: number; uniqueEpisodes: number; longestEpisodeTitle: string; longestEpisodeMins: number; accountAge: number; }
+const { episodeCoverage, totalEpisodesInPlatform, uniqueEpisodes, longestEpisodeTitle, longestEpisodeMins, accountAge } = Astro.props;
+---
+<div class="story-slide" style="background: linear-gradient(135deg, #064e3b, #065f46, #047857);">
+    <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+        <p class="text-xl font-bold text-emerald-200 mb-4 slide-fade tracking-widest uppercase">📊 Tu alcance</p>
+        <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">Has explorado el <span class="text-emerald-300">{episodeCoverage}%</span> del catálogo</h2>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20 slide-fade-up mb-4">
+            <div class="w-full h-4 bg-white/10 rounded-full overflow-hidden mb-3">
+                <div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-1000" style={`width: ${Math.min(episodeCoverage, 100)}%`}></div>
+            </div>
+            <p class="text-sm text-white/70"><strong class="text-white">{uniqueEpisodes}</strong> de <strong class="text-white">{totalEpisodesInPlatform}</strong> episodios</p>
+        </div>
+        {longestEpisodeTitle && (
+            <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 slide-fade-up mb-4">
+                <p class="text-[10px] text-emerald-200 uppercase font-bold tracking-widest mb-1">Episodio más largo escuchado</p>
+                <p class="text-white font-bold text-sm truncate">{longestEpisodeTitle}</p>
+                <p class="text-emerald-300 text-xs mt-1">{longestEpisodeMins} minutos</p>
+            </div>
+        )}
+        {accountAge > 0 && (
+            <div class="bg-white/5 rounded-xl p-3 border border-white/10 slide-fade-up">
+                <p class="text-sm text-white/70">Llevas <strong class="text-emerald-300">{accountAge} días</strong> en Veredillas FM</p>
+            </div>
+        )}
+    </div>
+</div>

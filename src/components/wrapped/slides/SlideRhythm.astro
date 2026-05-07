@@ -1,0 +1,33 @@
+---
+interface Props { bestHour: number; bestDayName: string; dayTimeMsg: string; }
+const { bestHour, bestDayName, dayTimeMsg } = Astro.props;
+---
+<div class="story-slide" style="background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="stars-bg absolute inset-0 opacity-40"></div>
+    </div>
+    <div class="slide-content p-8 flex flex-col justify-center h-full text-center relative z-10">
+        <p class="text-xl font-bold text-purple-300 mb-4 slide-fade tracking-widest uppercase">⏰ Tu ritmo</p>
+        <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">{dayTimeMsg}</h2>
+        <div class="bg-white/5 backdrop-blur rounded-2xl p-5 slide-fade-up border border-white/10 mb-4">
+            <div class="flex justify-between items-center">
+                <div class="text-center flex-1">
+                    <p class="text-4xl font-black text-purple-300">{bestHour}:00h</p>
+                    <p class="text-xs text-white/60 uppercase font-bold mt-1">Hora favorita</p>
+                </div>
+                <div class="w-px h-12 bg-white/10"></div>
+                <div class="text-center flex-1">
+                    <p class="text-4xl font-black text-pink-300">{bestDayName}</p>
+                    <p class="text-xs text-white/60 uppercase font-bold mt-1">Día favorito</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-fade-up w-full" id="hour-chart-placeholder">
+            <p class="text-xs text-white/40 mb-2">Actividad por hora del día</p>
+            <div class="flex items-end gap-0.5 h-[60px] w-full border-b border-white/10 px-0.5" id="hour-bars"></div>
+            <div class="flex justify-between text-[8px] text-white/30 mt-1">
+                <span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span>
+            </div>
+        </div>
+    </div>
+</div>

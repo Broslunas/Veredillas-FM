@@ -29,6 +29,7 @@ interface Props {
 	canonicalURL?: string;
 	showFooter?: boolean;
 	robots?: string;
+	hideHeader?: boolean;
 }
 
 const refId = Astro.url.searchParams.get("ref");
@@ -43,9 +44,9 @@ if (refId && typeof document === 'undefined') {
 
 const {
 	title,
-	description = "Veredillas FM es el podcast oficial del IES Veredillas. Descubre entrevistas exclusivas, noticias del instituto, cultura estudiantil y mucho más. Una radio hecha por alumnos, para alumnos.",
+	description = "Veredillas FM es el podcast oficial del IES Las Veredillas. Descubre entrevistas exclusivas, noticias del instituto, cultura estudiantil y mucho más. Una radio hecha por alumnos, para alumnos.",
 	image = "/logo.webp",
-	imageAlt = "Veredillas FM - El podcast oficial del IES Veredillas",
+	imageAlt = "Veredillas FM - El podcast oficial del IES Las Veredillas",
 	type = "website",
 	publishedTime,
 	modifiedTime,
@@ -54,6 +55,7 @@ const {
 	canonicalURL = new URL(Astro.url.pathname, Astro.site).href,
 	showFooter = true,
 	robots = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+	hideHeader = false,
 } = Astro.props;
 
 // Asegurar que la imagen sea una URL completa
@@ -66,7 +68,7 @@ const twitterHandle = "@VeredillasFM";
 
 const fullTitle =
 	title === "Inicio"
-		? `${siteName} - El Podcast del IES Veredillas`
+		? `${siteName} - El Podcast del IES Las Veredillas`
 		: `${title} | ${siteName}`;
 
 // Richer Schema.org data
@@ -89,7 +91,7 @@ const organizationSchema = {
 		"https://open.spotify.com/show/6mXWyLhzhET5EHk1p72j18",
 		"https://github.com/broslunas/veredillas-fm"
 	],
-	"description": "El podcast oficial del IES Veredillas, hecho por alumnos para alumnos."
+	"description": "El podcast oficial del IES Las Veredillas, hecho por alumnos para alumnos."
 };
 
 const websiteSchema = {
@@ -320,9 +322,9 @@ const breadcrumbSchema = {
 	</head>
 
 	<body class="selection:bg-primary/30 selection:text-white">
-		<Header />
+		{!hideHeader && <Header />}
 
-		<main class="min-h-screen pt-[100px] md:pt-[80px]">
+		<main class:list={["min-h-screen", !hideHeader && "pt-[100px] md:pt-[80px]"]}>
 			<slot />
 		</main>
 		{showFooter && <Footer />}

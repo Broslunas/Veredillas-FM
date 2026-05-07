@@ -1,0 +1,23 @@
+---
+interface Props {
+    userName: string;
+    academicLabel: string;
+}
+const { userName, academicLabel } = Astro.props;
+const firstName = userName.split(' ')[0];
+---
+
+<div class="wrapped-entry fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center gap-8" id="wrapped-entry">
+    <img src="/logo.webp" alt="Veredillas FM" class="w-24 h-24 object-contain drop-shadow-[0_0_40px_rgba(139,92,246,0.7)]" style="animation: entryPulse 2s ease-in-out infinite;" />
+    <div class="text-center px-6">
+        <p class="text-white/50 text-sm font-medium mb-2 tracking-widest uppercase">Hola {firstName}</p>
+        <h1 class="text-4xl sm:text-5xl font-black bg-gradient-to-r from-pink-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent leading-tight">
+            Tu Wrapped<br/>{academicLabel}
+        </h1>
+        <p class="text-white/40 text-sm mt-4">está listo</p>
+    </div>
+    <button class="bg-gradient-to-r from-pink-500 to-violet-600 text-white border-none px-12 py-4 rounded-full text-lg font-extrabold cursor-pointer tracking-wide shadow-[0_0_40px_rgba(139,92,246,0.4)] hover:scale-105 hover:shadow-[0_0_60px_rgba(139,92,246,0.6)] transition-all" id="wrapped-start-btn">
+        Empezar →
+    </button>
+    <p class="text-white/30 text-xs">Recomendamos usar auriculares 🎧</p>
+</div>

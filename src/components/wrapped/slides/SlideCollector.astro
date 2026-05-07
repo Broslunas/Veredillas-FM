@@ -1,0 +1,39 @@
+---
+interface Props { achievementsCount: number; cardsCollected: number; reactionsCount: number; likesGiven: number; dislikesGiven: number; referralsCount: number; }
+const { achievementsCount, cardsCollected, reactionsCount, likesGiven, dislikesGiven, referralsCount } = Astro.props;
+---
+<div class="story-slide bg-gradient-to-br from-yellow-600 via-amber-700 to-orange-900">
+    <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+        <p class="text-xl font-bold text-amber-200 mb-4 slide-fade tracking-widest uppercase">🏅 Tu colección</p>
+        <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">Cada logro cuenta tu historia</h2>
+        <div class="grid grid-cols-2 gap-3 slide-fade-up mb-4">
+            <div class="bg-black/20 backdrop-blur rounded-2xl p-4 border border-white/20 text-center">
+                <span class="text-3xl block mb-1">🏆</span>
+                <p class="text-3xl font-black text-white">{achievementsCount}</p>
+                <p class="text-[10px] text-amber-200 uppercase font-bold mt-0.5">Logros</p>
+            </div>
+            <div class="bg-black/20 backdrop-blur rounded-2xl p-4 border border-white/20 text-center">
+                <span class="text-3xl block mb-1">🃏</span>
+                <p class="text-3xl font-black text-white">{cardsCollected}</p>
+                <p class="text-[10px] text-amber-200 uppercase font-bold mt-0.5">Cromos</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 slide-fade-up">
+            <div class="bg-white/10 rounded-xl p-3 border border-white/20 text-center">
+                <p class="text-xl font-black text-white">👍 {likesGiven}</p>
+                <p class="text-[10px] text-white/50 uppercase font-bold">Likes</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-3 border border-white/20 text-center">
+                <p class="text-xl font-black text-white">👎 {dislikesGiven}</p>
+                <p class="text-[10px] text-white/50 uppercase font-bold">Dislikes</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-3 border border-white/20 text-center">
+                <p class="text-xl font-black text-white">🤝 {referralsCount}</p>
+                <p class="text-[10px] text-white/50 uppercase font-bold">Referidos</p>
+            </div>
+        </div>
+        {achievementsCount === 0 && cardsCollected === 0 && (
+            <p class="text-amber-200 text-sm mt-4 slide-fade-up">¡El próximo curso llena tu vitrina! 🗄️</p>
+        )}
+    </div>
+</div>

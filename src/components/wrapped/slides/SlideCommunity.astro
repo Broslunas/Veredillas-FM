@@ -1,0 +1,35 @@
+---
+interface Props { commentsCount: number; chatCount: number; likedClipsCount: number; totalInteractions: number; }
+const { commentsCount, chatCount, likedClipsCount, totalInteractions } = Astro.props;
+---
+<div class="story-slide bg-gradient-to-bl from-indigo-900 via-indigo-700 to-blue-800">
+    <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+        <p class="text-xl font-bold text-indigo-200 mb-4 slide-fade tracking-widest uppercase">💬 Tu Impacto</p>
+        <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">No fuiste un oyente fantasma.</h2>
+        <div class="grid grid-cols-3 gap-3 slide-fade-up mb-4">
+            <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 flex flex-col items-center justify-center">
+                <span class="text-3xl mb-1">💬</span>
+                <span class="text-3xl font-black text-white block">{commentsCount}</span>
+                <span class="text-[10px] font-bold text-indigo-200 uppercase">Comentarios</span>
+            </div>
+            <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 flex flex-col items-center justify-center">
+                <span class="text-3xl mb-1">✉️</span>
+                <span class="text-3xl font-black text-white block">{chatCount}</span>
+                <span class="text-[10px] font-bold text-indigo-200 uppercase">Mensajes</span>
+            </div>
+            <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 flex flex-col items-center justify-center">
+                <span class="text-3xl mb-1">❤️</span>
+                <span class="text-3xl font-black text-white block">{likedClipsCount}</span>
+                <span class="text-[10px] font-bold text-indigo-200 uppercase">Clips</span>
+            </div>
+        </div>
+        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 slide-fade-up border border-white/20 relative overflow-hidden">
+            <span class="text-5xl font-black text-white block mb-1 relative z-10">{totalInteractions}</span>
+            <span class="text-sm font-bold text-indigo-200 uppercase relative z-10">Interacciones Totales</span>
+            <div class="absolute -right-4 -bottom-4 text-7xl opacity-20">🌟</div>
+        </div>
+        {totalInteractions === 0 && (
+            <p class="text-indigo-200 text-sm mt-3 slide-fade-up">¡Únete a la comunidad el próximo año! 🚀</p>
+        )}
+    </div>
+</div>

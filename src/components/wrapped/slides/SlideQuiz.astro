@@ -1,0 +1,48 @@
+---
+interface Props { quizzesTaken: number; quizAvgScore: number; quizBestScore: number; quizTotalTime: number; }
+const { quizzesTaken, quizAvgScore, quizBestScore, quizTotalTime } = Astro.props;
+const quizMins = Math.round(quizTotalTime / 60);
+---
+<div class="story-slide" style="background: linear-gradient(135deg, #1e1b4b, #312e81, #4338ca);">
+    <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+        <p class="text-xl font-bold text-indigo-200 mb-4 slide-fade tracking-widest uppercase">🧠 Tu cerebro</p>
+        {quizzesTaken > 0 ? (
+            <>
+                <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">No solo escuchas, también <span class="text-indigo-300">piensas</span>.</h2>
+                <div class="flex justify-center mb-6 slide-fade-up">
+                    <div class="stat-ring w-[120px] h-[120px] rounded-full flex items-center justify-center relative">
+                        <svg class="absolute w-full h-full" viewBox="0 0 120 120">
+                            <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#818cf8"/><stop offset="100%" style="stop-color:#c084fc"/></linearGradient></defs>
+                            <circle class="ring-bg" cx="60" cy="60" r="54"/>
+                            <circle class="ring-fill" cx="60" cy="60" r="54" style={`stroke-dashoffset: ${339.292 * (1 - quizAvgScore / 100)}`}/>
+                        </svg>
+                        <div class="relative z-10 text-center">
+                            <p class="text-3xl font-black text-white">{quizAvgScore}%</p>
+                            <p class="text-[10px] text-white/60 uppercase font-bold">Media</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 slide-fade-up">
+                    <div class="bg-white/10 rounded-xl p-3 border border-white/20">
+                        <p class="text-2xl font-black text-white">{quizzesTaken}</p>
+                        <p class="text-[10px] text-indigo-200 uppercase font-bold mt-0.5">Quizzes</p>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3 border border-white/20">
+                        <p class="text-2xl font-black text-white">{quizBestScore}%</p>
+                        <p class="text-[10px] text-indigo-200 uppercase font-bold mt-0.5">Mejor nota</p>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3 border border-white/20">
+                        <p class="text-2xl font-black text-white">{quizMins}m</p>
+                        <p class="text-[10px] text-indigo-200 uppercase font-bold mt-0.5">Pensando</p>
+                    </div>
+                </div>
+            </>
+        ) : (
+            <>
+                <h2 class="text-3xl font-black text-white mb-4 slide-pop">Los quizzes te esperan</h2>
+                <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-4xl slide-pop">🧩</div>
+                <p class="text-indigo-200 slide-fade text-sm">¡Pon a prueba tus conocimientos en los episodios!</p>
+            </>
+        )}
+    </div>
+</div>

@@ -1,0 +1,33 @@
+---
+interface Props { bestMonth: string; favoritesCount: number; playlistsCount: number; likedClipsCount: number; }
+const { bestMonth, favoritesCount, playlistsCount, likedClipsCount } = Astro.props;
+---
+<div class="story-slide bg-gradient-to-b from-[#0d1b2a] to-[#1b2838]">
+    <div class="slide-content p-8 flex flex-col justify-center h-full">
+        <p class="text-xl font-bold text-cyan-300 mb-2 slide-fade tracking-widest uppercase text-center">📅 Tu curso en meses</p>
+        <h2 class="text-2xl font-black text-white mb-2 slide-pop text-center">Tu mes más activo fue</h2>
+        <p class="text-4xl font-black text-cyan-300 mb-6 slide-pop text-center">{bestMonth}</p>
+        <div class="slide-fade-up w-full" id="month-chart">
+            <div class="flex items-end gap-0.5 h-[60px] w-full border-b border-white/10 px-0.5" id="month-bars"></div>
+            <div class="flex justify-between w-full pt-1 px-0.5 text-[9px] text-white/30 font-semibold">
+                {["Sep","Oct","Nov","Dic","Ene","Feb","Mar","Abr","May","Jun"].map(m => (
+                    <span>{m}</span>
+                ))}
+            </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mt-4 slide-fade-up">
+            <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
+                <p class="text-xl font-black text-white">{favoritesCount}</p>
+                <p class="text-[10px] text-white/50 uppercase font-bold mt-0.5">Favoritos</p>
+            </div>
+            <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
+                <p class="text-xl font-black text-white">{playlistsCount}</p>
+                <p class="text-[10px] text-white/50 uppercase font-bold mt-0.5">Playlists</p>
+            </div>
+            <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
+                <p class="text-xl font-black text-white">{likedClipsCount}</p>
+                <p class="text-[10px] text-white/50 uppercase font-bold mt-0.5">Clips ❤️</p>
+            </div>
+        </div>
+    </div>
+</div>

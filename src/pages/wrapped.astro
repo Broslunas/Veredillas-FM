@@ -7,12 +7,34 @@ import { getUserFromCookie } from '@/lib/auth';
 import { getCollection } from 'astro:content';
 import Comment from '@/models/Comment';
 import ChatMessage from '@/models/ChatMessage';
+import EpisodeReaction from '@/models/EpisodeReaction';
+import QuizResult from '@/models/QuizResult';
+import UserAchievement from '@/models/UserAchievement';
+import UnlockedCard from '@/models/UnlockedCard';
+
+import WrappedEntry from '@/components/wrapped/WrappedEntry.astro';
+import WrappedMusicPlayer from '@/components/wrapped/WrappedMusicPlayer.astro';
+import SlideIntro from '@/components/wrapped/slides/SlideIntro.astro';
+import SlideFirstEpisode from '@/components/wrapped/slides/SlideFirstEpisode.astro';
+import SlideListeningTime from '@/components/wrapped/slides/SlideListeningTime.astro';
+import SlideSessions from '@/components/wrapped/slides/SlideSessions.astro';
+import SlideRhythm from '@/components/wrapped/slides/SlideRhythm.astro';
+import SlideCategories from '@/components/wrapped/slides/SlideCategories.astro';
+import SlideTopEpisode from '@/components/wrapped/slides/SlideTopEpisode.astro';
+import SlidePodium from '@/components/wrapped/slides/SlidePodium.astro';
+import SlideMonths from '@/components/wrapped/slides/SlideMonths.astro';
+import SlideQuiz from '@/components/wrapped/slides/SlideQuiz.astro';
+import SlideCollector from '@/components/wrapped/slides/SlideCollector.astro';
+import SlideCoverage from '@/components/wrapped/slides/SlideCoverage.astro';
+import SlideCommunity from '@/components/wrapped/slides/SlideCommunity.astro';
+import SlideFinal from '@/components/wrapped/slides/SlideFinal.astro';
+
+import '@/components/wrapped/wrapped.css';
 
 export const prerender = false;
 
 const token = Astro.cookies.get('auth-token');
 if (!token) return Astro.redirect('/login');
-
 const userPayload = getUserFromCookie(`auth-token=${token.value}`);
 if (!userPayload) return Astro.redirect('/login');
 
@@ -25,11 +47,11 @@ if (!wrappedSettings || !wrappedSettings.isActive) {
     return Astro.redirect('/dashboard');
 }
 
-// ── Academic year: Sept 1 of `year` → June 30 of `year + 1` ──────
+// ── Academic year ──────────────────────────────────────────
 const year = wrappedSettings.year || new Date().getFullYear();
-const academicStart = new Date(year, 8, 1);         // Sept 1, year
-const academicEnd   = new Date(year + 1, 5, 30, 23, 59, 59); // June 30, year+1
-const academicLabel = `${year}/${year + 1}`;        // e.g. "2025/2026"
+const academicStart = new Date(year, 8, 1);
+const academicEnd = new Date(year + 1, 5, 30, 23, 59, 59);
+const academicLabel = `${year}/${year + 1}`;
 
 const yearHistory = (user.playbackHistory || []).filter((h: any) => {
     if (!h.listenedAt) return false;
@@ -37,26 +59,14 @@ const yearHistory = (user.playbackHistory || []).filter((h: any) => {
     return d >= academicStart && d <= academicEnd;
 });
 
-// ── Default values ──────────────────────────────────────────────
-let yearListeningMinutes = 0;
-let yearListeningHours = 0;
-let uniqueEpisodes = 0;
-let bestMonth = "Enero";
-let topEpisodeInfo: any = null;
-let archetype = "El Nuevo";
-let totalSessions = yearHistory.length;
-
-let bestHour = 12;
-let bestDayIndex = 1;
-let dayTimeMsg = "Eres un fan todoterreno";
-let bestDayName = "Lunes";
-let topTag = "Variado";
-let firstEpisodeInfo: any = null;
-let percentile = 100;
-let mostRepeatsCount = 0;
-let commentsCount = 0;
-let chatCount = 0;
-let totalInteractions = 0;
+// ── Default values ─────────────────────────────────────────
+let yearListeningMinutes = 0, yearListeningHours = 0, uniqueEpisodes = 0;
+let bestMonth = "Enero", topEpisodeInfo: any = null, archetype = "El Nuevo";
+let totalSessions = yearHistory.length, bestHour = 12, bestDayIndex = 1;
+let dayTimeMsg = "Eres un fan todoterreno", bestDayName = "Lunes";
+let topTag = "Variado", firstEpisodeInfo: any = null, firstListenDate = "";
+let percentile = 100, mostRepeatsCount = 0, commentsCount = 0;
+let chatCount = 0, totalInteractions = 0;
 const maxStreak = user.maxStreak || 0;
 const currentStreak = user.currentStreak || 0;
 let completedEpisodesCount = (user.completedEpisodes || []).length;
@@ -64,100 +74,157 @@ let likedClipsCount = (user.likedClips || []).length;
 let favoritesCount = (user.favorites || []).length;
 let playlistsCount = (user.playlists || []).length;
 
-// Month distribution for chart
+// ── NEW DB stats ───────────────────────────────────────────
+let reactionsCount = 0, likesGiven = 0, dislikesGiven = 0;
+let quizzesTaken = 0, quizAvgScore = 0, quizBestScore = 0, quizTotalTime = 0;
+let achievementsCount = 0, cardsCollected = 0, avgMinutesPerSession = 0;
+let longestEpisodeTitle = "", longestEpisodeMins = 0;
+let totalEpisodesInPlatform = 0, episodeCoverage = 0;
+let referralsCount = (user.referrals || []).length;
+let accountAge = 0;
+
+try {
+    const userReactions = await EpisodeReaction.find({ userId: user._id });
+    reactionsCount = userReactions.length;
+    likesGiven = userReactions.filter((r: any) => r.type === 'like').length;
+    dislikesGiven = userReactions.filter((r: any) => r.type === 'dislike').length;
+
+    const quizResults = await QuizResult.find({ userId: user._id });
+    quizzesTaken = quizResults.length;
+    if (quizzesTaken > 0) {
+        const totalScore = quizResults.reduce((a: number, q: any) => a + (q.score / q.totalQuestions) * 100, 0);
+        quizAvgScore = Math.round(totalScore / quizzesTaken);
+        quizBestScore = Math.round(Math.max(...quizResults.map((q: any) => (q.score / q.totalQuestions) * 100)));
+        quizTotalTime = quizResults.reduce((a: number, q: any) => a + (q.timeSpent || 0), 0);
+    }
+    achievementsCount = await UserAchievement.countDocuments({ userId: user._id });
+    cardsCollected = await UnlockedCard.countDocuments({ userId: user._id });
+} catch (e) { console.error("Error fetching extra wrapped stats", e); }
+
+if (user.createdAt) accountAge = Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+
 let monthCounts: number[] = new Array(12).fill(0);
 let topTagsList: [string, number][] = [];
 let top3Episodes: any[] = [];
-
-// Day counts for heatmap
 let dayCounts: number[] = new Array(7).fill(0);
 let hourCounts: number[] = new Array(24).fill(0);
 
 if (yearHistory.length > 0) {
     uniqueEpisodes = new Set(yearHistory.map((h: any) => h.episodeSlug)).size;
-    const yearListeningSeconds = yearHistory.reduce((acc: number, h: any) => acc + (h.progress || 0), 0);
-    yearListeningMinutes = Math.floor(yearListeningSeconds / 60);
-    if (yearListeningMinutes === 0) yearListeningMinutes = Math.floor((user.listeningTime || 0) / 60);
+
+    // ── Listening time calculation ────────────────────────────
+    // For 2025/2026 (first year), user.listeningTime IS the year total
+    if (year === 2025) {
+        yearListeningMinutes = Math.floor((user.listeningTime || 0) / 60);
+    } else {
+        // For future years, compute incremental progress per episode
+        const sortedHistory = [...yearHistory].sort((a: any, b: any) =>
+            new Date(a.listenedAt).getTime() - new Date(b.listenedAt).getTime()
+        );
+        const lastProgress: Record<string, number> = {};
+        let totalListenedSecs = 0;
+
+        for (const h of sortedHistory) {
+            const prog = h.progress || 0;
+            const prev = lastProgress[h.episodeSlug];
+            if (prev !== undefined && prog > prev) {
+                totalListenedSecs += (prog - prev);
+            } else {
+                totalListenedSecs += prog;
+            }
+            lastProgress[h.episodeSlug] = prog;
+        }
+
+        yearListeningMinutes = Math.floor(totalListenedSecs / 60);
+
+        if (yearListeningMinutes === 0) {
+            const totalHistory = (user.playbackHistory || []).length;
+            if (totalHistory > 0) {
+                const proportion = yearHistory.length / totalHistory;
+                yearListeningMinutes = Math.floor(((user.listeningTime || 0) / 60) * proportion);
+            } else {
+                yearListeningMinutes = Math.floor((user.listeningTime || 0) / 60);
+            }
+        }
+    }
+
     yearListeningHours = Math.floor(yearListeningMinutes / 60);
+    avgMinutesPerSession = totalSessions > 0 ? Math.round(yearListeningMinutes / totalSessions) : 0;
 
     const episodeCounts: Record<string, number> = {};
     const allTags: Record<string, number> = {};
     const allEpisodes = await getCollection('episodios');
+    totalEpisodesInPlatform = allEpisodes.length;
+    episodeCoverage = totalEpisodesInPlatform > 0 ? Math.round((uniqueEpisodes / totalEpisodesInPlatform) * 100) : 0;
 
     yearHistory.forEach((h: any) => {
         const d = new Date(h.listenedAt);
         monthCounts[d.getMonth()]++;
         hourCounts[d.getHours()]++;
         dayCounts[d.getDay()]++;
-
-        if (!episodeCounts[h.episodeSlug]) episodeCounts[h.episodeSlug] = 0;
-        episodeCounts[h.episodeSlug]++;
-
+        episodeCounts[h.episodeSlug] = (episodeCounts[h.episodeSlug] || 0) + 1;
         const ep = allEpisodes.find(e => e.slug === h.episodeSlug);
-        if (ep && ep.data.tags) {
-            ep.data.tags.forEach((tag: string) => {
-                allTags[tag] = (allTags[tag] || 0) + 1;
-            });
-        }
+        if (ep?.data.tags) ep.data.tags.forEach((t: string) => { allTags[t] = (allTags[t] || 0) + 1; });
     });
 
-    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    // Academic months in order (Sept → June, indices 8..11, 0..5)
-    const academicMonthOrder = [8, 9, 10, 11, 0, 1, 2, 3, 4, 5];
-    const academicMonthCounts = academicMonthOrder.map(i => monthCounts[i]);
-    const bestAcademicIdx = academicMonthCounts.indexOf(Math.max(...academicMonthCounts));
-    const bestMonthIndex = academicMonthOrder[bestAcademicIdx];
-    bestMonth = monthNames[bestMonthIndex] || "Septiembre";
-    // Reorder monthCounts for chart display (Sept first)
-    monthCounts = academicMonthOrder.map(i => monthCounts[i]);
+    // Longest episode
+    const listened = [...new Set(yearHistory.map((h: any) => h.episodeSlug))].map(slug => {
+        const ep = allEpisodes.find(e => e.slug === slug);
+        const mx = Math.max(...yearHistory.filter((h: any) => h.episodeSlug === slug).map((h: any) => h.progress || 0));
+        return ep ? { title: ep.data.title, mins: Math.round(mx / 60) } : null;
+    }).filter(Boolean);
+    if (listened.length > 0) {
+        const longest = listened.sort((a: any, b: any) => b.mins - a.mins)[0] as any;
+        longestEpisodeTitle = longest.title; longestEpisodeMins = longest.mins;
+    }
+
+    const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    const acOrder = [8,9,10,11,0,1,2,3,4,5];
+    const acCounts = acOrder.map(i => monthCounts[i]);
+    bestMonth = monthNames[acOrder[acCounts.indexOf(Math.max(...acCounts))]] || "Septiembre";
+    monthCounts = acOrder.map(i => monthCounts[i]);
 
     bestHour = hourCounts.indexOf(Math.max(...hourCounts));
     bestDayIndex = dayCounts.indexOf(Math.max(...dayCounts));
-    const dayNames = ["Domingos", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábados"];
-    bestDayName = dayNames[bestDayIndex] || "Lunes";
+    bestDayName = ["Domingos","Lunes","Martes","Miércoles","Jueves","Viernes","Sábados"][bestDayIndex] || "Lunes";
 
     if (bestHour >= 5 && bestHour < 12) dayTimeMsg = "Empiezas las mañanas con energía 🌅";
     else if (bestHour >= 12 && bestHour < 17) dayTimeMsg = "Tus tardes son de Veredillas FM ☀️";
     else if (bestHour >= 17 && bestHour < 22) dayTimeMsg = "Desconectas por la tarde-noche 🌆";
     else dayTimeMsg = "Eres un búho nocturno 🦉";
 
-    const sortedTagsAll = Object.entries(allTags).sort((a: any, b: any) => b[1] - a[1]);
-    topTag = sortedTagsAll.length > 0 ? sortedTagsAll[0][0] : "Variados";
-    topTagsList = sortedTagsAll.slice(0, 5) as [string, number][];
+    const sortedTags = Object.entries(allTags).sort((a, b) => (b[1] as number) - (a[1] as number));
+    topTag = sortedTags[0]?.[0] || "Variados";
+    topTagsList = sortedTags.slice(0, 5) as [string, number][];
 
-    const sortedEpisodes = Object.entries(episodeCounts).sort((a: any, b: any) => b[1] - a[1]);
-    const topEpisodeSlug = sortedEpisodes[0]?.[0];
-    mostRepeatsCount = (sortedEpisodes[0]?.[1] as number) || 0;
+    const sortedEps = Object.entries(episodeCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
+    mostRepeatsCount = (sortedEps[0]?.[1] as number) || 0;
 
-    // Top 3 episodes
-    top3Episodes = sortedEpisodes.slice(0, 3).map(([slug, count]) => {
+    top3Episodes = sortedEps.slice(0, 3).map(([slug, count]) => {
         const ep = allEpisodes.find(e => e.slug === slug);
         return ep ? { title: ep.data.title, image: ep.data.image, count, slug } : null;
     }).filter(Boolean);
 
-    const topEpisode = allEpisodes.find(e => e.slug === topEpisodeSlug);
-    if (topEpisode) {
-        topEpisodeInfo = { title: topEpisode.data.title, image: topEpisode.data.image, counts: episodeCounts[topEpisodeSlug as string] };
-    }
+    const topEp = allEpisodes.find(e => e.slug === sortedEps[0]?.[0]);
+    if (topEp) topEpisodeInfo = { title: topEp.data.title, image: topEp.data.image, counts: sortedEps[0]?.[1] };
 
-    const yearHistorySorted = [...yearHistory].sort((a: any, b: any) => new Date(a.listenedAt).getTime() - new Date(b.listenedAt).getTime());
-    const firstPlay = yearHistorySorted[0];
-    if (firstPlay) {
-        firstEpisodeInfo = allEpisodes.find(e => e.slug === firstPlay.episodeSlug);
+    const sorted = [...yearHistory].sort((a: any, b: any) => new Date(a.listenedAt).getTime() - new Date(b.listenedAt).getTime());
+    if (sorted[0]) {
+        firstEpisodeInfo = allEpisodes.find(e => e.slug === sorted[0].episodeSlug);
+        firstListenDate = new Date(sorted[0].listenedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
     const totalUsers = await User.countDocuments({});
-    const usersWithLessTime = await User.countDocuments({ listeningTime: { $lt: user.listeningTime } });
-    if (totalUsers > 0) {
-        percentile = 100 - Math.round((usersWithLessTime / totalUsers) * 100);
-        if (percentile < 1) percentile = 1;
-    }
+    const lessTime = await User.countDocuments({ listeningTime: { $lt: user.listeningTime } });
+    if (totalUsers > 0) { percentile = 100 - Math.round((lessTime / totalUsers) * 100); if (percentile < 1) percentile = 1; }
 
     if (uniqueEpisodes > 20 && yearListeningMinutes > 500) archetype = "El Explorador Total 🌌";
     else if (uniqueEpisodes > 20) archetype = "El Explorador Cósmico 🚀";
     else if (yearHistory.length > 30) archetype = "El Fanático Incondicional 🔥";
     else if (yearListeningMinutes > 500) archetype = "El Maratonista 🏃";
     else if (completedEpisodesCount > 10) archetype = "El Completista 🏆";
+    else if (quizzesTaken > 5 && quizAvgScore > 70) archetype = "El Cerebrito 🧠";
+    else if (achievementsCount > 10) archetype = "El Coleccionista 🏅";
     else archetype = "El Oyente Selecto ✨";
 } else {
     yearListeningMinutes = Math.floor((user.listeningTime || 0) / 60);
@@ -168,137 +235,43 @@ if (yearHistory.length > 0) {
 try {
     commentsCount = await Comment.countDocuments({ email: user.email.toLowerCase() });
     chatCount = await ChatMessage.countDocuments({ 'user.userId': user._id.toString() });
-    totalInteractions = commentsCount + chatCount + likedClipsCount;
-} catch (e) {
-    console.error("Error fetching community stats", e);
-}
+    totalInteractions = commentsCount + chatCount + likedClipsCount + reactionsCount;
+} catch (e) { console.error("Error fetching community stats", e); }
 
-// Serialize safe data for client
 const clientData = {
-    monthCounts,
-    dayCounts,
+    monthCounts, dayCounts,
     hourCounts: hourCounts.map((v, i) => ({ hour: i, count: v })),
-    topTagsList,
-    top3Episodes,
-    userName: user.name,
-    year,
-    academicLabel,
-    archetype,
-    yearListeningMinutes,
-    yearListeningHours,
-    uniqueEpisodes,
-    bestMonth,
-    percentile,
-    maxStreak,
-    currentStreak,
-    commentsCount,
-    chatCount,
-    likedClipsCount,
-    favoritesCount,
-    playlistsCount,
-    completedEpisodesCount,
-    totalInteractions,
-    totalSessions,
-    bestDayName,
-    bestHour,
-    dayTimeMsg,
-    topTag,
+    topTagsList, top3Episodes, userName: user.name, userPicture: user.picture || '/logo.webp',
+    year, academicLabel, archetype, yearListeningMinutes, yearListeningHours, uniqueEpisodes,
+    bestMonth, percentile, maxStreak, currentStreak, commentsCount, chatCount, likedClipsCount,
+    favoritesCount, playlistsCount, completedEpisodesCount, totalInteractions, totalSessions,
+    bestDayName, bestHour, dayTimeMsg, topTag, reactionsCount, likesGiven, dislikesGiven,
+    quizzesTaken, quizAvgScore, quizBestScore, quizTotalTime, achievementsCount, cardsCollected,
+    avgMinutesPerSession, longestEpisodeTitle, longestEpisodeMins, totalEpisodesInPlatform,
+    episodeCoverage, referralsCount, accountAge, firstListenDate,
 };
 
-const TOTAL_SLIDES = 11;
+const TOTAL_SLIDES = 14;
 ---
 
 <Layout title={`Tu Veredillas Wrapped ${academicLabel}`} robots="noindex, nofollow"
-  description="Descubre tu resumen anual en Veredillas FM. Revisa tus estadísticas de escucha, episodios favoritos y logros desbloqueados este año."
->
-    <div class="wrapped-experience fixed inset-0 z-50 bg-black overflow-hidden flex items-center justify-center font-sans">
+  description="Descubre tu resumen anual en Veredillas FM." hideHeader={true} showFooter={false}>
 
-        <!-- Music Player Bar -->
-        <div class="music-bar absolute bottom-0 left-0 right-0 z-[100] hidden" id="music-bar">
-            <div class="music-inner">
-                <div class="music-info">
-                    <div class="music-icon">🎵</div>
-                    <div>
-                        <p class="music-title" id="music-title">Veredillas FM Premier</p>
-                        <p class="music-subtitle" id="music-subtitle">Em directo</p>
-                    </div>
-                </div>
-                <div class="music-controls">
-                    <button class="music-btn" id="music-toggle-btn" title="Play/Pause">
-                        <svg id="music-play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        <svg id="music-pause-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                    </button>
-                    <div class="music-vol">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-                        <input type="range" id="music-volume" min="0" max="1" step="0.05" value="0.4" class="vol-slider">
-                    </div>
-                    <button class="music-close-btn" id="music-close-btn" title="Cerrar">✕</button>
-                </div>
-            </div>
-        </div>
+    <!-- Fullscreen entry -->
+    <WrappedEntry userName={user.name} academicLabel={academicLabel} />
 
-        <!-- Station Selector Modal -->
-        <div class="station-modal" id="station-modal">
-            <div class="station-modal-inner">
-                <h3 class="station-modal-title">🎙️ Elige tu música de fondo</h3>
-                <p class="station-modal-sub">Escucha una emisora mientras revives tu curso {academicLabel}</p>
-                <div class="station-grid" id="station-grid">
-                    <button class="station-card station-featured" data-stream="https://live.veredillasfm.es/stream-pro.m3u8" data-name="Veredillas FM Premier" data-type="hls" data-desc="Tu radio en directo">
-                        <span class="station-emoji">📻</span>
-                        <span class="station-name">Veredillas FM</span>
-                        <span class="station-desc">Premier · En directo</span>
-                    </button>
-                    <button class="station-card" data-stream="https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_URBAN.mp3" data-name="LOS40 Urban" data-type="direct" data-desc="Urban & Hip-Hop">
-                        <span class="station-emoji">🏙️</span>
-                        <span class="station-name">LOS40 Urban</span>
-                        <span class="station-desc">Urban · Hip-Hop</span>
-                    </button>
-                    <button class="station-card" data-stream="https://s3.we4stream.com:2020/stream/locaurban" data-name="Loca FM Urban" data-type="direct" data-desc="Trap & Reggaetón">
-                        <span class="station-emoji">🔊</span>
-                        <span class="station-name">Loca Urban</span>
-                        <span class="station-desc">Trap · Reggaetón</span>
-                    </button>
-                    <button class="station-card" data-stream="https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_ES.mp3" data-name="LOS40" data-type="direct" data-desc="Los 40 Principales">
-                        <span class="station-emoji">🔥</span>
-                        <span class="station-name">LOS40</span>
-                        <span class="station-desc">Hits del momento</span>
-                    </button>
-                    <button class="station-card" data-stream="https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_DANCE.mp3" data-name="LOS40 Dance" data-type="direct" data-desc="Electronic & Dance">
-                        <span class="station-emoji">💃</span>
-                        <span class="station-name">LOS40 Dance</span>
-                        <span class="station-desc">Electronic · Dance</span>
-                    </button>
-                    <button class="station-card" data-stream="https://s3.we4stream.com:2020/stream/locafm" data-name="Loca FM" data-type="direct" data-desc="Pop & Dance">
-                        <span class="station-emoji">🎶</span>
-                        <span class="station-name">Loca FM</span>
-                        <span class="station-desc">Pop · Dance</span>
-                    </button>
-                    <button class="station-card" data-stream="https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_CLASSIC.mp3" data-name="LOS40 Classic" data-type="direct" data-desc="Grandes éxitos de siempre">
-                        <span class="station-emoji">⭐</span>
-                        <span class="station-name">LOS40 Classic</span>
-                        <span class="station-desc">Clásicos</span>
-                    </button>
-                    <button class="station-card" data-stream="https://playerservices.streamtheworld.com/api/livestream-redirect/MEGA_HIT_ES.mp3" data-name="Mega Hits" data-type="direct" data-desc="Pop internacional">
-                        <span class="station-emoji">⚡</span>
-                        <span class="station-name">Mega Hits</span>
-                        <span class="station-desc">Pop internacional</span>
-                    </button>
-                    <button class="station-card station-none" data-stream="" data-name="" data-type="" data-desc="">
-                        <span class="station-emoji">🔕</span>
-                        <span class="station-name">Sin música</span>
-                        <span class="station-desc">Modo silencioso</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+    <!-- Main wrapped experience (hidden until entry dismissed) -->
+    <div class="fixed inset-0 z-50 bg-black overflow-hidden flex items-center justify-center font-sans" id="wrapped-experience" style="display:none">
 
-        <!-- Controls -->
-        <div class="absolute top-6 left-6 right-6 z-40 flex gap-2 story-progress">
+        <WrappedMusicPlayer academicLabel={academicLabel} />
+
+        <!-- Progress bars -->
+        <div class="absolute top-6 left-6 right-6 z-40 flex gap-1 story-progress" style="padding-right:60px">
             {[...Array(TOTAL_SLIDES)].map(() => (
-                <div class="progress-bar"><div class="fill"></div></div>
+                <div class="flex-1 h-[3px] bg-white/20 rounded-sm overflow-hidden"><div class="fill h-full w-0 bg-white/90"></div></div>
             ))}
             <div class="absolute -top-1 right-0 flex items-center gap-2">
-                <button class="music-open-btn" id="music-open-btn" title="Música de fondo">
+                <button class="bg-white/10 border border-white/20 rounded-lg text-white p-1.5 cursor-pointer flex items-center hover:bg-white/20 transition-colors" id="music-open-btn" title="Música">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                 </button>
                 <button class="text-white/50 hover:text-white pb-2" onclick="window.location.href='/dashboard'">
@@ -313,1041 +286,28 @@ const TOTAL_SLIDES = 11;
 
         <!-- Stories Container -->
         <div class="stories-container relative w-full h-full max-w-md mx-auto aspect-[9/16] bg-[#121212] flex overflow-hidden lg:rounded-3xl lg:h-[85vh] lg:my-auto lg:shadow-2xl">
-
-            <!-- SLIDE 1: Intro -->
-            <div class="story-slide active bg-gradient-to-br from-violet-900 via-indigo-900 to-black">
-                <div class="cube-wrap absolute inset-0 opacity-20 pointer-events-none">
-                    <div class="cube"><div class="face front"></div><div class="face back"></div><div class="face right"></div><div class="face left"></div><div class="face top"></div><div class="face bottom"></div></div>
-                </div>
-                <div class="slide-content text-center p-8 flex flex-col justify-center h-full">
-                    <div class="slide-pop mb-6">
-                        <img src="/logo.webp" alt="Veredillas FM" class="w-20 h-20 mx-auto object-contain drop-shadow-[0_0_20px_rgba(167,139,250,0.8)]" />
-                    </div>
-                    <h2 class="text-xl font-bold text-violet-300 mb-4 slide-title tracking-widest uppercase slide-fade">Veredillas FM</h2>
-                    <h1 class="text-5xl font-black text-white mb-6 slide-pop leading-tight">Tu <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">Wrapped</span><br/><span class="text-3xl">{academicLabel}</span></h1>
-                    <p class="text-lg text-white/70 slide-fade">Hola <strong class="text-white">{user.name.split(' ')[0]}</strong>, este año fue increíble.</p>
-                    <p class="text-sm text-white/40 slide-fade-up mt-8">Toca para continuar →</p>
-                </div>
-            </div>
-
-            <!-- SLIDE 2: Primer Episodio -->
-            <div class="story-slide bg-gradient-to-br from-blue-900 via-sky-800 to-indigo-900">
-                <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
-                    <p class="text-xl font-bold text-sky-200 mb-4 slide-fade tracking-widest uppercase">El comienzo</p>
-                    <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">Todo empezó con un <em>click</em></h2>
-                    {firstEpisodeInfo ? (
-                        <>
-                            <div class="relative w-44 h-44 mx-auto mb-4 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-sky-400 ring-offset-4 ring-offset-sky-900">
-                                <img src={firstEpisodeInfo.data.image} alt={firstEpisodeInfo.data.title} class="w-full h-full object-cover" crossorigin="anonymous" />
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            </div>
-                            <h3 class="text-xl font-bold text-white mb-2 slide-fade-up">{firstEpisodeInfo.data.title}</h3>
-                            <p class="text-sky-200 slide-fade-up text-sm">Tu primera escucha del año fue este episodio ✨</p>
-                        </>
-                    ) : (
-                        <>
-                            <div class="w-32 h-32 mx-auto mb-6 rounded-full bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-5xl slide-pop">🎙️</div>
-                            <h2 class="text-xl font-bold text-white slide-pop">Tu viaje apenas comienza</h2>
-                            <p class="text-sky-200 slide-fade mt-2">Empieza a escuchar para llenar tu Wrapped</p>
-                        </>
-                    )}
-                </div>
-            </div>
-
-            <!-- SLIDE 3: Tiempo total & Percentil -->
-            <div class="story-slide bg-gradient-to-tr from-pink-600 via-rose-500 to-orange-500">
-                <div class="absolute inset-0 bg-[url('/noise.png')] opacity-30 mix-blend-overlay"></div>
-                <!-- Animated particles -->
-                <div class="particle-bg absolute inset-0 pointer-events-none"></div>
-                <div class="slide-content text-center p-8 flex flex-col justify-center h-full relative z-10">
-                    <p class="text-2xl font-bold text-white mb-2 slide-fade">⏱ Pasamos juntos</p>
-                    <div class="text-[5rem] font-black text-white mb-1 slide-pop text-shadow-glow leading-none">{yearListeningMinutes}</div>
-                    <p class="text-2xl font-bold text-white/90 slide-fade mb-2">minutos</p>
-                    {yearListeningHours > 0 && (
-                        <p class="text-white/70 slide-fade mb-6">Eso son <strong class="text-white">{yearListeningHours}h {yearListeningMinutes % 60}min</strong> de tu vida</p>
-                    )}
-                    <div class="bg-black/20 backdrop-blur-md rounded-2xl p-5 slide-fade-up border border-white/20">
-                        <h3 class="text-xs font-bold text-orange-200 uppercase tracking-widest mb-2">Nivel de Lealtad Global</h3>
-                        <p class="text-5xl font-black text-white">Top {percentile}%</p>
-                        <p class="text-xs font-medium text-white/70 mt-1">entre todos los oyentes de Veredillas FM</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SLIDE 4: Sesiones & Rachas -->
-            <div class="story-slide bg-gradient-to-tr from-amber-600 via-orange-600 to-red-700">
-                <div class="slide-content text-center p-8 flex flex-col justify-center h-full relative z-10">
-                    <p class="text-xl font-bold text-orange-200 mb-4 slide-fade tracking-widest uppercase">🔥 Tu constancia</p>
-                    <h2 class="text-4xl font-black text-white mb-6 slide-pop leading-tight">Los <span class="underline decoration-wavy decoration-orange-300">{bestDayName}</span> no son lo mismo sin ti.</h2>
-
-                    <div class="grid grid-cols-2 gap-3 slide-fade-up">
-                        <div class="bg-black/20 backdrop-blur rounded-xl p-4 border border-white/20">
-                            <p class="text-3xl font-black text-white">{totalSessions}</p>
-                            <p class="text-xs text-orange-200 uppercase font-bold mt-1">Sesiones</p>
-                        </div>
-                        <div class="bg-black/20 backdrop-blur rounded-xl p-4 border border-white/20">
-                            <p class="text-3xl font-black text-white">{uniqueEpisodes}</p>
-                            <p class="text-xs text-orange-200 uppercase font-bold mt-1">Episodios únicos</p>
-                        </div>
-                    </div>
-
-                    {maxStreak >= 3 && (
-                        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 slide-fade-up border border-white/20 relative overflow-hidden mt-4">
-                            <div class="absolute -right-4 -top-4 text-6xl opacity-30">🔥</div>
-                            <h3 class="text-xs font-bold text-amber-200 uppercase tracking-widest mb-1 relative z-10">Racha Imparable</h3>
-                            <p class="text-4xl font-black text-white relative z-10">{maxStreak} días</p>
-                            <p class="text-xs font-medium text-white/70 mt-1 relative z-10">tu mejor racha del año</p>
-                        </div>
-                    )}
-                    {maxStreak < 3 && (
-                        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 slide-fade-up border border-white/20 mt-4">
-                            <p class="text-sm text-white/70">Sigue escuchando para construir tu racha 💪</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <!-- SLIDE 5: Hora favorita & día favorito -->
-            <div class="story-slide" style="background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);">
-                <div class="absolute inset-0 overflow-hidden pointer-events-none">
-                    <!-- Stars background -->
-                    <div class="stars-bg"></div>
-                </div>
-                <div class="slide-content p-8 flex flex-col justify-center h-full text-center relative z-10">
-                    <p class="text-xl font-bold text-purple-300 mb-4 slide-fade tracking-widest uppercase">⏰ Tu ritmo</p>
-                    <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">{dayTimeMsg}</h2>
-
-                    <div class="bg-white/5 backdrop-blur rounded-2xl p-5 slide-fade-up border border-white/10 mb-4">
-                        <div class="flex justify-between items-center">
-                            <div class="text-center flex-1">
-                                <p class="text-4xl font-black text-purple-300">{bestHour}:00h</p>
-                                <p class="text-xs text-white/60 uppercase font-bold mt-1">Hora favorita</p>
-                            </div>
-                            <div class="w-px h-12 bg-white/10"></div>
-                            <div class="text-center flex-1">
-                                <p class="text-4xl font-black text-pink-300">{bestDayName}</p>
-                                <p class="text-xs text-white/60 uppercase font-bold mt-1">Día favorito</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mini hour bar chart -->
-                    <div class="hour-chart slide-fade-up" id="hour-chart-placeholder">
-                        <p class="text-xs text-white/40 mb-2">Actividad por hora del día</p>
-                        <div class="hour-bars" id="hour-bars">
-                            <!-- Filled by JS -->
-                        </div>
-                        <div class="flex justify-between text-[8px] text-white/30 mt-1">
-                            <span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SLIDE 6: Categorías Top -->
-            <div class="story-slide bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-900">
-                <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
-                    <p class="text-xl font-bold text-emerald-200 mb-4 slide-fade tracking-widest uppercase">🎯 Tus gustos</p>
-                    <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">Tus categorías favoritas</h2>
-
-                    <div class="space-y-3 slide-fade-up">
-                        {topTagsList.length > 0 ? topTagsList.map(([ tag, count ], i) => (
-                            <div class="flex items-center gap-3">
-                                <span class="text-lg w-6 text-center">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i === 3 ? '4️⃣' : '5️⃣'}</span>
-                                <div class="flex-1 bg-white/10 rounded-lg overflow-hidden h-8 relative">
-                                    <div
-                                        class="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-lg flex items-center px-3"
-                                        style={`width: ${Math.max(15, Math.round((count / (topTagsList[0]?.[1] || 1)) * 100))}%`}
-                                    >
-                                        <span class="text-xs font-bold text-white capitalize truncate">{tag}</span>
-                                    </div>
-                                </div>
-                                <span class="text-xs text-white/60 w-8 text-right">{count}</span>
-                            </div>
-                        )) : (
-                            <div class="bg-white/10 rounded-2xl p-6 border border-white/20">
-                                <p class="text-white/60">Categoría principal:</p>
-                                <p class="text-3xl font-black text-white capitalize mt-1">{topTag}</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {topTagsList.length === 0 && (
-                        <div class="mt-4 slide-fade-up">
-                            <p class="text-emerald-200 text-sm">¡Explora más episodios para descubrir tus gustos!</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <!-- SLIDE 7: Top Episodio -->
-            <div class="story-slide bg-gradient-to-tl from-purple-900 via-fuchsia-800 to-pink-700">
-                <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
-                    <p class="text-xl font-bold text-pink-200 mb-4 slide-fade tracking-widest uppercase">⭐ Obsesión Pura</p>
-                    {topEpisodeInfo ? (
-                        <>
-                            <h2 class="text-3xl font-black text-white mb-4 slide-pop leading-tight">Te enganchaste perdidamente a</h2>
-                            <div class="relative w-36 h-36 mx-auto mb-4 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-pink-400 ring-offset-4 ring-offset-fuchsia-800">
-                                <img src={topEpisodeInfo.image} alt={topEpisodeInfo.title} class="w-full h-full object-cover" crossorigin="anonymous" />
-                            </div>
-                            <h3 class="text-lg font-bold text-white mb-3 slide-fade-up">{topEpisodeInfo.title}</h3>
-                            {mostRepeatsCount > 1 ? (
-                                <p class="text-pink-100 slide-fade-up font-medium text-base bg-black/20 p-4 rounded-xl">
-                                    Lo escuchaste <span class="font-black text-white text-2xl">{mostRepeatsCount}</span> veces.<br/>
-                                    <span class="text-sm opacity-80">{mostRepeatsCount > 5 ? "¡Eso ya es devoción! 🙏" : "¡Gran elección! 👏"}</span>
-                                </p>
-                            ) : (
-                                <p class="text-pink-100 slide-fade-up font-medium text-base bg-black/20 p-4 rounded-xl">Tu absoluto favorito del año. 💜</p>
-                            )}
-                        </>
-                    ) : (
-                        <h2 class="text-3xl font-black text-white slide-pop">¡El misterio! Tus escuchas están tan repartidas que todos son tus favoritos.</h2>
-                    )}
-                </div>
-            </div>
-
-            <!-- SLIDE 8: Top 3 Episodios -->
-            <div class="story-slide" style="background: linear-gradient(160deg, #1a1a2e, #16213e, #0f3460);">
-                <div class="slide-content p-8 flex flex-col justify-center h-full">
-                    <p class="text-xl font-bold text-blue-300 mb-2 slide-fade tracking-widest uppercase text-center">🏆 Tu Podio</p>
-                    <h2 class="text-2xl font-black text-white mb-6 slide-pop text-center">Los 3 más escuchados</h2>
-
-                    <div class="space-y-3 slide-fade-up">
-                        {top3Episodes.length > 0 ? top3Episodes.map((ep: any, i: number) => (
-                            <div class={`flex items-center gap-3 p-3 rounded-xl border ${i === 0 ? 'bg-yellow-500/10 border-yellow-500/30' : i === 1 ? 'bg-gray-400/10 border-gray-400/30' : 'bg-orange-700/10 border-orange-700/30'}`}>
-                                <span class="text-2xl w-8 flex-shrink-0">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
-                                <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src={ep.image} alt={ep.title} class="w-full h-full object-cover" crossorigin="anonymous" />
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-white font-bold text-sm truncate">{ep.title}</p>
-                                    <p class="text-white/50 text-xs">{ep.count} {ep.count === 1 ? 'vez' : 'veces'}</p>
-                                </div>
-                            </div>
-                        )) : (
-                            <div class="text-center py-8">
-                                <p class="text-4xl mb-4">🎧</p>
-                                <p class="text-white/60">¡Escucha más episodios para llenar tu podio!</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {completedEpisodesCount > 0 && (
-                        <div class="mt-4 bg-white/5 rounded-xl p-4 border border-white/10 slide-fade-up">
-                            <p class="text-center text-white/80 text-sm">
-                                <span class="text-green-400 font-black text-xl">{completedEpisodesCount}</span> episodios completados al 100% ✅
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <!-- SLIDE 9: Meses - Actividad mensual -->
-            <div class="story-slide bg-gradient-to-b from-[#0d1b2a] to-[#1b2838]">
-                <div class="slide-content p-8 flex flex-col justify-center h-full">
-                    <p class="text-xl font-bold text-cyan-300 mb-2 slide-fade tracking-widest uppercase text-center">📅 Tu curso en meses</p>
-                    <h2 class="text-2xl font-black text-white mb-2 slide-pop text-center">Tu mes más activo fue</h2>
-                    <p class="text-4xl font-black text-cyan-300 mb-6 slide-pop text-center">{bestMonth}</p>
-
-                    <!-- Month Bar Chart - filled by JS -->
-                    <div class="month-chart slide-fade-up" id="month-chart">
-                        <div class="month-bars" id="month-bars">
-                            <!-- JS fills this -->
-                        </div>
-                        <div class="month-labels">
-                            {/* Academic order: Sept, Oct, Nov, Dec, Jan, Feb, Mar, Apr, May, Jun */}
-                            {["Sep","Oct","Nov","Dic","Ene","Feb","Mar","Abr","May","Jun"].map(m => (
-                                <span>{m}</span>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2 mt-4 slide-fade-up">
-                        <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
-                            <p class="text-xl font-black text-white">{favoritesCount}</p>
-                            <p class="text-[10px] text-white/50 uppercase font-bold mt-0.5">Favoritos</p>
-                        </div>
-                        <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
-                            <p class="text-xl font-black text-white">{playlistsCount}</p>
-                            <p class="text-[10px] text-white/50 uppercase font-bold mt-0.5">Playlists</p>
-                        </div>
-                        <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
-                            <p class="text-xl font-black text-white">{likedClipsCount}</p>
-                            <p class="text-[10px] text-white/50 uppercase font-bold mt-0.5">Clips ❤️</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SLIDE 10: Comunidad -->
-            <div class="story-slide bg-gradient-to-bl from-indigo-900 via-indigo-700 to-blue-800">
-                <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
-                    <p class="text-xl font-bold text-indigo-200 mb-4 slide-fade tracking-widest uppercase">💬 Tu Impacto</p>
-                    <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">No fuiste un oyente fantasma.</h2>
-
-                    <div class="grid grid-cols-3 gap-3 slide-fade-up mb-4">
-                        <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 flex flex-col items-center justify-center">
-                            <span class="text-3xl mb-1">💬</span>
-                            <span class="text-3xl font-black text-white block">{commentsCount}</span>
-                            <span class="text-[10px] font-bold text-indigo-200 uppercase">Comentarios</span>
-                        </div>
-                        <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 flex flex-col items-center justify-center">
-                            <span class="text-3xl mb-1">✉️</span>
-                            <span class="text-3xl font-black text-white block">{chatCount}</span>
-                            <span class="text-[10px] font-bold text-indigo-200 uppercase">Mensajes</span>
-                        </div>
-                        <div class="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20 flex flex-col items-center justify-center">
-                            <span class="text-3xl mb-1">❤️</span>
-                            <span class="text-3xl font-black text-white block">{likedClipsCount}</span>
-                            <span class="text-[10px] font-bold text-indigo-200 uppercase">Clips</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 slide-fade-up border border-white/20 relative overflow-hidden">
-                        <span class="text-5xl font-black text-white block mb-1 relative z-10">{totalInteractions}</span>
-                        <span class="text-sm font-bold text-indigo-200 uppercase relative z-10">Interacciones Totales</span>
-                        <div class="absolute -right-4 -bottom-4 text-7xl opacity-20">🌟</div>
-                    </div>
-
-                    {totalInteractions === 0 && (
-                        <p class="text-indigo-200 text-sm mt-3 slide-fade-up">¡Únete a la comunidad el próximo año! 🚀</p>
-                    )}
-                </div>
-            </div>
-
-            <!-- SLIDE 11: Resumen Final + Descarga -->
-            <div class="story-slide bg-black">
-                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-violet-900/30 to-violet-900 opacity-80"></div>
-                <div class="slide-content p-5 flex flex-col items-center justify-center h-full relative z-10 w-full">
-
-                    <div id="share-card" class="bg-gradient-to-br from-zinc-900 border border-white/20 to-black p-6 rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(139,92,246,0.3)] slide-pop mx-auto relative overflow-hidden">
-                        <div class="watermark-overlay absolute bottom-4 right-4 flex items-center gap-2 opacity-0 pointer-events-none">
-                            <img src="/logo.webp" class="w-4 h-4 object-contain brightness-0 invert" crossorigin="anonymous" />
-                            <span class="text-[10px] font-bold text-white/50 tracking-widest">VEREDILLAS FM</span>
-                        </div>
-                        <div class="flex items-center gap-3 mb-4">
-                            <img src="/logo.webp" class="w-7 h-7 object-contain" />
-                            <span class="text-sm font-bold tracking-widest text-white">WRAPPED {academicLabel}</span>
-                        </div>
-
-                        <div class="mb-5">
-                            <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-1">Perfil de Oyente</p>
-                            <h2 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">{archetype}</h2>
-                        </div>
-
-                        <div class="space-y-2.5 mb-5">
-                            <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                                <span class="text-white/60 text-sm">Minutos escuchados</span>
-                                <span class="text-white font-bold">{yearListeningMinutes}</span>
-                            </div>
-                            <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                                <span class="text-white/60 text-sm">Episodios únicos</span>
-                                <span class="text-white font-bold">{uniqueEpisodes}</span>
-                            </div>
-                            <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                                <span class="text-white/60 text-sm">Mejor racha</span>
-                                <span class="text-white font-bold">{maxStreak} días 🔥</span>
-                            </div>
-                            {topEpisodeInfo && (
-                                <div class="flex justify-between items-center pb-2">
-                                    <span class="text-white/60 text-sm">Top episodio</span>
-                                    <span class="text-white font-bold w-32 truncate text-right">{topEpisodeInfo.title}</span>
-                                </div>
-                            )}
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <img src={user.picture || '/logo.webp'} class="w-9 h-9 rounded-full border border-white/20" crossorigin="anonymous" />
-                            <div>
-                                <p class="text-sm font-bold text-white">{user.name}</p>
-                                <p class="text-xs text-white/40">Top {percentile}% oyente</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p class="text-zinc-400 mt-4 text-center text-sm slide-fade-up download-ui-elements">Elige qué recuerdo llevarte</p>
-
-                    <div class="flex flex-col gap-2 mt-3 w-full max-w-sm slide-fade-up relative z-[60] download-ui-elements">
-                        <button data-download="10" class="download-btn w-full px-5 py-3 bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-400 hover:to-violet-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                            <span>Descargar Resumen Completo</span>
-                        </button>
-
-                        <div class="grid grid-cols-4 gap-2">
-                            <button data-download="2" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[9px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-0.5">⏱️<span>Minutos</span></button>
-                            <button data-download="6" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[9px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-0.5">⭐<span>Top Ep</span></button>
-                            <button data-download="3" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[9px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-0.5">🔥<span>Racha</span></button>
-                            <button data-download="9" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[9px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-0.5">💬<span>Social</span></button>
-                        </div>
-                    </div>
-
-                    <button onclick="window.location.href='/dashboard'" class="mt-4 px-6 py-3 bg-white text-black font-bold rounded-full slide-fade-up hover:scale-105 transition-transform w-full max-w-sm z-20 download-ui-elements text-sm">
-                        Volver al Dashboard
-                    </button>
-                </div>
-            </div>
-
+            <SlideIntro academicLabel={academicLabel} userName={user.name} />
+            <SlideFirstEpisode firstEpisodeInfo={firstEpisodeInfo} firstListenDate={firstListenDate} />
+            <SlideListeningTime yearListeningMinutes={yearListeningMinutes} yearListeningHours={yearListeningHours} percentile={percentile} avgMinutesPerSession={avgMinutesPerSession} />
+            <SlideSessions totalSessions={totalSessions} uniqueEpisodes={uniqueEpisodes} maxStreak={maxStreak} bestDayName={bestDayName} />
+            <SlideRhythm bestHour={bestHour} bestDayName={bestDayName} dayTimeMsg={dayTimeMsg} />
+            <SlideCategories topTagsList={topTagsList} topTag={topTag} />
+            <SlideTopEpisode topEpisodeInfo={topEpisodeInfo} mostRepeatsCount={mostRepeatsCount} />
+            <SlidePodium top3Episodes={top3Episodes} completedEpisodesCount={completedEpisodesCount} />
+            <SlideMonths bestMonth={bestMonth} favoritesCount={favoritesCount} playlistsCount={playlistsCount} likedClipsCount={likedClipsCount} />
+            <SlideQuiz quizzesTaken={quizzesTaken} quizAvgScore={quizAvgScore} quizBestScore={quizBestScore} quizTotalTime={quizTotalTime} />
+            <SlideCollector achievementsCount={achievementsCount} cardsCollected={cardsCollected} reactionsCount={reactionsCount} likesGiven={likesGiven} dislikesGiven={dislikesGiven} referralsCount={referralsCount} />
+            <SlideCoverage episodeCoverage={episodeCoverage} totalEpisodesInPlatform={totalEpisodesInPlatform} uniqueEpisodes={uniqueEpisodes} longestEpisodeTitle={longestEpisodeTitle} longestEpisodeMins={longestEpisodeMins} accountAge={accountAge} />
+            <SlideCommunity commentsCount={commentsCount} chatCount={chatCount} likedClipsCount={likedClipsCount} totalInteractions={totalInteractions} />
+            <SlideFinal academicLabel={academicLabel} archetype={archetype} yearListeningMinutes={yearListeningMinutes} uniqueEpisodes={uniqueEpisodes} maxStreak={maxStreak} topEpisodeInfo={topEpisodeInfo} percentile={percentile} userName={user.name} userPicture={user.picture || '/logo.webp'} achievementsCount={achievementsCount} quizzesTaken={quizzesTaken} cardsCollected={cardsCollected} />
         </div>
     </div>
-
-    <!-- Hidden audio element -->
-    <audio id="bg-audio" loop preload="none" crossorigin="anonymous"></audio>
 </Layout>
 
-<!-- Inject server data as a plain global (NO import allowed inside define:vars) -->
 <script define:vars={{ clientData }}>
     window.__wrappedData__ = clientData;
 </script>
 
 <script>
-    // All ES module imports go here, data comes from window.__wrappedData__
-    import * as htmlToImage from 'html-to-image';
-
-    // ── Render charts ──────────────────────────────────────────────
-    function renderCharts() {
-        const cd = window.__wrappedData__ || {};
-        const CHART_H = 60; // px — must match .hour-bars / .month-bars height in CSS
-
-        // Hour bars
-        const hourBarsEl = document.getElementById('hour-bars');
-        if (hourBarsEl && cd.hourCounts && cd.hourCounts.length) {
-            const maxH = Math.max(...cd.hourCounts.map((h) => h.count), 1);
-            hourBarsEl.innerHTML = cd.hourCounts.map((h) => {
-                const px = Math.max(4, Math.round((h.count / maxH) * CHART_H));
-                const isActive = h.count === maxH;
-                const bg = isActive ? '#a78bfa' : 'rgba(255,255,255,0.25)';
-                return `<div class="hour-bar" style="height:${px}px;background:${bg};flex:1;border-radius:3px 3px 0 0;cursor:pointer;transition:background .3s;" title="${h.hour}:00 - ${h.count} sesiones"></div>`;
-            }).join('');
-        }
-
-        // Month bars (10 months in academic order: Sept→Jun)
-        const monthBarsEl = document.getElementById('month-bars');
-        if (monthBarsEl && cd.monthCounts && cd.monthCounts.length) {
-            const maxM = Math.max(...cd.monthCounts, 1);
-            monthBarsEl.innerHTML = cd.monthCounts.map((c, i) => {
-                const px = Math.max(4, Math.round((c / maxM) * CHART_H));
-                const isActive = c === maxM;
-                const bg = isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)';
-                const labels = ['Sep','Oct','Nov','Dic','Ene','Feb','Mar','Abr','May','Jun'];
-                return `<div class="month-bar" style="height:${px}px;background:${bg};flex:1;border-radius:3px 3px 0 0;cursor:pointer;transition:background .3s;" title="${labels[i] || ''}: ${c} sesiones"></div>`;
-            }).join('');
-        }
-    }
-
-    // ── All DOM init goes inside DOMContentLoaded ───────────────────
-    document.addEventListener('DOMContentLoaded', () => {
-        renderCharts();
-
-        // ── Music player setup ────────────────────────────────────
-        const audio = document.getElementById('bg-audio');
-        const musicBar = document.getElementById('music-bar');
-        const musicToggleBtn = document.getElementById('music-toggle-btn');
-        const musicPlayIcon = document.getElementById('music-play-icon');
-        const musicPauseIcon = document.getElementById('music-pause-icon');
-        const musicVolumeSlider = document.getElementById('music-volume');
-        const musicCloseBtn = document.getElementById('music-close-btn');
-        const musicOpenBtn = document.getElementById('music-open-btn');
-        const stationModal = document.getElementById('station-modal');
-        const musicTitle = document.getElementById('music-title');
-        const musicSubtitle = document.getElementById('music-subtitle');
-        const stationGrid = document.getElementById('station-grid');
-
-        let hlsMusic = null;
-
-        function stopMusic() {
-            if (audio) { audio.pause(); audio.src = ''; }
-            if (hlsMusic) { hlsMusic.destroy(); hlsMusic = null; }
-            if (musicBar) musicBar.classList.add('hidden');
-            if (musicPlayIcon) musicPlayIcon.style.display = 'block';
-            if (musicPauseIcon) musicPauseIcon.style.display = 'none';
-        }
-
-        async function playStation(stream, name, type, desc) {
-            if (!stream) { stopMusic(); return; }
-            if (musicTitle) musicTitle.textContent = name;
-            if (musicSubtitle) musicSubtitle.textContent = desc;
-            if (musicBar) musicBar.classList.remove('hidden');
-            stopMusic();
-
-            if (type === 'hls') {
-                try {
-                    const { default: Hls } = await import('hls.js');
-                    if (Hls.isSupported()) {
-                        hlsMusic = new Hls({ debug: false });
-                        hlsMusic.loadSource(stream);
-                        hlsMusic.attachMedia(audio);
-                        hlsMusic.on(Hls.Events.MANIFEST_PARSED, () => {
-                            audio.volume = parseFloat(musicVolumeSlider?.value || '0.4');
-                            audio.play().catch(() => {});
-                        });
-                        hlsMusic.on(Hls.Events.ERROR, (_, data) => { if (data.fatal) console.warn('HLS music error', data); });
-                    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-                        audio.src = stream;
-                        audio.volume = parseFloat(musicVolumeSlider?.value || '0.4');
-                        audio.play().catch(() => {});
-                    }
-                } catch (e) {
-                    audio.src = stream;
-                    audio.volume = parseFloat(musicVolumeSlider?.value || '0.4');
-                    audio.play().catch(() => {});
-                }
-            } else {
-                audio.src = stream;
-                audio.volume = parseFloat(musicVolumeSlider?.value || '0.4');
-                audio.play().catch(() => {});
-            }
-            if (musicPlayIcon) musicPlayIcon.style.display = 'none';
-            if (musicPauseIcon) musicPauseIcon.style.display = 'block';
-        }
-
-        musicToggleBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (audio?.paused) {
-                audio.play().catch(() => {});
-                if (musicPlayIcon) musicPlayIcon.style.display = 'none';
-                if (musicPauseIcon) musicPauseIcon.style.display = 'block';
-            } else {
-                audio?.pause();
-                if (musicPlayIcon) musicPlayIcon.style.display = 'block';
-                if (musicPauseIcon) musicPauseIcon.style.display = 'none';
-            }
-        });
-
-        musicVolumeSlider?.addEventListener('input', (e) => {
-            e.stopPropagation();
-            if (audio) audio.volume = parseFloat(e.target.value);
-        });
-
-        musicCloseBtn?.addEventListener('click', (e) => { e.stopPropagation(); stopMusic(); });
-
-        musicOpenBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (stationModal) stationModal.classList.toggle('visible');
-        });
-
-        stationGrid?.querySelectorAll('.station-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const stream = card.getAttribute('data-stream') || '';
-                const name = card.getAttribute('data-name') || '';
-                const type = card.getAttribute('data-type') || 'direct';
-                const desc = card.getAttribute('data-desc') || '';
-
-                // Mark active station visually
-                stationGrid.querySelectorAll('.station-card').forEach(c => c.classList.remove('active-station'));
-                if (stream) card.classList.add('active-station');
-
-                if (stationModal) stationModal.classList.remove('visible');
-                playStation(stream, name, type, desc);
-            });
-        });
-
-        stationModal?.addEventListener('click', (e) => {
-            if (e.target === stationModal) stationModal.classList.remove('visible');
-        });
-
-        // ── Slides engine ─────────────────────────────────────────
-
-        const slides = document.querySelectorAll('.story-slide');
-        const progressFills = document.querySelectorAll('.fill');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        let currentSlide = 0;
-        const totalSlides = slides.length;
-        const SLIDE_DURATION = 6000;
-        let slideTimer = null;
-        let isPaused = false;
-        let remainingTime = SLIDE_DURATION;
-        // Hold-to-pause: only pause if pointer is held > 200ms
-        let holdTimer = null;
-        let isHolding = false;
-
-        function resetAnimations(slide) {
-            const animated = slide.querySelectorAll('.slide-pop, .slide-fade, .slide-fade-up, .slide-title');
-            animated.forEach(el => {
-                el.style.animation = 'none';
-                el.offsetHeight; // force reflow
-                el.style.animation = '';
-            });
-        }
-
-        function showSlide(index) {
-            slides.forEach((slide, i) => {
-                slide.classList.remove('active');
-                if (i === index) {
-                    slide.classList.add('active');
-                    resetAnimations(slide);
-                }
-            });
-
-            if (index === totalSlides - 1) {
-                if (nextBtn) nextBtn.style.display = 'none';
-                if (prevBtn) prevBtn.style.width = '15%';
-            } else {
-                if (nextBtn) nextBtn.style.display = 'block';
-                if (prevBtn) prevBtn.style.width = '33.333%';
-            }
-
-            progressFills.forEach((fill, i) => {
-                fill.style.transition = 'none';
-                if (i < index) {
-                    fill.style.width = '100%';
-                } else if (i === index) {
-                    fill.style.width = '0%';
-                    setTimeout(() => {
-                        fill.style.transition = `width ${SLIDE_DURATION}ms linear`;
-                        fill.style.width = '100%';
-                    }, 50);
-                } else {
-                    fill.style.width = '0%';
-                }
-            });
-
-            clearTimeout(slideTimer);
-            remainingTime = SLIDE_DURATION;
-            startTimer();
-        }
-
-        function startTimer() {
-            if (isPaused) return;
-            slideTimer = setTimeout(() => nextSlide(), remainingTime);
-        }
-
-        function nextSlide() {
-            isPaused = false;
-            if (currentSlide < totalSlides - 1) {
-                currentSlide++;
-                showSlide(currentSlide);
-            } else {
-                const lastFill = progressFills[currentSlide];
-                if (lastFill) lastFill.style.width = '100%';
-            }
-        }
-
-        function prevSlide() {
-            isPaused = false;
-            if (currentSlide > 0) { currentSlide--; }
-            showSlide(currentSlide);
-        }
-
-        function doPause() {
-            if (isPaused) return;
-            isPaused = true;
-            isHolding = true;
-            clearTimeout(slideTimer);
-            const fill = progressFills[currentSlide];
-            if (fill) {
-                const comp = window.getComputedStyle(fill).width;
-                fill.style.transition = 'none';
-                fill.style.width = comp;
-                const parent = fill.parentElement;
-                if (parent) {
-                    const pct = parseFloat(comp) / parseFloat(window.getComputedStyle(parent).width) || 0;
-                    remainingTime = SLIDE_DURATION * (1 - pct);
-                }
-            }
-        }
-
-        function doResume() {
-            clearTimeout(holdTimer);
-            isHolding = false;
-            if (!isPaused) return;
-            isPaused = false;
-            const fill = progressFills[currentSlide];
-            if (fill) {
-                fill.style.transition = `width ${remainingTime}ms linear`;
-                fill.style.width = '100%';
-            }
-            startTimer();
-        }
-
-        // Navigation buttons — simple click, no hold logic
-        prevBtn?.addEventListener('click', (e) => { e.stopPropagation(); clearTimeout(holdTimer); isPaused = false; prevSlide(); });
-        nextBtn?.addEventListener('click', (e) => { e.stopPropagation(); clearTimeout(holdTimer); isPaused = false; nextSlide(); });
-
-        // Hold to pause on the touch areas only (not the whole document)
-        const touchAreas = [prevBtn, nextBtn];
-        touchAreas.forEach(el => {
-            el?.addEventListener('mousedown', () => { holdTimer = setTimeout(doPause, 200); });
-            el?.addEventListener('mouseup', () => doResume());
-            el?.addEventListener('mouseleave', () => doResume());
-            el?.addEventListener('touchstart', () => { holdTimer = setTimeout(doPause, 200); }, { passive: true });
-            el?.addEventListener('touchend', () => doResume());
-        });
-
-        // Init
-        setTimeout(() => showSlide(0), 100);
-
-        // ── Download logic ─────────────────────────────────────────
-        const downloadBtns = document.querySelectorAll('.download-btn');
-        const container = document.querySelector('.stories-container');
-
-        downloadBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                isPaused = true;
-                clearTimeout(slideTimer);
-
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = '<span class="animate-pulse">Generando...</span>';
-                btn.disabled = true;
-
-                const targetIndex = parseInt(btn.getAttribute('data-download') || '0');
-                const targetSlide = slides[targetIndex];
-
-                if (!targetSlide) {
-                    btn.innerHTML = originalHTML;
-                    btn.disabled = false;
-                    isPaused = false;
-                    startTimer();
-                    return;
-                }
-
-                const oldRadius = container?.style.borderRadius || '';
-                if (container) container.style.borderRadius = '0';
-
-                targetSlide.classList.add('capture-override');
-                targetSlide.style.cssText += '; opacity: 1 !important; visibility: visible !important; z-index: 999 !important;';
-
-                const wm = document.createElement('div');
-                wm.className = 'absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 opacity-60 z-[100] capture-watermark';
-                wm.innerHTML = `<img src="/logo.webp" class="w-5 h-5 object-contain" crossorigin="anonymous" /><span style="color:white;font-family:sans-serif;font-size:11px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;">VEREDILLAS FM</span>`;
-                targetSlide.appendChild(wm);
-
-                const progress = document.querySelector('.story-progress');
-                if (progress) progress.style.display = 'none';
-
-                try {
-                    const dataUrl = await htmlToImage.toPng(targetSlide, {
-                        quality: 0.95,
-                        pixelRatio: 2.5,
-                        backgroundColor: '#000000',
-                        skipFonts: true,
-                        filter: (node) => !node?.classList?.contains('download-ui-elements')
-                    });
-
-                    const link = document.createElement('a');
-                    const wrYear = (window.__wrappedData__ || {}).academicLabel || (window.__wrappedData__ || {}).year || new Date().getFullYear();
-                    const safeLabel = String(wrYear).replace('/', '-');
-                    link.download = `VeredillasFM_Wrapped_${safeLabel}_Slide${targetIndex + 1}.png`;
-                    link.href = dataUrl;
-                    link.click();
-
-                    btn.innerHTML = '✅ ¡Descargado!';
-                    setTimeout(() => { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
-                } catch (err) {
-                    console.error('Error generating image', err);
-                    btn.innerHTML = '❌ Error';
-                    setTimeout(() => { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
-                } finally {
-                    targetSlide.querySelector('.capture-watermark')?.remove();
-                    if (progress) progress.style.display = '';
-                    targetSlide.classList.remove('capture-override');
-                    targetSlide.style.opacity = '';
-                    targetSlide.style.visibility = '';
-                    targetSlide.style.zIndex = '';
-                    if (container) container.style.borderRadius = oldRadius;
-                    isPaused = false;
-                    startTimer();
-                }
-            });
-        });
-    });
+    import '@/components/wrapped/wrapped-client.ts';
 </script>
-
-<style>
-    /* ── Base slide ──────────────────────────────────────────── */
-    .story-slide {
-        position: absolute;
-        inset: 0;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.35s ease;
-    }
-    .story-slide.active {
-        opacity: 1;
-        visibility: visible;
-        z-index: 20;
-    }
-
-    /* ── Progress bar ──────────────────────────────────────── */
-    .story-progress {
-        display: flex;
-        gap: 4px;
-        padding-right: 60px;
-    }
-    .progress-bar {
-        flex: 1;
-        height: 3px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 2px;
-        overflow: hidden;
-    }
-    .progress-bar .fill {
-        height: 100%;
-        width: 0%;
-        background: rgba(255,255,255,0.9);
-    }
-
-    /* ── Music open btn ────────────────────────────────────── */
-    .music-open-btn {
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 8px;
-        color: white;
-        padding: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        transition: background 0.2s;
-    }
-    .music-open-btn:hover { background: rgba(255,255,255,0.2); }
-
-    /* ── Music bar ─────────────────────────────────────────── */
-    .music-bar {
-        background: rgba(10, 8, 20, 0.95);
-        backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255,255,255,0.1);
-        padding: 10px 16px;
-    }
-    .music-inner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        max-width: 480px;
-        margin: 0 auto;
-    }
-    .music-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        min-width: 0;
-        flex: 1;
-    }
-    .music-icon { font-size: 1.4rem; flex-shrink: 0; }
-    .music-title { font-size: 0.85rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .music-subtitle { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
-    .music-controls { display: flex; align-items: center; gap: 10px; }
-    .music-btn {
-        background: rgba(255,255,255,0.1);
-        border: none;
-        border-radius: 50%;
-        width: 36px; height: 36px;
-        display: flex; align-items: center; justify-content: center;
-        color: white; cursor: pointer;
-        transition: background 0.2s;
-    }
-    .music-btn:hover { background: rgba(255,255,255,0.2); }
-    .music-close-btn {
-        background: none; border: none; color: rgba(255,255,255,0.4);
-        cursor: pointer; font-size: 1rem; transition: color 0.2s; line-height: 1;
-    }
-    .music-close-btn:hover { color: white; }
-    .music-vol { display: flex; align-items: center; gap: 6px; }
-    .music-vol svg { color: rgba(255,255,255,0.5); flex-shrink: 0; }
-    .vol-slider {
-        -webkit-appearance: none;
-        width: 60px; height: 3px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 2px; cursor: pointer; outline: none;
-    }
-    .vol-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 10px; height: 10px;
-        background: white; border-radius: 50%;
-    }
-
-    /* ── Station modal ─────────────────────────────────────── */
-    .station-modal {
-        position: fixed;
-        inset: 0;
-        z-index: 200;
-        background: rgba(0,0,0,0.8);
-        backdrop-filter: blur(10px);
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-    .station-modal.visible {
-        opacity: 1;
-        pointer-events: auto;
-    }
-    .station-modal-inner {
-        background: #111;
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 24px 24px 0 0;
-        padding: 20px 20px 28px;
-        width: 100%;
-        max-width: 480px;
-        max-height: 85vh;
-        overflow-y: auto;
-        transform: translateY(20px);
-        transition: transform 0.3s ease;
-    }
-    .station-modal.visible .station-modal-inner { transform: translateY(0); }
-    .station-modal-title { font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 4px; }
-    .station-modal-sub { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
-    .station-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-    .station-card {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 14px;
-        padding: 12px 6px;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 3px;
-        transition: all 0.2s;
-        position: relative;
-        overflow: hidden;
-    }
-    .station-card:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
-    .station-card.station-featured {
-        grid-column: 1 / -1;
-        flex-direction: row;
-        justify-content: center;
-        gap: 10px;
-        padding: 12px 20px;
-        background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2));
-        border-color: rgba(139,92,246,0.4);
-    }
-    .station-card.station-featured:hover {
-        background: linear-gradient(135deg, rgba(139,92,246,0.35), rgba(236,72,153,0.35));
-        border-color: rgba(139,92,246,0.7);
-    }
-    .station-card.station-featured .station-desc {
-        font-size: 0.7rem;
-        text-align: left;
-    }
-    .station-card.station-featured .station-name { font-size: 0.9rem; text-align: left; }
-    .station-card.station-featured .station-emoji { font-size: 1.8rem; }
-    .station-card.active-station {
-        border-color: rgba(139,92,246,0.8);
-        background: rgba(139,92,246,0.2);
-    }
-    .station-card.active-station::after {
-        content: '▶';
-        position: absolute;
-        top: 4px; right: 6px;
-        font-size: 8px;
-        color: #a78bfa;
-    }
-    .station-emoji { font-size: 1.5rem; }
-    .station-name { font-size: 0.72rem; font-weight: 700; color: white; text-align: center; line-height: 1.2; }
-    .station-desc { font-size: 0.6rem; color: rgba(255,255,255,0.4); text-align: center; }
-
-    /* ── Animations ─────────────────────────────────────────── */
-    .slide-pop {
-        opacity: 0;
-        transform: scale(0.8);
-        animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        animation-delay: 0.2s;
-    }
-    .slide-fade {
-        opacity: 0;
-        animation: fadeIn 0.9s ease forwards;
-        animation-delay: 0.6s;
-    }
-    .slide-title {
-        opacity: 0;
-        animation: fadeIn 0.9s ease forwards;
-        animation-delay: 0.1s;
-    }
-    .slide-fade-up {
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeUp 0.8s ease forwards;
-        animation-delay: 0.9s;
-    }
-    @keyframes popIn { to { opacity: 1; transform: scale(1); } }
-    @keyframes fadeIn { to { opacity: 1; } }
-    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-
-    .text-shadow-glow { text-shadow: 0 0 40px rgba(255,255,255,0.5); }
-
-    /* ── Capture override ──────────────────────────────────── */
-    .capture-override, .capture-override * {
-        animation: none !important;
-        transition: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-        visibility: visible !important;
-    }
-    .capture-override .download-ui-elements { display: none !important; }
-
-    /* ── 3D Cube ────────────────────────────────────────────── */
-    .cube-wrap { perspective: 800px; display: flex; align-items: center; justify-content: center; }
-    .cube { width: 200px; height: 200px; position: relative; transform-style: preserve-3d; animation: spin3d 20s infinite linear; }
-    .face { position: absolute; width: 200px; height: 200px; background: transparent; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(255,255,255,0.1) inset; }
-    .front  { transform: translateZ(100px); }
-    .back   { transform: rotateY(180deg) translateZ(100px); }
-    .right  { transform: rotateY(90deg) translateZ(100px); }
-    .left   { transform: rotateY(-90deg) translateZ(100px); }
-    .top    { transform: rotateX(90deg) translateZ(100px); }
-    .bottom { transform: rotateX(-90deg) translateZ(100px); }
-    @keyframes spin3d { from { transform: rotateX(0) rotateY(0) rotateZ(0); } to { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); } }
-
-    /* ── Stars background ──────────────────────────────────── */
-    .stars-bg {
-        position: absolute; inset: 0;
-        background-image:
-            radial-gradient(circle, white 1px, transparent 1px),
-            radial-gradient(circle, white 1px, transparent 1px),
-            radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px);
-        background-size: 200px 200px, 120px 120px, 80px 80px;
-        background-position: 0 0, 40px 60px, 70px 30px;
-        animation: twinkle 8s ease-in-out infinite alternate;
-        opacity: 0.4;
-    }
-    @keyframes twinkle { from { opacity: 0.3; } to { opacity: 0.6; } }
-
-    /* ── Charts ─────────────────────────────────────────────── */
-    .hour-chart, .month-chart {
-        width: 100%;
-    }
-    .hour-bars, .month-bars {
-        display: flex;
-        align-items: flex-end;
-        gap: 2px;
-        height: 60px;
-        width: 100%;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        padding: 0 2px;
-    }
-    .hour-bar, .month-bar {
-        flex: 1;
-        border-radius: 2px 2px 0 0;
-        min-height: 4px;
-        transition: background 0.3s;
-        cursor: pointer;
-    }
-    .hour-bar:hover, .month-bar:hover { filter: brightness(1.4); }
-    .month-labels {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-        padding: 4px 2px 0;
-        font-size: 9px;
-        color: rgba(255,255,255,0.3);
-        font-weight: 600;
-    }
-
-    /* ── Slide content centering ─────────────────────────── */
-    .slide-content {
-        position: relative;
-        z-index: 10;
-    }
-
-    @media (max-width: 640px) {
-        .station-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-</style>

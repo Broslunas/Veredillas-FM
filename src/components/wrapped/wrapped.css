@@ -1,0 +1,84 @@
+/* ── Only keyframes & pseudo-elements that Tailwind can't handle ── */
+
+/* Fullscreen entry */
+.wrapped-entry { transition: opacity 0.6s ease, transform 0.6s ease; }
+.wrapped-entry.hidden { opacity: 0; transform: scale(1.1); pointer-events: none; }
+@keyframes entryPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+/* ── CRITICAL: Slide base positioning ────────────────────── */
+.story-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease;
+}
+.story-slide.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 20;
+}
+
+/* Slide animations */
+.slide-pop { opacity:0; transform:scale(0.8); animation:popIn .8s cubic-bezier(.175,.885,.32,1.275) forwards; animation-delay:.2s; }
+.slide-fade { opacity:0; animation:fadeIn .9s ease forwards; animation-delay:.6s; }
+.slide-title { opacity:0; animation:fadeIn .9s ease forwards; animation-delay:.1s; }
+.slide-fade-up { opacity:0; transform:translateY(20px); animation:fadeUp .8s ease forwards; animation-delay:.9s; }
+@keyframes popIn { to { opacity:1; transform:scale(1); } }
+@keyframes fadeIn { to { opacity:1; } }
+@keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+
+/* Capture override for screenshot */
+.capture-override, .capture-override * { animation:none!important; transition:none!important; opacity:1!important; transform:none!important; visibility:visible!important; }
+.capture-override .download-ui-elements { display:none!important; }
+
+/* 3D Cube */
+.cube { animation: spin3d 20s infinite linear; transform-style: preserve-3d; }
+.face { position: absolute; width: 200px; height: 200px; background: transparent; }
+.front { transform: translateZ(100px); }
+.back { transform: rotateY(180deg) translateZ(100px); }
+.right { transform: rotateY(90deg) translateZ(100px); }
+.left { transform: rotateY(-90deg) translateZ(100px); }
+.top { transform: rotateX(90deg) translateZ(100px); }
+.bottom { transform: rotateX(-90deg) translateZ(100px); }
+@keyframes spin3d { from { transform: rotateX(0) rotateY(0) rotateZ(0); } to { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); } }
+
+/* Stars */
+.stars-bg {
+    background-image: radial-gradient(circle,white 1px,transparent 1px), radial-gradient(circle,white 1px,transparent 1px), radial-gradient(circle,rgba(255,255,255,.6) 1px,transparent 1px);
+    background-size: 200px 200px, 120px 120px, 80px 80px;
+    background-position: 0 0, 40px 60px, 70px 30px;
+    animation: twinkle 8s ease-in-out infinite alternate;
+}
+@keyframes twinkle { from { opacity:0.3; } to { opacity:0.6; } }
+
+/* Floating particles */
+@keyframes floatUp { 0% { transform:translateY(100vh) scale(0); opacity:0; } 10% { opacity:1; } 90% { opacity:.5; } 100% { transform:translateY(-20vh) scale(1); opacity:0; } }
+
+/* Station modal */
+.station-modal { transition: opacity 0.3s ease; }
+.station-modal-inner { transition: transform 0.3s ease; }
+.station-modal.visible .station-modal-inner { transform: translateY(0); }
+.station-card.active-station::after { content:'▶'; position:absolute; top:4px; right:6px; font-size:8px; color:#a78bfa; }
+
+/* Volume slider */
+.vol-slider { -webkit-appearance:none; width:60px; height:3px; background:rgba(255,255,255,.2); border-radius:2px; cursor:pointer; outline:none; }
+.vol-slider::-webkit-slider-thumb { -webkit-appearance:none; width:10px; height:10px; background:white; border-radius:50%; }
+
+/* Chart bars */
+.hour-bar:hover, .month-bar:hover { filter: brightness(1.4); }
+
+/* Ring chart */
+.stat-ring svg { transform: rotate(-90deg); }
+.stat-ring circle { fill:none; stroke-width:6; stroke-linecap:round; }
+.stat-ring .ring-bg { stroke: rgba(255,255,255,0.1); }
+.stat-ring .ring-fill { stroke-dasharray: 339.292; transition: stroke-dashoffset 1.5s ease; }
+
+/* Text glow */
+.text-shadow-glow { text-shadow: 0 0 40px rgba(255,255,255,0.5); }
+
+/* Slide content z-index */
+.slide-content { position: relative; z-index: 10; }
+
+/* Progress bar fill */
+.story-progress .fill { transition: none; }

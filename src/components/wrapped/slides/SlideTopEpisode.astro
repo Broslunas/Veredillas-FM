@@ -1,0 +1,28 @@
+---
+interface Props { topEpisodeInfo: any; mostRepeatsCount: number; }
+const { topEpisodeInfo, mostRepeatsCount } = Astro.props;
+---
+<div class="story-slide bg-gradient-to-tl from-purple-900 via-fuchsia-800 to-pink-700">
+    <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+        <p class="text-xl font-bold text-pink-200 mb-4 slide-fade tracking-widest uppercase">⭐ Obsesión Pura</p>
+        {topEpisodeInfo ? (
+            <>
+                <h2 class="text-3xl font-black text-white mb-4 slide-pop leading-tight">Te enganchaste perdidamente a</h2>
+                <div class="relative w-36 h-36 mx-auto mb-4 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-pink-400 ring-offset-4 ring-offset-fuchsia-800">
+                    <img src={topEpisodeInfo.image} alt={topEpisodeInfo.title} class="w-full h-full object-cover" crossorigin="anonymous" />
+                </div>
+                <h3 class="text-lg font-bold text-white mb-3 slide-fade-up">{topEpisodeInfo.title}</h3>
+                {mostRepeatsCount > 1 ? (
+                    <p class="text-pink-100 slide-fade-up font-medium text-base bg-black/20 p-4 rounded-xl">
+                        Lo escuchaste <span class="font-black text-white text-2xl">{mostRepeatsCount}</span> veces.<br/>
+                        <span class="text-sm opacity-80">{mostRepeatsCount > 5 ? "¡Eso ya es devoción! 🙏" : "¡Gran elección! 👏"}</span>
+                    </p>
+                ) : (
+                    <p class="text-pink-100 slide-fade-up font-medium text-base bg-black/20 p-4 rounded-xl">Tu absoluto favorito del año. 💜</p>
+                )}
+            </>
+        ) : (
+            <h2 class="text-3xl font-black text-white slide-pop">¡El misterio! Tus escuchas están tan repartidas que todos son tus favoritos.</h2>
+        )}
+    </div>
+</div>

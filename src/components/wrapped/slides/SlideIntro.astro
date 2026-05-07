@@ -1,0 +1,26 @@
+---
+interface Props { academicLabel: string; userName: string; }
+const { academicLabel, userName } = Astro.props;
+const firstName = userName.split(' ')[0];
+---
+<div class="story-slide bg-gradient-to-br from-violet-900 via-indigo-900 to-black">
+    <div class="absolute inset-0 opacity-20 pointer-events-none flex items-center justify-center" style="perspective:800px">
+        <div class="cube w-[200px] h-[200px] relative">
+            <div class="face front absolute w-[200px] h-[200px] border-2 border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]"></div>
+            <div class="face back absolute w-[200px] h-[200px] border-2 border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]"></div>
+            <div class="face right absolute w-[200px] h-[200px] border-2 border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]"></div>
+            <div class="face left absolute w-[200px] h-[200px] border-2 border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]"></div>
+            <div class="face top absolute w-[200px] h-[200px] border-2 border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]"></div>
+            <div class="face bottom absolute w-[200px] h-[200px] border-2 border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]"></div>
+        </div>
+    </div>
+    <div class="slide-content text-center p-8 flex flex-col justify-center h-full">
+        <div class="slide-pop mb-6">
+            <img src="/logo.webp" alt="Veredillas FM" class="w-20 h-20 mx-auto object-contain drop-shadow-[0_0_20px_rgba(167,139,250,0.8)]" />
+        </div>
+        <h2 class="text-xl font-bold text-violet-300 mb-4 slide-title tracking-widest uppercase slide-fade">Veredillas FM</h2>
+        <h1 class="text-5xl font-black text-white mb-6 slide-pop leading-tight">Tu <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">Wrapped</span><br/><span class="text-3xl">{academicLabel}</span></h1>
+        <p class="text-lg text-white/70 slide-fade">Hola <strong class="text-white">{firstName}</strong>, este año fue increíble.</p>
+        <p class="text-sm text-white/40 slide-fade-up mt-8">Toca para continuar →</p>
+    </div>
+</div>

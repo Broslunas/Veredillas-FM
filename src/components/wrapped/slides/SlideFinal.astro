@@ -1,0 +1,72 @@
+---
+interface Props {
+    academicLabel: string; archetype: string; yearListeningMinutes: number;
+    uniqueEpisodes: number; maxStreak: number; topEpisodeInfo: any;
+    percentile: number; userName: string; userPicture: string;
+    achievementsCount: number; quizzesTaken: number; cardsCollected: number;
+}
+const { academicLabel, archetype, yearListeningMinutes, uniqueEpisodes, maxStreak,
+    topEpisodeInfo, percentile, userName, userPicture, achievementsCount, quizzesTaken, cardsCollected } = Astro.props;
+---
+<div class="story-slide bg-black">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-violet-900/30 to-violet-900 opacity-80"></div>
+    <div class="slide-content p-5 flex flex-col items-center justify-center h-full relative z-10 w-full">
+        <div id="share-card" class="bg-gradient-to-br from-zinc-900 border border-white/20 to-black p-5 rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(139,92,246,0.3)] slide-pop mx-auto relative overflow-hidden">
+            <div class="watermark-overlay absolute bottom-4 right-4 flex items-center gap-2 opacity-0 pointer-events-none">
+                <img src="/logo.webp" class="w-4 h-4 object-contain brightness-0 invert" crossorigin="anonymous" />
+                <span class="text-[10px] font-bold text-white/50 tracking-widest">VEREDILLAS FM</span>
+            </div>
+            <div class="flex items-center gap-3 mb-3">
+                <img src="/logo.webp" class="w-6 h-6 object-contain" />
+                <span class="text-xs font-bold tracking-widest text-white">WRAPPED {academicLabel}</span>
+            </div>
+            <div class="mb-4">
+                <p class="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1">Perfil de Oyente</p>
+                <h2 class="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">{archetype}</h2>
+            </div>
+            <div class="space-y-2 mb-4 text-sm">
+                <div class="flex justify-between items-center border-b border-white/10 pb-1.5">
+                    <span class="text-white/60">Minutos</span><span class="text-white font-bold">{yearListeningMinutes}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/10 pb-1.5">
+                    <span class="text-white/60">Episodios</span><span class="text-white font-bold">{uniqueEpisodes}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/10 pb-1.5">
+                    <span class="text-white/60">Racha</span><span class="text-white font-bold">{maxStreak}d 🔥</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/10 pb-1.5">
+                    <span class="text-white/60">Logros</span><span class="text-white font-bold">{achievementsCount} 🏆</span>
+                </div>
+                {topEpisodeInfo && (
+                    <div class="flex justify-between items-center pb-1.5">
+                        <span class="text-white/60">Top ep.</span><span class="text-white font-bold w-28 truncate text-right">{topEpisodeInfo.title}</span>
+                    </div>
+                )}
+            </div>
+            <div class="flex items-center gap-3">
+                <img src={userPicture} class="w-8 h-8 rounded-full border border-white/20" crossorigin="anonymous" />
+                <div>
+                    <p class="text-sm font-bold text-white">{userName}</p>
+                    <p class="text-xs text-white/40">Top {percentile}% oyente</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-zinc-400 mt-3 text-center text-sm slide-fade-up download-ui-elements">Elige qué recuerdo llevarte</p>
+        <div class="flex flex-col gap-2 mt-2 w-full max-w-sm slide-fade-up relative z-[60] download-ui-elements">
+            <button data-download="13" class="download-btn w-full px-5 py-3 bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-400 hover:to-violet-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Descargar Resumen</span>
+            </button>
+            <div class="grid grid-cols-4 gap-2">
+                <button data-download="2" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[9px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-0.5">⏱️<span>Minutos</span></button>
+                <button data-download="6" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[9px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-0.5">⭐<span>Top Ep</span></button>
+                <button data-download="3" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[9px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-0.5">🔥<span>Racha</span></button>
+                <button data-download="12" class="download-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg py-2 text-[9px] font-bold text-white transition-colors flex flex-col items-center justify-center gap-0.5">💬<span>Social</span></button>
+            </div>
+        </div>
+        <button onclick="window.location.href='/dashboard'" class="mt-3 px-6 py-3 bg-white text-black font-bold rounded-full slide-fade-up hover:scale-105 transition-transform w-full max-w-sm z-20 download-ui-elements text-sm">
+            Volver al Dashboard
+        </button>
+    </div>
+</div>

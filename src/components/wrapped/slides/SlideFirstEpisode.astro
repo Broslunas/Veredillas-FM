@@ -1,0 +1,27 @@
+---
+interface Props { firstEpisodeInfo: any; firstListenDate: string; }
+const { firstEpisodeInfo, firstListenDate } = Astro.props;
+---
+<div class="story-slide bg-gradient-to-br from-blue-900 via-sky-800 to-indigo-900">
+    <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+        <p class="text-xl font-bold text-sky-200 mb-4 slide-fade tracking-widest uppercase">El comienzo</p>
+        <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">Todo empezó con un <em>click</em></h2>
+        {firstEpisodeInfo ? (
+            <>
+                <div class="relative w-44 h-44 mx-auto mb-4 slide-fade-up shadow-2xl rounded-2xl overflow-hidden ring-4 ring-sky-400 ring-offset-4 ring-offset-sky-900">
+                    <img src={firstEpisodeInfo.data.image} alt={firstEpisodeInfo.data.title} class="w-full h-full object-cover" crossorigin="anonymous" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2 slide-fade-up">{firstEpisodeInfo.data.title}</h3>
+                {firstListenDate && <p class="text-sky-300/80 text-sm slide-fade-up mb-1">{firstListenDate}</p>}
+                <p class="text-sky-200 slide-fade-up text-sm">Tu primera escucha del curso ✨</p>
+            </>
+        ) : (
+            <>
+                <div class="w-32 h-32 mx-auto mb-6 rounded-full bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-5xl slide-pop">🎙️</div>
+                <h2 class="text-xl font-bold text-white slide-pop">Tu viaje apenas comienza</h2>
+                <p class="text-sky-200 slide-fade mt-2">Empieza a escuchar para llenar tu Wrapped</p>
+            </>
+        )}
+    </div>
+</div>

@@ -1,0 +1,36 @@
+---
+interface Props { top3Episodes: any[]; completedEpisodesCount: number; }
+const { top3Episodes, completedEpisodesCount } = Astro.props;
+---
+<div class="story-slide" style="background: linear-gradient(160deg, #1a1a2e, #16213e, #0f3460);">
+    <div class="slide-content p-8 flex flex-col justify-center h-full">
+        <p class="text-xl font-bold text-blue-300 mb-2 slide-fade tracking-widest uppercase text-center">🏆 Tu Podio</p>
+        <h2 class="text-2xl font-black text-white mb-6 slide-pop text-center">Los 3 más escuchados</h2>
+        <div class="space-y-3 slide-fade-up">
+            {top3Episodes.length > 0 ? top3Episodes.map((ep: any, i: number) => (
+                <div class={`flex items-center gap-3 p-3 rounded-xl border ${i === 0 ? 'bg-yellow-500/10 border-yellow-500/30' : i === 1 ? 'bg-gray-400/10 border-gray-400/30' : 'bg-orange-700/10 border-orange-700/30'}`}>
+                    <span class="text-2xl w-8 flex-shrink-0">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+                    <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                        <img src={ep.image} alt={ep.title} class="w-full h-full object-cover" crossorigin="anonymous" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white font-bold text-sm truncate">{ep.title}</p>
+                        <p class="text-white/50 text-xs">{ep.count} {ep.count === 1 ? 'vez' : 'veces'}</p>
+                    </div>
+                </div>
+            )) : (
+                <div class="text-center py-8">
+                    <p class="text-4xl mb-4">🎧</p>
+                    <p class="text-white/60">¡Escucha más episodios para llenar tu podio!</p>
+                </div>
+            )}
+        </div>
+        {completedEpisodesCount > 0 && (
+            <div class="mt-4 bg-white/5 rounded-xl p-4 border border-white/10 slide-fade-up">
+                <p class="text-center text-white/80 text-sm">
+                    <span class="text-green-400 font-black text-xl">{completedEpisodesCount}</span> episodios completados al 100% ✅
+                </p>
+            </div>
+        )}
+    </div>
+</div>

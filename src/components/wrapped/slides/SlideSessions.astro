@@ -1,0 +1,32 @@
+---
+interface Props { totalSessions: number; uniqueEpisodes: number; maxStreak: number; bestDayName: string; }
+const { totalSessions, uniqueEpisodes, maxStreak, bestDayName } = Astro.props;
+---
+<div class="story-slide bg-gradient-to-tr from-amber-600 via-orange-600 to-red-700">
+    <div class="slide-content text-center p-8 flex flex-col justify-center h-full relative z-10">
+        <p class="text-xl font-bold text-orange-200 mb-4 slide-fade tracking-widest uppercase">🔥 Tu constancia</p>
+        <h2 class="text-4xl font-black text-white mb-6 slide-pop leading-tight">Los <span class="underline decoration-wavy decoration-orange-300">{bestDayName}</span> no son lo mismo sin ti.</h2>
+        <div class="grid grid-cols-2 gap-3 slide-fade-up">
+            <div class="bg-black/20 backdrop-blur rounded-xl p-4 border border-white/20">
+                <p class="text-3xl font-black text-white">{totalSessions}</p>
+                <p class="text-xs text-orange-200 uppercase font-bold mt-1">Sesiones</p>
+            </div>
+            <div class="bg-black/20 backdrop-blur rounded-xl p-4 border border-white/20">
+                <p class="text-3xl font-black text-white">{uniqueEpisodes}</p>
+                <p class="text-xs text-orange-200 uppercase font-bold mt-1">Episodios únicos</p>
+            </div>
+        </div>
+        {maxStreak >= 3 ? (
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 slide-fade-up border border-white/20 relative overflow-hidden mt-4">
+                <div class="absolute -right-4 -top-4 text-6xl opacity-30">🔥</div>
+                <h3 class="text-xs font-bold text-amber-200 uppercase tracking-widest mb-1 relative z-10">Racha Imparable</h3>
+                <p class="text-4xl font-black text-white relative z-10">{maxStreak} días</p>
+                <p class="text-xs font-medium text-white/70 mt-1 relative z-10">tu mejor racha del año</p>
+            </div>
+        ) : (
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 slide-fade-up border border-white/20 mt-4">
+                <p class="text-sm text-white/70">Sigue escuchando para construir tu racha 💪</p>
+            </div>
+        )}
+    </div>
+</div>

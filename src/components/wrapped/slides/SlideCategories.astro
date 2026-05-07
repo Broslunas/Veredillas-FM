@@ -1,0 +1,29 @@
+---
+interface Props { topTagsList: [string, number][]; topTag: string; }
+const { topTagsList, topTag } = Astro.props;
+---
+<div class="story-slide bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-900">
+    <div class="slide-content p-8 flex flex-col justify-center h-full text-center">
+        <p class="text-xl font-bold text-emerald-200 mb-4 slide-fade tracking-widest uppercase">🎯 Tus gustos</p>
+        <h2 class="text-3xl font-black text-white mb-6 slide-pop leading-tight">Tus categorías favoritas</h2>
+        <div class="space-y-3 slide-fade-up">
+            {topTagsList.length > 0 ? topTagsList.map(([ tag, count ], i) => (
+                <div class="flex items-center gap-3">
+                    <span class="text-lg w-6 text-center">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i === 3 ? '4️⃣' : '5️⃣'}</span>
+                    <div class="flex-1 bg-white/10 rounded-lg overflow-hidden h-8 relative">
+                        <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-lg flex items-center px-3"
+                            style={`width: ${Math.max(15, Math.round((count / (topTagsList[0]?.[1] || 1)) * 100))}%`}>
+                            <span class="text-xs font-bold text-white capitalize truncate">{tag}</span>
+                        </div>
+                    </div>
+                    <span class="text-xs text-white/60 w-8 text-right">{count}</span>
+                </div>
+            )) : (
+                <div class="bg-white/10 rounded-2xl p-6 border border-white/20">
+                    <p class="text-white/60">Categoría principal:</p>
+                    <p class="text-3xl font-black text-white capitalize mt-1">{topTag}</p>
+                </div>
+            )}
+        </div>
+    </div>
+</div>
