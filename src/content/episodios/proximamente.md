@@ -8,7 +8,7 @@ participants: []
 season: 2
 episode: 11
 duration: ¿? min
-pubDate: '2026-04-18T16:00:00.000Z'
+pubDate: '2026-05-08T16:00:00.000Z'
 description: coming soon
 ---
 No disponible por el momento
