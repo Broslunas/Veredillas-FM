@@ -12,12 +12,19 @@ const galleryImages = galleryEntries.flatMap(entry =>
         src: img.src,
         alt: img.title,
         category: entry.data.category,
-        pubDate: img.pubDate || new Date(0)
+        pubDate: img.pubDate || new Date(0),
+        type: img.type || 'image',
+        thumbnail: img.thumbnail || img.src,
+        featured: img.featured || false
     }))
 );
 
-// Sort (optional: global sort by date if they have one)
-galleryImages.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
+// Sort: Featured first, then by date
+galleryImages.sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return b.pubDate.getTime() - a.pubDate.getTime();
+});
 
 const categories = ["Todos", ...new Set(galleryImages.map(img => img.category))];
 ---
@@ -35,7 +42,11 @@ const categories = ["Todos", ...new Set(galleryImages.map(img => img.category))]
         </button>
         
         <div class="lightbox-container">
-            <img id="lightbox-img" src="" alt="Vista previa" />
+            <div id="lightbox-media-container">
+                <img id="lightbox-img" src="" alt="Vista previa" />
+                <video id="lightbox-video" controls playsinline class="hidden"></video>
+                <iframe id="lightbox-iframe" class="hidden" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
             <div class="lightbox-details">
                 <span class="lightbox-category"></span>
                 <p class="lightbox-caption"></p>
@@ -75,16 +86,31 @@ const categories = ["Todos", ...new Set(galleryImages.map(img => img.category))]
 
         <div class="masonry-grid gs-grid" id="gallery-grid">
             {galleryImages.map((img, index) => (
-                <div class="grid-item zoom-trigger" data-category={img.category} data-index={index}>
+                <div class={`grid-item zoom-trigger ${img.featured ? 'featured' : ''}`} data-category={img.category} data-index={index} data-type={img.type} data-src={img.src}>
                     <div class="card-inner">
-                        <img src={img.src} alt={img.alt} loading="lazy" />
+                        <img src={img.thumbnail} alt={img.alt} loading="lazy" />
+                        {img.type === 'video' && (
+                            <div class="play-indicator">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        )}
+                        {img.featured && (
+                            <div class="featured-badge">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                <span>Destacado</span>
+                            </div>
+                        )}
                         <div class="card-overlay">
                             <div class="overlay-content">
                                 <span class="cat-pill">{img.category}</span>
                                 <h3>{img.alt}</h3>
                             </div>
-                            <button class="expand-btn" aria-label="Ver imagen">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M14 10l6.1-6.1M9 21H3v-6M10 14l-6.1 6.1"/></svg>
+                            <button class="expand-btn" aria-label={img.type === 'video' ? 'Ver video' : 'Ver imagen'}>
+                                {img.type === 'video' ? (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/><path d="M15 10l5 5-5 5"/></svg>
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M14 10l6.1-6.1M9 21H3v-6M10 14l-6.1 6.1"/></svg>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -171,39 +197,88 @@ const categories = ["Todos", ...new Set(galleryImages.map(img => img.category))]
         // --- Lightbox Logic ---
         const getImageInfo = (item) => {
             if(!item) return null;
-            const img = item.querySelector('img');
             const title = item.querySelector('h3')?.textContent;
             const cat = item.querySelector('.cat-pill')?.textContent;
             return {
-                src: img?.src || '',
+                src: item.getAttribute('data-src') || '',
+                type: item.getAttribute('data-type') || 'image',
                 alt: title || '',
                 category: cat || ''
             };
         };
+        
+        const lightboxVideo = document.getElementById('lightbox-video');
+        const lightboxIframe = document.getElementById('lightbox-iframe');
+
+        const getYouTubeId = (url) => {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        };
 
         const openLightbox = (item) => {
             const info = getImageInfo(item);
-            if (!info || !lightbox || !lightboxImg) return;
+            if (!info || !lightbox) return;
             
             // Find index in visible items for navigation
             const visibleItems = getVisibleItems();
             currentIndex = visibleItems.indexOf(item);
             
-            lightboxImg.src = info.src;
+            // Hide all media types first
+            if(lightboxImg) lightboxImg.classList.add('hidden');
+            if(lightboxVideo) { lightboxVideo.classList.add('hidden'); lightboxVideo.pause(); lightboxVideo.src = ''; }
+            if(lightboxIframe) { lightboxIframe.classList.add('hidden'); lightboxIframe.src = ''; }
+
+            let target = null;
+
+            // Toggle between image and video
+            if (info.type === 'video') {
+                const ytId = getYouTubeId(info.src);
+                if (ytId) {
+                    if(lightboxIframe) {
+                        lightboxIframe.classList.remove('hidden');
+                        lightboxIframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+                        target = lightboxIframe;
+                    }
+                } else {
+                    if(lightboxVideo) {
+                        lightboxVideo.classList.remove('hidden');
+                        lightboxVideo.src = info.src;
+                        lightboxVideo.play();
+                        target = lightboxVideo;
+                    }
+                }
+            } else {
+                if(lightboxImg) {
+                    lightboxImg.classList.remove('hidden');
+                    lightboxImg.src = info.src;
+                    target = lightboxImg;
+                }
+            }
+
             if(caption) caption.textContent = info.alt;
             if(categoryLabel) categoryLabel.textContent = info.category;
             
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
             
-            // Animate Image In
-            gsap.fromTo(lightboxImg, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "power2.out" });
+            // Animate In
+            if(target) {
+                gsap.fromTo(target, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "power2.out" });
+            }
         };
 
         const closeLightboxModal = () => {
             if(!lightbox) return;
             lightbox.classList.remove('active');
             document.body.style.overflow = '';
+            if(lightboxVideo) {
+                lightboxVideo.pause();
+                lightboxVideo.src = '';
+            }
+            if(lightboxIframe) {
+                lightboxIframe.src = '';
+            }
         };
 
         const navigateLightbox = (direction) => {
@@ -576,6 +651,100 @@ const categories = ["Todos", ...new Set(galleryImages.map(img => img.category))]
         font-size: 1.5rem;
         color: var(--color-text-muted);
     }
+    
+    .featured-badge {
+        position: absolute;
+        top: 1.25rem;
+        left: 1.25rem;
+        background: linear-gradient(135deg, #ffd700, #ff8c00);
+        color: #000;
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 5;
+        box-shadow: 0 8px 20px rgba(255, 140, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
+    }
+
+    .featured-badge svg {
+        filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+    }
+
+    .grid-item.featured .card-inner {
+        outline: 2px solid rgba(255, 215, 0, 0.3);
+        outline-offset: 4px;
+        transition: outline 0.3s ease;
+    }
+
+    .grid-item.featured:hover .card-inner {
+        outline: 3px solid rgba(255, 215, 0, 0.6);
+    }
+
+    .play-indicator {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .grid-item:hover .play-indicator {
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .play-indicator svg {
+        width: 64px;
+        height: 64px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        padding: 16px;
+        fill: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .grid-item:hover .play-indicator svg {
+        transform: scale(1.15);
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        box-shadow: 0 15px 40px rgba(139, 92, 246, 0.5);
+    }
+
+    #lightbox-media-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .lightbox-container video,
+    .lightbox-container iframe {
+        max-width: 100%;
+        max-height: 80vh;
+        border-radius: 12px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        background: black;
+    }
+    
+    .lightbox-container iframe {
+        width: 80vw;
+        aspect-ratio: 16 / 9;
+    }
+
     .hidden { display: none !important; }
 </style>
 

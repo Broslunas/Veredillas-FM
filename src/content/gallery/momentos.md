@@ -1,6 +1,11 @@
 ---
 category: Momentos
 images:
+  - title: Recap 2025/2026
+    src: 'https://cdn.veredillasfm.es/videos/2025-2026-recap.mp4'
+    type: video
+    thumbnail: 'https://cdn.veredillasfm.es/images/2025-2026-recap.webp'
+    featured: true
   - title: La Cuesta
     src: >-
       https://cdn.veredillasfm.es/galeria/43d7bd5a-a663-457c-b53c-fe9d36e43944.jpeg

@@ -69,6 +69,9 @@ const gallery = defineCollection({
         images: z.array(z.object({
             title: z.string(),
             src: z.string(),
+            type: z.enum(['image', 'video']).default('image'),
+            thumbnail: z.string().optional(),
+            featured: z.boolean().default(false),
         })),
 	}),
 });
