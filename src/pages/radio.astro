@@ -156,6 +156,7 @@ if (userPayload) {
             if (this.isRegistered) {
                 this.setupDJControls();
             }
+            this.setupMediaSessionHandlers();
             
             // Iniciar polling global para la cola pública y status de radio
             this.pollStatus();
@@ -205,6 +206,46 @@ if (userPayload) {
                 visualize();
             } catch (err) {
                 console.error("Web Audio API Error:", err);
+            }
+        }
+
+        setupMediaSessionHandlers() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', () => {
+                    if (!this.isPlaying) this.toggleMusic();
+                });
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    if (this.isPlaying) this.toggleMusic();
+                });
+                navigator.mediaSession.setActionHandler('stop', () => {
+                    if (this.isPlaying) this.toggleMusic();
+                });
+            }
+        }
+
+        updateMediaSession(fullTitle: string) {
+            if ('mediaSession' in navigator && fullTitle) {
+                let title = fullTitle;
+                let artist = 'Veredillas FM';
+
+                // Intentar separar artista y título si vienen con guion
+                const parts = fullTitle.split(' - ');
+                if (parts.length > 1) {
+                    title = parts[0].trim();
+                    artist = parts.slice(1).join(' - ').trim();
+                }
+
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: title,
+                    artist: artist,
+                    album: 'Radio en Directo',
+                    artwork: [
+                        { src: '/logo.webp', sizes: '96x96', type: 'image/webp' },
+                        { src: '/logo.webp', sizes: '128x128', type: 'image/webp' },
+                        { src: '/logo.webp', sizes: '192x192', type: 'image/webp' },
+                        { src: '/logo.webp', sizes: '512x512', type: 'image/webp' },
+                    ]
+                });
             }
         }
 
@@ -483,6 +524,7 @@ if (userPayload) {
                 this.isPlaying = false;
                 this.musicBtn.classList.remove('playing');
                 if(this.musicLabel) this.musicLabel.textContent = `Activar Radio`;
+                if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
             } else {
                 if(this.musicLabel) this.musicLabel.textContent = "Conectando...";
                 
@@ -493,12 +535,14 @@ if (userPayload) {
                     this.initVisualizer();
                     this.musicBtn!.classList.add('playing');
                     if(this.musicLabel) this.musicLabel!.textContent = `En directo`;
+                    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
                     this.playTTS();
                 }).catch(e => {
                     console.error("Audio play failed:", e);
                     this.isPlaying = false;
                     this.musicBtn!.classList.remove('playing');
                     if(this.musicLabel) this.musicLabel!.textContent = "No disponible";
+                    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
                 }).finally(() => {
                     this.updateVolumeVisibility();
                 });
@@ -833,6 +877,7 @@ if (userPayload) {
                     // --- DJ AI LOGIC ---
                     if (this.currentSongTitle !== data.currentSongMeta.title) {
                         this.currentSongTitle = data.currentSongMeta.title;
+                        this.updateMediaSession(this.currentSongTitle);
                         
                         if (this.nextSongTimeoutId) {
                             clearTimeout(this.nextSongTimeoutId);
