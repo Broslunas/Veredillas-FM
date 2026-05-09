@@ -1,0 +1,75 @@
+---
+---
+
+<div class="vertical-volume-container flex flex-col min-[630px]:flex-col max-[630px]:flex-row items-center gap-3 py-4 px-2 max-[630px]:py-2 max-[630px]:px-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-[30px] opacity-0 invisible pointer-events-none scale-90 translate-x-[10px] transition-all duration-400 [&.show]:opacity-100 [&.show]:visible [&.show]:pointer-events-auto [&.show]:scale-100 [&.show]:translate-x-0 z-20">
+    <div class="h-[100px] w-[20px] max-[630px]:h-[20px] max-[630px]:w-[100px] flex items-center justify-center relative">
+        <div class="absolute w-[100px] h-[20px] flex items-center justify-center min-[630px]:-rotate-90">
+            <input 
+                type="range" 
+                class="volume-slider w-[100px] h-1.5 bg-white/20 rounded-lg outline-none cursor-pointer accent-white transition-all hover:accent-primary" 
+                min="0" 
+                max="1" 
+                step="0.01" 
+                value="0.5" 
+                aria-label="Volumen"
+            >
+        </div>
+    </div>
+    <svg class="volume-icon text-gray-400" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+        <path class="volume-waves transition-opacity duration-300" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <path class="volume-waves-outer transition-opacity duration-300" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+    </svg>
+</div>
+
+<style>
+    /* Reset WebKit appearance for consistent styling across browsers */
+    input[type=range] {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        border: none;
+    }
+    input[type=range]::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        border: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: white;
+        margin-top: -5px; /* Center thumb on the track (16-6)/2 = 5 */
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        cursor: pointer;
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+    input[type=range]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: white;
+        border: none;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        cursor: pointer;
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+    input[type=range]:hover::-webkit-slider-thumb {
+        background: var(--color-primary, #8b5cf6);
+        box-shadow: 0 0 15px var(--color-primary, #8b5cf6);
+    }
+    input[type=range]:hover::-moz-range-thumb {
+        background: var(--color-primary, #8b5cf6);
+        box-shadow: 0 0 15px var(--color-primary, #8b5cf6);
+    }
+</style>

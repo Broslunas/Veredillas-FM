@@ -1,0 +1,90 @@
+---
+import VolumeBar from './VolumeBar.astro';
+
+interface Props {
+    isRegistered: boolean;
+}
+
+const { isRegistered } = Astro.props;
+---
+
+<div class="premiere-countdown w-full lg:flex-1 max-w-3xl flex flex-col items-center justify-center bg-gradient-to-br from-[#111] to-black border border-white/10 rounded-3xl p-12 text-center min-h-[400px] relative overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] transition-transform duration-500 ease-out" data-title="Veredillas FM Radio">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.15)_0%,transparent_70%)] pointer-events-none"></div>
+    
+    <div class="absolute top-6 right-6 flex items-center gap-3 z-[100]">
+        <button class="share-btn flex items-center justify-center w-11 h-11 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all backdrop-blur-md" title="Compartir a Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+        </button>
+        <button class="cinema-toggle-btn flex items-center justify-center w-11 h-11 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all backdrop-blur-md" title="Modo Cine">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
+        <button class="voice-toggle-btn enabled [&.enabled]:border-primary [&.enabled]:text-primary [&.enabled]:bg-primary/10 flex items-center justify-center w-11 h-11 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all backdrop-blur-md" aria-label="Activar/Desactivar voz de locutor" title="Locutor: ON">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        </button>
+    </div>
+
+    <div class="countdown-content w-full relative">
+        
+        <!-- Share Card Template (Hidden) -->
+        <div id="share-card-template" class="absolute top-[-9999px] left-[-9999px] w-[1080px] h-[1920px] bg-gradient-to-br from-[#111] to-[#050505] flex flex-col items-center justify-center text-white overflow-hidden z-[-1]">
+            <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
+                <div class="absolute top-[10%] left-[5%] opacity-20"><svg width="600" height="600" viewBox="0 0 100 100" fill="none" stroke="#8b5cf6" stroke-width="0.5"><polygon points="50,10 90,90 10,90"/></svg></div>
+                <div class="absolute top-[50%] right-[10%] opacity-30"><svg width="500" height="500" viewBox="0 0 100 100" fill="none" stroke="#06b6d4" stroke-width="0.5"><polygon points="50,5 95,38 78,95 22,95 5,38"/></svg></div>
+            </div>
+            <img src="/logo.webp" width="200" class="mb-16 z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" />
+            <h2 class="text-7xl font-extrabold mb-10 text-center px-10 z-10 bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent">Veredillas FM Radio</h2>
+            <div class="bg-white/10 backdrop-blur-2xl border border-white/20 p-16 rounded-[4rem] w-[80%] max-w-[900px] flex flex-col items-center shadow-[0_30px_60px_rgba(0,0,0,0.5)] z-10">
+                <p class="text-3xl text-gray-300 mb-6 uppercase tracking-widest font-bold">Sonando ahora</p>
+                <h3 class="text-5xl font-extrabold text-cyan-400 text-center" id="share-song-title">Cargando...</h3>
+            </div>
+            <p class="absolute bottom-24 text-4xl font-semibold text-gray-400 z-10">radio.veredillasfm.es</p>
+        </div>
+        
+        <div class="w-full max-w-[700px] mt-8 mx-auto">
+            <div class="grid grid-cols-1 min-[630px]:grid-cols-[80px_1fr_80px] items-center gap-6 min-[630px]:justify-items-stretch justify-items-center">
+                <div class="flex justify-center items-center w-auto min-[630px]:w-[80px] max-[630px]:hidden"></div>
+                
+                <div class="flex flex-col items-center gap-6 w-full">
+                    <h1 class="text-4xl md:text-5xl font-extrabold mb-4 bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent tracking-tight text-center drop-shadow-lg">
+                        Veredillas FM Radio
+                    </h1>
+
+                    <button class="music-btn music-toggle-btn group bg-white/5 border border-white/10 py-4 px-8 rounded-full cursor-pointer flex items-center gap-4 text-gray-300 transition-all duration-300 font-bold hover:bg-white/10 hover:text-white [&.playing]:bg-primary/15 [&.playing]:border-primary [&.playing]:text-white [&.playing]:shadow-[0_0_30px_rgba(139,92,246,0.3)] z-10" aria-label="Activar música de fondo">
+                        <div class="equalizer flex items-end h-4 gap-[3px]">
+                            <span class="bar bar-1 w-[4px] bg-current rounded-[1px] h-[8px] animate-eq [animation-play-state:paused] group-[.playing]:[animation-play-state:running]"></span>
+                            <span class="bar bar-2 w-[4px] bg-current rounded-[1px] h-[16px] animate-eq [animation-play-state:paused] group-[.playing]:[animation-play-state:running]"></span>
+                            <span class="bar bar-3 w-[4px] bg-current rounded-[1px] h-[10px] animate-eq [animation-play-state:paused] group-[.playing]:[animation-play-state:running]"></span>
+                            <span class="bar bar-4 w-[4px] bg-current rounded-[1px] h-[6px] animate-eq [animation-play-state:paused] group-[.playing]:[animation-play-state:running]"></span>
+                        </div>
+                        <span class="music-label text-lg">Activar Radio</span>
+                    </button>
+
+                    {isRegistered && (
+                        <button class="dj-trigger-btn mt-4 flex items-center gap-2 bg-primary/20 hover:bg-primary/30 text-white px-6 py-3 rounded-full font-semibold border border-primary/50 transition-all shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:scale-105 active:scale-95" id="dj-trigger-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                            Abrir Panel DJ
+                        </button>
+                    )}
+                </div>
+
+                <div class="flex justify-center items-center w-auto min-[630px]:w-[80px] relative">
+                    <VolumeBar />
+                </div>
+            </div>
+            
+            <audio class="waiting-music" preload="none" loop crossorigin="anonymous" id="radio-audio">
+                <source src="https://radio.veredillasfm.es/stream" type="audio/mpeg">
+            </audio>
+        </div>
+
+        <div class="now-playing-corner fixed bottom-6 left-6 bg-[#0a0a0c]/85 backdrop-blur-md border border-primary/30 rounded-2xl py-3.5 px-5 flex items-center gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.1)] translate-y-[150%] scale-90 opacity-0 transition-all duration-500 z-50 max-w-[320px] [&.visible]:translate-y-0 [&.visible]:scale-100 [&.visible]:opacity-100" id="now-playing-corner">
+            <div class="now-playing-icon bg-primary/10 p-2.5 rounded-full flex items-center justify-center animate-pulseGlow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="now-playing-info flex flex-col overflow-hidden">
+                <div class="now-playing-label text-[0.65rem] uppercase text-primary tracking-[0.1em] font-extrabold mb-[3px] font-sans">Sonando en directo</div>
+                <div class="now-playing-title text-[0.9rem] text-white whitespace-nowrap overflow-hidden text-ellipsis font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" id="corner-song-title">Ninguna canción</div>
+            </div>
+        </div>
+    </div>
+</div>

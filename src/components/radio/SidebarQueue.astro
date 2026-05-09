@@ -1,0 +1,28 @@
+---
+interface Props {
+    isAdmin: boolean;
+}
+
+const { isAdmin } = Astro.props;
+---
+
+<div class="queue-sidebar w-full lg:w-80 bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col h-[500px]">
+    <div class="flex items-center justify-between mb-6 shrink-0 border-b border-white/5 pb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 text-orange-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </div>
+            <div>
+                <h3 class="text-white font-bold text-lg m-0 leading-tight">Próximamente</h3>
+                <p class="text-xs text-gray-400">Cola de reproducción</p>
+            </div>
+        </div>
+        {isAdmin && (
+            <button id="dj-btn-clear-queue" class="text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors" title="Vaciar cola">Vaciar</button>
+        )}
+    </div>
+    
+    <div id="public-queue-list" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <div class="text-gray-500 text-sm font-medium text-center mt-10">Conectando con el servidor...</div>
+    </div>
+</div>

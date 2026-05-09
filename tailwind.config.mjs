@@ -15,6 +15,12 @@ export default {
         'spectrum': 'spectrum 1s infinite ease-in-out',
         'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
         'shimmer': 'shimmer 1.5s infinite',
+        'blob': 'blob 10s infinite alternate',
+        'eq': 'eq 1s infinite ease-in-out',
+        'pulseGlow': 'pulseGlow 2s infinite',
+        'spin-slow': 'spin 8s linear infinite',
+        'spin-reverse-slow': 'spin 12s linear infinite reverse',
+        'float-geo': 'floatGeo 6s ease-in-out infinite',
       },
       keyframes: {
         marquee: {
@@ -36,6 +42,24 @@ export default {
         shimmer: {
           '0%': { backgroundPosition: '200% 0' },
           '100%': { backgroundPosition: '-200% 0' },
+        },
+        blob: {
+          '0%': { transform: 'translate(0px, 0px) scale(1)' },
+          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+          '100%': { transform: 'translate(0px, 0px) scale(1)' },
+        },
+        eq: {
+          '0%, 100%': { height: '4px' },
+          '50%': { height: '12px' },
+        },
+        pulseGlow: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(139,92,246,0.4)' },
+          '50%': { boxShadow: '0 0 0 10px rgba(139,92,246,0)' },
+        },
+        floatGeo: {
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+          '50%': { transform: 'translateY(-20px) rotate(5deg)' },
         }
       },
     },
