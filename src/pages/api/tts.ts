@@ -4,7 +4,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { text, model = 'aura-2-selena-es' } = await request.json();
+    const { text, model = 'aura-orion-en' } = await request.json();
     if (!text) {
       return new Response(JSON.stringify({ error: 'Text is required' }), { 
         status: 400,

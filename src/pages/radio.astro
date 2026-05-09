@@ -580,6 +580,11 @@ if (userPayload) {
         isRegistered: boolean = false;
         isAdmin: boolean = false;
 
+        // DJ AI Status
+        currentSongTitle: string = '';
+        nextSongTimeoutId: number | null = null;
+        lastKnownQueue: any[] = [];
+
         // DJ Panel elements
         djTriggerBtn: HTMLElement | null;
         djModalOverlay: HTMLElement | null;
@@ -1063,6 +1068,108 @@ if (userPayload) {
             } catch (err) {}
         }
 
+        async playNextSongIntro(currentSongMeta: any, nextSongMeta: any) {
+            if (!this.ttsSettings.enabled || !this.isPlaying) return;
+
+            let currentArtist = "un artista increíble";
+            let currentTitle = "este temazo";
+            if (currentSongMeta && currentSongMeta.title) {
+                const parts = currentSongMeta.title.split(' - ');
+                if (parts.length > 1) {
+                    currentTitle = parts[0].trim();
+                    currentArtist = parts.slice(1).join(' - ').trim();
+                } else {
+                    currentTitle = currentSongMeta.title;
+                }
+            }
+
+            let nextArtist = "";
+            let nextTitle = "";
+            if (nextSongMeta && nextSongMeta.title) {
+                const parts = nextSongMeta.title.split(' - ');
+                if (parts.length > 1) {
+                    nextTitle = parts[0].trim();
+                    nextArtist = parts.slice(1).join(' - ').trim();
+                } else {
+                    nextTitle = nextSongMeta.title;
+                }
+            }
+
+            let userName = "familia";
+            try {
+                const sessionStr = localStorage.getItem('user-session');
+                if (sessionStr) {
+                    const session = JSON.parse(sessionStr);
+                    if (session.name) userName = session.name.split(' ')[0];
+                }
+            } catch(e) {}
+
+            let phrase = "";
+            if (nextTitle && nextArtist) {
+                const templates = [
+                    `¡Qué locura de tema nos acaba de regalar ${currentArtist}! Pero ojo, ${userName}, porque no bajamos el ritmo. Prepárate porque ahora entra ${nextArtist} con ${nextTitle}. ¡Súbele a Veredillas efe eme!`,
+                    `Ahí lo tenías, ${currentTitle} sonando duro. Y si creías que eso era todo, espera a escuchar lo que sigue. En exclusiva, ${nextTitle} de ${nextArtist}. Solo aquí, en tu radio favorita.`,
+                    `¡Familia! La vibra está por las nubes después de escuchar a ${currentArtist}. Vamos a mantener la energía a tope porque se viene ${nextArtist} con ${nextTitle}. ¡No te lo pierdas!`,
+                    `Tremendo palo este de ${currentTitle}. Y la cosa se pone aún mejor. Acomódate bien, ${userName}, porque llega ${nextArtist} directo a tus oídos con ${nextTitle}.`,
+                    `Estás sintonizando Veredillas efe eme. Despedimos a ${currentArtist} y le damos la bienvenida a ${nextArtist} con su temazo, ${nextTitle}. ¡Disfrútalo!`,
+                    `¡Uf, qué buena rolita de ${currentArtist}! Seguimos activos en cabina y ahora toca el turno de ${nextTitle}, lo nuevo de ${nextArtist}. Sube ese volumen.`,
+                    `La música no para en Veredillas efe eme. Después de este exitazo, nos vamos con ${nextArtist} y su increíble tema, ${nextTitle}. ¡Vámonos!`,
+                    `Si te gustó lo de ${currentArtist}, lo que viene te va a encantar. Directamente para ti, ${userName}, suena ${nextTitle} de ${nextArtist}. ¡Pura calidad!`,
+                    `¡Seguimos rompiendo la antena! Atrás quedó ${currentTitle} y nos metemos de lleno con el sonido único de ${nextArtist} cantando ${nextTitle}.`,
+                    `¡Wow, qué energía! Así suena ${currentArtist} en Veredillas efe eme. Y ahora, prepárate para cantar a todo pulmón con ${nextArtist} y su éxito ${nextTitle}.`,
+                    `¡Vaya, vaya! Terminamos de gozar con ${currentArtist}, pero aquí en Veredillas efe eme la fiesta apenas comienza. Atento a lo que suena ahora: ${nextTitle} de ${nextArtist}.`,
+                    `Qué buena onda nos dejó ${currentArtist}. Si estás escuchando esto, ${userName}, ponte cómodo porque el siguiente hit es ${nextTitle}, interpretado por ${nextArtist}.`,
+                    `¡Se encendió la cabina! Acabamos de vibrar con ${currentTitle}, y para seguir con el mismo mood, te dejamos con ${nextArtist} y su temón, ${nextTitle}.`,
+                    `Nadie pone la música como Veredillas efe eme. Despídete de ${currentArtist}, porque ya está en la pista ${nextArtist} con ${nextTitle}. ¡A romperla!`,
+                    `Pausa tus problemas, ${userName}, porque acaba de terminar ${currentTitle} y se viene un bombazo: nada menos que ${nextArtist} trayéndonos ${nextTitle}.`,
+                    `Acabamos de escuchar a ${currentArtist}, dejando la vara altísima. Pero no te preocupes, que ahora viene ${nextArtist} con ${nextTitle} para seguir dándolo todo.`,
+                    `El flow no se negocia aquí en Veredillas efe eme. Se va ${currentTitle} pero entra ${nextTitle}, de la mano de ${nextArtist}. Sube, sube el volumen.`,
+                    `¡Menudo viaje musical con ${currentArtist}! Agárrate fuerte porque la siguiente pista es brutal. Con ustedes, ${nextArtist} y ${nextTitle}.`,
+                    `Si estabas bailando con ${currentTitle}, no pares todavía. Llegó el momento de ${nextArtist} con ${nextTitle}. ¡Directo a tu cerebro!`,
+                    `¡Atención, ${userName}! Ya pasó ${currentArtist}, y lo que te tengo preparado ahora es oro puro. Escucha bien: esto es ${nextTitle} de ${nextArtist} en Veredillas efe eme.`
+                ];
+                phrase = templates[Math.floor(Math.random() * templates.length)];
+            } else {
+                const fallbackTemplates = [
+                    `¡Vaya temazo acabamos de escuchar de ${currentArtist}! Seguimos con la mejor selección musical aquí en Veredillas efe eme.`,
+                    `Ese fue ${currentArtist} rompiéndola. No te despegues, ${userName}, porque seguimos con mucha más música buena.`,
+                    `Estás en Veredillas efe eme. Después de este increíble tema de ${currentArtist}, seguimos con más éxitos imparables.`,
+                    `Pura buena vibra con ${currentTitle}. Quédate con nosotros que la música no se detiene ni un segundo.`,
+                    `¡Eso estuvo genial! Despedimos a ${currentArtist} y seguimos adelante. Ya sabes que en Veredillas efe eme suenan los mejores.`,
+                    `¡Qué nivel el de ${currentArtist}! Sigue en sintonía, ${userName}, porque la próxima canción te va a volar la cabeza.`
+                ];
+                phrase = fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+            }
+
+            try {
+                // Use the configured voice, defaulting to the expressive male voice 'aura-2-aquila-es' or 'aura-orion-en'
+                const selectedModel = this.ttsSettings.voice || 'aura-orion-en'; 
+
+                const response = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: phrase, model: selectedModel })
+                });
+
+                if (!response.ok) throw new Error('TTS failed');
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const ttsAudio = new Audio(url);
+                
+                const originalVolume = this.audio?.volume || 0.5;
+                if (this.audio) await this.fadeVolume(this.audio, originalVolume * 0.15, 1500);
+
+                ttsAudio.play();
+                ttsAudio.onended = async () => {
+                    if (this.audio) await this.fadeVolume(this.audio, originalVolume, 2000);
+                    URL.revokeObjectURL(url);
+                };
+            } catch (error) {
+                console.error('DJ AI TTS error:', error);
+            }
+        }
+
         async pollStatus() {
             try {
                 const res = await fetch('https://radio.veredillasfm.es/api/status');
@@ -1077,11 +1184,36 @@ if (userPayload) {
                     if (this.isPlaying) {
                         if (cornerWidget) cornerWidget.classList.add('visible');
                     }
+
+                    // --- DJ AI LOGIC ---
+                    if (this.currentSongTitle !== data.currentSongMeta.title) {
+                        this.currentSongTitle = data.currentSongMeta.title;
+                        
+                        if (this.nextSongTimeoutId) {
+                            clearTimeout(this.nextSongTimeoutId);
+                            this.nextSongTimeoutId = null;
+                        }
+
+                        // Schedule the next song intro if duration is known and long enough
+                        if (data.currentSongMeta.duration && data.currentSongMeta.duration > 30) {
+                            // Schedule for 20 seconds before the song ends
+                            // Subtract a small buffer (e.g. 2.5s) to account for polling delay
+                            const timeoutSeconds = data.currentSongMeta.duration - 20 - 2.5;
+                            if (timeoutSeconds > 0) {
+                                this.nextSongTimeoutId = window.setTimeout(() => {
+                                    this.playNextSongIntro(data.currentSongMeta, this.lastKnownQueue?.[0]);
+                                }, timeoutSeconds * 1000);
+                            }
+                        }
+                    }
+                    // -------------------
+
                 } else {
                     if (cornerWidget) cornerWidget.classList.remove('visible');
                 }
 
-                // Actualizar cola pública lateral
+                // Guardar la cola para el DJ AI
+                this.lastKnownQueue = data.playQueue || [];
                 if (this.publicQueueList) {
                     if (data.playQueue && data.playQueue.length > 0) {
                         this.publicQueueList.innerHTML = '';
