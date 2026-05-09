@@ -81,7 +81,7 @@ const isoDate = targetDate.toISOString();
                     </button>
 
                     <audio class="waiting-music" preload="none" loop>
-                        <source src="https://27833.live.streamtheworld.com/LOS40_URBAN.mp3" type="audio/mpeg">
+                        <source src="https://radio.veredillasfm.es/stream" type="audio/mpeg">
                     </audio>
                 </div>
 
@@ -97,52 +97,122 @@ const isoDate = targetDate.toISOString();
             </div>
         </div>
 
-        <div class="dj-modal-overlay" id="dj-modal-overlay">
-            <div class="dj-panel-wrapper">
-                <div class="dj-header">
-                    <div class="dj-header-title">
-                        <h3><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal text-[#00e5ff]"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg> Panel DJ PRO</h3>
-                        <div class="dj-status-badge offline" id="dj-status-badge">OFFLINE</div>
+        <div class="dj-modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md z-[1000] flex items-center justify-center p-2 sm:p-6 opacity-0 invisible transition-all duration-300" id="dj-modal-overlay">
+            <div class="dj-panel-wrapper w-full max-w-6xl bg-gradient-to-br from-[#131318] to-[#0a0a0c] border border-cyan-500/30 rounded-2xl flex flex-col max-h-[95vh] sm:max-h-[90vh] shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden transform scale-95 transition-transform duration-400">
+                <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"></div>
+                
+                <div class="flex justify-between items-center p-5 border-b border-white/5 shrink-0">
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-white font-bold text-xl flex items-center gap-2 font-inter tracking-tight">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+                            Panel DJ PRO
+                        </h3>
+                        <div id="dj-status-badge" class="px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_currentColor]">OFFLINE</div>
                     </div>
-                    <button class="dj-close-btn" id="dj-close-btn" aria-label="Cerrar Panel DJ">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    <button id="dj-close-btn" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 flex items-center justify-center hover:bg-white/10 hover:text-white hover:rotate-90 transition-all cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                     </button>
                 </div>
                 
-                <div class="dj-now-playing">
-                    <span class="dj-label">Sonando ahora</span>
-                    <div class="dj-song-display">
-                        <div class="dj-song-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-disc"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
-                        </div>
-                        <span class="dj-song-title" id="dj-current-song">Ninguna canción</span>
-                    </div>
-                </div>
+                <div class="flex-1 overflow-y-auto p-5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-black/20">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <div class="flex flex-col gap-6">
+                            <div class="bg-black/30 border border-white/5 rounded-xl p-5 flex flex-col gap-2 relative overflow-hidden">
+                                <div class="text-[0.7rem] text-gray-400 uppercase tracking-widest font-semibold">Sonando ahora</div>
+                                <div class="flex items-center gap-3 mt-1">
+                                    <div class="text-cyan-400 animate-[spin_4s_linear_infinite]">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
+                                    </div>
+                                    <span id="dj-current-song" class="text-lg text-white font-semibold truncate drop-shadow-[0_0_10px_rgba(0,229,255,0.3)]">Ninguna canción</span>
+                                </div>
+                            </div>
 
-                <div class="dj-controls">
-                    <button class="dj-btn play" id="dj-btn-play" title="Iniciar/Recargar emisión">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg> Emitir
-                    </button>
-                    <button class="dj-btn stop" id="dj-btn-stop" title="Detener emisión">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect width="14" height="14" x="5" y="5" rx="2" ry="2"/></svg> Cortar
-                    </button>
-                    <button class="dj-btn skip" id="dj-btn-skip" title="Saltar a la siguiente">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19" stroke="currentColor" stroke-width="3"/></svg> Saltar
-                    </button>
-                    <button class="dj-btn sync" id="dj-btn-sync" title="Sincronizar stream al directo">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sincronizar
-                    </button>
-                </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button id="dj-btn-play" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-gradient-to-br from-emerald-400/20 to-emerald-400/5 text-emerald-400 border border-emerald-400/40 hover:bg-emerald-400/25 hover:shadow-[0_0_15px_rgba(52,211,153,0.2)] transition-all active:scale-95">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg> Emitir
+                                </button>
+                                <button id="dj-btn-stop" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-gradient-to-br from-orange-500/20 to-orange-500/5 text-orange-500 border border-orange-500/40 hover:bg-orange-500/25 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)] transition-all active:scale-95">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect width="14" height="14" x="5" y="5" rx="2" ry="2"/></svg> Cortar
+                                </button>
+                                <button id="dj-btn-skip" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-white/10 text-white border border-white/20 hover:bg-white/15 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all active:scale-95">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19" stroke="currentColor" stroke-width="3"/></svg> Saltar
+                                </button>
+                                <button id="dj-btn-sync" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-gradient-to-br from-violet-500/20 to-violet-500/5 text-violet-400 border border-violet-500/40 hover:bg-violet-500/25 hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] transition-all active:scale-95">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync
+                                </button>
+                            </div>
 
-                <div class="dj-search-area">
-                    <div class="dj-search-input-group">
-                        <div class="dj-search-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                                <div class="text-[0.7rem] text-gray-400 uppercase tracking-widest font-semibold mb-3">Lanzar Playlist</div>
+                                <div class="flex gap-2">
+                                    <input type="text" id="dj-playlist-input" placeholder="Nombre (ej. Rock)" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 focus:bg-cyan-400/5 transition-colors">
+                                    <button id="dj-btn-playlist" class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm transition-colors shadow-[0_0_15px_rgba(6,182,212,0.4)]">Lanzar</button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-black/40 p-4 rounded-xl border border-white/5 flex flex-col gap-3">
+                                    <div class="text-[0.7rem] text-gray-400 uppercase tracking-widest font-semibold">Modo de Rep.</div>
+                                    <label class="flex items-center justify-between cursor-pointer group">
+                                        <span class="text-sm text-white group-hover:text-cyan-300 transition-colors">Bucle</span>
+                                        <input type="checkbox" id="dj-setting-loop" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-cyan-500 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white relative"></div>
+                                    </label>
+                                    <label class="flex items-center justify-between cursor-pointer group">
+                                        <span class="text-sm text-white group-hover:text-cyan-300 transition-colors">Aleatorio</span>
+                                        <input type="checkbox" id="dj-setting-shuffle" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-cyan-500 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white relative"></div>
+                                    </label>
+                                </div>
+
+                                <div class="bg-black/40 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                                    <div class="text-[0.7rem] text-gray-400 uppercase tracking-widest font-semibold mb-2">Cookies NetEase</div>
+                                    <label class="cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg p-2 hover:border-cyan-400/50 hover:bg-cyan-400/5 transition-all text-center h-full min-h-[60px]">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="text-gray-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                        <span class="text-[0.7rem] text-gray-400">Subir .txt</span>
+                                        <input type="file" id="dj-cookies-file" accept=".txt" class="hidden">
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                        <input type="text" id="dj-search-input" placeholder="Buscar pistas..." />
-                        <button class="dj-btn search" id="dj-btn-search">Buscar</button>
+
+                        <div class="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col h-[400px] lg:h-[550px]">
+                            <div class="flex items-center gap-2 mb-4 shrink-0">
+                                <div class="text-cyan-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                </div>
+                                <h4 class="text-white font-semibold">Biblioteca Local</h4>
+                            </div>
+                            
+                            <div class="flex gap-2 mb-4 shrink-0">
+                                <input type="text" id="dj-search-input" placeholder="Buscar pistas..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 focus:bg-cyan-400/5 transition-colors">
+                                <button id="dj-btn-search" class="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-[0_4px_15px_rgba(124,58,237,0.4)]">Buscar</button>
+                            </div>
+
+                            <div id="dj-results-list" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pb-4">
+                                <div class="text-gray-500 text-sm text-center mt-10">Usa el buscador para encontrar canciones</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col h-[400px] lg:h-[550px]">
+                            <div class="flex items-center justify-between mb-4 shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <div class="text-orange-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                                    </div>
+                                    <h4 class="text-white font-semibold">Cola de Reproducción</h4>
+                                    <span id="dj-queue-count" class="bg-white/10 text-white text-xs px-2 py-0.5 rounded-full ml-1 font-mono">0</span>
+                                </div>
+                                <button id="dj-btn-clear-queue" class="text-xs text-red-400 hover:text-red-300 hover:underline px-2 py-1 rounded transition-colors" title="Vaciar cola">Vaciar</button>
+                            </div>
+
+                            <div id="dj-queue-list" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pb-4">
+                                <div class="text-gray-500 text-sm text-center mt-10">La cola está vacía</div>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="dj-results" id="dj-results-list"></div>
                 </div>
             </div>
         </div>
@@ -539,362 +609,14 @@ const isoDate = targetDate.toISOString();
         transform: translateY(-2px);
     }
 
-    .dj-modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(12px);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-    }
-
     .dj-modal-overlay.open {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .dj-panel-wrapper {
-        width: 100%;
-        max-width: 550px;
-        background: linear-gradient(145deg, #131318, #0a0a0c);
-        border: 1px solid rgba(0, 229, 255, 0.2);
-        border-radius: 16px;
-        padding: 2rem;
-        text-align: left;
-        transform: translateY(20px) scale(0.95);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .dj-panel-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; height: 2px;
-        background: linear-gradient(90deg, transparent, #00e5ff, transparent);
-        opacity: 0.5;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 
     .dj-modal-overlay.open .dj-panel-wrapper {
-        transform: translateY(0) scale(1);
+        transform: translateY(0) scale(1) !important;
     }
-
-    .dj-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        padding-bottom: 1rem;
-    }
-
-    .dj-header-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .dj-header h3 {
-        margin: 0;
-        font-size: 1.2rem;
-        color: white;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-family: 'Inter', sans-serif;
-        letter-spacing: -0.02em;
-    }
-
-    .dj-close-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        color: var(--color-text-muted);
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .dj-close-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        transform: rotate(90deg);
-    }
-
-    .dj-status-badge {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 800;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        box-shadow: 0 0 10px currentColor;
-    }
-
-    .dj-status-badge.online {
-        background: rgba(0, 255, 102, 0.15);
-        color: #00ff66;
-        border: 1px solid rgba(0, 255, 102, 0.3);
-    }
-
-    .dj-status-badge.offline {
-        background: rgba(255, 85, 0, 0.15);
-        color: #ff5500;
-        border: 1px solid rgba(255, 85, 0, 0.3);
-    }
-
-    .dj-now-playing {
-        margin-bottom: 2rem;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .dj-label {
-        font-size: 0.75rem;
-        color: var(--color-text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: 600;
-    }
-
-    .dj-song-display {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .dj-song-icon {
-        color: #00e5ff;
-        animation: spin 4s linear infinite;
-    }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-
-    .dj-song-title {
-        font-size: 1.15rem;
-        color: white;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
-    }
-
-    .dj-controls {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 2rem;
-    }
-
-    .dj-btn {
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: none;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .dj-btn:active {
-        transform: scale(0.95);
-    }
-
-    .dj-btn.play { 
-        background: linear-gradient(135deg, rgba(0, 255, 102, 0.2), rgba(0, 255, 102, 0.05)); 
-        color: #00ff66; 
-        border: 1px solid rgba(0, 255, 102, 0.4); 
-    }
-    .dj-btn.play:hover { background: rgba(0, 255, 102, 0.25); box-shadow: 0 0 15px rgba(0, 255, 102, 0.2); }
-
-    .dj-btn.stop { 
-        background: linear-gradient(135deg, rgba(255, 85, 0, 0.2), rgba(255, 85, 0, 0.05)); 
-        color: #ff5500; 
-        border: 1px solid rgba(255, 85, 0, 0.4); 
-    }
-    .dj-btn.stop:hover { background: rgba(255, 85, 0, 0.25); box-shadow: 0 0 15px rgba(255, 85, 0, 0.2); }
-
-    .dj-btn.skip { 
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)); 
-        color: white; 
-        border: 1px solid rgba(255, 255, 255, 0.2); 
-    }
-    .dj-btn.skip:hover { background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); }
-    
-    .dj-btn.sync {
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05));
-        color: #b48ded;
-        border: 1px solid rgba(139, 92, 246, 0.4);
-    }
-    .dj-btn.sync:hover { background: rgba(139, 92, 246, 0.25); box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
-
-    .dj-btn.search { 
-        background: var(--color-primary); 
-        color: white; 
-        flex: 0 0 auto;
-        padding: 0 20px;
-        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-    }
-    .dj-btn.search:hover { background: #7c3aed; transform: translateY(-1px); }
-
-    .dj-search-area {
-        background: rgba(0, 0, 0, 0.4);
-        padding: 1.25rem;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .dj-search-input-group {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.25rem;
-        position: relative;
-    }
-
-    .dj-search-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--color-text-muted);
-        pointer-events: none;
-    }
-
-    .dj-search-input-group input {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 10px 14px 10px 40px;
-        border-radius: 10px;
-        color: white;
-        font-size: 0.95rem;
-        transition: all 0.2s;
-    }
-
-    .dj-search-input-group input:focus {
-        outline: none;
-        border-color: #00e5ff;
-        background: rgba(0, 229, 255, 0.05);
-        box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
-    }
-
-    .dj-results {
-        max-height: 280px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        padding-right: 5px;
-    }
-
-    .dj-result-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(255, 255, 255, 0.03);
-        padding: 12px 16px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        transition: all 0.2s ease;
-        gap: 1rem;
-    }
-
-    .dj-result-item:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(139, 92, 246, 0.3);
-        transform: translateX(2px);
-    }
-
-    .dj-result-title {
-        color: white;
-        font-weight: 500;
-        font-size: 0.9rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        flex: 1;
-    }
-
-    .dj-result-actions {
-        display: flex;
-        gap: 0.4rem;
-        opacity: 0.8;
-        transition: opacity 0.2s;
-    }
-
-    .dj-result-item:hover .dj-result-actions {
-        opacity: 1;
-    }
-
-    .dj-action-btn {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--color-text-muted);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 6px 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        white-space: nowrap;
-    }
-
-    .dj-action-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-    }
-
-    .dj-action-btn.play-now {
-        background: rgba(0, 255, 102, 0.1);
-        color: #00ff66;
-        border-color: rgba(0, 255, 102, 0.2);
-    }
-    
-    .dj-action-btn.play-now:hover {
-        background: rgba(0, 255, 102, 0.2);
-        box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
-    }
-
-    .dj-action-btn.queue {
-        color: #00e5ff;
-        background: rgba(0, 229, 255, 0.05);
-        border-color: rgba(0, 229, 255, 0.1);
-    }
-    .dj-action-btn.queue:hover {
-        background: rgba(0, 229, 255, 0.15);
-        box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
-    }
-    
-    /* Scrollbar for results */
-    .dj-results::-webkit-scrollbar { width: 4px; }
-    .dj-results::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
-    .dj-results::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 
     /* Corner Now Playing Widget */
     .now-playing-corner {
@@ -1234,6 +956,14 @@ const isoDate = targetDate.toISOString();
         djSearchInput: HTMLInputElement | null;
         djBtnSearch: HTMLElement | null;
         djResultsList: HTMLElement | null;
+        djPlaylistInput: HTMLInputElement | null;
+        djBtnPlaylist: HTMLElement | null;
+        djSettingLoop: HTMLInputElement | null;
+        djSettingShuffle: HTMLInputElement | null;
+        djCookiesFile: HTMLInputElement | null;
+        djBtnClearQueue: HTMLElement | null;
+        djQueueList: HTMLElement | null;
+        djQueueCount: HTMLElement | null;
         djPollInterval: number | undefined;
         cornerPollInterval: number | undefined;
 
@@ -1286,6 +1016,14 @@ const isoDate = targetDate.toISOString();
             this.djSearchInput = el.querySelector('#dj-search-input');
             this.djBtnSearch = el.querySelector('#dj-btn-search');
             this.djResultsList = el.querySelector('#dj-results-list');
+            this.djPlaylistInput = el.querySelector('#dj-playlist-input');
+            this.djBtnPlaylist = el.querySelector('#dj-btn-playlist');
+            this.djSettingLoop = el.querySelector('#dj-setting-loop');
+            this.djSettingShuffle = el.querySelector('#dj-setting-shuffle');
+            this.djCookiesFile = el.querySelector('#dj-cookies-file');
+            this.djBtnClearQueue = el.querySelector('#dj-btn-clear-queue');
+            this.djQueueList = el.querySelector('#dj-queue-list');
+            this.djQueueCount = el.querySelector('#dj-queue-count');
 
             this.setupDJControls();
             
@@ -1693,6 +1431,32 @@ const isoDate = targetDate.toISOString();
                     this.apiSearch(this.djSearchInput?.value || '');
                 }
             });
+
+            if (this.djBtnPlaylist) {
+                this.djBtnPlaylist.addEventListener('click', () => {
+                    const name = this.djPlaylistInput?.value || '';
+                    this.apiPlayPlaylist(name);
+                });
+            }
+            if (this.djSettingLoop && this.djSettingShuffle) {
+                this.djSettingLoop.addEventListener('change', () => {
+                    this.apiUpdateSettings(this.djSettingLoop!.checked, this.djSettingShuffle!.checked);
+                });
+                this.djSettingShuffle.addEventListener('change', () => {
+                    this.apiUpdateSettings(this.djSettingLoop!.checked, this.djSettingShuffle!.checked);
+                });
+            }
+            if (this.djBtnClearQueue) {
+                this.djBtnClearQueue.addEventListener('click', () => this.apiClearQueue());
+            }
+            if (this.djCookiesFile) {
+                this.djCookiesFile.addEventListener('change', (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                        this.apiUploadCookies(file);
+                    }
+                });
+            }
         }
 
         syncStream() {
@@ -1746,7 +1510,7 @@ const isoDate = targetDate.toISOString();
 
         async apiSearch(query: string) {
             if (!this.djResultsList) return;
-            this.djResultsList.innerHTML = '<div style="color: var(--color-text-muted); font-size: 0.85rem; padding: 5px;">Buscando...</div>';
+            this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-5">Buscando...</div>';
             
             try {
                 const url = new URL('https://radio.veredillasfm.es/api/search');
@@ -1761,47 +1525,45 @@ const isoDate = targetDate.toISOString();
                     this.djResultsList.innerHTML = '';
                     data.results.forEach((item: any) => {
                         const div = document.createElement('div');
-                        div.className = 'dj-result-item';
+                        div.className = 'flex flex-col gap-2 bg-white/5 border border-white/10 p-3 rounded-xl hover:bg-white/10 hover:border-cyan-500/30 transition-all';
                         div.innerHTML = `
-                            <span class="dj-result-title" title="${item.title}">${item.title}</span>
-                            <div class="dj-result-actions">
-                                <button class="dj-action-btn play-now" data-idx="${item.index}" title="Reproducir ahora">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                </button>
-                                <button class="dj-action-btn queue queue-next" data-idx="${item.index}" title="Añadir a la cola (Siguiente)">+ Sig.</button>
-                                <button class="dj-action-btn queue queue-last" data-idx="${item.index}" title="Añadir a la cola (Final)">+ Fin</button>
+                            <span class="text-white text-sm font-medium truncate" title="${item.title}">${item.title}</span>
+                            <div class="flex items-center gap-2">
+                                <button class="dj-action-btn play-specific flex-1 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-colors" data-idx="${item.index}" title="Reproducir ahora">▶ Play</button>
+                                <button class="dj-action-btn queue queue-next flex-1 py-1.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold hover:bg-cyan-500/20 transition-colors" data-idx="${item.index}" title="Siguiente">+ Sig</button>
+                                <button class="dj-action-btn queue queue-last flex-1 py-1.5 rounded bg-white/5 text-gray-300 border border-white/10 text-xs font-semibold hover:bg-white/10 transition-colors" data-idx="${item.index}" title="Al final">+ Fin</button>
                             </div>
                         `;
                         this.djResultsList?.appendChild(div);
                     });
 
                     // Attach events
-                    this.djResultsList.querySelectorAll('.play-now').forEach(btn => {
+                    this.djResultsList.querySelectorAll('.play-specific').forEach(btn => {
                         btn.addEventListener('click', (e) => {
-                            const idx = parseInt((e.target as HTMLElement).dataset.idx || '0');
-                            this.apiQueue(idx, 'play_now');
+                            const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
+                            this.apiPlaySpecific(idx);
                         });
                     });
                     this.djResultsList.querySelectorAll('.queue-next').forEach(btn => {
                         btn.addEventListener('click', (e) => {
-                            const idx = parseInt((e.target as HTMLElement).dataset.idx || '0');
+                            const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
                             this.apiQueue(idx, 'queue_next');
                         });
                     });
                     this.djResultsList.querySelectorAll('.queue-last').forEach(btn => {
                         btn.addEventListener('click', (e) => {
-                            const idx = parseInt((e.target as HTMLElement).dataset.idx || '0');
+                            const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
                             this.apiQueue(idx, 'queue_last');
                         });
                     });
 
                 } else {
-                    this.djResultsList.innerHTML = '<div style="color: var(--color-text-muted); font-size: 0.85rem; padding: 5px;">No se encontraron resultados.</div>';
+                    this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-5">No se encontraron resultados.</div>';
                 }
 
             } catch (err) {
                 console.error('Error searching DJ radio:', err);
-                this.djResultsList.innerHTML = '<div style="color: #f87171; font-size: 0.85rem; padding: 5px;">Error al buscar. ¿Servidor Offline?</div>';
+                this.djResultsList.innerHTML = '<div class="text-red-400 text-sm text-center mt-5">Error al buscar. ¿Servidor Offline?</div>';
             }
         }
 
@@ -1819,6 +1581,92 @@ const isoDate = targetDate.toISOString();
             }
         }
 
+        async apiPlaySpecific(index: number) {
+            try {
+                const res = await fetch('https://radio.veredillasfm.es/api/play-specific', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index })
+                });
+                if (!res.ok) throw new Error('Play specific failed');
+                this.pollStatus();
+            } catch (err) {
+                console.error('Error playing specific track:', err);
+            }
+        }
+
+        async apiPlayPlaylist(playlistName: string) {
+            if (!playlistName) return;
+            try {
+                const res = await fetch('https://radio.veredillasfm.es/api/play-playlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playlistName })
+                });
+                if (!res.ok) throw new Error('Play playlist failed');
+                this.pollStatus();
+                if (this.djPlaylistInput) this.djPlaylistInput.value = '';
+            } catch (err) {
+                console.error('Error playing playlist:', err);
+            }
+        }
+
+        async apiRemoveQueue(index: number) {
+            try {
+                const res = await fetch('https://radio.veredillasfm.es/api/queue/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index })
+                });
+                if (!res.ok) throw new Error('Remove queue failed');
+                this.pollStatus();
+            } catch (err) {
+                console.error('Error removing from queue:', err);
+            }
+        }
+
+        async apiClearQueue() {
+            try {
+                const res = await fetch('https://radio.veredillasfm.es/api/queue/clear', { method: 'POST' });
+                if (!res.ok) throw new Error('Clear queue failed');
+                this.pollStatus();
+            } catch (err) {
+                console.error('Error clearing queue:', err);
+            }
+        }
+
+        async apiUpdateSettings(loop: boolean, shuffle: boolean) {
+            try {
+                const res = await fetch('https://radio.veredillasfm.es/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ loop, shuffle })
+                });
+                if (!res.ok) throw new Error('Update settings failed');
+                this.pollStatus();
+            } catch (err) {
+                console.error('Error updating settings:', err);
+            }
+        }
+
+        async apiUploadCookies(file: File) {
+            try {
+                const formData = new FormData();
+                formData.append('cookies', file);
+                const res = await fetch('https://radio.veredillasfm.es/api/cookies', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!res.ok) throw new Error('Upload cookies failed');
+                const data = await res.json();
+                console.log(data.message);
+                if (this.djCookiesFile) this.djCookiesFile.value = '';
+                // Optional: Show success notification
+            } catch (err) {
+                console.error('Error uploading cookies:', err);
+            }
+        }
+
         async pollStatus() {
             if (!this.djModalOverlay || !this.djModalOverlay.classList.contains('open')) return;
 
@@ -1829,10 +1677,10 @@ const isoDate = targetDate.toISOString();
 
                 if (this.djStatusBadge) {
                     if (data.isPlaying) {
-                        this.djStatusBadge.className = 'dj-status-badge online';
+                        this.djStatusBadge.className = 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_currentColor]';
                         this.djStatusBadge.textContent = 'ONLINE';
                     } else {
-                        this.djStatusBadge.className = 'dj-status-badge offline';
+                        this.djStatusBadge.className = 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_currentColor]';
                         this.djStatusBadge.textContent = 'OFFLINE';
                     }
                 }
@@ -1844,10 +1692,54 @@ const isoDate = targetDate.toISOString();
                         this.djCurrentSong.textContent = 'Ninguna canción';
                     }
                 }
+
+                if (data.radioSettings) {
+                    if (this.djSettingLoop && this.djSettingLoop !== document.activeElement) {
+                        this.djSettingLoop.checked = data.radioSettings.loop;
+                    }
+                    if (this.djSettingShuffle && this.djSettingShuffle !== document.activeElement) {
+                        this.djSettingShuffle.checked = data.radioSettings.shuffle;
+                    }
+                }
+
+                if (data.playQueue) {
+                    if (this.djQueueCount) {
+                        this.djQueueCount.textContent = data.playQueue.length;
+                    }
+                    if (this.djQueueList) {
+                        if (data.playQueue.length === 0) {
+                            this.djQueueList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-10">La cola está vacía</div>';
+                        } else {
+                            this.djQueueList.innerHTML = '';
+                            data.playQueue.forEach((song: any, idx: number) => {
+                                const div = document.createElement('div');
+                                div.className = 'flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl hover:bg-white/10 transition-colors group';
+                                div.innerHTML = `
+                                    <div class="flex flex-col overflow-hidden pr-2">
+                                        <span class="text-white text-sm font-medium truncate" title="${song.title}">${song.title}</span>
+                                        ${song.duration ? `<span class="text-xs text-gray-500 font-mono">${Math.floor(song.duration/60)}:${String(Math.floor(song.duration%60)).padStart(2,'0')}</span>` : ''}
+                                    </div>
+                                    <button class="dj-btn-remove-queue shrink-0 w-8 h-8 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center lg:opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all" data-idx="${idx}" title="Eliminar">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    </button>
+                                `;
+                                this.djQueueList?.appendChild(div);
+                            });
+                            // Attach remove events
+                            this.djQueueList.querySelectorAll('.dj-btn-remove-queue').forEach(btn => {
+                                btn.addEventListener('click', (e) => {
+                                    const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
+                                    this.apiRemoveQueue(idx);
+                                });
+                            });
+                        }
+                    }
+                }
+
             } catch (err) {
                 console.error('Error polling DJ status:', err);
                 if (this.djStatusBadge) {
-                    this.djStatusBadge.className = 'dj-status-badge offline';
+                    this.djStatusBadge.className = 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_currentColor]';
                     this.djStatusBadge.textContent = 'OFFLINE';
                 }
                 if (this.djCurrentSong) {
