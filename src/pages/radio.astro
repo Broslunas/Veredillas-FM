@@ -8,6 +8,7 @@ import RadioBackground from '@/components/radio/RadioBackground.astro';
 import MainPlayer from '@/components/radio/MainPlayer.astro';
 import SidebarQueue from '@/components/radio/SidebarQueue.astro';
 import DJPanelModal from '@/components/radio/DJPanelModal.astro';
+import ListenerCount from '@/components/ListenerCount.astro';
 
 export const prerender = false;
 
@@ -34,6 +35,10 @@ if (userPayload) {
 
     <div class="radio-page-container w-full max-w-6xl mx-auto relative z-10 flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center" data-is-registered={isRegistered.toString()} data-is-admin={isAdmin.toString()}>
 
+        <div class="absolute -top-16 lg:left-0 max-lg:left-1/2 max-lg:-translate-x-1/2 z-20">
+            <ListenerCount onlyCurrentPath={true} />
+        </div>
+
         <MainPlayer isRegistered={isRegistered} />
 
         <SidebarQueue isAdmin={isAdmin} />
@@ -46,6 +51,7 @@ if (userPayload) {
 
 <script>
     import * as htmlToImage from 'html-to-image';
+    import { welcomePhrases, transitionPhrases, fallbackPhrases } from '@/utils/radioPhrases';
 
     class RadioPlayerMinimal {
         el: HTMLElement;
@@ -456,13 +462,8 @@ if (userPayload) {
                 }
             } catch(e) {}
 
-            const variations = [
-                `¡Hola, ${userName}! Estás escuchando Veredillas efe-eme en directo. Relájate y disfruta.`,
-                `Bienvenido a la radio, ${userName}. Sube el volumen que la mejor música suena ahora.`,
-                `Sintonizando la frecuencia oficial de Veredillas efe-eme. ¡Dale caña, ${userName}!`
-            ];
-
-            let phrase = variations[Math.floor(Math.random() * variations.length)];
+            let phrase = welcomePhrases[Math.floor(Math.random() * welcomePhrases.length)];
+            phrase = phrase.replace('{userName}', userName);
             
             try {
                 const response = await fetch('/api/tts', {
@@ -795,39 +796,19 @@ if (userPayload) {
 
             let phrase = "";
             if (nextTitle && nextArtist) {
-                const templates = [
-                    `¡Qué locura de tema nos acaba de regalar ${currentArtist}! Pero ojo, ${userName}, porque no bajamos el ritmo. Prepárate porque ahora entra ${nextArtist} con ${nextTitle}. ¡Súbele a Veredillas efe eme!`,
-                    `Ahí lo tenías, ${currentTitle} sonando duro. Y si creías que eso era todo, espera a escuchar lo que sigue. En exclusiva, ${nextTitle} de ${nextArtist}. Solo aquí, en tu radio favorita.`,
-                    `¡Familia! La vibra está por las nubes después de escuchar a ${currentArtist}. Vamos a mantener la energía a tope porque se viene ${nextArtist} con ${nextTitle}. ¡No te lo pierdas!`,
-                    `Tremendo palo este de ${currentTitle}. Y la cosa se pone aún mejor. Acomódate bien, ${userName}, porque llega ${nextArtist} directo a tus oídos con ${nextTitle}.`,
-                    `Estás sintonizando Veredillas efe eme. Despedimos a ${currentArtist} y le damos la bienvenida a ${nextArtist} con su temazo, ${nextTitle}. ¡Disfrútalo!`,
-                    `¡Uf, qué buena rolita de ${currentArtist}! Seguimos activos en cabina y ahora toca el turno de ${nextTitle}, lo nuevo de ${nextArtist}. Sube ese volumen.`,
-                    `La música no para en Veredillas efe eme. Después de este exitazo, nos vamos con ${nextArtist} y su increíble tema, ${nextTitle}. ¡Vámonos!`,
-                    `Si te gustó lo de ${currentArtist}, lo que viene te va a encantar. Directamente para ti, ${userName}, suena ${nextTitle} de ${nextArtist}. ¡Pura calidad!`,
-                    `¡Seguimos rompiendo la antena! Atrás quedó ${currentTitle} y nos metemos de lleno con el sonido único de ${nextArtist} cantando ${nextTitle}.`,
-                    `¡Wow, qué energía! Así suena ${currentArtist} en Veredillas efe eme. Y ahora, prepárate para cantar a todo pulmón con ${nextArtist} y su éxito ${nextTitle}.`,
-                    `¡Vaya, vaya! Terminamos de gozar con ${currentArtist}, pero aquí en Veredillas efe eme la fiesta apenas comienza. Atento a lo que suena ahora: ${nextTitle} de ${nextArtist}.`,
-                    `Qué buena onda nos dejó ${currentArtist}. Si estás escuchando esto, ${userName}, ponte cómodo porque el siguiente hit es ${nextTitle}, interpretado por ${nextArtist}.`,
-                    `¡Se encendió la cabina! Acabamos de vibrar con ${currentTitle}, y para seguir con el mismo mood, te dejamos con ${nextArtist} y su temón, ${nextTitle}.`,
-                    `Nadie pone la música como Veredillas efe eme. Despídete de ${currentArtist}, porque ya está en la pista ${nextArtist} con ${nextTitle}. ¡A romperla!`,
-                    `Pausa tus problemas, ${userName}, porque acaba de terminar ${currentTitle} y se viene un bombazo: nada menos que ${nextArtist} trayéndonos ${nextTitle}.`,
-                    `Acabamos de escuchar a ${currentArtist}, dejando la vara altísima. Pero no te preocupes, que ahora viene ${nextArtist} con ${nextTitle} para seguir dándolo todo.`,
-                    `El flow no se negocia aquí en Veredillas efe eme. Se va ${currentTitle} pero entra ${nextTitle}, de la mano de ${nextArtist}. Sube, sube el volumen.`,
-                    `¡Menudo viaje musical con ${currentArtist}! Agárrate fuerte porque la siguiente pista es brutal. Con ustedes, ${nextArtist} y ${nextTitle}.`,
-                    `Si estabas bailando con ${currentTitle}, no pares todavía. Llegó el momento de ${nextArtist} con ${nextTitle}. ¡Directo a tu cerebro!`,
-                    `¡Atención, ${userName}! Ya pasó ${currentArtist}, y lo que te tengo preparado ahora es oro puro. Escucha bien: esto es ${nextTitle} de ${nextArtist} en Veredillas efe eme.`
-                ];
-                phrase = templates[Math.floor(Math.random() * templates.length)];
+                phrase = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
+                phrase = phrase
+                    .replace('{currentArtist}', currentArtist)
+                    .replace('{currentTitle}', currentTitle)
+                    .replace('{nextArtist}', nextArtist)
+                    .replace('{nextTitle}', nextTitle)
+                    .replace('{userName}', userName);
             } else {
-                const fallbackTemplates = [
-                    `¡Vaya temazo acabamos de escuchar de ${currentArtist}! Seguimos con la mejor selección musical aquí en Veredillas efe eme.`,
-                    `Ese fue ${currentArtist} rompiéndola. No te despegues, ${userName}, porque seguimos con mucha más música buena.`,
-                    `Estás en Veredillas efe eme. Después de este increíble tema de ${currentArtist}, seguimos con más éxitos imparables.`,
-                    `Pura buena vibra con ${currentTitle}. Quédate con nosotros que la música no se detiene ni un segundo.`,
-                    `¡Eso estuvo genial! Despedimos a ${currentArtist} y seguimos adelante. Ya sabes que en Veredillas efe eme suenan los mejores.`,
-                    `¡Qué nivel el de ${currentArtist}! Sigue en sintonía, ${userName}, porque la próxima canción te va a volar la cabeza.`
-                ];
-                phrase = fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+                phrase = fallbackPhrases[Math.floor(Math.random() * fallbackPhrases.length)];
+                phrase = phrase
+                    .replace('{currentArtist}', currentArtist)
+                    .replace('{currentTitle}', currentTitle)
+                    .replace('{userName}', userName);
             }
 
             try {
