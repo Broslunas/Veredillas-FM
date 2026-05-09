@@ -3,496 +3,267 @@ import Layout from '@/layouts/Layout.astro';
 ---
 
 <Layout title="Radio En Directo | Veredillas FM" description="Escucha la emisión en directo de Veredillas FM con el reproductor completo y panel DJ.">
-  <main class="min-h-screen flex items-center justify-center py-12 px-4 relative overflow-hidden bg-[radial-gradient(circle_at_center,#0a0a0c_0%,var(--color-bg)_100%)]">
+  <main class="min-h-[calc(100vh-80px)] py-12 px-4 relative overflow-x-hidden bg-[radial-gradient(circle_at_top,#0a0a0c_0%,var(--color-bg)_100%)]">
     
-    <div class="radio-player-container">
-      <div class="badge">En Directo</div>
-      <h2>Veredillas FM Radio</h2>
-      <p class="subtitle text-zinc-400 mb-8 max-w-md mx-auto text-center">Sintoniza nuestra emisión 24/7 y descubre la mejor música.</p>
+    <div class="radio-page-container max-w-6xl mx-auto relative z-10">
       
-      <button class="voice-toggle-btn enabled" aria-label="Activar/Desactivar voz de locutor" title="Locutor: ON">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
-      </button>
-      
-      <div class="music-player-wrapper mt-8">
-          <div class="player-grid">
-              <div class="grid-side grid-left"></div>
-              
-              <div class="grid-center">
-                  <div class="custom-select-wrapper">
-                      <div class="custom-select-trigger" tabindex="0">
-                          <span class="selection">Veredillas FM Radio</span>
-                          <div class="arrow"></div>
-                      </div>
-                      <div class="custom-options">
-                          <div class="custom-option" data-value="https://radio.veredillasfm.es/stream">Veredillas FM Radio</div>
-                          <div class="custom-option" data-value="https://27833.live.streamtheworld.com/LOS40_URBAN.mp3">Los 40 Urban</div>
-                          <div class="custom-option selected" data-value="https://stream.zeno.fm/0r0xa792kwzuv">Lofi Chill</div>
-                          <div class="custom-option" data-value="https://s1.we4stream.com:2020/stream/locaurban">Loca Urban</div>
-                          <div class="custom-option" data-value="https://28503.live.streamtheworld.com/LOS40_CAT.mp3">Los 40</div>
-                          <div class="custom-option" data-value="https://listen.technobase.fm/tunein-mp3">Techno</div>
-                          <div class="custom-option" data-value="https://sunaer-stream.com:7113/LA_MUEVE_CADENA_HD">La MUEVE FM</div>
-                          <div class="custom-option" data-value="https://stream-177.zeno.fm/gwmx5szrc0hvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnd214NXN6cmMwaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Ild6UHlGOHdzUkRLeVRHalhZY004SlEiLCJpYXQiOjE3NzUyMTIwMjEsImV4cCI6MTc3NTIxMjA4MX0.NrAFqkqJUVyckzTl0C0RqzdCDxEkgQxGfBkS47sENnQ">Rock FM</div>
-                          <div class="custom-option" data-value="http://streaming.indalteco.net:8002/dial.mp3">Cadena Dial</div>
-                      </div>
-                  </div>
-
-                  <button class="music-btn music-toggle-btn" aria-label="Activar música de fondo">
-                      <div class="equalizer">
-                          <span class="bar bar-1"></span>
-                          <span class="bar bar-2"></span>
-                          <span class="bar bar-3"></span>
-                          <span class="bar bar-4"></span>
-                      </div>
-                      <span class="music-label">Activar Música</span>
-                  </button>
-                  
-                  <button class="dj-trigger-btn" id="dj-trigger-btn" style="display: none;">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                      Abrir Panel DJ
-                  </button>
-
-                  <audio class="waiting-music" preload="none" loop>
-                      <source src="https://radio.veredillasfm.es/stream" type="audio/mpeg">
-                  </audio>
-              </div>
-
-              <div class="grid-side grid-right">
-                  <div class="vertical-volume-container">
-                      <div class="volume-slider-vertical-wrapper">
-                          <input type="range" class="volume-slider vertical" min="0" max="1" step="0.01" value="0.5" aria-label="Volumen">
-                      </div>
-                      <svg class="volume-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path class="volume-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path class="volume-waves-outer" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
-                  </div>
-              </div>
-          </div>
+      <!-- Header -->
+      <div class="text-center mb-10">
+        <div class="badge inline-block bg-primary text-white px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-[0_0_15px_rgba(139,92,246,0.5)] mb-4">En Directo</div>
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent">Veredillas FM Radio</h1>
+        <p class="text-zinc-400 max-w-md mx-auto">Sintoniza nuestra emisión 24/7 y descubre la mejor música sin interrupciones.</p>
       </div>
 
-      <div class="dj-modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md z-[1000] flex items-center justify-center p-2 sm:p-6 opacity-0 invisible transition-all duration-300" id="dj-modal-overlay">
-          <div class="dj-panel-wrapper w-full max-w-6xl bg-gradient-to-br from-[#131318] to-[#0a0a0c] border border-cyan-500/30 rounded-2xl flex flex-col max-h-[95vh] sm:max-h-[90vh] shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden transform scale-95 transition-transform duration-400 text-left">
-              <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"></div>
-              
-              <div class="flex justify-between items-center p-5 border-b border-white/5 shrink-0">
-                  <div class="flex items-center gap-3">
-                      <h3 class="text-white font-bold text-xl flex items-center gap-2 font-inter tracking-tight m-0">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
-                          Panel DJ PRO
-                      </h3>
-                      <div id="dj-status-badge" class="px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_currentColor]">OFFLINE</div>
-                  </div>
-                  <button id="dj-close-btn" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 flex items-center justify-center hover:bg-white/10 hover:text-white hover:rotate-90 transition-all cursor-pointer">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                  </button>
-              </div>
-              
-              <div class="flex-1 overflow-y-auto p-5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-black/20">
-                  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      
-                      <div class="flex flex-col gap-6">
-                          <div class="bg-black/30 border border-white/5 rounded-xl p-5 flex flex-col gap-2 relative overflow-hidden">
-                              <div class="text-[0.7rem] text-gray-400 uppercase tracking-widest font-semibold">Sonando ahora</div>
-                              <div class="flex items-center gap-3 mt-1">
-                                  <div class="text-cyan-400 animate-[spin_4s_linear_infinite]">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
-                                  </div>
-                                  <span id="dj-current-song" class="text-lg text-white font-semibold truncate drop-shadow-[0_0_10px_rgba(0,229,255,0.3)]">Ninguna canción</span>
-                              </div>
-                          </div>
+      <!-- Tabs Navigation -->
+      <div class="flex justify-center gap-4 mb-10 border-b border-white/5 pb-4">
+        <button class="tab-btn active px-6 py-2.5 rounded-xl font-bold text-sm bg-primary text-white border border-primary transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)]" data-target="tab-player">Reproductor</button>
+        <button class="tab-btn px-6 py-2.5 rounded-xl font-bold text-sm bg-white/5 text-gray-400 border border-transparent hover:bg-white/10 hover:text-white transition-all hidden" data-target="tab-dj" id="dj-tab-btn">Panel DJ PRO</button>
+      </div>
 
-                          <div class="grid grid-cols-2 gap-3">
-                              <button id="dj-btn-play" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-gradient-to-br from-emerald-400/20 to-emerald-400/5 text-emerald-400 border border-emerald-400/40 hover:bg-emerald-400/25 hover:shadow-[0_0_15px_rgba(52,211,153,0.2)] transition-all active:scale-95">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg> Emitir
-                              </button>
-                              <button id="dj-btn-stop" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-gradient-to-br from-orange-500/20 to-orange-500/5 text-orange-500 border border-orange-500/40 hover:bg-orange-500/25 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)] transition-all active:scale-95">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect width="14" height="14" x="5" y="5" rx="2" ry="2"/></svg> Cortar
-                              </button>
-                              <button id="dj-btn-skip" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-white/10 text-white border border-white/20 hover:bg-white/15 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all active:scale-95">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19" stroke="currentColor" stroke-width="3"/></svg> Saltar
-                              </button>
-                              <button id="dj-btn-sync" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-gradient-to-br from-violet-500/20 to-violet-500/5 text-violet-400 border border-violet-500/40 hover:bg-violet-500/25 hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] transition-all active:scale-95">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync
-                              </button>
-                          </div>
+      <div class="tabs-content relative min-h-[500px]">
+        
+        <!-- TAB: REPRODUCTOR -->
+        <div id="tab-player" class="tab-pane active flex flex-col items-center animate-fade-in">
+          
+          <div class="player-box bg-surface/40 backdrop-blur-xl border border-white/10 p-10 rounded-[2.5rem] w-full max-w-2xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex flex-col items-center relative">
+            
+            <button class="voice-toggle-btn enabled absolute top-6 right-6 w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all z-20 shadow-lg" aria-label="Activar/Desactivar voz de locutor" title="Locutor: ON">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+            </button>
 
-                          <div class="bg-black/40 p-4 rounded-xl border border-white/5">
-                              <div class="text-[0.7rem] text-gray-400 uppercase tracking-widest font-semibold mb-3">Lanzar Playlist</div>
-                              <div class="flex gap-2">
-                                  <input type="text" id="dj-playlist-input" placeholder="Nombre (ej. Rock)" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 focus:bg-cyan-400/5 transition-colors">
-                                  <button id="dj-btn-playlist" class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm transition-colors shadow-[0_0_15px_rgba(6,182,212,0.4)]">Lanzar</button>
-                              </div>
-                          </div>
+            <!-- Visualizer / Artwork placeholder -->
+            <div class="w-56 h-56 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-[6px] border-white/5 flex items-center justify-center shadow-[0_0_50px_rgba(139,92,246,0.15)] mb-10 relative overflow-hidden">
+              <div class="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_70%)] pointer-events-none"></div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary opacity-80"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            
+            <div class="w-full">
+                <div class="player-grid grid grid-cols-[60px_1fr_60px] gap-6 items-center w-full">
+                    <div class="grid-left flex justify-center">
+                        <button class="music-btn music-toggle-btn w-16 h-16 rounded-full bg-primary text-white shadow-[0_0_25px_rgba(139,92,246,0.4)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all" aria-label="Activar música de fondo">
+                            <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <svg class="pause-icon hidden" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="grid-center flex flex-col items-center w-full relative z-50">
+                        <div class="custom-select-wrapper w-full relative">
+                            <div class="custom-select-trigger flex items-center justify-between w-full bg-black/40 border border-white/10 px-6 py-4 rounded-2xl cursor-pointer backdrop-blur-md hover:bg-white/5 transition-colors" tabindex="0">
+                                <span class="selection font-semibold text-white">Veredillas FM Radio</span>
+                                <div class="arrow w-2.5 h-2.5 border-b-2 border-r-2 border-white/50 transform rotate-45 transition-transform"></div>
+                            </div>
+                            <div class="custom-options absolute bottom-[calc(100%+8px)] left-0 w-full bg-[#111] border border-white/10 rounded-2xl z-50 opacity-0 invisible transform translate-y-2 transition-all max-h-[300px] overflow-y-auto shadow-2xl backdrop-blur-xl">
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors" data-value="https://radio.veredillasfm.es/stream">Veredillas FM Radio</div>
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors" data-value="https://27833.live.streamtheworld.com/LOS40_URBAN.mp3">Los 40 Urban</div>
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors selected bg-primary/20 text-white" data-value="https://stream.zeno.fm/0r0xa792kwzuv">Lofi Chill</div>
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors" data-value="https://s1.we4stream.com:2020/stream/locaurban">Loca Urban</div>
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors" data-value="https://28503.live.streamtheworld.com/LOS40_CAT.mp3">Los 40</div>
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors" data-value="https://listen.technobase.fm/tunein-mp3">Techno</div>
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors" data-value="https://sunaer-stream.com:7113/LA_MUEVE_CADENA_HD">La MUEVE FM</div>
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors" data-value="https://stream-177.zeno.fm/gwmx5szrc0hvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnd214NXN6cmMwaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Ild6UHlGOHdzUkRLeVRHalhZY004SlEiLCJpYXQiOjE3NzUyMTIwMjEsImV4cCI6MTc3NTIxMjA4MX0.NrAFqkqJUVyckzTl0C0RqzdCDxEkgQxGfBkS47sENnQ">Rock FM</div>
+                                <div class="custom-option px-6 py-3.5 cursor-pointer text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors" data-value="http://streaming.indalteco.net:8002/dial.mp3">Cadena Dial</div>
+                            </div>
+                        </div>
 
-                          <div class="grid grid-cols-2 gap-4">
-                              <div class="bg-black/40 p-4 rounded-xl border border-white/5 flex flex-col gap-3">
-                                  <div class="text-[0.7rem] text-gray-400 uppercase tracking-widest font-semibold">Modo de Rep.</div>
-                                  <label class="flex items-center justify-between cursor-pointer group">
-                                      <span class="text-sm text-white group-hover:text-cyan-300 transition-colors">Bucle</span>
-                                      <input type="checkbox" id="dj-setting-loop" class="sr-only peer">
-                                      <div class="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-cyan-500 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white relative"></div>
-                                  </label>
-                                  <label class="flex items-center justify-between cursor-pointer group">
-                                      <span class="text-sm text-white group-hover:text-cyan-300 transition-colors">Aleatorio</span>
-                                      <input type="checkbox" id="dj-setting-shuffle" class="sr-only peer">
-                                      <div class="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-cyan-500 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white relative"></div>
-                                  </label>
-                              </div>
+                        <div class="mt-5 flex items-center gap-3 bg-black/20 px-4 py-2 rounded-full border border-white/5">
+                           <div class="equalizer flex items-end h-3 gap-[2px]">
+                                <span class="bar bar-1 w-[3px] bg-primary rounded-sm h-[4px]"></span>
+                                <span class="bar bar-2 w-[3px] bg-primary rounded-sm h-[4px]"></span>
+                                <span class="bar bar-3 w-[3px] bg-primary rounded-sm h-[4px]"></span>
+                                <span class="bar bar-4 w-[3px] bg-primary rounded-sm h-[4px]"></span>
+                            </div>
+                            <span class="music-label text-sm text-gray-300 font-medium">Lista para sonar</span>
+                        </div>
 
-                              <div class="bg-black/40 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
-                                  <div class="text-[0.7rem] text-gray-400 uppercase tracking-widest font-semibold mb-2">Cookies NetEase</div>
-                                  <label class="cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg p-2 hover:border-cyan-400/50 hover:bg-cyan-400/5 transition-all text-center h-full min-h-[60px]">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="text-gray-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                      <span class="text-[0.7rem] text-gray-400">Subir .txt</span>
-                                      <input type="file" id="dj-cookies-file" accept=".txt" class="hidden">
-                                  </label>
-                              </div>
-                          </div>
-                      </div>
+                        <audio class="waiting-music" preload="none" loop>
+                            <source src="https://radio.veredillasfm.es/stream" type="audio/mpeg">
+                        </audio>
+                    </div>
 
-                      <div class="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col h-[400px] lg:h-[550px]">
-                          <div class="flex items-center gap-2 mb-4 shrink-0">
-                              <div class="text-cyan-400">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                              </div>
-                              <h4 class="text-white font-semibold m-0">Biblioteca Local</h4>
-                          </div>
-                          
-                          <div class="flex gap-2 mb-4 shrink-0">
-                              <input type="text" id="dj-search-input" placeholder="Buscar pistas..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 focus:bg-cyan-400/5 transition-colors">
-                              <button id="dj-btn-search" class="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-[0_4px_15px_rgba(124,58,237,0.4)]">Buscar</button>
-                          </div>
+                    <div class="grid-right flex justify-center relative group">
+                        <button class="volume-btn w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors shadow-lg">
+                            <svg class="volume-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path class="volume-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path class="volume-waves-outer" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                        </button>
 
-                          <div id="dj-results-list" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pb-4">
-                              <div class="text-gray-500 text-sm text-center mt-10">Usa el buscador para encontrar canciones</div>
-                          </div>
-                      </div>
-
-                      <div class="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col h-[400px] lg:h-[550px]">
-                          <div class="flex items-center justify-between mb-4 shrink-0">
-                              <div class="flex items-center gap-2">
-                                  <div class="text-orange-400">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                                  </div>
-                                  <h4 class="text-white font-semibold m-0">Cola de Reproducción</h4>
-                                  <span id="dj-queue-count" class="bg-white/10 text-white text-xs px-2 py-0.5 rounded-full ml-1 font-mono">0</span>
-                              </div>
-                              <button id="dj-btn-clear-queue" class="text-xs text-red-400 hover:text-red-300 hover:underline px-2 py-1 rounded transition-colors" title="Vaciar cola">Vaciar</button>
-                          </div>
-
-                          <div id="dj-queue-list" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pb-4">
-                              <div class="text-gray-500 text-sm text-center mt-10">La cola está vacía</div>
-                          </div>
-                      </div>
-
-                  </div>
-              </div>
+                        <div class="volume-slider-popup absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-[#1a1a1f] border border-white/10 p-4 rounded-[1.5rem] shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col items-center h-[140px] z-50">
+                            <input type="range" class="volume-slider vertical -rotate-90 origin-center translate-y-[50px] w-[100px] h-[4px] bg-white/10 rounded-lg appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg" min="0" max="1" step="0.01" value="0.5" aria-label="Volumen">
+                        </div>
+                    </div>
+                </div>
+            </div>
           </div>
+        </div>
+
+        <!-- TAB: DJ PANEL -->
+        <div id="tab-dj" class="tab-pane hidden w-full animate-fade-in">
+            <div class="bg-surface/40 backdrop-blur-xl border border-cyan-500/20 rounded-[2.5rem] p-6 lg:p-8 shadow-[0_30px_60px_rgba(0,0,0,0.5)]">
+                
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 pb-6 border-b border-white/5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-extrabold text-2xl m-0 leading-none tracking-tight">Panel de Control DJ</h3>
+                            <p class="text-sm text-gray-400 mt-1.5">Gestiona la emisión en directo</p>
+                        </div>
+                    </div>
+                    <div id="dj-status-badge" class="px-4 py-2 rounded-full text-xs font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_15px_currentColor]">OFFLINE</div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Control Column -->
+                    <div class="flex flex-col gap-6">
+                        <div class="bg-black/40 border border-white/5 rounded-2xl p-6 flex flex-col gap-2 relative overflow-hidden shadow-inner">
+                            <div class="absolute -right-4 -top-4 w-24 h-24 bg-cyan-500/10 blur-2xl rounded-full"></div>
+                            <div class="text-xs text-gray-400 uppercase tracking-widest font-bold">Sonando ahora</div>
+                            <div class="flex items-center gap-3 mt-1">
+                                <div class="text-cyan-400 animate-[spin_4s_linear_infinite] shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
+                                </div>
+                                <span id="dj-current-song" class="text-xl text-white font-bold truncate drop-shadow-[0_0_10px_rgba(0,229,255,0.3)]">Ninguna canción</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <button id="dj-btn-play" class="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm bg-gradient-to-br from-emerald-400/20 to-emerald-400/5 text-emerald-400 border border-emerald-400/40 hover:bg-emerald-400/25 hover:shadow-[0_0_20px_rgba(52,211,153,0.3)] transition-all active:scale-95">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg> Emitir
+                            </button>
+                            <button id="dj-btn-stop" class="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm bg-gradient-to-br from-orange-500/20 to-orange-500/5 text-orange-500 border border-orange-500/40 hover:bg-orange-500/25 hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all active:scale-95">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect width="14" height="14" x="5" y="5" rx="2" ry="2"/></svg> Cortar
+                            </button>
+                            <button id="dj-btn-skip" class="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm bg-white/5 text-white border border-white/10 hover:bg-white/15 transition-all active:scale-95 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19" stroke="currentColor" stroke-width="3"/></svg> Saltar
+                            </button>
+                            <button id="dj-btn-sync" class="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm bg-gradient-to-br from-violet-500/20 to-violet-500/5 text-violet-400 border border-violet-500/40 hover:bg-violet-500/25 hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all active:scale-95">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync
+                            </button>
+                        </div>
+
+                        <div class="bg-black/40 p-5 rounded-2xl border border-white/5 shadow-inner">
+                            <div class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-3">Lanzar Playlist</div>
+                            <div class="flex gap-3">
+                                <input type="text" id="dj-playlist-input" placeholder="Nombre (ej. Pop, Rock)" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400 focus:bg-cyan-400/5 transition-colors">
+                                <button id="dj-btn-playlist" class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-3 rounded-xl text-sm transition-colors shadow-[0_0_15px_rgba(6,182,212,0.4)]">Play</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col gap-4 shadow-inner">
+                                <div class="text-xs text-gray-400 uppercase tracking-widest font-bold">Ajustes</div>
+                                <label class="flex items-center justify-between cursor-pointer group">
+                                    <span class="text-sm font-medium text-white group-hover:text-cyan-300 transition-colors">Bucle</span>
+                                    <input type="checkbox" id="dj-setting-loop" class="sr-only peer">
+                                    <div class="w-10 h-5 bg-white/10 rounded-full peer peer-checked:bg-cyan-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5 peer-checked:after:border-white relative"></div>
+                                </label>
+                                <label class="flex items-center justify-between cursor-pointer group">
+                                    <span class="text-sm font-medium text-white group-hover:text-cyan-300 transition-colors">Aleatorio</span>
+                                    <input type="checkbox" id="dj-setting-shuffle" class="sr-only peer">
+                                    <div class="w-10 h-5 bg-white/10 rounded-full peer peer-checked:bg-cyan-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5 peer-checked:after:border-white relative"></div>
+                                </label>
+                            </div>
+
+                            <div class="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col justify-between shadow-inner">
+                                <div class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-2">Cookies NetEase</div>
+                                <label class="cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-3 hover:border-cyan-400/50 hover:bg-cyan-400/5 transition-all text-center h-full min-h-[70px]">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="text-gray-400 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    <span class="text-xs font-medium text-gray-400">Subir .txt</span>
+                                    <input type="file" id="dj-cookies-file" accept=".txt" class="hidden">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Column -->
+                    <div class="bg-black/40 p-6 rounded-2xl border border-white/5 flex flex-col h-[600px] shadow-inner">
+                        <div class="flex items-center gap-3 mb-5 shrink-0">
+                            <div class="text-cyan-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            </div>
+                            <h4 class="text-white font-bold text-lg m-0">Biblioteca Local</h4>
+                        </div>
+                        
+                        <div class="flex gap-2 mb-5 shrink-0">
+                            <input type="text" id="dj-search-input" placeholder="Buscar pistas..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400 focus:bg-cyan-400/5 transition-colors">
+                            <button id="dj-btn-search" class="bg-violet-600 hover:bg-violet-500 text-white font-bold px-5 py-3 rounded-xl text-sm transition-colors shadow-[0_4px_15px_rgba(124,58,237,0.4)]">Buscar</button>
+                        </div>
+
+                        <div id="dj-results-list" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pb-4">
+                            <div class="text-gray-500 text-sm font-medium text-center mt-10">Usa el buscador para encontrar canciones</div>
+                        </div>
+                    </div>
+
+                    <!-- Queue Column -->
+                    <div class="bg-black/40 p-6 rounded-2xl border border-white/5 flex flex-col h-[600px] shadow-inner">
+                        <div class="flex items-center justify-between mb-5 shrink-0 border-b border-white/5 pb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="text-orange-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                                </div>
+                                <h4 class="text-white font-bold text-lg m-0">Cola de Rep.</h4>
+                                <span id="dj-queue-count" class="bg-white/10 text-white text-xs px-2.5 py-0.5 rounded-full ml-1 font-mono font-bold">0</span>
+                            </div>
+                            <button id="dj-btn-clear-queue" class="text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors" title="Vaciar cola">Vaciar</button>
+                        </div>
+
+                        <div id="dj-queue-list" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pb-4">
+                            <div class="text-gray-500 text-sm font-medium text-center mt-10">La cola está vacía</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
       </div>
 
       <div class="now-playing-corner" id="now-playing-corner">
           <div class="now-playing-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
           </div>
           <div class="now-playing-info">
               <div class="now-playing-label">Sonando en directo</div>
               <div class="now-playing-title" id="corner-song-title">Ninguna canción</div>
           </div>
       </div>
-    </div>
 
+    </div>
   </main>
 </Layout>
 
 <style>
-    .radio-player-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, var(--color-surface) 0%, #000 100%);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-2xl);
-        text-align: center;
-        min-height: 400px;
-        position: relative;
-        overflow: hidden;
-        width: 100%;
-        max-width: 800px;
-        z-index: 10;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    /* Utilities & Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .radio-player-container::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at center, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
-        pointer-events: none;
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    .badge {
-        background: var(--color-primary);
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: bold;
-        margin-bottom: var(--spacing-md);
-        box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
-    }
-
-    h2 {
-        font-size: clamp(1.8rem, 5vw, 3rem);
-        margin-bottom: var(--spacing-sm);
-        background: linear-gradient(white, #aaa);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-    }
-
-    .voice-toggle-btn {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--color-text-muted);
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 100;
-        backdrop-filter: blur(10px);
-    }
-
-    .voice-toggle-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        transform: scale(1.05);
-    }
-
+    /* Player specific */
+    .music-toggle-btn.playing .play-icon { display: none; }
+    .music-toggle-btn.playing .pause-icon { display: block; }
+    
     .voice-toggle-btn.enabled {
         border-color: var(--color-primary);
         color: var(--color-primary);
-        background: rgba(139, 92, 246, 0.1);
-    }
-
-    .music-player-wrapper {
-        width: 100%;
-        max-width: 600px;
-        margin: 1rem auto 0;
-    }
-
-    .player-grid {
-        display: grid;
-        grid-template-columns: 80px 1fr 80px; 
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .grid-center {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-        width: 100%;
-    }
-
-    .grid-side {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 80px;
-    }
-
-    .vertical-volume-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        padding: 15px 10px;
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 30px;
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transform: scale(0.9) translateX(10px);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .vertical-volume-container.show {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: all;
-        transform: scale(1) translateX(0);
-    }
-
-    .volume-slider-vertical-wrapper {
-        height: 100px;
-        width: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-
-    .volume-slider.vertical {
-        -webkit-appearance: none;
-        width: 100px;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        outline: none;
-        transform: rotate(-90deg);
-        cursor: pointer;
-        position: absolute;
-    }
-
-    .volume-slider.vertical::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 14px;
-        height: 14px;
-        background: white;
-        border-radius: 50%;
-        cursor: pointer;
-    }
-
-    .volume-icon {
-        color: var(--color-text-muted);
-    }
-
-    .custom-select-wrapper {
-        position: relative;
-        user-select: none;
-        width: 100%;
-        max-width: 280px;
-        z-index: 50;
-    }
-
-    .custom-select-trigger {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 10px 18px;
-        border-radius: 100px;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(10px);
-    }
-
-    .selection {
-        font-size: 0.9rem;
-        color: var(--color-text-main);
-    }
-
-    .arrow {
-        width: 8px;
-        height: 8px;
-        border-bottom: 2px solid rgba(255,255,255,0.5);
-        border-right: 2px solid rgba(255,255,255,0.5);
-        transform: rotate(45deg);
-        transition: all 0.3s ease;
-        margin-top: -4px;
-    }
-
-    .custom-select-wrapper.open .arrow {
-        transform: rotate(-135deg);
-        margin-top: 4px;
-    }
-
-    .custom-options {
-        position: absolute;
-        bottom: calc(100% + 12px);
-        left: 0;
-        right: 0;
-        background: #111;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        z-index: 100;
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transform: translateY(10px);
-        transition: all 0.3s;
-        backdrop-filter: blur(20px);
-        max-height: 200px;
-        overflow-y: auto;
-    }
-
-    .custom-select-wrapper.open .custom-options {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: all;
-        transform: translateY(0);
-    }
-
-    .custom-option {
-        padding: 12px 20px;
-        cursor: pointer;
-        color: rgba(255,255,255,0.7);
-        font-size: 0.9rem;
-        text-align: left;
-    }
-
-    .custom-option:hover {
         background: rgba(139, 92, 246, 0.15);
-        color: white;
     }
 
-    .custom-option.selected {
-        background: var(--color-primary);
-        color: white;
-    }
-
-    .music-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 10px 20px;
-        border-radius: 100px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: var(--color-text-muted);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .music-btn.playing {
-        background: rgba(139, 92, 246, 0.15);
-        border-color: var(--color-primary);
-        color: white;
-    }
-
-    .equalizer {
-        display: flex;
-        align-items: flex-end;
-        height: 12px;
-        gap: 2px;
-    }
-
-    .bar {
-        width: 3px;
-        background: currentColor;
-        border-radius: 1px;
+    /* Equalizer */
+    .equalizer .bar {
         animation: eq 1s infinite ease-in-out;
         animation-play-state: paused;
     }
-
-    .music-btn.playing .bar {
+    .music-toggle-btn.playing ~ .grid-center .equalizer .bar, 
+    .music-toggle-btn.playing ~ * .equalizer .bar,
+    .equalizer.playing .bar {
         animation-play-state: running;
     }
-
+    
     .bar-1 { height: 6px; }
     .bar-2 { height: 12px; }
     .bar-3 { height: 8px; }
@@ -503,36 +274,18 @@ import Layout from '@/layouts/Layout.astro';
         50% { height: 12px; }
     }
 
-    .dj-trigger-btn {
-        background: rgba(139, 92, 246, 0.15);
-        border: 1px solid var(--color-primary);
-        padding: 8px 16px;
-        border-radius: 100px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: white;
-        font-size: 0.85rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        animation: fadeIn 0.4s ease-out;
+    /* Custom Select */
+    .custom-select-wrapper.open .arrow {
+        transform: rotate(-135deg);
+        margin-top: 4px;
+    }
+    .custom-select-wrapper.open .custom-options {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
     }
 
-    .dj-trigger-btn:hover {
-        background: rgba(139, 92, 246, 0.3);
-        transform: translateY(-2px);
-    }
-
-    .dj-modal-overlay.open {
-        opacity: 1 !important;
-        visibility: visible !important;
-    }
-
-    .dj-modal-overlay.open .dj-panel-wrapper {
-        transform: translateY(0) scale(1) !important;
-    }
-
+    /* Now Playing Corner Widget */
     .now-playing-corner {
         position: fixed;
         bottom: 24px;
@@ -561,6 +314,7 @@ import Layout from '@/layouts/Layout.astro';
 
     .now-playing-corner .now-playing-icon {
         background: rgba(139, 92, 246, 0.1);
+        color: var(--color-primary);
         padding: 10px;
         border-radius: 50%;
         display: flex;
@@ -587,7 +341,6 @@ import Layout from '@/layouts/Layout.astro';
         letter-spacing: 0.1em;
         font-weight: 800;
         margin-bottom: 3px;
-        font-family: 'Inter', sans-serif;
     }
 
     .now-playing-corner .now-playing-title {
@@ -598,28 +351,6 @@ import Layout from '@/layouts/Layout.astro';
         text-overflow: ellipsis;
         font-weight: 600;
         text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    @media (max-width: 630px) {
-        .player-grid {
-            grid-template-columns: 1fr;
-            justify-items: center;
-        }
-        .grid-left { display: none; }
-        .grid-side { width: auto; }
-        .vertical-volume-container {
-            flex-direction: row;
-            padding: 8px 16px;
-        }
-        .volume-slider-vertical-wrapper {
-            height: 30px;
-            width: 100px;
-        }
-        .volume-slider.vertical {
-            transform: none;
-            width: 100%;
-            position: relative;
-        }
     }
 </style>
 
@@ -634,16 +365,12 @@ import Layout from '@/layouts/Layout.astro';
         vibeOptions: NodeListOf<HTMLElement>;
         selectionText: HTMLElement | null;
         volumeSlider: HTMLInputElement | null;
-        volumeContainer: HTMLElement | null;
         isPlaying: boolean = false;
         currentUrl: string;
         hasPlayedTTS: boolean = false;
 
-        // DJ Panel elements
-        djModalOverlay: HTMLElement | null;
-        djTriggerBtn: HTMLElement | null;
-        djCloseBtn: HTMLElement | null;
-        djPanelWrapper: HTMLElement | null;
+        // Tabs & DJ
+        djTabBtn: HTMLElement | null;
         djStatusBadge: HTMLElement | null;
         djCurrentSong: HTMLElement | null;
         djBtnPlay: HTMLElement | null;
@@ -667,13 +394,7 @@ import Layout from '@/layouts/Layout.astro';
         // Settings
         ttsSettings = {
             enabled: true,
-            voice: 'aura-2-selena-es',
-            alerts: {
-                initial: true,
-                'hour-change': false,
-                'ten-minutes': false,
-                'one-minute': false
-            }
+            voice: 'aura-2-selena-es'
         };
 
         constructor(el: HTMLElement) {
@@ -687,14 +408,10 @@ import Layout from '@/layouts/Layout.astro';
             this.vibeOptions = el.querySelectorAll('.custom-option');
             this.selectionText = el.querySelector('.selection');
             this.volumeSlider = el.querySelector('.volume-slider');
-            this.volumeContainer = el.querySelector('.vertical-volume-container');
 
             this.currentUrl = "https://radio.veredillasfm.es/stream";
 
-            this.djModalOverlay = el.querySelector('#dj-modal-overlay');
-            this.djTriggerBtn = el.querySelector('#dj-trigger-btn');
-            this.djCloseBtn = el.querySelector('#dj-close-btn');
-            this.djPanelWrapper = el.querySelector('.dj-panel-wrapper');
+            this.djTabBtn = el.querySelector('#dj-tab-btn');
             this.djStatusBadge = el.querySelector('#dj-status-badge');
             this.djCurrentSong = el.querySelector('#dj-current-song');
             this.djBtnPlay = el.querySelector('#dj-btn-play');
@@ -713,12 +430,59 @@ import Layout from '@/layouts/Layout.astro';
             this.djQueueList = el.querySelector('#dj-queue-list');
             this.djQueueCount = el.querySelector('#dj-queue-count');
 
+            this.setupTabs();
             this.setupDJControls();
-            
             this.loadSettings();
             this.setupAudio();
             this.setupVoiceSettings();
             this.loadLastStation();
+        }
+
+        setupTabs() {
+            const tabBtns = this.el.querySelectorAll('.tab-btn');
+            const tabPanes = this.el.querySelectorAll('.tab-pane');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Reset all buttons
+                    tabBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-primary', 'text-white', 'border-primary', 'shadow-[0_0_20px_rgba(139,92,246,0.3)]');
+                        b.classList.add('bg-white/5', 'text-gray-400', 'border-transparent');
+                    });
+                    
+                    // Activate clicked button
+                    btn.classList.add('active', 'bg-primary', 'text-white', 'border-primary', 'shadow-[0_0_20px_rgba(139,92,246,0.3)]');
+                    btn.classList.remove('bg-white/5', 'text-gray-400', 'border-transparent');
+
+                    // Hide all panes
+                    tabPanes.forEach(pane => {
+                        pane.classList.remove('active', 'flex');
+                        pane.classList.add('hidden');
+                    });
+                    
+                    // Show target pane
+                    const targetId = btn.getAttribute('data-target');
+                    const targetPane = document.getElementById(targetId || '');
+                    if (targetPane) {
+                        targetPane.classList.add('active');
+                        targetPane.classList.remove('hidden');
+                        if(targetId === 'tab-player') targetPane.classList.add('flex');
+                        
+                        // Handle DJ polling
+                        if (targetId === 'tab-dj') {
+                            this.pollStatus();
+                            if (!this.djPollInterval) {
+                                this.djPollInterval = window.setInterval(() => this.pollStatus(), 5000);
+                            }
+                        } else {
+                            if (this.djPollInterval) {
+                                clearInterval(this.djPollInterval);
+                                this.djPollInterval = undefined;
+                            }
+                        }
+                    }
+                });
+            });
         }
 
         loadSettings() {
@@ -726,7 +490,7 @@ import Layout from '@/layouts/Layout.astro';
             if (saved) {
                 try {
                     this.ttsSettings = JSON.parse(saved);
-                } catch(e) { console.error("Error loading TTS settings", e); }
+                } catch(e) {}
             }
             this.applySettingsToUI();
         }
@@ -737,12 +501,10 @@ import Layout from '@/layouts/Layout.astro';
 
         setupVoiceSettings() {
             const toggleBtn = this.el.querySelector('.voice-toggle-btn');
-            
             toggleBtn?.addEventListener('click', () => {
                 this.ttsSettings.enabled = !this.ttsSettings.enabled;
                 this.saveSettings();
                 this.applySettingsToUI();
-                
                 if (this.ttsSettings.enabled) {
                     this.playTTS(true);
                 }
@@ -811,11 +573,26 @@ import Layout from '@/layouts/Layout.astro';
             }
             
             this.audio.addEventListener('error', (e) => {
-                console.error('Audio stream error:', this.audio?.error);
                 if(this.musicLabel) this.musicLabel.textContent = "Error de conexión";
                 this.isPlaying = false;
                 this.musicBtn?.classList.remove('playing');
-                this.updateVolumeVisibility();
+                this.syncEqualizer();
+            });
+        }
+
+        syncEqualizer() {
+            const equalizer = this.el.querySelector('.equalizer');
+            if (equalizer) {
+                if (this.isPlaying) {
+                    equalizer.classList.add('playing');
+                } else {
+                    equalizer.classList.remove('playing');
+                }
+            }
+            
+            const eqBars = this.el.querySelectorAll('.equalizer .bar');
+            eqBars.forEach(bar => {
+                (bar as HTMLElement).style.animationPlayState = this.isPlaying ? 'running' : 'paused';
             });
         }
 
@@ -862,7 +639,7 @@ import Layout from '@/layouts/Layout.astro';
             const variations = [
                 `¡Hola, ${userName}! Estás escuchando ${stationName} en Veredillas efe-eme. Relájate y disfruta de la música.`,
                 `Bienvenido a la zona de confort, ${userName}. Sube el volumen que la mejor música suena ahora en ${stationName}.`,
-                `¡Wazaaaa, ${userName}! Acabas de conectarte a ${stationName}. Ponte cómodo y disfruta del directo.`,
+                `¡Wazaaaa, ${userName}! Acabas de conectarte a ${stationName}. Ponte cómodo y disfruta.`,
                 `Tu aura aumenta +10000 solo por estar escuchando ${stationName} en Veredillas efe-eme. ¡Dale caña, ${userName}!`,
                 `Ya somos ${currentListeners} escuchando en directo. Gracias por unirte a ${stationName}, ${userName}.`
             ];
@@ -896,75 +673,44 @@ import Layout from '@/layouts/Layout.astro';
         }
 
         setupDJControls() {
-            if (!this.djBtnPlay || !this.djBtnStop || !this.djBtnSkip || !this.djBtnSearch || !this.djSearchInput) return;
-
-            if (this.djTriggerBtn && this.djModalOverlay && this.djCloseBtn) {
-                this.djTriggerBtn.addEventListener('click', () => {
-                    this.djModalOverlay?.classList.add('open');
-                    this.pollStatus();
-                    this.djPollInterval = window.setInterval(() => this.pollStatus(), 5000);
-                });
-
-                this.djCloseBtn.addEventListener('click', () => {
-                    this.djModalOverlay?.classList.remove('open');
-                    if (this.djPollInterval) {
-                        clearInterval(this.djPollInterval);
-                    }
-                });
-
-                this.djModalOverlay.addEventListener('click', (e) => {
-                    if (e.target === this.djModalOverlay) {
-                        this.djModalOverlay?.classList.remove('open');
-                        if (this.djPollInterval) {
-                            clearInterval(this.djPollInterval);
-                        }
-                    }
-                });
-            }
+            if (!this.djBtnPlay) return;
 
             this.djBtnPlay.addEventListener('click', () => this.apiPlay());
-            this.djBtnStop.addEventListener('click', () => this.apiStop());
-            this.djBtnSkip.addEventListener('click', () => this.apiSkip());
-            if (this.djBtnSync) {
-                this.djBtnSync.addEventListener('click', () => this.syncStream());
-            }
+            this.djBtnStop?.addEventListener('click', () => this.apiStop());
+            this.djBtnSkip?.addEventListener('click', () => this.apiSkip());
+            this.djBtnSync?.addEventListener('click', () => this.syncStream());
             
-            this.djBtnSearch.addEventListener('click', () => {
+            this.djBtnSearch?.addEventListener('click', () => {
                 const query = this.djSearchInput?.value || '';
                 this.apiSearch(query);
             });
 
-            this.djSearchInput.addEventListener('keypress', (e) => {
+            this.djSearchInput?.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     this.apiSearch(this.djSearchInput?.value || '');
                 }
             });
 
-            if (this.djBtnPlaylist) {
-                this.djBtnPlaylist.addEventListener('click', () => {
-                    const name = this.djPlaylistInput?.value || '';
-                    this.apiPlayPlaylist(name);
-                });
-            }
-            if (this.djSettingLoop && this.djSettingShuffle) {
-                this.djSettingLoop.addEventListener('change', () => {
-                    this.apiUpdateSettings(this.djSettingLoop!.checked, this.djSettingShuffle!.checked);
-                });
-                this.djSettingShuffle.addEventListener('change', () => {
-                    this.apiUpdateSettings(this.djSettingLoop!.checked, this.djSettingShuffle!.checked);
-                });
-            }
-            if (this.djBtnClearQueue) {
-                this.djBtnClearQueue.addEventListener('click', () => this.apiClearQueue());
-            }
-            if (this.djCookiesFile) {
-                this.djCookiesFile.addEventListener('change', (e) => {
-                    const file = (e.target as HTMLInputElement).files?.[0];
-                    if (file) {
-                        this.apiUploadCookies(file);
-                    }
-                });
-            }
+            this.djBtnPlaylist?.addEventListener('click', () => {
+                const name = this.djPlaylistInput?.value || '';
+                this.apiPlayPlaylist(name);
+            });
+            
+            this.djSettingLoop?.addEventListener('change', () => {
+                this.apiUpdateSettings(this.djSettingLoop!.checked, this.djSettingShuffle!.checked);
+            });
+            this.djSettingShuffle?.addEventListener('change', () => {
+                this.apiUpdateSettings(this.djSettingLoop!.checked, this.djSettingShuffle!.checked);
+            });
+            
+            this.djBtnClearQueue?.addEventListener('click', () => this.apiClearQueue());
+            
+            this.djCookiesFile?.addEventListener('change', (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                    this.apiUploadCookies(file);
+                }
+            });
         }
 
         syncStream() {
@@ -976,7 +722,7 @@ import Layout from '@/layouts/Layout.astro';
                 
                 if (this.djBtnSync) {
                     const originalText = this.djBtnSync.innerHTML;
-                    this.djBtnSync.innerHTML = '✅ Sincronizado';
+                    this.djBtnSync.innerHTML = '✅ Sinc.';
                     setTimeout(() => {
                         if (this.djBtnSync) this.djBtnSync.innerHTML = originalText;
                     }, 2000);
@@ -986,195 +732,165 @@ import Layout from '@/layouts/Layout.astro';
 
         async apiPlay() {
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/play', { method: 'POST' });
-                if (!res.ok) throw new Error('Network response was not ok');
+                await fetch('https://radio.veredillasfm.es/api/play', { method: 'POST' });
                 this.pollStatus();
-            } catch (err) { console.error('Error playing DJ radio:', err); }
+            } catch (err) {}
         }
 
         async apiStop() {
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/stop', { method: 'POST' });
-                if (!res.ok) throw new Error('Network response was not ok');
+                await fetch('https://radio.veredillasfm.es/api/stop', { method: 'POST' });
                 this.pollStatus();
-            } catch (err) { console.error('Error stopping DJ radio:', err); }
+            } catch (err) {}
         }
 
         async apiSkip() {
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/skip', { method: 'POST' });
-                if (!res.ok) throw new Error('Network response was not ok');
+                await fetch('https://radio.veredillasfm.es/api/skip', { method: 'POST' });
                 this.pollStatus();
-            } catch (err) { console.error('Error skipping DJ track:', err); }
+            } catch (err) {}
         }
 
         async apiSearch(query: string) {
             if (!this.djResultsList) return;
-            this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-5">Buscando...</div>';
+            this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-10">Buscando...</div>';
             
             try {
                 const url = new URL('https://radio.veredillasfm.es/api/search');
                 if (query) url.searchParams.append('q', query);
                 
                 const res = await fetch(url.toString());
-                if (!res.ok) throw new Error('Search failed');
-                
                 const data = await res.json();
                 
                 if (data.results && data.results.length > 0) {
                     this.djResultsList.innerHTML = '';
                     data.results.forEach((item: any) => {
                         const div = document.createElement('div');
-                        div.className = 'flex flex-col gap-2 bg-white/5 border border-white/10 p-3 rounded-xl hover:bg-white/10 hover:border-cyan-500/30 transition-all';
+                        div.className = 'flex flex-col gap-3 bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 hover:border-cyan-500/30 transition-all';
                         div.innerHTML = `
-                            <span class="text-white text-sm font-medium truncate" title="${item.title}">${item.title}</span>
+                            <span class="text-white text-sm font-bold truncate" title="${item.title}">${item.title}</span>
                             <div class="flex items-center gap-2">
-                                <button class="dj-action-btn play-specific flex-1 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-colors" data-idx="${item.index}" title="Reproducir ahora">▶ Play</button>
-                                <button class="dj-action-btn queue queue-next flex-1 py-1.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold hover:bg-cyan-500/20 transition-colors" data-idx="${item.index}" title="Siguiente">+ Sig</button>
-                                <button class="dj-action-btn queue queue-last flex-1 py-1.5 rounded bg-white/5 text-gray-300 border border-white/10 text-xs font-semibold hover:bg-white/10 transition-colors" data-idx="${item.index}" title="Al final">+ Fin</button>
+                                <button class="play-specific flex-1 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-colors" data-idx="${item.index}">▶ Play</button>
+                                <button class="queue-next flex-1 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold hover:bg-cyan-500/20 transition-colors" data-idx="${item.index}">+ Sig</button>
+                                <button class="queue-last flex-1 py-2 rounded-lg bg-white/5 text-gray-300 border border-white/10 text-xs font-bold hover:bg-white/10 transition-colors" data-idx="${item.index}">+ Fin</button>
                             </div>
                         `;
                         this.djResultsList?.appendChild(div);
                     });
 
                     this.djResultsList.querySelectorAll('.play-specific').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
-                            this.apiPlaySpecific(idx);
-                        });
+                        btn.addEventListener('click', (e) => this.apiPlaySpecific(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0')));
                     });
                     this.djResultsList.querySelectorAll('.queue-next').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
-                            this.apiQueue(idx, 'queue_next');
-                        });
+                        btn.addEventListener('click', (e) => this.apiQueue(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0'), 'queue_next'));
                     });
                     this.djResultsList.querySelectorAll('.queue-last').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
-                            this.apiQueue(idx, 'queue_last');
-                        });
+                        btn.addEventListener('click', (e) => this.apiQueue(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0'), 'queue_last'));
                     });
-
                 } else {
-                    this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-5">No se encontraron resultados.</div>';
+                    this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-10">No se encontraron resultados.</div>';
                 }
-
             } catch (err) {
-                console.error('Error searching DJ radio:', err);
-                this.djResultsList.innerHTML = '<div class="text-red-400 text-sm text-center mt-5">Error al buscar. ¿Servidor Offline?</div>';
+                this.djResultsList.innerHTML = '<div class="text-red-400 text-sm text-center mt-10">Error al buscar.</div>';
             }
         }
 
         async apiQueue(index: number, action: string) {
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/queue', {
+                await fetch('https://radio.veredillasfm.es/api/queue', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ index, action })
                 });
-                if (!res.ok) throw new Error('Queue action failed');
                 this.pollStatus();
-            } catch (err) { console.error(`Error queuing DJ track (${action}):`, err); }
+            } catch (err) {}
         }
 
         async apiPlaySpecific(index: number) {
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/play-specific', {
+                await fetch('https://radio.veredillasfm.es/api/play-specific', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ index })
                 });
-                if (!res.ok) throw new Error('Play specific failed');
                 this.pollStatus();
-            } catch (err) { console.error('Error playing specific track:', err); }
+            } catch (err) {}
         }
 
         async apiPlayPlaylist(playlistName: string) {
             if (!playlistName) return;
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/play-playlist', {
+                await fetch('https://radio.veredillasfm.es/api/play-playlist', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ playlistName })
                 });
-                if (!res.ok) throw new Error('Play playlist failed');
                 this.pollStatus();
                 if (this.djPlaylistInput) this.djPlaylistInput.value = '';
-            } catch (err) { console.error('Error playing playlist:', err); }
+            } catch (err) {}
         }
 
         async apiRemoveQueue(index: number) {
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/queue/remove', {
+                await fetch('https://radio.veredillasfm.es/api/queue/remove', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ index })
                 });
-                if (!res.ok) throw new Error('Remove queue failed');
                 this.pollStatus();
-            } catch (err) { console.error('Error removing from queue:', err); }
+            } catch (err) {}
         }
 
         async apiClearQueue() {
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/queue/clear', { method: 'POST' });
-                if (!res.ok) throw new Error('Clear queue failed');
+                await fetch('https://radio.veredillasfm.es/api/queue/clear', { method: 'POST' });
                 this.pollStatus();
-            } catch (err) { console.error('Error clearing queue:', err); }
+            } catch (err) {}
         }
 
         async apiUpdateSettings(loop: boolean, shuffle: boolean) {
             try {
-                const res = await fetch('https://radio.veredillasfm.es/api/settings', {
+                await fetch('https://radio.veredillasfm.es/api/settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ loop, shuffle })
                 });
-                if (!res.ok) throw new Error('Update settings failed');
                 this.pollStatus();
-            } catch (err) { console.error('Error updating settings:', err); }
+            } catch (err) {}
         }
 
         async apiUploadCookies(file: File) {
             try {
                 const formData = new FormData();
                 formData.append('cookies', file);
-                const res = await fetch('https://radio.veredillasfm.es/api/cookies', {
+                await fetch('https://radio.veredillasfm.es/api/cookies', {
                     method: 'POST',
                     body: formData
                 });
-                if (!res.ok) throw new Error('Upload cookies failed');
-                const data = await res.json();
-                console.log(data.message);
                 if (this.djCookiesFile) this.djCookiesFile.value = '';
-            } catch (err) { console.error('Error uploading cookies:', err); }
+            } catch (err) {}
         }
 
         async pollStatus() {
-            if (!this.djModalOverlay || !this.djModalOverlay.classList.contains('open')) return;
+            const djTab = document.getElementById('tab-dj');
+            if (!djTab || !djTab.classList.contains('active')) return;
 
             try {
                 const res = await fetch('https://radio.veredillasfm.es/api/status');
-                if (!res.ok) throw new Error('Status failed');
                 const data = await res.json();
 
                 if (this.djStatusBadge) {
                     if (data.isPlaying) {
-                        this.djStatusBadge.className = 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_currentColor]';
+                        this.djStatusBadge.className = 'px-4 py-2 rounded-full text-xs font-extrabold tracking-widest uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_currentColor]';
                         this.djStatusBadge.textContent = 'ONLINE';
                     } else {
-                        this.djStatusBadge.className = 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_currentColor]';
+                        this.djStatusBadge.className = 'px-4 py-2 rounded-full text-xs font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_15px_currentColor]';
                         this.djStatusBadge.textContent = 'OFFLINE';
                     }
                 }
 
                 if (this.djCurrentSong) {
-                    if (data.isPlaying && data.currentSongMeta && data.currentSongMeta.title) {
-                        this.djCurrentSong.textContent = data.currentSongMeta.title;
-                    } else {
-                        this.djCurrentSong.textContent = 'Ninguna canción';
-                    }
+                    this.djCurrentSong.textContent = (data.isPlaying && data.currentSongMeta?.title) ? data.currentSongMeta.title : 'Ninguna canción';
                 }
 
                 if (data.radioSettings) {
@@ -1186,54 +902,45 @@ import Layout from '@/layouts/Layout.astro';
                     }
                 }
 
-                if (data.playQueue) {
-                    if (this.djQueueCount) {
-                        this.djQueueCount.textContent = data.playQueue.length;
-                    }
-                    if (this.djQueueList) {
-                        if (data.playQueue.length === 0) {
-                            this.djQueueList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-10">La cola está vacía</div>';
-                        } else {
-                            this.djQueueList.innerHTML = '';
-                            data.playQueue.forEach((song: any, idx: number) => {
-                                const div = document.createElement('div');
-                                div.className = 'flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl hover:bg-white/10 transition-colors group';
-                                div.innerHTML = `
-                                    <div class="flex flex-col overflow-hidden pr-2">
-                                        <span class="text-white text-sm font-medium truncate" title="${song.title}">${song.title}</span>
-                                        ${song.duration ? `<span class="text-xs text-gray-500 font-mono">${Math.floor(song.duration/60)}:${String(Math.floor(song.duration%60)).padStart(2,'0')}</span>` : ''}
-                                    </div>
-                                    <button class="dj-btn-remove-queue shrink-0 w-8 h-8 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center lg:opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all" data-idx="${idx}" title="Eliminar">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                    </button>
-                                `;
-                                this.djQueueList?.appendChild(div);
-                            });
-                            this.djQueueList.querySelectorAll('.dj-btn-remove-queue').forEach(btn => {
-                                btn.addEventListener('click', (e) => {
-                                    const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
-                                    this.apiRemoveQueue(idx);
-                                });
-                            });
-                        }
+                if (data.playQueue && this.djQueueList) {
+                    if (this.djQueueCount) this.djQueueCount.textContent = data.playQueue.length;
+                    
+                    if (data.playQueue.length === 0) {
+                        this.djQueueList.innerHTML = '<div class="text-gray-500 text-sm font-medium text-center mt-10">La cola está vacía</div>';
+                    } else {
+                        this.djQueueList.innerHTML = '';
+                        data.playQueue.forEach((song: any, idx: number) => {
+                            const div = document.createElement('div');
+                            div.className = 'flex items-center justify-between bg-white/5 border border-white/5 p-3.5 rounded-xl hover:bg-white/10 transition-colors group';
+                            div.innerHTML = `
+                                <div class="flex flex-col overflow-hidden pr-2">
+                                    <span class="text-white text-sm font-bold truncate" title="${song.title}">${song.title}</span>
+                                    ${song.duration ? `<span class="text-xs text-gray-500 font-mono mt-1">${Math.floor(song.duration/60)}:${String(Math.floor(song.duration%60)).padStart(2,'0')}</span>` : ''}
+                                </div>
+                                <button class="btn-remove-queue shrink-0 w-9 h-9 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center lg:opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all" data-idx="${idx}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                </button>
+                            `;
+                            this.djQueueList?.appendChild(div);
+                        });
+                        this.djQueueList.querySelectorAll('.btn-remove-queue').forEach(btn => {
+                            btn.addEventListener('click', (e) => this.apiRemoveQueue(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0')));
+                        });
                     }
                 }
 
             } catch (err) {
-                console.error('Error polling DJ status:', err);
                 if (this.djStatusBadge) {
-                    this.djStatusBadge.className = 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_currentColor]';
+                    this.djStatusBadge.className = 'px-4 py-2 rounded-full text-xs font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_15px_currentColor]';
                     this.djStatusBadge.textContent = 'OFFLINE';
                 }
-                if (this.djCurrentSong) {
-                    this.djCurrentSong.textContent = 'Servidor inalcanzable';
-                }
+                if (this.djCurrentSong) this.djCurrentSong.textContent = 'Servidor inalcanzable';
             }
         }
 
         switchGenre(option: HTMLElement) {
-            this.vibeOptions.forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
+            this.vibeOptions.forEach(opt => opt.classList.remove('selected', 'bg-primary/20', 'text-white'));
+            option.classList.add('selected', 'bg-primary/20', 'text-white');
 
             const newUrl = option.dataset.value;
             const genreName = option.textContent || "Música";
@@ -1249,15 +956,14 @@ import Layout from '@/layouts/Layout.astro';
                     this.audio.src = newUrl;
                 }
                 
-                if (newUrl === 'https://radio.veredillasfm.es/stream' && this.djTriggerBtn) {
-                    this.djTriggerBtn.style.display = 'flex';
-                } else if (this.djTriggerBtn) {
-                    this.djTriggerBtn.style.display = 'none';
-                    if (this.djModalOverlay && this.djModalOverlay.classList.contains('open')) {
-                        this.djModalOverlay.classList.remove('open');
-                        if (this.djPollInterval) {
-                            clearInterval(this.djPollInterval);
-                        }
+                if (newUrl === 'https://radio.veredillasfm.es/stream' && this.djTabBtn) {
+                    this.djTabBtn.classList.remove('hidden');
+                } else if (this.djTabBtn) {
+                    this.djTabBtn.classList.add('hidden');
+                    
+                    if (this.djTabBtn.classList.contains('active')) {
+                        const playerTabBtn = this.el.querySelector('.tab-btn[data-target="tab-player"]') as HTMLElement;
+                        if (playerTabBtn) playerTabBtn.click();
                     }
                 }
 
@@ -1266,17 +972,16 @@ import Layout from '@/layouts/Layout.astro';
                 if (this.isPlaying) {
                      if(this.musicLabel) this.musicLabel.textContent = `Conectando con ${genreName}...`;
                      this.audio.play().then(() => {
-                         if(this.musicLabel) this.musicLabel.textContent = `Escuchando ${genreName}`;
+                         if(this.musicLabel) this.musicLabel.textContent = `Sonando: ${genreName}`;
                          this.startCornerPoll();
                      }).catch(e => {
-                         console.error("Switch play failed:", e);
                          this.isPlaying = false;
                          this.musicBtn?.classList.remove('playing');
-                         this.updateVolumeVisibility();
+                         this.syncEqualizer();
                          this.stopCornerPoll();
                      });
                 } else {
-                    if(this.musicLabel) this.musicLabel.textContent = `Activar ${genreName}`;
+                    if(this.musicLabel) this.musicLabel.textContent = `Lista para sonar`;
                 }
             }
         }
@@ -1299,14 +1004,6 @@ import Layout from '@/layouts/Layout.astro';
             }
         }
 
-        updateVolumeVisibility() {
-            if (this.isPlaying) {
-                this.volumeContainer?.classList.add('show');
-            } else {
-                this.volumeContainer?.classList.remove('show');
-            }
-        }
-
         toggleMusic() {
             if (!this.audio || !this.musicBtn) return;
 
@@ -1314,8 +1011,8 @@ import Layout from '@/layouts/Layout.astro';
                 this.audio.pause();
                 this.isPlaying = false;
                 this.musicBtn.classList.remove('playing');
-                const genreName = this.selectionText ? this.selectionText.textContent : "Música";
-                if(this.musicLabel) this.musicLabel.textContent = `Activar ${genreName}`;
+                if(this.musicLabel) this.musicLabel.textContent = `Lista para sonar`;
+                this.syncEqualizer();
                 this.stopCornerPoll();
             } else {
                 if(this.musicLabel) this.musicLabel.textContent = "Conectando...";
@@ -1324,21 +1021,19 @@ import Layout from '@/layouts/Layout.astro';
                     this.isPlaying = true;
                     this.musicBtn!.classList.add('playing');
                     const genreName = this.selectionText ? this.selectionText.textContent : "Música";
-                    if(this.musicLabel) this.musicLabel!.textContent = `Escuchando ${genreName}`;
+                    if(this.musicLabel) this.musicLabel!.textContent = `Sonando: ${genreName}`;
                     
+                    this.syncEqualizer();
                     this.playTTS();
                     this.startCornerPoll();
                 }).catch(e => {
-                    console.error("Audio play failed:", e);
                     this.isPlaying = false;
                     this.musicBtn!.classList.remove('playing');
                     if(this.musicLabel) this.musicLabel!.textContent = "No disponible";
+                    this.syncEqualizer();
                     this.stopCornerPoll();
-                }).finally(() => {
-                    this.updateVolumeVisibility();
                 });
             }
-            this.updateVolumeVisibility();
         }
 
         startCornerPoll() {
@@ -1372,7 +1067,6 @@ import Layout from '@/layouts/Layout.astro';
 
             try {
                 const res = await fetch('https://radio.veredillasfm.es/api/status');
-                if (!res.ok) throw new Error('Status failed');
                 const data = await res.json();
                 
                 const cornerTitle = document.getElementById('corner-song-title');
@@ -1385,7 +1079,6 @@ import Layout from '@/layouts/Layout.astro';
                     if (cornerWidget) cornerWidget.classList.remove('visible');
                 }
             } catch (err) {
-                console.error('Error polling corner status:', err);
                 const cornerWidget = document.getElementById('now-playing-corner');
                 if (cornerWidget) cornerWidget.classList.remove('visible');
             }
@@ -1393,12 +1086,12 @@ import Layout from '@/layouts/Layout.astro';
     }
 
     document.addEventListener('astro:page-load', () => {
-        const el = document.querySelector('.radio-player-container');
+        const el = document.querySelector('.radio-page-container');
         if (el) new RadioPlayer(el as HTMLElement);
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        const el = document.querySelector('.radio-player-container');
+        const el = document.querySelector('.radio-page-container');
         if (el) new RadioPlayer(el as HTMLElement);
     });
 </script>
