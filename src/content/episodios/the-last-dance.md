@@ -9,11 +9,16 @@ tags:
   - Podcast
   - Graduación
 isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/e352542a-6f0b-49a4-bb39-073f9891ea6f.webp'
-participants: []
+image: 'https://cdn.veredillasfm.es/images/345ddb9b-4383-4dea-9e66-03cc7487bc8a.webp'
+participants:
+  - Prof. Jezael
+  - Diego Medrano
+  - Ángel
+  - Elio
+  - Zi Cheng
 season: 2
 episode: 13
-duration: ¿? min
+duration: 41 min
 pubDate: '2026-05-12T16:00:00.000Z'
 description: >-
   Con el 2º Bachillerato terminado, llega el episodio final de 'The Last Dance'.
