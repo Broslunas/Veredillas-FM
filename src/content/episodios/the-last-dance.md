@@ -1,5 +1,5 @@
 ---
-title: The Last Dance
+title: 'The Last Dance ft. Jezael, Diego Medrano, Elio & Zi Cheng'
 tags:
   - Bachillerato
   - Despedida
