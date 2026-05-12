@@ -1024,7 +1024,7 @@ participants:
   - Elio
   - Zi Cheng
 season: 2
-episode: 11
+episode: 12
 duration: 45 min
 pubDate: '2026-05-12T16:00:00.000Z'
 description: >-
@@ -1167,5 +1167,76 @@ quiz:
       - El final de un camino intenso y lleno de aprendizajes
       - El comienzo de un nuevo año escolar
     correctAnswer: 2
+clips:
+  - title: Bachillerato_ ¡Prepárate para el estrés y el éxito!
+    url: 'https://youtu.be/nh8X2xzy--w'
+  - title: 'Bachillerato_ Disciplina, Responsabilidad y Éxito Académico'
+    url: 'https://youtu.be/2u0hap_iQXE'
+  - title: Caos Estudiantil_ Sobrevivir a Semanas de Exámenes Intensos
+    url: 'https://youtu.be/KePHwDvVB-Q'
+  - title: Conexión en Clase_ ¡Una Energía Positiva Única!
+    url: 'https://youtu.be/pXqG0OLSN0o'
+  - title: Constancia_ Tu Éxito Académico Conprobado
+    url: 'https://youtu.be/x5dmbtTnqiM'
+  - title: Convalidaciones FP y Grado_ ¡Ahorra tiempo y dinero!
+    url: 'https://youtu.be/nRc4q87Zw1g'
+  - title: Doble Grado Física y Matemáticas_ ¡La Mejor Opción!
+    url: 'https://youtu.be/z1IS8L9zIpc'
+  - title: El Poder de Saber un Poco de Todo
+    url: 'https://youtu.be/5_Rr9rauiw4'
+  - title: 'Estudiar Menos, ¿Mejor_ Estrategia de Éxito Académico Revelada'
+    url: 'https://youtu.be/l3bV1RcI1Ho'
+  - title: Evolución Humana_ Compañerismo y Academia
+    url: 'https://youtu.be/hUqU9a8phyY'
+  - title: Filosofía Antigua_ Debates con Sócrates y Mitos Griegos
+    url: 'https://youtu.be/HiUKfQZctck'
+  - title: 'Filosofía y Tecnología_ Exámenes Más Largos, Proyectos Más Complejos'
+    url: 'https://youtu.be/wOxyYSQxRu8'
+  - title: Física y Química ESO_ ¡Poca Evolución Educativa!
+    url: 'https://youtu.be/0cP9BlWbSZ0'
+  - title: Geometría vs. Matrices_ Mi Lucha Personal
+    url: 'https://youtu.be/tdwu04e-Ock'
+  - title: Geometría y Física_ El Error Fatal en Física
+    url: 'https://youtu.be/o_lUVVbaLD4'
+  - title: Gracias por la Invitación_ Charla Motivacional
+    url: 'https://youtu.be/27HVoz888J4'
+  - title: La Importancia de Aprender Constantemente_ ¡No Te Detengas!
+    url: 'https://youtu.be/fohMUfAF1ns'
+  - title: La Increíble Mente de Diego_ Multitarea y Aprendizaje Constante
+    url: 'https://youtu.be/gsFedzvtzv8'
+  - title: 'La Mejor Lección del Curso_ ¡Disfrutar Contigo, Profe!'
+    url: 'https://youtu.be/xGfln8J2Ux0'
+  - title: Matemáticas_ ¡No te rindas! Lecciones de perseverancia
+    url: 'https://youtu.be/iD64CYD3y8U'
+  - title: Mi Experiencia en Segundo Bachillerato_ ¡No te asustes!
+    url: 'https://youtu.be/PTEYkmd_iLs'
+  - title: Mi Experiencia Real con un Curso_ ¡Sorprendente!
+    url: 'https://youtu.be/rri7QlzXIb0'
+  - title: Orgullo y Logros_ Nuestro Proyecto Inolvidable
+    url: 'https://youtu.be/SmSaU75kOCI'
+  - title: Perseverancia_ La Lección Más Importante de Matemáticas y Vida
+    url: 'https://youtu.be/uYb8TlfCQgY'
+  - title: Perseverancia_ La Lección Más Importante de Matemáticas
+    url: 'https://youtu.be/S3ydfffLsaM'
+  - title: Podcast Dinámico_ Experiencias y Aprendizajes del Curso
+    url: 'https://youtu.be/zDC6F1qqLwA'
+  - title: Primera Impresión_ ¿Curso Pesado o Sorpresa_
+    url: 'https://youtu.be/0hPgkwSzGW4'
+  - title: Proyecto Increíble_ Lecciones de Profesores y Alumnos
+    url: 'https://youtu.be/jTUHPwFYAjg'
+  - title: 'Proyectos Increíbles_ ¡Excel, Word y Más!'
+    url: 'https://youtu.be/5BhX7k68Qi8'
+  - title: 'Psicología_ Sobreviviendo Mayo, ¡Último Esfuerzo!'
+    url: 'https://youtu.be/cOehE-JMWpM'
+  - title: Reflexión_ ¿Maduros para empezar a apretar_
+    url: 'https://youtu.be/ASik89-OXB4'
+  - title: 'Selectividad Fácil_ ¿Notas Altas, Plazas Limitadas_'
+    url: 'https://youtu.be/cOILkD0Fz0Y'
+  - title: Supera la Física Difícil_ Aprende Campo Gravitatorio
+    url: 'https://youtu.be/hAlHENzH1XE'
+  - title: Física Bachillerato_ De Campos a Ondas ¡La Estrategia Revelada!
+    url: 'https://youtu.be/vIWvIqqeuqY'
+  - title: Orgullo Académico_ Superando Obstáculos en la Educación Superior
+    url: 'https://youtu.be/kXYLkLlihSI'
 ---
 ¡Lo logramos! 2º de Bachillerato ya es historia. En esta entrega final de 'The Last Dance', celebramos el final de un camino intenso y lleno de aprendizajes. Nos sentamos frente a los micrófonos con invitados clave de este viaje para compartir nuestras mejores historias, nuestros planes y, por supuesto, para despedirnos como se merece esta increíble promoción. No te pierdas el episodio que marca el inicio de todo lo que está por venir.
