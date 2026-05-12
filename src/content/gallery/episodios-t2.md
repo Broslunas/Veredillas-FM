@@ -1,6 +1,10 @@
 ---
 category: Episodios Temporada 2
 images:
+  - title: T2 E12 - The Last Dance
+    src: >-
+      https://cdn.veredillasfm.es/images/345ddb9b-4383-4dea-9e66-03cc7487bc8a.webp
+    featured: true
   - title: 'T2 E11 - Entre Ecuaciones y Canciones '
     src: >-
       https://cdn.veredillasfm.es/images/e1b51f71-d6b9-4209-8c2d-1319b1b9c210.webp
@@ -33,9 +37,5 @@ images:
   - title: T2 E1 - La HISTORIA de un Docente
     src: >-
       https://cdn.veredillasfm.es/images/e723bb85-a053-48db-878c-98e0110e5415.JPEG
-  - title: T2 E12 - The Last Dance
-    src: >-
-      https://cdn.veredillasfm.es/images/345ddb9b-4383-4dea-9e66-03cc7487bc8a.webp
-    featured: true
 ---
 
