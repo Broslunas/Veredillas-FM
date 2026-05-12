@@ -8,25 +8,6 @@ tags:
   - Nuevo Comienzo
   - Podcast
   - Graduación
-isPremiere: true
-image: 'https://cdn.veredillasfm.es/images/345ddb9b-4383-4dea-9e66-03cc7487bc8a.webp'
-participants:
-  - Prof. Jezael
-  - Diego Medrano
-  - Ángel
-  - Elio
-  - Zi Cheng
-season: 2
-episode: 13
-duration: 41 min
-pubDate: '2026-05-12T16:00:00.000Z'
-description: >-
-  Con el 2º Bachillerato terminado, llega el episodio final de 'The Last Dance'.
-  Comparte historias, planes y la emocionante despedida de una promoción
-  inolvidable.
-videoUrl: 'https://www.youtube.com/embed/DvYlAIUmbwk'
-audioUrl: >-
-  https://anchor.fm/s/10ca1a038/podcast/play/119877592/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-4-12%2F424001754-44100-2-dde415c53d70e.mp3
 transcription:
   - time: '00:01'
     text: >-
@@ -1034,6 +1015,25 @@ transcription:
       infinita, a la clase por ser única y a todas esas personas que nos
       escuchan, y recuerden, desde Pereira FM, donde los mantenemos al
       pendiente, los dejamos más candentes. Gracias.
+isPremiere: true
+image: 'https://cdn.veredillasfm.es/images/345ddb9b-4383-4dea-9e66-03cc7487bc8a.webp'
+participants:
+  - Prof. Jezael
+  - Diego Medrano
+  - Ángel
+  - Elio
+  - Zi Cheng
+season: 2
+episode: 11
+duration: 45 min
+pubDate: '2026-05-12T16:00:00.000Z'
+description: >-
+  Con el 2º Bachillerato terminado, llega el episodio final de 'The Last Dance'.
+  Comparte historias, planes y la emocionante despedida de una promoción
+  inolvidable.
+videoUrl: 'https://www.youtube.com/embed/DvYlAIUmbwk'
+audioUrl: >-
+  https://anchor.fm/s/10ca1a038/podcast/play/119877592/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-4-12%2F424001754-44100-2-dde415c53d70e.mp3
 sections:
   - time: '00:01'
     title: 'Bienvenidos a Peredillas FM: El Último Baile'
