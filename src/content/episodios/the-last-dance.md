@@ -24,5 +24,6 @@ description: >-
   Con el 2º Bachillerato terminado, llega el episodio final de 'The Last Dance'.
   Comparte historias, planes y la emocionante despedida de una promoción
   inolvidable.
+videoUrl: 'https://www.youtube.com/embed/DvYlAIUmbwk'
 ---
 ¡Lo logramos! 2º de Bachillerato ya es historia. En esta entrega final de 'The Last Dance', celebramos el final de un camino intenso y lleno de aprendizajes. Nos sentamos frente a los micrófonos con invitados clave de este viaje para compartir nuestras mejores historias, nuestros planes y, por supuesto, para despedirnos como se merece esta increíble promoción. No te pierdas el episodio que marca el inicio de todo lo que está por venir.
