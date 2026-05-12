@@ -1105,5 +1105,67 @@ sections:
     title: Mensaje final del profesor Jesael
   - time: '44:57'
     title: Despedida de Peredillas FM
+quiz:
+  - question: >-
+      ¿Qué etapa educativa se ha dado por finalizada según el contenido
+      proporcionado?
+    options:
+      - La universidad
+      - La primaria
+      - 2º de Bachillerato
+      - El instituto
+    correctAnswer: 2
+  - question: >-
+      ¿Cómo se describe el camino que los estudiantes han recorrido y que ahora
+      culmina?
+    options:
+      - Aburrido y monótono
+      - Fácil y sin esfuerzo
+      - Intenso y lleno de aprendizajes
+      - Inesperado y fugaz
+    correctAnswer: 2
+  - question: >-
+      ¿Cuál es uno de los propósitos principales de la reunión final mencionada
+      en el texto?
+    options:
+      - Realizar un examen de recuperación
+      - Organizar la próxima excursión anual
+      - Compartir las mejores historias y planes
+      - Discutir los resultados académicos
+    correctAnswer: 2
+  - question: >-
+      ¿Quiénes se unen para compartir sus experiencias y planes en este evento
+      final?
+    options:
+      - Solo el personal docente
+      - Antiguos alumnos de promociones pasadas
+      - Invitados clave de este viaje
+      - Futuros estudiantes de bachillerato
+    correctAnswer: 2
+  - question: >-
+      ¿Qué acción específica se lleva a cabo para despedir a esta 'increíble
+      promoción'?
+    options:
+      - Una ceremonia de graduación formal
+      - Una despedida que merece la ocasión
+      - La entrega de certificados de mérito
+      - Un brindis con las familias
+    correctAnswer: 1
+  - question: >-
+      ¿Qué significado tiene este episodio final en relación con lo que está por
+      venir?
+    options:
+      - Representa el cierre definitivo de todas las actividades académicas
+      - Es una pausa temporal antes de retomar el mismo camino
+      - Marca el inicio de todo lo que está por venir
+      - Significa la disolución completa del grupo
+    correctAnswer: 2
+  - question: ¿Qué se celebra en esta entrega final?
+    options:
+      - El aniversario de la institución
+      - El lanzamiento de un nuevo proyecto
+      - El final de un camino intenso y lleno de aprendizajes
+      - El comienzo de un nuevo año escolar
+    correctAnswer: 2
 ---
 ¡Lo logramos! 2º de Bachillerato ya es historia. En esta entrega final de 'The Last Dance', celebramos el final de un camino intenso y lleno de aprendizajes. Nos sentamos frente a los micrófonos con invitados clave de este viaje para compartir nuestras mejores historias, nuestros planes y, por supuesto, para despedirnos como se merece esta increíble promoción. No te pierdas el episodio que marca el inicio de todo lo que está por venir.
