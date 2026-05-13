@@ -55,6 +55,9 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 <!-- EPISODES_START -->
 <div align="center">
 
+<a href="https://veredillasfm.es/ep/the-last-dance">
+<img src="https://cdn.veredillasfm.es/images/345ddb9b-4383-4dea-9e66-03cc7487bc8a.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="The Last Dance ft. Jezael, Diego Medrano, Elio, Zi Cheng & Ángel"/>
+</a>
 <a href="https://veredillasfm.es/ep/ecuaciones-y-canciones">
 <img src="https://cdn.veredillasfm.es/images/e1b51f71-d6b9-4209-8c2d-1319b1b9c210.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Entre Ecuaciones y Canciones ft. Ángel"/>
 </a>
@@ -64,10 +67,10 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 <a href="https://veredillasfm.es/ep/lealtad-y-cardio">
 <img src="https://cdn.veredillasfm.es/images/05792a09-ea30-4901-9f7f-621f6d1e9198.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Lealtad y Cardio ft. Damian, Pablo Quintero & Diego Quintero"/>
 </a>
-<a href="https://veredillasfm.es/ep/tecno-dependencia">
-<img src="https://cdn.veredillasfm.es/images/3ad38b3b-8f2f-4341-b0eb-39b160d6820a.webp" width="200" style="border-radius: 8px; margin: 10px;" alt="Tecno-Dependencia ft. Elio & Zi Cheng"/>
-</a>
 
+
+**[The Last Dance ft. Jezael, Diego Medrano, Elio, Zi Cheng & Ángel](https://veredillasfm.es/ep/the-last-dance)**<br/>
+*12 de mayo de 2026 • Temporada 2, Episodio 12*
 
 **[Entre Ecuaciones y Canciones ft. Ángel](https://veredillasfm.es/ep/ecuaciones-y-canciones)**<br/>
 *06 de mayo de 2026 • Temporada 2, Episodio 11*
@@ -77,9 +80,6 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 
 **[Lealtad y Cardio ft. Damian, Pablo Quintero & Diego Quintero](https://veredillasfm.es/ep/lealtad-y-cardio)**<br/>
 *21 de abril de 2026 • Temporada 2, Episodio 9*
-
-**[Tecno-Dependencia ft. Elio & Zi Cheng](https://veredillasfm.es/ep/tecno-dependencia)**<br/>
-*17 de abril de 2026 • Temporada 2, Episodio 8*
 
 </div>
 <!-- EPISODES_END -->
