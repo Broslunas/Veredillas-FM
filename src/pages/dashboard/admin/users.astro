@@ -1,6 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import AdminNav from '@/components/admin/AdminNav.astro';
+import AdminLayout from '@/layouts/AdminLayout.astro';
 import { getUserFromCookie } from '@/lib/auth';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
@@ -19,1655 +18,1108 @@ await dbConnect();
 
 const currentUser = await User.findById(userPayload.userId);
 if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
-  return Astro.redirect('/404'); 
+  return Astro.redirect('/404');
 }
 
 const users = await User.find({}).sort({ createdAt: -1 });
 
-// Fetch Episodes & Clips for Client-side enrichment
 const allEpisodes = await getCollection('episodios');
 const episodesData: Record<string, { title: string, image: string }> = {};
 const clipsData: Record<string, { title: string, episodeSlug: string, image: string }> = {};
 
 allEpisodes.forEach(e => {
     const epImage = typeof e.data.image === 'string' ? e.data.image : (e.data.image as any)?.src || '';
-    episodesData[e.slug] = {
-        title: e.data.title,
-        image: epImage
-    };
+    episodesData[e.slug] = { title: e.data.title, image: epImage };
     if (e.data.clips) {
         e.data.clips.forEach((clip: any) => {
              const match = clip.url.match(/(?:youtube\.com\/shorts\/|youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^?&]+)/);
              const videoId = match ? match[1] : null;
              if (videoId) {
-                 clipsData[videoId] = {
-                     title: clip.title,
-                     episodeSlug: e.slug,
-                     image: epImage
-                 };
+                 clipsData[videoId] = { title: clip.title, episodeSlug: e.slug, image: epImage };
              }
         });
     }
 });
+
+const now = new Date();
+const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+const totalUsers = users.length;
+const subscribedCount = users.filter(u => u.newsletter).length;
+const activeRecentCount = users.filter(u => u.lastActiveAt && new Date(u.lastActiveAt) > thirtyDaysAgo).length;
+const newThisWeek = users.filter(u => new Date(u.createdAt) > sevenDaysAgo).length;
+const totalListeningTime = users.reduce((acc, u) => acc + (u.listeningTime || 0), 0);
+const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalUsers) : 0;
 
 function formatTime(seconds: number) {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     return `${h}h ${m}m`;
 }
-
-// Stats Computation
-const now = new Date();
-const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-const totalUsers = users.length;
-const adminCount = users.filter(u => u.role === 'admin' || u.role === 'owner').length;
-const subscribedCount = users.filter(u => u.newsletter).length;
-const activeRecentCount = users.filter(u => u.lastActiveAt && new Date(u.lastActiveAt) > thirtyDaysAgo).length;
-const newThisWeek = users.filter(u => new Date(u.createdAt) > sevenDaysAgo).length;
-const totalListeningTime = users.reduce((acc, u) => acc + (u.listeningTime || 0), 0);
-const avgListeningTime = totalUsers > 0 ? Math.round(totalListeningTime / totalUsers) : 0;
 ---
 
-<Layout title="Gestión de Usuarios - Admin" robots="noindex, nofollow">
-    <!-- Background Effects -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div class="absolute -top-48 -left-48 w-[600px] h-[600px] rounded-full bg-violet-600/[0.07] blur-[100px] animate-blob-float"></div>
-        <div class="absolute -bottom-48 -right-48 w-[600px] h-[600px] rounded-full bg-pink-500/[0.07] blur-[100px] animate-blob-float-reverse"></div>
-        <div class="absolute inset-0 opacity-40 pointer-events-none" style="background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 40%, transparent 100%);"></div>
+<AdminLayout title="Usuarios">
+  <div id="adminContainer" data-episodes={JSON.stringify(episodesData)} data-clips={JSON.stringify(clipsData)}>
+    <div class="page-header">
+      <div class="header-left">
+        <h1>Usuarios</h1>
+        <p class="subtitle">Gestión completa de la base de usuarios</p>
+      </div>
+      <div class="header-actions">
+        <button id="exportUsersBtn" class="btn-secondary" title="Exportar CSV">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Exportar
+        </button>
+        <button id="sendBulkNewsletterBtn" class="btn-primary" title="Enviar newsletter">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          Enviar a Todos
+        </button>
+      </div>
     </div>
 
-    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in-up" id="adminContainer" data-episodes={JSON.stringify(episodesData)} data-clips={JSON.stringify(clipsData)}>
-        
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-            <div>
-                <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-violet-400 to-pink-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(167,139,250,0.4)]">
-                    Usuarios
-                </h1>
-                <p class="text-zinc-400 text-lg mt-1 tracking-wide">
-                    Gestión completa de la base de usuarios
-                </p>
-            </div>
-            <div class="flex items-center gap-3 flex-wrap">
-                <div class="flex items-center -space-x-2 mr-2">
-                    {users.slice(0, 5).map((u, i) => (
-                        <div class="w-8 h-8 rounded-full border-2 border-zinc-950 overflow-hidden bg-zinc-800" style={`z-index: ${10-i}`}>
-                            <img src={u.picture || `https://ui-avatars.com/api/?name=${u.name}&background=7c3aed&color=fff`} class="w-full h-full object-cover" alt="" />
-                        </div>
-                    ))}
-                    {users.length > 5 && (
-                        <div class="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 z-0">
-                            +{users.length - 5}
-                        </div>
+    <div class="stats-row">
+      <div class="stat-mini">
+        <div class="stat-mini-icon violet">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-mini-content">
+          <span class="stat-mini-value">{totalUsers}</span>
+          <span class="stat-mini-label">Total</span>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-icon emerald">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="stat-mini-content">
+          <span class="stat-mini-value">{activeRecentCount}</span>
+          <span class="stat-mini-label">Activos 30d</span>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-icon sky">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        </div>
+        <div class="stat-mini-content">
+          <span class="stat-mini-value">{subscribedCount}<span class="stat-mini-total">/{totalUsers}</span></span>
+          <span class="stat-mini-label">Suscritos</span>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-icon amber">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+        </div>
+        <div class="stat-mini-content">
+          <span class="stat-mini-value">+{newThisWeek}</span>
+          <span class="stat-mini-label">Nuevos 7d</span>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-icon pink">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-mini-content">
+          <span class="stat-mini-value">{formatTime(totalListeningTime)}</span>
+          <span class="stat-mini-label">Tiempo Total</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <div class="search-box">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="Buscar por nombre, email o ID..." />
+      </div>
+      <select id="filterRole" class="filter-select">
+        <option value="all">Todos los roles</option>
+        <option value="user">Usuarios</option>
+        <option value="admin">Admins</option>
+        <option value="owner">Owners</option>
+      </select>
+      <select id="filterNewsletter" class="filter-select">
+        <option value="all">Newsletter: Todos</option>
+        <option value="subscribed">Suscritos</option>
+        <option value="unsubscribed">No suscritos</option>
+      </select>
+      <select id="sortBy" class="filter-select">
+        <option value="newest">Más recientes</option>
+        <option value="oldest">Más antiguos</option>
+        <option value="name">Nombre A-Z</option>
+        <option value="listening">Más escuchado</option>
+      </select>
+      <div id="resultsCounter" class="results-count">
+        <span id="resultsCount">{totalUsers}</span> usuarios
+      </div>
+    </div>
+
+    <div class="table-card">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th class="th-checkbox"><input type="checkbox" id="selectAllUsers" /></th>
+            <th>Usuario</th>
+            <th class="hide-mobile">Email</th>
+            <th class="th-center">Rol</th>
+            <th class="th-center hide-mobile">Registro</th>
+            <th class="th-center hide-tablet">Actividad</th>
+            <th class="hide-tablet">Progreso</th>
+            <th class="th-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="usersListContainer">
+          {users.map((user) => {
+            const isCurrentUser = user._id.toString() === currentUser._id.toString();
+            const daysAgo = user.lastActiveAt ? Math.floor((now.getTime() - new Date(user.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24)) : -1;
+            const isActive = daysAgo >= 0 && 7 >= daysAgo;
+            const isInactive = daysAgo >= 31 || daysAgo === -1;
+            return (
+              <tr class="user-row"
+                data-id={user._id}
+                data-name={user.name.toLowerCase()}
+                data-email={user.email.toLowerCase()}
+                data-role={user.role}
+                data-newsletter={user.newsletter ? 'subscribed' : 'unsubscribed'}
+                data-created={new Date(user.createdAt).getTime()}
+                data-listening={user.listeningTime || 0}
+                data-streak={user.currentStreak || 0}
+                data-last-active={user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0}
+              >
+                <td class="td-checkbox"><input type="checkbox" class="user-checkbox" data-id={user._id} /></td>
+                <td class="td-user">
+                  <div class="user-cell">
+                    <div class="avatar-wrap">
+                      <img src={user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=7c3aed&color=fff&size=80`} alt={user.name} class="avatar" />
+                      <span class={`status-dot ${isActive ? 'active' : isInactive ? 'inactive' : 'away'}`}></span>
+                    </div>
+                    <div class="user-info">
+                      <span class="user-name">{user.name}{isCurrentUser && <span class="you-badge">TÚ</span>}</span>
+                      <span class="user-email">{user.email}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="hide-mobile td-email">{user.email}</td>
+                <td class="td-center">
+                  <span class={`role-badge ${user.role}`}>{user.role}</span>
+                </td>
+                <td class="td-center hide-mobile td-date">
+                  {new Date(user.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })}
+                </td>
+                <td class="td-center hide-tablet">
+                  <span class={`activity-status ${isActive ? 'active' : isInactive ? 'inactive' : ''}`}>
+                    {daysAgo === 0 ? 'Hoy' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
+                  </span>
+                  {(user.currentStreak || 0) > 0 && <span class="streak-badge">{user.currentStreak}d</span>}
+                </td>
+                <td class="hide-tablet td-progress">
+                  <div class="progress-wrap">
+                    <span class="progress-time">{formatTime(user.listeningTime || 0)}</span>
+                    <div class="progress-bar"><div class="progress-fill" style={`width: ${Math.min(100, ((user.listeningTime || 0) / (Math.max(1, avgListeningTime) * 2)) * 100)}%`}></div></div>
+                  </div>
+                </td>
+                <td class="td-actions">
+                  <div class="action-buttons">
+                    <button class="action-btn view-btn" data-user={JSON.stringify(user)} title="Ver">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 12 10 10 10-10-10-10Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                    <button class="action-btn edit-btn" data-user={JSON.stringify(user)} title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="action-btn audit-btn" data-user={JSON.stringify(user)} title="Auditoría">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </button>
+                    {!isCurrentUser && (
+                      <button class="action-btn delete-btn" data-id={user._id} title="Eliminar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                      </button>
                     )}
-                </div>
-                <button id="exportUsersBtn" class="group flex items-center gap-2 px-4 py-2.5 bg-zinc-800/60 border border-white/10 rounded-xl text-sm font-semibold text-zinc-300 hover:bg-zinc-700/60 hover:text-white hover:border-white/20 transition-all duration-300 backdrop-blur-xl" title="Exportar usuarios a CSV">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                    <span>Exportar</span>
-                </button>
-                <button id="sendBulkNewsletterBtn" class="group flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl text-sm font-bold text-white shadow-[0_4px_15px_rgba(139,92,246,0.3)] hover:shadow-[0_8px_25px_rgba(139,92,246,0.5)] hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0 active:scale-[0.98] transition-all duration-300" title="Enviar newsletter a todos los suscritos">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                    <span>Enviar a Todos</span>
-                </button>
-            </div>
-        </div>
-
-        <AdminNav />
-
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-10">
-            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-violet-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
-                <div class="absolute inset-0 bg-gradient-to-br from-violet-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-4 relative z-10 font-sans">
-                    <div class="w-12 h-12 rounded-2xl bg-violet-500/15 flex items-center justify-center text-violet-400 shrink-0 group-hover:scale-110 group-hover:bg-violet-500/30 transition-all duration-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Total</p>
-                        <p class="text-2xl font-black text-white tracking-tight">{totalUsers}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-emerald-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
-                <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-4 relative z-10 font-sans">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 shrink-0 group-hover:scale-110 group-hover:bg-emerald-500/30 transition-all duration-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Activos 30d</p>
-                        <p class="text-2xl font-black text-white tracking-tight">{activeRecentCount}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-sky-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
-                <div class="absolute inset-0 bg-gradient-to-br from-sky-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-4 relative z-10 font-sans">
-                    <div class="w-12 h-12 rounded-2xl bg-sky-500/15 flex items-center justify-center text-sky-400 shrink-0 group-hover:scale-110 group-hover:bg-sky-500/30 transition-all duration-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Suscritos</p>
-                        <p class="text-2xl font-black text-white tracking-tight">{subscribedCount}<span class="text-xs text-zinc-600 ml-1.5 font-bold">/ {totalUsers}</span></p>
-                    </div>
-                </div>
-            </div>
-            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-amber-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
-                <div class="absolute inset-0 bg-gradient-to-br from-amber-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-4 relative z-10 font-sans">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-500/15 flex items-center justify-center text-amber-400 shrink-0 group-hover:scale-110 group-hover:bg-amber-500/30 transition-all duration-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Nuevos 7d</p>
-                        <p class="text-2xl font-black text-white tracking-tight">+{newThisWeek}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-pink-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
-                <div class="absolute inset-0 bg-gradient-to-br from-pink-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-4 relative z-10 font-sans">
-                    <div class="w-12 h-12 rounded-2xl bg-pink-500/15 flex items-center justify-center text-pink-400 shrink-0 group-hover:scale-110 group-hover:bg-pink-500/30 transition-all duration-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Tiempo Total</p>
-                        <p class="text-2xl font-black text-white tracking-tight font-mono">{formatTime(totalListeningTime)}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="group relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] p-6 backdrop-blur-2xl hover:border-fuchsia-500/40 hover:bg-zinc-800/40 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden shadow-xl">
-                <div class="absolute inset-0 bg-gradient-to-br from-fuchsia-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="flex items-center gap-4 relative z-10 font-sans">
-                    <div class="w-12 h-12 rounded-2xl bg-fuchsia-500/15 flex items-center justify-center text-fuchsia-400 shrink-0 group-hover:scale-110 group-hover:bg-fuchsia-500/30 transition-all duration-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-500 font-black group-hover:text-zinc-400 transition-colors mb-0.5">Media/Usuario</p>
-                        <p class="text-2xl font-black text-white tracking-tight font-mono">{formatTime(avgListeningTime)}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Search & Filters Bar -->
-        <div class="bg-zinc-900/40 border border-white/[0.06] rounded-3xl p-5 mb-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
-            <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10 flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
-                <!-- Search Input -->
-                <div class="relative flex-1 group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-zinc-500 group-focus-within:text-violet-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-                        </svg>
-                    </div>
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="Buscar por nombre, email o ID..." 
-                        class="w-full pl-11 pr-4 py-3 bg-black/40 border border-white/[0.08] rounded-2xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium"
-                    />
-                    <div id="searchShimmer" class="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-violet-500 to-transparent scale-x-0 transition-transform duration-700"></div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-3">
-                    <!-- Filter: Role -->
-                    <div class="relative min-w-[150px]">
-                        <select id="filterRole" class="w-full px-4 py-3 bg-black/30 border border-white/[0.08] rounded-2xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none hover:bg-black/50">
-                            <option value="all">Todos los roles</option>
-                            <option value="user">👤 Usuarios</option>
-                            <option value="admin">🛡️ Admins</option>
-                            <option value="owner">👑 Owners</option>
-                        </select>
-                    </div>
-
-                    <!-- Filter: Newsletter -->
-                    <div class="relative min-w-[170px]">
-                        <select id="filterNewsletter" class="w-full px-4 py-3 bg-black/30 border border-white/[0.08] rounded-2xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none hover:bg-black/50">
-                            <option value="all">Newsletter: Todos</option>
-                            <option value="subscribed">✅ Suscritos</option>
-                            <option value="unsubscribed">❌ No suscritos</option>
-                        </select>
-                    </div>
-
-                    <!-- Sort -->
-                    <div class="relative min-w-[180px]">
-                        <select id="sortBy" class="w-full px-4 py-3 bg-black/30 border border-white/[0.08] rounded-2xl text-sm text-zinc-300 focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer appearance-none hover:bg-black/50">
-                            <option value="newest">📅 Más recientes</option>
-                            <option value="oldest">📅 Más antiguos</option>
-                            <option value="name">🔤 Nombre A-Z</option>
-                            <option value="listening">🎧 Más escuchado</option>
-                            <option value="streak">🔥 Racha alta</option>
-                            <option value="lastActive">⚡ Activos hace poco</option>
-                        </select>
-                    </div>
-
-                    <!-- Results counter -->
-                    <div id="resultsCounter" class="flex items-center gap-2 px-4 py-3 bg-violet-500/10 border border-violet-500/20 rounded-2xl text-xs font-bold text-violet-400">
-                        <span id="resultsCount" class="text-white">{totalUsers}</span>
-                        <span class="opacity-60 whitespace-nowrap">usuarios</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Users Table Container -->
-        <div class="relative bg-zinc-900/40 border border-white/[0.06] rounded-[2rem] backdrop-blur-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-700 overflow-hidden">
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr class="text-[0.65rem] uppercase tracking-[0.2em] font-black text-zinc-500 border-b border-white/[0.05] bg-white/[0.01]">
-                            <th class="px-6 py-5 text-center w-16">
-                                <input type="checkbox" id="selectAllUsers" class="w-5 h-5 rounded-lg border-white/10 bg-black/60 text-violet-500 focus:ring-violet-500/50 hover:border-violet-500/50 transition-all cursor-pointer accent-violet-500" />
-                            </th>
-                            <th class="px-6 py-5 text-left min-w-[280px]">Usuario / Info</th>
-                            <th class="px-6 py-5 text-left min-w-[200px] hidden xl:table-cell">Email</th>
-                            <th class="px-6 py-5 text-center w-28 hidden xs:table-cell">Rol</th>
-                            <th class="px-6 py-5 text-center w-36 hidden md:table-cell">Registro</th>
-                            <th class="px-6 py-5 text-center w-36 hidden sm:table-cell">Actividad</th>
-                            <th class="px-6 py-5 text-left w-40 hidden lg:table-cell">Progreso</th>
-                            <th class="px-8 py-5 text-right whitespace-nowrap">Acciones Admin</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersListContainer" class="divide-y divide-white/[0.03]">
-                        {users.map((user, index) => {
-                            const isCurrentUser = user._id.toString() === currentUser._id.toString();
-                            const daysAgo = user.lastActiveAt ? Math.floor((now.getTime() - new Date(user.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24)) : -1;
-                            const isActive = daysAgo >= 0 && 7 >= daysAgo;
-                            const isInactive = daysAgo >= 31 || daysAgo === -1;
-                            
-                            return (
-                                <tr 
-                                    class="user-row group hover:bg-white/[0.02] active:bg-white/[0.04] transition-all duration-300"
-                                    data-id={user._id}
-                                    data-name={user.name.toLowerCase()}
-                                    data-email={user.email.toLowerCase()}
-                                    data-role={user.role}
-                                    data-newsletter={user.newsletter ? 'subscribed' : 'unsubscribed'}
-                                    data-created={new Date(user.createdAt).getTime()}
-                                    data-listening={user.listeningTime || 0}
-                                    data-streak={user.currentStreak || 0}
-                                    data-last-active={user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0}
-                                    style={`animation-delay: ${index * 15}ms`}
-                                >
-                                    <td class="px-6 py-4 text-center">
-                                        <input type="checkbox" class="user-checkbox w-4 h-4 rounded border-white/10 bg-black/40 text-violet-500 focus:ring-violet-500/50 accent-violet-500 transition-all cursor-pointer" data-id={user._id} />
-                                    </td>
-                                    
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-4">
-                                            <div class="relative shrink-0">
-                                                <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-violet-500/40 to-fuchsia-500/40 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                                <img 
-                                                    src={user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=7c3aed&color=fff&size=80`} 
-                                                    alt={user.name} 
-                                                    class="relative w-11 h-11 rounded-2xl object-cover ring-1 ring-white/10 group-hover:ring-violet-500/40 transition-all duration-500"
-                                                />
-                                                <div class={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-[3px] border-zinc-900 ${isActive ? 'bg-emerald-500' : isInactive ? 'bg-zinc-700' : 'bg-amber-500'}`}></div>
-                                            </div>
-                                            <div class="flex flex-col min-w-0">
-                                                <div class="flex items-center gap-2 mb-0.5">
-                                                    <span class="font-bold text-white text-[0.95rem] tracking-tight group-hover:text-violet-300 transition-colors truncate">{user.name}</span>
-                                                    {isCurrentUser && <span class="text-[0.6rem] px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded-lg font-black tracking-widest">TÚ</span>}
-                                                    {user.newsletter && <span class="text-sky-400" title="Suscrito a newsletter">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                                                    </span>}
-                                                </div>
-                                                <div class="flex items-center gap-3">
-                                                    <span class="text-[10px] text-zinc-500 truncate max-w-[140px] font-medium">{user.email}</span>
-                                                    <span class={`xs:hidden text-[9px] font-black uppercase tracking-tighter ${user.role === 'owner' ? 'text-pink-400' : user.role === 'admin' ? 'text-violet-400' : 'text-zinc-600'}`}>{user.role}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td class="px-6 py-4 hidden xl:table-cell">
-                                        <span class="text-xs text-zinc-400 font-medium truncate max-w-[200px] block font-mono">{user.email}</span>
-                                    </td>
-
-                                    <td class="px-6 py-4 text-center hidden xs:table-cell">
-                                        <div class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[0.6rem] font-black uppercase tracking-widest ${
-                                            user.role === 'owner' 
-                                                ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' 
-                                                : user.role === 'admin' 
-                                                ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20' 
-                                                : 'bg-white/[0.04] text-zinc-500 border border-white/[0.08]'
-                                        }`}>
-                                            {user.role}
-                                        </div>
-                                    </td>
-
-                                    <td class="px-6 py-4 text-center hidden md:table-cell">
-                                        <span class="text-[11px] text-zinc-500 font-bold font-mono">
-                                            {new Date(user.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })}
-                                        </span>
-                                    </td>
-
-                                    <td class="px-6 py-4 text-center hidden sm:table-cell">
-                                        <div class="flex flex-col items-center">
-                                            <span class={`text-[11px] font-black font-mono leading-none ${isActive ? 'text-emerald-400' : isInactive ? 'text-zinc-600' : 'text-zinc-400'}`}>
-                                                {daysAgo === 0 ? 'Hoy' : daysAgo > 0 ? `Hace ${daysAgo}d` : 'Nunca'}
-                                            </span>
-                                            {(user.currentStreak || 0) > 0 && <span class="text-[9px] text-amber-500/60 font-black mt-1">🔥 {user.currentStreak}d</span>}
-                                        </div>
-                                    </td>
-
-                                    <td class="px-6 py-4 hidden lg:table-cell">
-                                        <div class="w-full max-w-[110px]">
-                                            <div class="flex items-center justify-between mb-1">
-                                                <span class="text-[9px] text-zinc-500 font-bold font-mono">{formatTime(user.listeningTime || 0)}</span>
-                                            </div>
-                                            <div class="h-1 w-full bg-white/[0.05] rounded-full overflow-hidden">
-                                                <div class="h-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-emerald-500" style={`width: ${Math.min(100, ((user.listeningTime || 0) / (Math.max(1, avgListeningTime) * 2)) * 100)}%`}></div>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td class="px-8 py-4 text-right">
-                                        <div class="flex items-center justify-end gap-1.5">
-                                            <button class="view-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-500 hover:text-white hover:bg-violet-600 transition-all" data-user={JSON.stringify(user)} title="Ver detalles">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 12 10 10 10-10-10-10Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                            </button>
-                                            <button class="edit-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-500 hover:text-white hover:bg-sky-500 transition-all" data-user={JSON.stringify(user)} title="Editar">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                            </button>
-                                            <button class="test-to-me-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-indigo-400 hover:text-white hover:bg-indigo-600 transition-all" data-id={user._id} data-name={user.name} title="Enviarme prueba">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                                            </button>
-                                            <button class="audit-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-amber-500 hover:text-white hover:bg-amber-600 transition-all" data-user={JSON.stringify(user)} title="Auditoría de actividad">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg>
-                                            </button>
-                                            <button class="warn-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-orange-400 hover:text-white hover:bg-orange-600 transition-all" data-id={user._id} data-name={user.name} title="Aviso Incumplimiento">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                                            </button>
-                                            {!isCurrentUser && (
-                                                <button class="delete-btn p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-700 hover:text-white hover:bg-red-600 transition-all" data-id={user._id} title="Eliminar usuario">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- No Results -->
-            <div id="noResults" class="hidden py-32 text-center">
-                <div class="relative w-20 h-20 mx-auto mb-6">
-                    <div class="absolute inset-0 bg-violet-500/20 blur-2xl rounded-full"></div>
-                    <div class="relative w-full h-full rounded-3xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    </div>
-                </div>
-                <h3 class="text-white font-bold text-xl mb-2">No hay resultados</h3>
-                <p class="text-zinc-500 text-sm mb-6">Ajusta los filtros para encontrar lo que buscas.</p>
-                <button onclick="window.location.reload()" class="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:bg-white/10 transition-all">Limpiar todo</button>
-            </div>
-        </div>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <div id="noResults" class="no-results">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <h3>No hay resultados</h3>
+        <p>Ajusta los filtros para encontrar lo que buscas.</p>
+      </div>
     </div>
 
-    <!-- Floating Bulk Actions Bar -->
-    <div id="bulkActionsBar" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] bg-black/80 backdrop-blur-2xl border border-white/10 px-6 py-4 rounded-[2rem] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8)] flex items-center gap-6 opacity-0 pointer-events-none translate-y-10 transition-all duration-500 ring-1 ring-white/5">
-        <div class="flex items-center gap-3 pr-6 border-r border-white/10">
-            <span id="selectedCount" class="w-10 h-10 rounded-full bg-violet-500 flex items-center justify-center text-white font-black text-lg shadow-[0_0_20px_rgba(139,92,246,0.5)]">0</span>
-            <span class="text-sm font-bold text-zinc-300 uppercase tracking-widest">Seleccionados</span>
-        </div>
-        <div class="flex items-center gap-3">
-            <button id="bulkWarnBtn" class="px-5 py-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-amber-500 hover:text-white transition-all duration-300">Avisar</button>
-            <button id="bulkDeleteBtn" class="px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all duration-300">Eliminar</button>
-            <button id="cancelBulk" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 transition-all font-black text-xl ml-2">&times;</button>
-        </div>
+    <div id="bulkActionsBar" class="bulk-bar">
+      <span id="selectedCount" class="bulk-count">0</span>
+      <span class="bulk-label">Seleccionados</span>
+      <button id="bulkDeleteBtn" class="bulk-action danger">Eliminar</button>
+      <button id="cancelBulk" class="bulk-cancel">&times;</button>
     </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- EDIT USER MODAL -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div id="editUserModal" class="fixed inset-0 bg-black/60 backdrop-blur-xl z-[100] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="display:none;">
-        <div class="modal-inner bg-zinc-950/95 border border-white/10 w-full max-w-[600px] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.05)] max-h-[90vh] overflow-y-auto transform translate-y-5 scale-95 transition-all duration-300">
-            <div class="flex items-center justify-between p-6 border-b border-white/[0.06]">
-                <h3 class="text-xl font-extrabold bg-gradient-to-r from-white to-violet-400 bg-clip-text text-transparent">Editar Usuario</h3>
-                <button id="closeModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
-            </div>
-            <form id="editUserForm" class="p-6 space-y-5">
-                <input type="hidden" id="editUserId" name="userId" />
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="editName" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Nombre</label>
-                        <input type="text" id="editName" name="name" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all" required />
-                    </div>
-                    <div>
-                        <label for="editEmail" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Email</label>
-                        <input type="email" id="editEmail" name="email" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all" required />
-                    </div>
-                </div>
-
-                <div>
-                    <label for="editBio" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Bio</label>
-                    <textarea id="editBio" name="bio" rows="2" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all resize-none"></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="editRole" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Rol</label>
-                        <select id="editRole" name="role" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer">
-                            <option value="user">Usuario</option>
-                            <option value="admin">Administrador</option>
-                            <option value="owner">Dueño</option>
-                        </select>
-                    </div>
-                    <div></div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Tiempo Escuchado</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="relative">
-                            <input type="number" id="editListeningHours" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all pr-8" placeholder="0" min="0" />
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-zinc-600 font-bold">HRS</span>
-                        </div>
-                        <div class="relative">
-                            <input type="number" id="editListeningMinutes" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all pr-8" placeholder="0" min="0" max="59" />
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-zinc-600 font-bold">MIN</span>
-                        </div>
-                        <div class="relative">
-                            <input type="number" id="editListeningSeconds" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all pr-8" placeholder="0" min="0" max="59" />
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-zinc-600 font-bold">SEG</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="editCurrentStreak" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Racha Actual</label>
-                        <input type="number" id="editCurrentStreak" name="currentStreak" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all" min="0" />
-                    </div>
-                    <div>
-                        <label for="editMaxStreak" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Racha Máxima</label>
-                        <input type="number" id="editMaxStreak" name="maxStreak" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all" min="0" />
-                    </div>
-                </div>
-
-                <div>
-                    <label for="editFavorites" class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Episodios Favoritos <span class="text-zinc-600 normal-case">(slugs separados por coma)</span></label>
-                    <input type="text" id="editFavorites" name="favorites" class="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all" placeholder="ep-1, ep-2" />
-                </div>
-
-                <!-- Newsletter Toggle -->
-                <label class="flex items-center gap-4 p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl cursor-pointer hover:bg-white/[0.04] transition-colors group">
-                    <input type="checkbox" id="editNewsletter" name="newsletter" class="sr-only peer" />
-                    <div class="w-11 h-6 bg-zinc-700 rounded-full relative peer-checked:bg-violet-600 transition-colors after:content-[''] after:absolute after:left-[2px] after:top-[2px] after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow-md after:transition-transform peer-checked:after:translate-x-5"></div>
-                    <span class="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Suscrito a la Newsletter</span>
-                </label>
-
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" id="cancelEdit" class="px-5 py-2.5 bg-transparent border border-white/10 text-zinc-400 rounded-xl font-semibold text-sm hover:bg-white/[0.05] hover:text-white transition-all">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-violet-500 text-white rounded-xl font-bold text-sm shadow-[0_4px_15px_rgba(139,92,246,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(139,92,246,0.5)] hover:brightness-110 transition-all">Guardar Cambios</button>
-                </div>
-            </form>
+  <div id="editUserModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Editar Usuario</h3>
+        <button class="modal-close" data-close="editUserModal">&times;</button>
+      </div>
+      <form id="editUserForm">
+        <input type="hidden" id="editUserId" name="userId" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" id="editName" name="name" required />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="editEmail" name="email" required />
+          </div>
         </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- VIEW USER DETAILS MODAL -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div id="viewUserModal" class="fixed inset-0 bg-black/60 backdrop-blur-xl z-[100] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="display:none;">
-        <div class="modal-inner bg-zinc-950/95 border border-white/10 w-full max-w-[950px] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.05)] max-h-[90vh] overflow-hidden transform translate-y-5 scale-95 transition-all duration-300">
-            <div class="flex items-center justify-between p-6 border-b border-white/[0.06]">
-                <h3 class="text-xl font-extrabold bg-gradient-to-r from-white to-violet-400 bg-clip-text text-transparent">Panel del Usuario</h3>
-                <button id="closeViewModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
-            </div>
-            
-            <div id="viewUserDetails" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
-                <!-- Hero Section -->
-                <div class="flex flex-col sm:flex-row items-start gap-5 pb-6 border-b border-white/[0.06] mb-6">
-                    <img id="viewAvatar" src="" alt="" class="w-24 h-24 rounded-2xl object-cover ring-4 ring-violet-500/20 shadow-2xl shrink-0" />
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-3 flex-wrap mb-1.5">
-                            <h2 id="viewName" class="text-2xl font-extrabold text-white tracking-tight"></h2>
-                            <span id="viewRoleBadge" class="role-badge-view"></span>
-                            <span id="viewNewsletterBadge" class="newsletter-badge-view"></span>
-                        </div>
-                        <p id="viewEmail" class="text-zinc-400 text-sm mb-2"></p>
-                        <p id="viewBio" class="text-zinc-500 text-sm italic mb-3 hidden"></p>
-                        <div class="flex items-center gap-4 text-xs text-zinc-500 font-mono flex-wrap">
-                            <span class="flex items-center gap-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                                Registro: <span id="viewJoined" class="text-zinc-300"></span>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                Último: <span id="viewLastActive" class="text-zinc-300"></span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                    <div class="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-center">
-                        <div class="w-9 h-9 mx-auto mb-2 rounded-lg bg-violet-500/15 flex items-center justify-center text-violet-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        </div>
-                        <p class="text-[0.6rem] uppercase tracking-wider text-zinc-500 font-bold mb-0.5">Tiempo</p>
-                        <p id="viewListeningTime" class="text-lg font-extrabold text-white font-mono"></p>
-                    </div>
-                    <div class="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-center">
-                        <div class="w-9 h-9 mx-auto mb-2 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                        </div>
-                        <p class="text-[0.6rem] uppercase tracking-wider text-zinc-500 font-bold mb-0.5">Completados</p>
-                        <p id="viewCompletedCount" class="text-lg font-extrabold text-white"></p>
-                    </div>
-                    <div class="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-center">
-                        <div class="w-9 h-9 mx-auto mb-2 rounded-lg bg-amber-500/15 flex items-center justify-center text-amber-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-                        </div>
-                        <p class="text-[0.6rem] uppercase tracking-wider text-zinc-500 font-bold mb-0.5">Racha</p>
-                        <p id="viewStreak" class="text-lg font-extrabold text-white"></p>
-                    </div>
-                    <div class="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-center">
-                        <div class="w-9 h-9 mx-auto mb-2 rounded-lg bg-pink-500/15 flex items-center justify-center text-pink-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                        </div>
-                        <p class="text-[0.6rem] uppercase tracking-wider text-zinc-500 font-bold mb-0.5">Favoritos</p>
-                        <p id="viewFavCount" class="text-lg font-extrabold text-white">0</p>
-                    </div>
-                </div>
-
-                <!-- Content Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
-                    <!-- Playback History -->
-                    <div>
-                        <h4 class="text-xs uppercase tracking-[0.1em] font-bold text-violet-400 mb-3 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            Historial de Reproducción
-                        </h4>
-                        <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar" id="viewHistoryList"></div>
-                    </div>
-                    
-                    <!-- Sidebar: Favorites & Clips -->
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="text-xs uppercase tracking-[0.1em] font-bold text-pink-400 mb-3 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                                Episodios Favoritos
-                            </h4>
-                            <div class="space-y-1.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar" id="viewFavoritesList"></div>
-                        </div>
-                        <div>
-                            <h4 class="text-xs uppercase tracking-[0.1em] font-bold text-sky-400 mb-3 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>
-                                Clips Guardados (<span id="viewClipsCount">0</span>)
-                            </h4>
-                            <div class="space-y-1.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar" id="viewClipsList"></div>
-                        </div>
-                    </div>
-                </div>
-
-                 </div>
-             </div>
-         </div>
-     </div>
- 
-     <!-- ═══════════════════════════════════════════════════ -->
-     <!-- AUDIT USER MODAL (NEW) -->
-     <!-- ═══════════════════════════════════════════════════ -->
-     <div id="auditUserModal" class="fixed inset-0 bg-black/60 backdrop-blur-xl z-[100] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="display:none;">
-         <div class="modal-inner bg-zinc-950/95 border border-white/10 w-full max-w-[950px] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6)] max-h-[90vh] overflow-hidden transform translate-y-5 scale-95 transition-all duration-300">
-             <div class="flex items-center justify-between p-6 border-b border-white/[0.06]">
-                 <div class="flex items-center gap-3">
-                     <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-400">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                     </div>
-                     <div>
-                         <h3 class="text-xl font-extrabold text-white">Audit de Actividad</h3>
-                         <p class="text-xs text-zinc-500 mt-0.5">Usuario: <span id="auditUserName" class="text-zinc-300"></span></p>
-                     </div>
-                 </div>
-                 <button id="closeAuditModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
-             </div>
-             
-             <div class="p-8 overflow-y-auto custom-scrollbar" style="max-height: calc(90vh - 100px);">
-                 <!-- Summary Stats Bar -->
-                 <div id="auditStatsContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                     <div class="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col justify-between">
-                         <span class="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Eventos Totales</span>
-                         <div class="flex items-baseline gap-2">
-                             <span id="statTotalEvents" class="text-3xl font-black text-white">0</span>
-                             <span class="text-xs text-amber-500/50">logs</span>
-                         </div>
-                     </div>
-                     <div class="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col justify-between">
-                         <span class="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Top Episodio</span>
-                         <span id="statTopEpisode" class="text-sm font-bold text-amber-400 truncate">N/A</span>
-                     </div>
-                     <div class="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col justify-between">
-                         <span class="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Actividad Últ. 24h</span>
-                         <span id="statRecentActivity" class="text-xl font-bold text-white">0</span>
-                     </div>
-                     <div class="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col justify-between ring-1 ring-amber-500/10">
-                         <span class="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Índice de Repetición</span>
-                         <div id="statRepeatIndex" class="text-xl font-bold text-white">0%</div>
-                     </div>
-                 </div>
-
-                 <!-- Accordion Sections -->
-                 <div class="space-y-4">
-                     <!-- Section 1: Ranking -->
-                     <div class="audit-accordion-item rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden transition-all duration-300">
-                         <button class="w-full p-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors accordion-trigger active" data-target="auditRankingContent">
-                             <div class="flex items-center gap-4">
-                                 <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
-                                 </div>
-                                 <h5 class="text-sm font-bold text-white uppercase tracking-wider">Ranking de Frecuencia</h5>
-                             </div>
-                             <svg class="w-5 h-5 text-zinc-500 transition-transform duration-300 transform rotate-180 arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                             </svg>
-                         </button>
-                         <div id="auditRankingContent" class="p-6 pt-0 accordion-content transition-all duration-300">
-                             <div id="viewAuditGrouped" class="space-y-2.5 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar"></div>
-                         </div>
-                     </div>
-
-                     <!-- Section 2: Timeline -->
-                     <div class="audit-accordion-item rounded-2xl border border-white/[0.03] bg-white/[0.01] overflow-hidden transition-all duration-300">
-                         <button class="w-full p-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors accordion-trigger" data-target="auditTimelineContent">
-                             <div class="flex items-center gap-4">
-                                 <div class="w-8 h-8 rounded-lg bg-zinc-500/10 flex items-center justify-center text-zinc-400">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                 </div>
-                                 <h5 class="text-sm font-bold text-zinc-400 uppercase tracking-wider">Timeline de Auditoría</h5>
-                             </div>
-                             <svg class="w-5 h-5 text-zinc-600 transition-transform duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                             </svg>
-                         </button>
-                         <div id="auditTimelineContent" class="p-6 pt-0 accordion-content hidden transition-all duration-300">
-                             <div id="viewAuditTimeline" class="space-y-1.5 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar"></div>
-                         </div>
-                     </div>
-
-                     <!-- Section 3: Sessions -->
-                     <div class="audit-accordion-item rounded-2xl border border-white/[0.03] bg-white/[0.01] overflow-hidden transition-all duration-300">
-                         <button class="w-full p-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors accordion-trigger" data-target="auditHistoryContent">
-                             <div class="flex items-center gap-4">
-                                 <div class="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                                 </div>
-                                 <h5 class="text-sm font-bold text-violet-400 uppercase tracking-wider">Últimas 100 Sesiones</h5>
-                             </div>
-                             <svg class="w-5 h-5 text-zinc-600 transition-transform duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                             </svg>
-                         </button>
-                         <div id="auditHistoryContent" class="p-6 pt-0 accordion-content hidden transition-all duration-300">
-                             <div id="viewAuditPlaybackHistory" class="space-y-2.5 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar"></div>
-                         </div>
-                     </div>
-                 </div>
-             </div>
-         </div>
-     </div>
-
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- CONFIRMATION MODAL -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div id="confirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-xl z-[110] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="display:none;">
-        <div class="modal-inner bg-zinc-950/95 border border-white/10 w-full max-w-[450px] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6)] p-6 transform translate-y-5 scale-95 transition-all duration-300">
-            <div class="flex items-center justify-between mb-5">
-                <h3 id="confirmTitle" class="text-lg font-extrabold text-white">Confirmar Acción</h3>
-                <button id="closeConfirmModal" class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">&times;</button>
-            </div>
-            <p id="confirmMessage" class="text-zinc-400 text-sm leading-relaxed mb-8"></p>
-            <div class="flex justify-end gap-3">
-                <button type="button" id="cancelConfirm" class="px-5 py-2.5 bg-transparent border border-white/10 text-zinc-400 rounded-xl font-semibold text-sm hover:bg-white/[0.05] hover:text-white transition-all">Cancelar</button>
-                <button type="button" id="executeConfirm" class="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl font-bold text-sm shadow-[0_4px_15px_rgba(239,68,68,0.3)] hover:shadow-[0_8px_25px_rgba(239,68,68,0.5)] hover:-translate-y-0.5 transition-all">Confirmar</button>
-            </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea id="editBio" name="bio" rows="2"></textarea>
         </div>
+        <div class="form-group">
+          <label>Rol</label>
+          <select id="editRole" name="role">
+            <option value="user">Usuario</option>
+            <option value="admin">Administrador</option>
+            <option value="owner">Dueño</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tiempo Escuchado</label>
+          <div class="time-inputs">
+            <input type="number" id="editListeningHours" placeholder="0" min="0" /><span>H</span>
+            <input type="number" id="editListeningMinutes" placeholder="0" min="0" max="59" /><span>M</span>
+            <input type="number" id="editListeningSeconds" placeholder="0" min="0" max="59" /><span>S</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="editNewsletter" name="newsletter" />
+            <span>Suscrito a la Newsletter</span>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" data-close="editUserModal">Cancelar</button>
+          <button type="submit" class="btn-save">Guardar Cambios</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <script>
-        declare global {
-            interface Window {
-                showToast: (message: string, type?: 'info' | 'success' | 'error') => void;
-                customConfirm: (title: string, message: string, callback: () => void) => void;
-            }
+  <div id="confirmModal" class="modal" style="display:none;">
+    <div class="modal-content modal-sm">
+      <h3 id="confirmTitle">Confirmar Acción</h3>
+      <p id="confirmMessage"></p>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" data-close="confirmModal">Cancelar</button>
+        <button type="button" id="executeConfirm" class="btn-danger">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    declare global {
+      interface Window {
+        customConfirm: (title: string, message: string, callback: () => void) => void;
+      }
+    }
+
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const filterRole = document.getElementById('filterRole') as HTMLSelectElement;
+    const filterNewsletter = document.getElementById('filterNewsletter') as HTMLSelectElement;
+    const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
+    const resultsCount = document.getElementById('resultsCount');
+    const noResults = document.getElementById('noResults');
+    const container = document.getElementById('usersListContainer');
+
+    function applyFilters() {
+      if (!container) return;
+      const rows = container.querySelectorAll('.user-row') as NodeListOf<HTMLElement>;
+      const query = searchInput?.value.toLowerCase() || '';
+      const roleFilter = filterRole?.value || 'all';
+      const newsletterFilter = filterNewsletter?.value || 'all';
+      const sort = sortBy?.value || 'newest';
+
+      let visibleRows: HTMLElement[] = [];
+
+      rows.forEach(row => {
+        const name = row.dataset.name || '';
+        const email = row.dataset.email || '';
+        const role = row.dataset.role || '';
+        const newsletter = row.dataset.newsletter || '';
+
+        let visible = true;
+        if (query && !name.includes(query) && !email.includes(query)) visible = false;
+        if (roleFilter !== 'all' && role !== roleFilter) visible = false;
+        if (newsletterFilter !== 'all' && newsletter !== newsletterFilter) visible = false;
+
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibleRows.push(row);
+      });
+
+      visibleRows.sort((a, b) => {
+        switch (sort) {
+          case 'oldest': return Number(a.dataset.created) - Number(b.dataset.created);
+          case 'newest': return Number(b.dataset.created) - Number(a.dataset.created);
+          case 'name': return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+          case 'listening': return Number(b.dataset.listening) - Number(a.dataset.listening);
+          default: return 0;
         }
+      });
 
-        function attachEventListeners() {
-            // ── Modal Helpers ──
-            function openModal(modalEl: HTMLElement | null) {
-                if (!modalEl) return;
-                modalEl.style.display = 'flex';
-                requestAnimationFrame(() => {
-                    modalEl.classList.remove('opacity-0', 'pointer-events-none');
-                    modalEl.classList.add('opacity-100');
-                    const inner = modalEl.querySelector('.modal-inner') as HTMLElement;
-                    if (inner) {
-                        inner.classList.remove('translate-y-5', 'scale-95');
-                        inner.classList.add('translate-y-0', 'scale-100');
-                    }
-                });
-            }
-            function closeModal(modalEl: HTMLElement | null) {
-                if (!modalEl) return;
-                modalEl.classList.add('opacity-0', 'pointer-events-none');
-                modalEl.classList.remove('opacity-100');
-                const inner = modalEl.querySelector('.modal-inner') as HTMLElement;
-                if (inner) {
-                    inner.classList.add('translate-y-5', 'scale-95');
-                    inner.classList.remove('translate-y-0', 'scale-100');
-                }
-                setTimeout(() => { modalEl.style.display = 'none'; }, 300);
-            }
+      visibleRows.forEach(row => container.appendChild(row));
 
-            // ── Modal References ──
-            const editModal = document.getElementById('editUserModal');
-            const viewModal = document.getElementById('viewUserModal');
-            const auditModal = document.getElementById('auditUserModal');
-            const confirmModal = document.getElementById('confirmModal');
-            const form = document.getElementById('editUserForm') as HTMLFormElement;
-
-            // ── Confirm Modal Setup ──
-            let confirmCallback: (() => void) | null = null;
-            const confirmTitle = document.getElementById('confirmTitle');
-            const confirmMessage = document.getElementById('confirmMessage');
-            const executeConfirmBtn = document.getElementById('executeConfirm');
-            const cancelConfirmBtn = document.getElementById('cancelConfirm');
-            const closeConfirmBtn = document.getElementById('closeConfirmModal');
-
-            window.customConfirm = (title: string, message: string, callback: () => void) => {
-                if (confirmTitle) confirmTitle.innerText = title;
-                if (confirmMessage) confirmMessage.innerText = message;
-                confirmCallback = callback;
-                openModal(confirmModal);
-            };
-
-            if (executeConfirmBtn) {
-                executeConfirmBtn.onclick = () => {
-                    if (confirmCallback) confirmCallback();
-                    closeModal(confirmModal);
-                };
-            }
-
-            // ── Close handlers ──
-            document.getElementById('closeModal')?.addEventListener('click', () => closeModal(editModal));
-            document.getElementById('cancelEdit')?.addEventListener('click', () => closeModal(editModal));
-            document.getElementById('closeViewModal')?.addEventListener('click', () => closeModal(viewModal));
-            document.getElementById('closeAuditModal')?.addEventListener('click', () => closeModal(auditModal));
-            if (closeConfirmBtn) closeConfirmBtn.onclick = () => closeModal(confirmModal);
-            if (cancelConfirmBtn) cancelConfirmBtn.onclick = () => closeModal(confirmModal);
-
-            // Click-outside close
-            [editModal, viewModal, auditModal, confirmModal].forEach(m => {
-                if (m) {
-                    m.addEventListener('click', (e) => {
-                        if (e.target === m) closeModal(m);
-                    });
-                }
-            });
-
-            // Accordion Logic
-            document.querySelectorAll('.accordion-trigger').forEach(trigger => {
-                trigger.addEventListener('click', () => {
-                    const targetId = trigger.getAttribute('data-target');
-                    const targetContent = document.getElementById(targetId || '');
-                    const arrow = trigger.querySelector('.arrow-icon');
-                    const parent = trigger.closest('.audit-accordion-item');
-                    
-                    const isOpening = targetContent?.classList.contains('hidden');
-                    
-                    if (isOpening) {
-                        targetContent?.classList.remove('hidden');
-                        trigger.classList.add('active');
-                        arrow?.classList.add('rotate-180');
-                        parent?.classList.add('bg-white/[0.03]', 'border-white/[0.08]');
-                        parent?.classList.remove('bg-white/[0.01]', 'border-white/[0.03]');
-                    } else {
-                        targetContent?.classList.add('hidden');
-                        trigger.classList.remove('active');
-                        arrow?.classList.remove('rotate-180');
-                        parent?.classList.remove('bg-white/[0.03]', 'border-white/[0.08]');
-                        parent?.classList.add('bg-white/[0.01]', 'border-white/[0.03]');
-                    }
-                });
-            });
-
-            // ── SEARCH & FILTER ──
-            const searchInput = document.getElementById('searchInput') as HTMLInputElement;
-            const filterRole = document.getElementById('filterRole') as HTMLSelectElement;
-            const filterNewsletter = document.getElementById('filterNewsletter') as HTMLSelectElement;
-            const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
-            const resultsCount = document.getElementById('resultsCount');
-            const noResults = document.getElementById('noResults');
-            const container = document.getElementById('usersListContainer');
-
-            function applyFilters() {
-                if (!container) return;
-                const rows = container.querySelectorAll('.user-row') as NodeListOf<HTMLElement>;
-                const query = searchInput?.value.toLowerCase() || '';
-                const roleFilter = filterRole?.value || 'all';
-                const newsletterFilter = filterNewsletter?.value || 'all';
-                const sort = sortBy?.value || 'newest';
-
-                let visibleRows: HTMLElement[] = [];
-
-                rows.forEach(row => {
-                    const name = row.dataset.name || '';
-                    const email = row.dataset.email || '';
-                    const role = row.dataset.role || '';
-                    const newsletter = row.dataset.newsletter || '';
-
-                    let visible = true;
-                    if (query && !name.includes(query) && !email.includes(query)) visible = false;
-                    if (roleFilter !== 'all' && role !== roleFilter) visible = false;
-                    if (newsletterFilter !== 'all' && newsletter !== newsletterFilter) visible = false;
-
-                    row.style.display = visible ? '' : 'none';
-                    if (visible) visibleRows.push(row);
-                });
-
-                // Sort
-                visibleRows.sort((a, b) => {
-                    switch (sort) {
-                        case 'oldest': return Number(a.dataset.created) - Number(b.dataset.created);
-                        case 'newest': return Number(b.dataset.created) - Number(a.dataset.created);
-                        case 'name': return (a.dataset.name || '').localeCompare(b.dataset.name || '');
-                        case 'listening': return Number(b.dataset.listening) - Number(a.dataset.listening);
-                        case 'streak': return Number(b.dataset.streak) - Number(a.dataset.streak);
-                        case 'lastActive': return Number(b.dataset.lastActive) - Number(a.dataset.lastActive);
-                        default: return 0;
-                    }
-                });
-
-                // Re-order DOM
-                visibleRows.forEach(row => container.appendChild(row));
-
-                // Update counter
-                if (resultsCount) resultsCount.textContent = visibleRows.length.toString();
-                if (noResults) noResults.style.display = visibleRows.length === 0 ? 'block' : 'none';
-            }
-
-            searchInput?.addEventListener('input', () => {
-                const shimmer = document.getElementById('searchShimmer');
-                if (shimmer) {
-                    shimmer.classList.add('scale-x-100');
-                    setTimeout(() => shimmer.classList.remove('scale-x-100'), 400);
-                }
-                applyFilters();
-            });
-            filterRole?.addEventListener('change', applyFilters);
-            filterNewsletter?.addEventListener('change', applyFilters);
-            sortBy?.addEventListener('change', applyFilters);
-
-            // ── EDIT BUTTONS ──
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode?.replaceChild(newBtn, btn);
-
-                newBtn.addEventListener('click', (e) => {
-                    const target = e.currentTarget as HTMLElement;
-                    const userData = JSON.parse(target.dataset.user || '{}');
-
-                    const idInput = document.getElementById('editUserId') as HTMLInputElement;
-                    const nameInput = document.getElementById('editName') as HTMLInputElement;
-                    const emailInput = document.getElementById('editEmail') as HTMLInputElement;
-                    const bioInput = document.getElementById('editBio') as HTMLTextAreaElement;
-                    const roleInput = document.getElementById('editRole') as HTMLSelectElement;
-                    const listeningHoursInput = document.getElementById('editListeningHours') as HTMLInputElement;
-                    const listeningMinutesInput = document.getElementById('editListeningMinutes') as HTMLInputElement;
-                    const listeningSecondsInput = document.getElementById('editListeningSeconds') as HTMLInputElement;
-                    const currentStreakInput = document.getElementById('editCurrentStreak') as HTMLInputElement;
-                    const maxStreakInput = document.getElementById('editMaxStreak') as HTMLInputElement;
-                    const favoritesInput = document.getElementById('editFavorites') as HTMLInputElement;
-                    const newsletterInput = document.getElementById('editNewsletter') as HTMLInputElement;
-
-                    if (idInput) idInput.value = userData._id;
-                    if (nameInput) nameInput.value = userData.name;
-                    if (emailInput) emailInput.value = userData.email;
-                    if (bioInput) bioInput.value = userData.bio || '';
-                    if (roleInput) roleInput.value = userData.role;
-
-                    const totalSeconds = userData.listeningTime || 0;
-                    if (listeningHoursInput) listeningHoursInput.value = Math.floor(totalSeconds / 3600).toString();
-                    if (listeningMinutesInput) listeningMinutesInput.value = Math.floor((totalSeconds % 3600) / 60).toString();
-                    if (listeningSecondsInput) listeningSecondsInput.value = (totalSeconds % 60).toString();
-
-                    if (currentStreakInput) currentStreakInput.value = userData.currentStreak || 0;
-                    if (maxStreakInput) maxStreakInput.value = userData.maxStreak || 0;
-                    if (favoritesInput) favoritesInput.value = (userData.favorites || []).join(', ');
-                    if (newsletterInput) newsletterInput.checked = !!userData.newsletter;
-
-                    openModal(editModal);
-                });
-            });
-
-            // ── VIEW BUTTONS ──
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode?.replaceChild(newBtn, btn);
-
-                newBtn.addEventListener('click', (e) => {
-                    const target = e.currentTarget as HTMLElement;
-                    const userData = JSON.parse(target.dataset.user || '{}');
-
-                    const avatar = document.getElementById('viewAvatar') as HTMLImageElement;
-                    const name = document.getElementById('viewName');
-                    const email = document.getElementById('viewEmail');
-                    const bio = document.getElementById('viewBio');
-                    const roleBadge = document.getElementById('viewRoleBadge');
-                    const newsletterBadge = document.getElementById('viewNewsletterBadge');
-                    const joined = document.getElementById('viewJoined');
-                    const lastActive = document.getElementById('viewLastActive');
-                    const time = document.getElementById('viewListeningTime');
-                    const completed = document.getElementById('viewCompletedCount');
-                    const streak = document.getElementById('viewStreak');
-                    const favList = document.getElementById('viewFavoritesList');
-                    const favCount = document.getElementById('viewFavCount');
-                    const clipsList = document.getElementById('viewClipsList');
-                    const clipsCount = document.getElementById('viewClipsCount');
-                    const historyList = document.getElementById('viewHistoryList');
-
-                    const adminContainer = document.getElementById('adminContainer');
-                    const episodesData = adminContainer ? JSON.parse(adminContainer.dataset.episodes || '{}') : {};
-                    const clipsData = adminContainer ? JSON.parse(adminContainer.dataset.clips || '{}') : {};
-
-                    if (avatar) avatar.src = userData.picture || `https://ui-avatars.com/api/?name=${userData.name}&background=7c3aed&color=fff&size=200`;
-                    if (name) name.textContent = userData.name;
-                    if (email) email.textContent = userData.email;
-                    
-                    if (bio) {
-                        if (userData.bio) {
-                            bio.textContent = userData.bio;
-                            bio.classList.remove('hidden');
-                        } else {
-                            bio.classList.add('hidden');
-                        }
-                    }
-
-                    if (roleBadge) {
-                        const r = userData.role || 'user';
-                        roleBadge.className = r === 'owner'
-                            ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-wide bg-pink-500/15 text-pink-300 border border-pink-500/30'
-                            : r === 'admin'
-                            ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-wide bg-violet-500/15 text-violet-300 border border-violet-500/30'
-                            : 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-wide bg-white/[0.04] text-zinc-400 border border-white/[0.08]';
-                        roleBadge.textContent = `${r === 'owner' ? '👑' : r === 'admin' ? '🛡️' : '👤'} ${r}`;
-                    }
-                    if (newsletterBadge) {
-                        newsletterBadge.className = userData.newsletter
-                            ? 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.7rem] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.7rem] font-semibold bg-red-500/10 text-red-400 border border-red-500/20';
-                        newsletterBadge.textContent = userData.newsletter ? '✓ Suscrito' : '✗ No suscrito';
-                    }
-
-                    if (joined) joined.textContent = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : 'N/A';
-                    if (lastActive) lastActive.textContent = userData.lastActiveAt ? new Date(userData.lastActiveAt).toLocaleString('es-ES') : (userData.lastLogin ? new Date(userData.lastLogin).toLocaleString('es-ES') : 'N/A');
-
-                    if (time) time.textContent = userData.listeningTime ? `${Math.floor(userData.listeningTime / 3600)}h ${Math.floor((userData.listeningTime % 3600) / 60)}m` : '0h 0m';
-                    if (completed) completed.textContent = (userData.completedEpisodes || []).length.toString();
-                    if (streak) streak.textContent = `${userData.currentStreak || 0} / ${userData.maxStreak || 0}`;
-
-                    // Favorites
-                    if (favList && favCount) {
-                        favList.innerHTML = '';
-                        const favs = userData.favorites || [];
-                        favCount.textContent = favs.length;
-                        if (favs.length === 0) {
-                            favList.innerHTML = '<div class="py-6 text-center text-zinc-600 text-xs border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">Sin favoritos</div>';
-                        } else {
-                            favs.forEach((slug: string) => {
-                                const epData = episodesData[slug];
-                                const title = epData ? epData.title : slug;
-                                const image = epData ? epData.image : 'https://placehold.co/100x100?text=?';
-                                const div = document.createElement('div');
-                                div.className = 'flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-transparent hover:border-white/[0.06] hover:bg-white/[0.04] transition-all';
-                                div.innerHTML = `
-                                    <img src="${image}" alt="${title}" class="w-10 h-10 rounded-lg object-cover shrink-0" />
-                                    <span class="text-sm font-medium text-zinc-300 truncate" title="${title}">${title}</span>
-                                `;
-                                favList.appendChild(div);
-                            });
-                        }
-                    }
-
-                    // Clips
-                    if (clipsList && clipsCount) {
-                        clipsList.innerHTML = '';
-                        const clips = userData.likedClips || [];
-                        clipsCount.textContent = clips.length;
-                        if (clips.length === 0) {
-                            clipsList.innerHTML = '<div class="py-6 text-center text-zinc-600 text-xs border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">Sin clips guardados</div>';
-                        } else {
-                            clips.forEach((id: string) => {
-                                const clipData = clipsData[id];
-                                const title = clipData ? clipData.title : id;
-                                const image = clipData ? clipData.image : 'https://placehold.co/100x100?text=?';
-                                const div = document.createElement('div');
-                                div.className = 'flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-transparent hover:border-white/[0.06] hover:bg-white/[0.04] transition-all';
-                                div.innerHTML = `
-                                    <img src="${image}" alt="${title}" class="w-8 h-14 rounded-lg object-cover shrink-0" style="aspect-ratio:9/16" />
-                                    <div class="min-w-0">
-                                        <span class="text-sm font-medium text-zinc-300 truncate block" title="${title}">${title}</span>
-                                        ${clipData ? `<span class="text-[0.65rem] text-zinc-600">Ep: ${clipData.episodeSlug}</span>` : ''}
-                                    </div>
-                                `;
-                                clipsList.appendChild(div);
-                            });
-                        }
-                    }
-
-                    function formatTimeJS(seconds: number) {
-                        if (!seconds) return '0m';
-                        const h = Math.floor(seconds / 3600);
-                        const m = Math.floor((seconds % 3600) / 60);
-                        if (h > 0) return `${h}h ${m}m`;
-                        return `${m}m`;
-                    }
-
-                    // History
-                    if (historyList) {
-                        historyList.innerHTML = '';
-                        const history = userData.playbackHistory || [];
-                        history.sort((a: any, b: any) => new Date(b.listenedAt).getTime() - new Date(a.listenedAt).getTime());
-
-                        if (history.length === 0) {
-                            historyList.innerHTML = '<div class="py-8 text-center text-zinc-600 text-xs border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">Sin historial de reproducción</div>';
-                        } else {
-                            history.forEach((h: any) => {
-                                const epData = episodesData[h.episodeSlug];
-                                const title = epData ? epData.title : h.episodeSlug;
-                                const image = epData ? epData.image : 'https://placehold.co/100x100?text=?';
-                                
-                                let progressPercent = 0;
-                                if (h.duration > 0) {
-                                    progressPercent = Math.min(100, Math.round((h.progress / h.duration) * 100));
-                                } else if (h.completed) {
-                                    progressPercent = 100;
-                                }
-
-                                const div = document.createElement('div');
-                                div.className = 'flex gap-3 p-3 rounded-xl bg-black/20 border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.03] transition-all';
-                                div.innerHTML = `
-                                    <img src="${image}" alt="${title}" class="w-16 h-16 rounded-lg object-cover shadow-lg shrink-0" />
-                                    <div class="flex-1 min-w-0 flex flex-col justify-center">
-                                        <div class="flex justify-between items-start gap-2 mb-1">
-                                            <span class="text-sm font-semibold text-white truncate" title="${title}">${title}</span>
-                                            <span class="text-[0.65rem] text-zinc-600 whitespace-nowrap font-mono shrink-0">${new Date(h.listenedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</span>
-                                        </div>
-                                        <div class="flex items-center gap-2 mb-1.5">
-                                            <span class="text-xs font-mono text-violet-400 font-semibold">${formatTimeJS(h.progress)} / ${formatTimeJS(h.duration)}</span>
-                                            ${h.completed ? '<span class="text-[0.6rem] font-bold bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-md">✓</span>' : ''}
-                                        </div>
-                                        <div class="h-1 bg-white/[0.08] rounded-full overflow-hidden">
-                                            <div class="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full transition-all" style="width: ${progressPercent}%"></div>
-                                        </div>
-                                    </div>
-                                `;
-                                historyList.appendChild(div);
-                            });
-                        }
-                    }
-
-                     openModal(viewModal);
-                 });
-             });
- 
-             // ── AUDIT BUTTONS ──
-             document.querySelectorAll('.audit-btn').forEach(btn => {
-                 const newBtn = btn.cloneNode(true);
-                 btn.parentNode?.replaceChild(newBtn, btn);
- 
-                 newBtn.addEventListener('click', async (e) => {
-                     const target = e.currentTarget as HTMLElement;
-                     const userData = JSON.parse(target.dataset.user || '{}');
- 
-                     const auditNameEl = document.getElementById('auditUserName');
-                     if (auditNameEl) auditNameEl.textContent = userData.name;
- 
-                     const auditGroupedEl = document.getElementById('viewAuditGrouped');
-                     const auditTimelineEl = document.getElementById('viewAuditTimeline');
-                     const auditHistoryEl = document.getElementById('viewAuditPlaybackHistory');
-                     const adminContainer = document.getElementById('adminContainer');
-                     const episodesData = adminContainer ? JSON.parse(adminContainer.dataset.episodes || '{}') : {};
- 
-                     if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs">Analizando actividad...</div>';
-                     if (auditTimelineEl) auditTimelineEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs text-amber-500/50">Consultando registros...</div>';
-                     if (auditHistoryEl) auditHistoryEl.innerHTML = '<div class="py-12 text-center animate-pulse text-zinc-600 text-xs text-violet-500/50">Recuperando sesiones...</div>';
- 
-                     openModal(auditModal);
- 
-                     try {
-                         const res = await fetch(`/api/admin/detailed-history?userId=${userData._id}`);
-                         const auditData = await res.json();
- 
-                         const totalEvents = auditData.events?.length || 0;
-                         const groupedCount = auditData.grouped?.length || 0;
-                         const topEpObj = auditData.grouped?.[0];
-                         const recentCount = auditData.events?.filter((ev: any) => {
-                             const hours = (new Date().getTime() - new Date(ev.timestamp).getTime()) / 3600000;
-                             return hours <= 24;
-                         }).length || 0;
- 
-                         // Repeat Index: (Total Events - Unique Episodes) / Total Events
-                         const repeatIndex = totalEvents > 0 
-                             ? Math.round(((totalEvents - groupedCount) / totalEvents) * 100) 
-                             : 0;
- 
-                         // Populate Stats
-                         const statTotal = document.getElementById('statTotalEvents');
-                         const statTop = document.getElementById('statTopEpisode');
-                         const statRecent = document.getElementById('statRecentActivity');
-                         const statRepeat = document.getElementById('statRepeatIndex');
- 
-                         if (statTotal) statTotal.textContent = totalEvents.toString();
-                         if (statTop) {
-                             const ep = episodesData[topEpObj?._id];
-                             statTop.textContent = topEpObj ? (ep ? ep.title : topEpObj._id) : 'Ninguno';
-                         }
-                         if (statRecent) statRecent.textContent = recentCount.toString();
-                         if (statRepeat) {
-                             statRepeat.textContent = `${repeatIndex}%`;
-                             statRepeat.className = `text-xl font-bold ${repeatIndex > 70 ? 'text-red-500' : repeatIndex > 40 ? 'text-amber-500' : 'text-emerald-500'}`;
-                         }
- 
-                         if (auditGroupedEl) {
-                             auditGroupedEl.innerHTML = '';
-                             if (!auditData.grouped || auditData.grouped.length === 0) {
-                                 auditGroupedEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl px-4">Sin registros granulares todavía.</div>';
-                             } else {
-                                 const maxCount = auditData.grouped[0].count;
-                                 auditData.grouped.forEach((g: any) => {
-                                     const ep = episodesData[g._id];
-                                     const title = ep ? ep.title : g._id;
-                                     const percent = Math.round((g.count / maxCount) * 100);
-                                     const div = document.createElement('div');
-                                     div.className = 'group relative p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-all overflow-hidden';
-                                     div.innerHTML = `
-                                         <div class="absolute inset-0 bg-amber-500/5 transition-all w-0 group-hover:w-[${percent}%]" style="width: ${percent}%; opacity: 0.3;"></div>
-                                         <div class="relative flex items-center justify-between">
-                                             <div class="min-w-0">
-                                                 <p class="text-[0.75rem] font-bold text-zinc-200 truncate" title="${title}">${title}</p>
-                                                 <p class="text-[0.6rem] text-zinc-500 uppercase tracking-tighter mt-0.5">${g._id}</p>
-                                             </div>
-                                             <div class="flex items-center gap-2">
-                                                 <span class="text-[0.8rem] font-black text-amber-500">${g.count}</span>
-                                                 <span class="text-[0.6rem] text-zinc-600 font-bold">REPLAYS</span>
-                                             </div>
-                                         </div>
-                                     `;
-                                     auditGroupedEl.appendChild(div);
-                                 });
-                             }
-                         }
- 
-                         if (auditTimelineEl) {
-                             auditTimelineEl.innerHTML = '';
-                             if (!auditData.events || auditData.events.length === 0) {
-                                 auditTimelineEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl px-4">Utiliza el historial de sesiones a la derecha.</div>';
-                             } else {
-                                 auditData.events.forEach((ev: any) => {
-                                     const dt = new Date(ev.timestamp);
-                                     const div = document.createElement('div');
-                                     div.className = 'flex items-start gap-4 p-3 rounded-xl hover:bg-white/[0.02] transition-colors border-l-2 border-transparent hover:border-amber-500/30';
-                                     div.innerHTML = `
-                                         <div class="shrink-0 flex flex-col items-center">
-                                             <span class="text-[0.65rem] font-black text-white/40">${dt.getHours()}:${dt.getMinutes().toString().padStart(2,'0')}</span>
-                                             <div class="w-px h-full bg-white/10 my-1"></div>
-                                         </div>
-                                         <div class="flex-1 min-w-0">
-                                             <p class="text-[0.7rem] font-bold text-zinc-300 truncate">${ev.episodeSlug}</p>
-                                             <p class="text-[0.6rem] text-zinc-600">${dt.toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'})}</p>
-                                         </div>
-                                         <div class="shrink-0">
-                                             <div class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
-                                         </div>
-                                     `;
-                                     auditTimelineEl.appendChild(div);
-                                 });
-                             }
-                         }
-
-                         if (auditHistoryEl) {
-                             auditHistoryEl.innerHTML = '';
-                             const history = auditData.playbackHistory || [];
-                             if (history.length === 0) {
-                                 auditHistoryEl.innerHTML = '<div class="py-12 text-center text-zinc-600 text-xs italic border border-dashed border-white/[0.05] rounded-xl">Sin historial disponible.</div>';
-                             } else {
-                                 history.forEach((h: any) => {
-                                     const ep = episodesData[h.episodeSlug];
-                                     const title = ep ? ep.title : h.episodeSlug;
-                                     const div = document.createElement('div');
-                                     div.className = 'p-3 rounded-xl bg-white/[0.01] border border-white/[0.03]';
-                                     div.innerHTML = `
-                                         <div class="flex justify-between items-start mb-1">
-                                             <span class="text-[0.7rem] font-bold text-zinc-300 truncate pr-2">${title}</span>
-                                             <span class="text-[0.6rem] font-mono text-zinc-600 shrink-0">${new Date(h.listenedAt).toLocaleDateString()}</span>
-                                         </div>
-                                         <div class="flex items-center gap-2">
-                                             <div class="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
-                                                 <div class="h-full bg-violet-500/50" style="width: ${h.duration > 0 ? (h.progress/h.duration)*100 : 0}%"></div>
-                                             </div>
-                                             <span class="text-[0.6rem] font-bold ${h.completed ? 'text-emerald-500' : 'text-zinc-500'}">${h.completed ? 'COMPLETADO' : Math.round((h.progress/(h.duration||1))*100)+'%'}</span>
-                                         </div>
-                                     `;
-                                     auditHistoryEl.appendChild(div);
-                                 });
-                             }
-                         }
-                     } catch (err) {
-                         if (auditGroupedEl) auditGroupedEl.innerHTML = '<div class="py-12 text-center text-red-500/50 text-xs">Error al cargar audit</div>';
-                         console.error('Audit fetch error:', err);
-                     }
-                });
-            });
-
-            // ── TEST TO ME BUTTONS ──
-            document.querySelectorAll('.test-to-me-btn').forEach(btn => {
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode?.replaceChild(newBtn, btn);
-
-                newBtn.addEventListener('click', (e) => {
-                    const target = e.currentTarget as HTMLElement;
-                    const userName = target.dataset.name;
-
-                    window.customConfirm(
-                        'Probar Perfil',
-                        `¿Quieres enviarte A TI MISMO un correo de prueba con los datos de ${userName}?`,
-                        async () => {
-                            const userId = target.dataset.id;
-                            target.style.opacity = '0.5';
-                            target.style.pointerEvents = 'none';
-
-                            try {
-                                const res = await fetch('/api/admin/newsletter-test', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ userId, sendToMe: true })
-                                });
-                                if (res.ok) {
-                                    window.showToast('Email enviado a tu bandeja de entrada con el perfil de ' + userName, 'success');
-                                } else {
-                                    const data = await res.json();
-                                    window.showToast('Error: ' + (data.error || 'Fallo desconocido'), 'error');
-                                }
-                            } catch (e) {
-                                window.showToast('Error de conexión', 'error');
-                            } finally {
-                                target.style.opacity = '1';
-                                target.style.pointerEvents = 'auto';
-                            }
-                        }
-                    );
-                });
-            });
-
-            // ── WARNING BUTTONS ──
-            document.querySelectorAll('.warn-btn').forEach(btn => {
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode?.replaceChild(newBtn, btn);
-
-                newBtn.addEventListener('click', (e) => {
-                    const target = e.currentTarget as HTMLElement;
-                    const userId = target.dataset.id;
-                    const userName = target.dataset.name;
-
-                    window.customConfirm(
-                        'Enviar Advertencia',
-                        `¿Estás seguro de que quieres enviar una advertencia formal por email a ${userName} por incumplimiento de términos (abuso de estadísticas)?`,
-                        async () => {
-                            try {
-                                const res = await fetch('/api/admin/users/send-warning', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ userId })
-                                });
-                                if (res.ok) {
-                                    window.showToast('Advertencia enviada correctamente', 'success');
-                                } else {
-                                    const err = await res.json();
-                                    window.showToast('Error: ' + err.error, 'error');
-                                }
-                            } catch (e) {
-                                window.showToast('Error de conexión', 'error');
-                            }
-                        }
-                    );
-                });
-            });
-
-            // ── DELETE BUTTONS ──
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode?.replaceChild(newBtn, btn);
-
-                newBtn.addEventListener('click', (e) => {
-                    const target = e.currentTarget as HTMLElement;
-
-                    window.customConfirm(
-                        'Eliminar Usuario',
-                        '¿Estás seguro de que quieres eliminar a este usuario? Esta acción no se puede deshacer.',
-                        async () => {
-                            const userId = target.dataset.id;
-                            try {
-                                const res = await fetch('/api/admin/users', {
-                                    method: 'DELETE',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ userId })
-                                });
-                                if (res.ok) {
-                                    window.showToast('Usuario eliminado correctamente', 'success');
-                                    setTimeout(() => window.location.reload(), 1000);
-                                } else {
-                                    const data = await res.json();
-                                    window.showToast('Error: ' + data.error, 'error');
-                                }
-                            } catch (e) {
-                                window.showToast('Error de conexión', 'error');
-                            }
-                        }
-                    );
-                });
-            });
-
-            // ── BULK NEWSLETTER ──
-            const bulkBtn = document.getElementById('sendBulkNewsletterBtn');
-            if (bulkBtn) {
-                bulkBtn.onclick = () => {
-                    window.customConfirm(
-                        'Envío Masivo',
-                        '¿Estás seguro de que quieres enviar la newsletter personalizada a TODOS los usuarios suscritos ahora mismo?',
-                        async () => {
-                            if (!bulkBtn) return;
-                            bulkBtn.style.opacity = '0.5';
-                            bulkBtn.style.pointerEvents = 'none';
-                            const originalText = bulkBtn.innerHTML;
-                            bulkBtn.innerHTML = '<span class="animate-pulse">Enviando...</span>';
-
-                            try {
-                                const res = await fetch('/api/admin/newsletter-bulk', { method: 'POST' });
-                                const data = await res.json();
-                                if (res.ok) {
-                                    window.showToast(`Newsletter enviada: ${data.results.sent} éxitos, ${data.results.errors.length} errores`, 'success');
-                                } else {
-                                    window.showToast('Error: ' + (data.error || 'Fallo desconocido'), 'error');
-                                }
-                            } catch (e) {
-                                window.showToast('Error de conexión', 'error');
-                            } finally {
-                                bulkBtn.style.opacity = '1';
-                                bulkBtn.style.pointerEvents = 'auto';
-                                bulkBtn.innerHTML = originalText;
-                            }
-                        }
-                    );
-                };
-            }
-
-            // ── EXPORT CSV ──
-            const exportBtn = document.getElementById('exportUsersBtn');
-            if (exportBtn) {
-                exportBtn.onclick = () => {
-                    const rows = document.querySelectorAll('.user-row') as NodeListOf<HTMLElement>;
-                    let csv = 'Nombre,Email,Rol,Newsletter,Tiempo Escuchado (s),Racha,Registro\n';
-                    rows.forEach(row => {
-                        const name = row.dataset.name || '';
-                        const email = row.dataset.email || '';
-                        const role = row.dataset.role || '';
-                        const newsletter = row.dataset.newsletter || '';
-                        const listening = row.dataset.listening || '0';
-                        const streak = row.dataset.streak || '0';
-                        const created = row.dataset.created ? new Date(Number(row.dataset.created)).toISOString() : '';
-                        csv += `"${name}","${email}","${role}","${newsletter}","${listening}","${streak}","${created}"\n`;
-                    });
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `usuarios_${new Date().toISOString().split('T')[0]}.csv`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    window.showToast('CSV exportado correctamente', 'success');
-                };
-            }
-
-            // ── BULK ACTIONS LOGIC ──
-            const selectAllCheckbox = document.getElementById('selectAllUsers') as HTMLInputElement;
-            const bulkActionsBar = document.getElementById('bulkActionsBar');
-            const selectedCountEl = document.getElementById('selectedCount');
-            const bulkWarnBtn = document.getElementById('bulkWarnBtn');
-            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-            const cancelBulkBtn = document.getElementById('cancelBulk');
-
-            function updateBulkBar() {
-                const checked = document.querySelectorAll('.user-checkbox:checked');
-                const count = checked.length;
-                if (selectedCountEl) selectedCountEl.textContent = count.toString();
-                
-                if (count > 0) {
-                    bulkActionsBar?.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
-                    bulkActionsBar?.classList.add('opacity-100', 'translate-y-0');
-                } else {
-                    bulkActionsBar?.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
-                    bulkActionsBar?.classList.remove('opacity-100', 'translate-y-0');
-                    if (selectAllCheckbox) selectAllCheckbox.checked = false;
-                }
-
-                // Highlight rows
-                document.querySelectorAll('.user-row').forEach(row => {
-                    const cb = row.querySelector('.user-checkbox') as HTMLInputElement;
-                    if (cb?.checked) row.classList.add('selected');
-                    else row.classList.remove('selected');
-                });
-            }
-
-            selectAllCheckbox?.addEventListener('change', () => {
-                const isChecked = selectAllCheckbox.checked;
-                const checkboxes = document.querySelectorAll('.user-checkbox') as NodeListOf<HTMLInputElement>;
-                checkboxes.forEach(cb => {
-                    const row = cb.closest('.user-row') as HTMLElement;
-                    if (row && row.style.display !== 'none') {
-                        cb.checked = isChecked;
-                    }
-                });
-                updateBulkBar();
-            });
-
-            document.addEventListener('change', (e) => {
-                if ((e.target as HTMLElement).classList.contains('user-checkbox')) {
-                    updateBulkBar();
-                }
-            });
-
-            cancelBulkBtn?.addEventListener('click', () => {
-                const checkboxes = document.querySelectorAll('.user-checkbox') as NodeListOf<HTMLInputElement>;
-                checkboxes.forEach(cb => cb.checked = false);
-                if (selectAllCheckbox) selectAllCheckbox.checked = false;
-                updateBulkBar();
-            });
-
-            bulkWarnBtn?.addEventListener('click', () => {
-                const checked = document.querySelectorAll('.user-checkbox:checked') as NodeListOf<HTMLInputElement>;
-                const ids = Array.from(checked).map(cb => cb.dataset.id);
-                window.customConfirm(
-                    'Advertencia Masiva',
-                    `¿Estás seguro de que quieres enviar una advertencia a los ${ids.length} usuarios seleccionados?`,
-                    async () => {
-                        for (const userId of ids) {
-                            await fetch('/api/admin/users/send-warning', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ userId })
-                            });
-                        }
-                        window.showToast(`Se han enviado ${ids.length} advertencias`, 'info');
-                        cancelBulkBtn?.click();
-                    }
-                );
-            });
-
-            bulkDeleteBtn?.addEventListener('click', () => {
-                const checked = document.querySelectorAll('.user-checkbox:checked') as NodeListOf<HTMLInputElement>;
-                const ids = Array.from(checked).map(cb => cb.dataset.id);
-                window.customConfirm(
-                    'Eliminar Masivo',
-                    `¿Estás seguro de que quieres eliminar a los ${ids.length} usuarios seleccionados? ESTO ES PERMANENTE e irreversible.`,
-                    async () => {
-                        for (const userId of ids) {
-                            await fetch('/api/admin/users', {
-                                method: 'DELETE',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ userId })
-                            });
-                        }
-                        window.showToast(`Se han eliminado ${ids.length} usuarios`, 'success');
-                        setTimeout(() => window.location.reload(), 800);
-                    }
-                );
-            });
-
-            // ── FORM SUBMIT ──
-            if (form) {
-                form.onsubmit = async (e) => {
-                    e.preventDefault();
-                    const idInput = document.getElementById('editUserId') as HTMLInputElement;
-                    const nameInput = document.getElementById('editName') as HTMLInputElement;
-                    const emailInput = document.getElementById('editEmail') as HTMLInputElement;
-                    const bioInput = document.getElementById('editBio') as HTMLTextAreaElement;
-                    const roleInput = document.getElementById('editRole') as HTMLSelectElement;
-                    const listeningHoursInput = document.getElementById('editListeningHours') as HTMLInputElement;
-                    const listeningMinutesInput = document.getElementById('editListeningMinutes') as HTMLInputElement;
-                    const listeningSecondsInput = document.getElementById('editListeningSeconds') as HTMLInputElement;
-                    const currentStreakInput = document.getElementById('editCurrentStreak') as HTMLInputElement;
-                    const maxStreakInput = document.getElementById('editMaxStreak') as HTMLInputElement;
-                    const favoritesInput = document.getElementById('editFavorites') as HTMLInputElement;
-                    const newsletterInput = document.getElementById('editNewsletter') as HTMLInputElement;
-
-                    const h = parseInt(listeningHoursInput.value) || 0;
-                    const m = parseInt(listeningMinutesInput.value) || 0;
-                    const s = parseInt(listeningSecondsInput.value) || 0;
-                    const totalListeningTime = (h * 3600) + (m * 60) + s;
-
-                    const favArray = favoritesInput.value.split(',')
-                        .map(f => f.trim())
-                        .filter(f => f !== '');
-
-                    const data = {
-                        userId: idInput.value,
-                        name: nameInput.value,
-                        email: emailInput.value,
-                        bio: bioInput.value,
-                        role: roleInput.value,
-                        listeningTime: totalListeningTime,
-                        currentStreak: Number(currentStreakInput.value) || 0,
-                        maxStreak: Number(maxStreakInput.value) || 0,
-                        favorites: favArray,
-                        newsletter: newsletterInput.checked
-                    };
-
-                    try {
-                        const res = await fetch('/api/admin/users', {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(data)
-                        });
-                        if (res.ok) {
-                            window.showToast('Usuario actualizado correctamente', 'success');
-                            setTimeout(() => window.location.reload(), 1000);
-                        } else {
-                            const err = await res.json();
-                            window.showToast('Error: ' + err.error, 'error');
-                        }
-                    } catch (e) {
-                        window.showToast('Error de conexión', 'error');
-                    }
-                };
-            }
-        }
-
-        // Run on initial load
-        attachEventListeners();
-
-        // Run on view transitions
-        document.addEventListener('astro:page-load', attachEventListeners);
-    </script>
-</Layout>
-
-<style is:inline>
-    /* Custom scrollbar for modal lists */
-    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.25); border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.5); }
-
-    /* Premium UI Components */
-    .animate-pulse-slow {
-        animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    @keyframes pulse {
-        0%, 100% { opacity: 0.1; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(1.05); }
+      if (resultsCount) resultsCount.textContent = visibleRows.length.toString();
+      if (noResults) noResults.style.display = visibleRows.length === 0 ? 'block' : 'none';
     }
 
-    .user-row {
-        animation: rowReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-    @keyframes rowReveal {
-        from { opacity: 0; transform: translateY(12px) scale(0.98); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-    }
+    searchInput?.addEventListener('input', applyFilters);
+    filterRole?.addEventListener('change', applyFilters);
+    filterNewsletter?.addEventListener('change', applyFilters);
+    sortBy?.addEventListener('change', applyFilters);
 
-    .user-row.selected {
-        background: rgba(139, 92, 246, 0.08) !important;
-        border-color: rgba(139, 92, 246, 0.2) !important;
-    }
+    let confirmCallback: (() => void) | null = null;
+    window.customConfirm = (title: string, message: string, callback: () => void) => {
+      const titleEl = document.getElementById('confirmTitle');
+      const msgEl = document.getElementById('confirmMessage');
+      if (titleEl) titleEl.innerText = title;
+      if (msgEl) msgEl.innerText = message;
+      confirmCallback = callback;
+      const modal = document.getElementById('confirmModal');
+      if (modal) modal.style.display = 'flex';
+    };
 
-    .user-checkbox:checked {
-        background-color: #8b5cf6;
-        border-color: #8b5cf6;
-        box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
-    }
+    document.getElementById('executeConfirm')?.addEventListener('click', () => {
+      if (confirmCallback) confirmCallback();
+      const modal = document.getElementById('confirmModal');
+      if (modal) modal.style.display = 'none';
+    });
 
-    /* Modern status pulse */
-    .status-pulse {
-        position: relative;
-    }
-    .status-pulse::after {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        border-radius: inherit;
-        background: inherit;
-        filter: blur(4px);
-        opacity: 0.5;
-        animation: online-pulse 2s infinite;
-    }
-    @keyframes online-pulse {
-        0% { transform: scale(1); opacity: 0.8; }
-        100% { transform: scale(2.5); opacity: 0; }
-    }
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const modalId = (btn as HTMLElement).dataset.close;
+        const modal = document.getElementById(modalId || '');
+        if (modal) modal.style.display = 'none';
+      });
+    });
 
-    /* Fix select appearance with a custom chevron */
-    select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 10x center;
-        padding-right: 28px !important;
-    }
-    
-    .role-badge {
-        transition: all 0.3s ease;
-    }
-    .user-row:hover .role-badge {
-        transform: scale(1.05);
-        filter: brightness(1.2);
-    }
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const userData = JSON.parse(target.dataset.user || '{}');
+        (document.getElementById('editUserId') as HTMLInputElement).value = userData._id;
+        (document.getElementById('editName') as HTMLInputElement).value = userData.name;
+        (document.getElementById('editEmail') as HTMLInputElement).value = userData.email;
+        (document.getElementById('editBio') as HTMLTextAreaElement).value = userData.bio || '';
+        (document.getElementById('editRole') as HTMLSelectElement).value = userData.role;
+        const totalSeconds = userData.listeningTime || 0;
+        (document.getElementById('editListeningHours') as HTMLInputElement).value = Math.floor(totalSeconds / 3600).toString();
+        (document.getElementById('editListeningMinutes') as HTMLInputElement).value = Math.floor((totalSeconds % 3600) / 60).toString();
+        (document.getElementById('editListeningSeconds') as HTMLInputElement).value = (totalSeconds % 60).toString();
+        (document.getElementById('editNewsletter') as HTMLInputElement).checked = !!userData.newsletter;
+        const modal = document.getElementById('editUserModal');
+        if (modal) modal.style.display = 'flex';
+      });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const userId = target.dataset.id;
+        window.customConfirm('Eliminar Usuario', '¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.', async () => {
+          try {
+            const res = await fetch(`/api/admin/users?id=${userId}`, { method: 'DELETE' });
+            if (res.ok) window.location.reload();
+          } catch (err) { console.error(err); }
+        });
+      });
+    });
+  </script>
+</AdminLayout>
+
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+  }
+
+  .subtitle {
+    color: #71717a;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+  }
+
+  .btn-secondary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #a1a1aa;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .stat-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    flex-shrink: 0;
+    min-width: 140px;
+  }
+
+  .stat-mini-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-mini-icon.violet { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+  .stat-mini-icon.emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+  .stat-mini-icon.sky { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
+  .stat-mini-icon.amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+  .stat-mini-icon.pink { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+
+  .stat-mini-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .stat-mini-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .stat-mini-total {
+    font-size: 0.75rem;
+    color: #52525b;
+    font-weight: 400;
+  }
+
+  .stat-mini-label {
+    font-size: 0.7rem;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    flex: 1;
+    min-width: 200px;
+    max-width: 320px;
+  }
+
+  .search-box svg { color: #52525b; flex-shrink: 0; }
+
+  .search-box input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 0.875rem;
+    outline: none;
+    width: 100%;
+  }
+
+  .search-box input::placeholder { color: #52525b; }
+
+  .filter-select {
+    padding: 0.5rem 0.875rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: #a1a1aa;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .filter-select:focus {
+    border-color: #7c3aed;
+  }
+
+  .results-count {
+    padding: 0.4rem 0.75rem;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: #a78bfa;
+    font-weight: 600;
+    margin-left: auto;
+  }
+
+  .results-count span { color: white; }
+
+  .table-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .users-table th {
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #52525b;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .users-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    vertical-align: middle;
+  }
+
+  .users-table tr:last-child td { border-bottom: none; }
+
+  .users-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .th-checkbox, .td-checkbox { width: 48px; text-align: center; }
+  .th-center { text-align: center; }
+  .th-actions { text-align: right; }
+
+  .users-table input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #7c3aed;
+    cursor: pointer;
+  }
+
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+  .status-dot {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #18181b;
+  }
+
+  .status-dot.active { background: #10b981; }
+  .status-dot.inactive { background: #52525b; }
+  .status-dot.away { background: #f59e0b; }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .you-badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  .user-email {
+    font-size: 0.75rem;
+    color: #71717a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+
+  .role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .role-badge.owner { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+  .role-badge.admin { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+  .role-badge.user { background: rgba(255, 255, 255, 0.05); color: #71717a; }
+
+  .td-date { font-size: 0.8rem; color: #71717a; font-family: monospace; }
+
+  .activity-status {
+    font-size: 0.8rem;
+    font-family: monospace;
+  }
+
+  .activity-status.active { color: #34d399; }
+  .activity-status.inactive { color: #52525b; }
+
+  .streak-badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.35rem;
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border-radius: 4px;
+  }
+
+  .td-progress { min-width: 120px; }
+
+  .progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .progress-time {
+    font-size: 0.75rem;
+    color: #71717a;
+    font-family: monospace;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7c3aed, #ec4899);
+    border-radius: 2px;
+  }
+
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.02);
+    color: #71717a;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .action-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .action-btn.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .no-results {
+    display: none;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #52525b;
+  }
+
+  .no-results svg { margin-bottom: 1rem; opacity: 0.5; }
+  .no-results h3 { color: white; font-size: 1.125rem; margin-bottom: 0.5rem; }
+  .no-results p { font-size: 0.85rem; }
+
+  .bulk-bar {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 1.25rem;
+    background: #18181b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 100;
+  }
+
+  .bulk-bar.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .bulk-count {
+    width: 32px;
+    height: 32px;
+    background: #7c3aed;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .bulk-label {
+    font-size: 0.85rem;
+    color: #a1a1aa;
+    font-weight: 600;
+  }
+
+  .bulk-action {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .bulk-action.danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .bulk-action.danger:hover {
+    background: #ef4444;
+    color: white;
+  }
+
+  .bulk-cancel {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: #71717a;
+    cursor: pointer;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .bulk-cancel:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-content {
+    background: #18181b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+    max-width: 500px;
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+
+  .modal-sm { max-width: 400px; }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: #71717a;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: #71717a;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #7c3aed;
+  }
+
+  .time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .time-inputs input {
+    width: 70px;
+    text-align: center;
+  }
+
+  .time-inputs span {
+    font-size: 0.8rem;
+    color: #52525b;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+  }
+
+  .checkbox-label input {
+    width: 18px;
+    height: 18px;
+    accent-color: #7c3aed;
+  }
+
+  .checkbox-label span {
+    font-size: 0.9rem;
+    color: #a1a1aa;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn-cancel {
+    padding: 0.625rem 1rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #a1a1aa;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+  }
+
+  .btn-save {
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+  }
+
+  .btn-danger {
+    padding: 0.625rem 1rem;
+    background: #dc2626;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  @media (max-width: 1024px) {
+    .hide-tablet { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .hide-mobile { display: none; }
+    .page-header { flex-direction: column; gap: 1rem; }
+    .header-actions { width: 100%; }
+    .btn-primary, .btn-secondary { flex: 1; justify-content: center; }
+    .filters-bar { flex-direction: column; }
+    .search-box { max-width: none; }
+    .results-count { margin-left: 0; }
+  }
 </style>

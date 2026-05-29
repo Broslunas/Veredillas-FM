@@ -1,6 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import AdminNav from '@/components/admin/AdminNav.astro';
+import AdminLayout from '@/layouts/AdminLayout.astro';
 import { getUserFromCookie } from '@/lib/auth';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
@@ -37,14 +36,7 @@ function timeAgo(date: Date) {
 }
 ---
 
-<Layout title="Moderación - Veredillas FM" robots="noindex, nofollow">
-    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-black">
-        <div class="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-[100px]"></div>
-        <div class="absolute bottom-[-200px] right-[-200px] w-[600px] h-[600px] rounded-full bg-pink-600/10 blur-[100px]"></div>
-        <div class="absolute top-[30%] right-[-100px] w-[400px] h-[400px] rounded-full bg-violet-400/5 blur-[100px]"></div>
-        <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(circle_at_center,black_40%,transparent_100%)] opacity-40"></div>
-    </div>
-
+<AdminLayout title="Moderación - Veredillas FM">
     <div class="max-w-[1400px] mx-auto p-8 animate-fade-in-up">
         <div class="mb-10 flex flex-col items-start gap-4">
             <div class="flex flex-col gap-1">
@@ -55,8 +47,6 @@ function timeAgo(date: Date) {
                 <p class="text-zinc-500 mt-2 text-sm font-medium">Gestionando <span class="text-white font-bold">{comments.length}</span> aportaciones de la comunidad</p>
             </div>
         </div>
-
-        <AdminNav />
 
         <div class="bg-zinc-900/40 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-3xl shadow-2xl">
             <div class="overflow-x-auto p-4 custom-scrollbar">

@@ -1,6 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import AdminNav from '@/components/admin/AdminNav.astro';
+import AdminLayout from '@/layouts/AdminLayout.astro';
 import { getUserFromCookie } from '@/lib/auth';
 import User from '@/models/User';
 import InterviewRequest, { type IInterviewRequest } from '@/models/InterviewRequest';
@@ -55,13 +54,7 @@ function formatDateShort(date: string | Date | undefined) {
 }
 ---
 
-<Layout title="Gestión de Entrevistas" robots="noindex, nofollow">
-    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="grid-overlay"></div>
-    </div>
-
+<AdminLayout title="Gestión de Entrevistas">
     <div class="admin-container fade-in-up">
         <div class="admin-header">
             <div class="header-content">
@@ -80,8 +73,6 @@ function formatDateShort(date: string | Date | undefined) {
                 </button>
             </div>
         </div>
-
-        <AdminNav />
 
         <!-- Kanban Board -->
         <div class="kanban-board">

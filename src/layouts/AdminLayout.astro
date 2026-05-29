@@ -1,0 +1,159 @@
+---
+import '@/styles/global.css';
+import AdminSidebar from '@/components/admin/AdminSidebar.astro';
+import { getUserFromCookie } from '@/lib/auth';
+import User from '@/models/User';
+import dbConnect from '@/lib/mongodb';
+
+export const prerender = false;
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/404');
+}
+
+await dbConnect();
+
+const currentUser = await User.findById(userPayload.userId);
+if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner')) {
+  return Astro.redirect('/404');
+}
+
+const fullTitle = `${title} | Admin`;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{fullTitle}</title>
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="512x512" />
+  </head>
+  <body class="bg-zinc-950 text-white font-sans antialiased">
+    <div class="admin-layout">
+      <AdminSidebar userName={currentUser.name} userRole={currentUser.role} />
+      <main class="admin-main">
+        <div class="admin-content">
+          <slot />
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const sidebar = document.getElementById('adminSidebar');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      const content = document.getElementById('adminContent');
+
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+          toggleBtn.classList.toggle('collapsed');
+          localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        // Restore state
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+          sidebar.classList.add('collapsed');
+          toggleBtn.classList.add('collapsed');
+        }
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(139, 92, 246, 0.3);
+    color: white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+</style>
+
+<style>
+  .admin-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .admin-main {
+    flex: 1;
+    margin-left: 280px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+  }
+
+  .admin-layout:has(#adminSidebar.collapsed) .admin-main {
+    margin-left: 72px;
+  }
+
+  .admin-content {
+    padding: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    animation: fadeInUp 0.5s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .admin-main {
+      margin-left: 72px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .admin-main {
+      margin-left: 0;
+    }
+  }
+</style>

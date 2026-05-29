@@ -1,6 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import AdminNav from '@/components/admin/AdminNav.astro';
+import AdminLayout from '@/layouts/AdminLayout.astro';
 import { getUserFromCookie } from '@/lib/auth';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
@@ -18,13 +17,7 @@ if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner
 }
 ---
 
-<Layout title="Analíticas de Usuarios - Admin" robots="noindex, nofollow">
-  <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="grid-overlay"></div>
-  </div>
-
+<AdminLayout title="Analíticas de Usuarios - Admin">
   <div class="admin-container fade-in-up">
     <div class="admin-header">
       <div class="header-content">
@@ -38,8 +31,6 @@ if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner
         </button>
       </div>
     </div>
-
-    <AdminNav />
 
     <!-- Loading State -->
     <div id="loadingState" class="loading-state">
@@ -244,7 +235,7 @@ if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'owner
 
     </div><!-- /mainContent -->
   </div><!-- /admin-container -->
-</Layout>
+</AdminLayout>
 
 <script>
   function fmtTime(s: number): string {

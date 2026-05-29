@@ -1,6 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import AdminNav from '@/components/admin/AdminNav.astro';
+import AdminLayout from '@/layouts/AdminLayout.astro';
 import { getUserFromCookie } from '@/lib/auth';
 import User from '@/models/User';
 import WrappedSettings from '@/models/WrappedSettings';
@@ -30,13 +29,7 @@ if (!settings) {
 }
 ---
 
-<Layout title="Control de Wrapped" robots="noindex, nofollow">
-  <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="grid-overlay"></div>
-  </div>
-
+<AdminLayout title="Control de Wrapped" robots="noindex, nofollow">
   <div class="admin-container fade-in-up">
     <div class="admin-header">
       <div class="header-content">
@@ -44,8 +37,6 @@ if (!settings) {
         <p>Configura la experiencia de recopilación anual</p>
       </div>
     </div>
-
-    <AdminNav />
 
     <div class="max-w-2xl mx-auto mt-8 relative">
         <div class="glass-panel p-8 md:p-12">

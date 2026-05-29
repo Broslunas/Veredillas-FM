@@ -1,6 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import AdminNav from '@/components/admin/AdminNav.astro';
+import AdminLayout from '@/layouts/AdminLayout.astro';
 import { getUserFromCookie } from '@/lib/auth';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
@@ -42,7 +41,7 @@ if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
 }
 ---
 
-<Layout title="Enviar Push - Panel de Administración"
+<AdminLayout title="Enviar Push - Panel de Administración"
   robots="noindex, nofollow"
 >
   <div class="admin-container fade-in-up">
@@ -52,8 +51,6 @@ if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
         <p>Avisa a tus oyentes sobre un nuevo episodio o entrada de blog.</p>
       </div>
     </div>
-    
-    <AdminNav />
 
     <div class="section-container glass-panel">
       <form id="push-form" class="push-form">

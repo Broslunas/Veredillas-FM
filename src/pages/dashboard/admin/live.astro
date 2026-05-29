@@ -1,6 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import AdminNav from '@/components/admin/AdminNav.astro';
+import AdminLayout from '@/layouts/AdminLayout.astro';
 import { getUserFromCookie } from '@/lib/auth';
 import User from '@/models/User';
 import ActiveListener from '@/models/ActiveListener';
@@ -49,13 +48,7 @@ function getPathLabel(path: string) {
 }
 ---
 
-<Layout title="En Vivo - Admin" robots="noindex, nofollow">
-    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="grid-overlay"></div>
-    </div>
-
+<AdminLayout title="En Vivo - Admin" robots="noindex, nofollow">
     <div class="admin-container fade-in-up">
         <div class="admin-header">
             <div class="header-content">
@@ -69,8 +62,6 @@ function getPathLabel(path: string) {
                 </span>
             </div>
         </div>
-
-        <AdminNav />
 
          <!-- Active Listeners Section -->
         <div class="section-container glass-panel">
