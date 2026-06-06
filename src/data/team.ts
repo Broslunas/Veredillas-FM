@@ -64,5 +64,15 @@ export const teamMembers = [
         { label: 'Instagram', url: 'https://www.instagram.com/__pabloprz/' }
     ],
     bio: 'Una de las voces principales de Veredillas FM. Pablo P. aporta carisma y dinamismo a nuestras grabaciones.'
+  },
+  {
+    name: 'Gustavo',
+    role: 'Relevo de Dirección (Próximo Curso)',
+    department: 'Dirección',
+    image: 'https://cdn.veredillasfm.es/guest/gustavo.png',
+    links: [
+        { label: 'Instagram', url: 'https://www.instagram.com/gustavito_10_/' }
+    ],
+    bio: 'Será el encargado de tomar el relevo de toda la radio del instituto de cara al próximo curso escolar, liderando la programación y la coordinación de contenidos.'
   }
 ];
