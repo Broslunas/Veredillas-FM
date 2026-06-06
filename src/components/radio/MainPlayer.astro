@@ -59,12 +59,18 @@ const { isRegistered } = Astro.props;
                         <span class="music-label text-lg">Activar Radio</span>
                     </button>
 
-                    {isRegistered && (
-                        <button class="dj-trigger-btn mt-4 flex items-center gap-2 bg-primary/20 hover:bg-primary/30 text-white px-6 py-3 rounded-full font-semibold border border-primary/50 transition-all shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:scale-105 active:scale-95" id="dj-trigger-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                            Abrir Panel DJ
+                    <div class="flex flex-wrap justify-center gap-3 mt-4">
+                        <button class="import-song-trigger-btn flex items-center gap-2 bg-gradient-to-br from-violet-600/30 to-indigo-700/20 hover:from-violet-600/50 hover:to-indigo-700/40 text-white px-6 py-3 rounded-full font-semibold border border-violet-500/40 transition-all shadow-[0_0_15px_rgba(139,92,246,0.2)] hover:scale-105 active:scale-95 cursor-pointer" id="import-song-trigger-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Añadir Canción
                         </button>
-                    )}
+                        {isRegistered && (
+                            <button class="dj-trigger-btn flex items-center gap-2 bg-primary/20 hover:bg-primary/30 text-white px-6 py-3 rounded-full font-semibold border border-primary/50 transition-all shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:scale-105 active:scale-95 cursor-pointer" id="dj-trigger-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                                Abrir Panel DJ
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div class="flex justify-center items-center w-auto min-[630px]:w-[80px] relative">

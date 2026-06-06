@@ -8,6 +8,7 @@ import RadioBackground from '@/components/radio/RadioBackground.astro';
 import MainPlayer from '@/components/radio/MainPlayer.astro';
 import SidebarQueue from '@/components/radio/SidebarQueue.astro';
 import DJPanelModal from '@/components/radio/DJPanelModal.astro';
+import ImportSongModal from '@/components/radio/ImportSongModal.astro';
 import ListenerCount from '@/components/ListenerCount.astro';
 
 export const prerender = false;
@@ -44,6 +45,8 @@ if (userPayload) {
         <SidebarQueue isAdmin={isAdmin} />
 
         <DJPanelModal isRegistered={isRegistered} isAdmin={isAdmin} />
+
+        <ImportSongModal />
 
     </div>
   </main>

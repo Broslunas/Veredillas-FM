@@ -1,0 +1,439 @@
+---
+// Import Song Modal for Veredillas FM Radio
+---
+
+<!-- Load Socket.io from CDN -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js" is:inline></script>
+
+<div class="import-song-modal fixed inset-0 bg-black/85 backdrop-blur-md z-[1050] flex items-center justify-center p-3 sm:p-6 opacity-0 invisible transition-all duration-300" id="import-song-modal">
+    <div class="modal-wrapper w-full max-w-2xl bg-gradient-to-br from-[#131318] to-[#0a0a0c] border border-violet-500/30 rounded-2xl flex flex-col max-h-[90vh] shadow-[0_20px_50px_rgba(139,92,246,0.25)] relative overflow-hidden transform scale-95 transition-all duration-300">
+        <!-- Top border glow -->
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent opacity-60"></div>
+        
+        <!-- Header -->
+        <div class="flex justify-between items-center p-5 border-b border-white/5 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg leading-tight font-inter tracking-tight">Importar Canción</h3>
+                    <p class="text-xs text-gray-400">Añade música a la programación</p>
+                </div>
+            </div>
+            <button id="import-modal-close-btn" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 flex items-center justify-center hover:bg-white/10 hover:text-white hover:rotate-90 transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Content Body -->
+        <div class="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            <!-- Tabs -->
+            <div class="flex border-b border-white/5 p-0.5 bg-black/40 rounded-xl">
+                <button id="tab-search" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold text-white bg-white/10 border border-white/5 transition-all">
+                    🔍 Buscar en YouTube
+                </button>
+                <button id="tab-direct-link" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-all">
+                    🔗 Enlace Spotify / YouTube
+                </button>
+            </div>
+
+            <!-- Tab 1: Search Panel -->
+            <div id="panel-search" class="space-y-4">
+                <div class="flex gap-2">
+                    <input type="text" id="youtube-search-input" placeholder="Artista, canción o tema..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500 focus:bg-violet-500/5 transition-all">
+                    <button id="youtube-search-btn" class="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all shadow-[0_4px_15px_rgba(124,58,237,0.3)] hover:scale-[1.02] active:scale-[0.98]">
+                        Buscar
+                    </button>
+                </div>
+
+                <div id="youtube-results" class="space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+                    <div class="text-gray-500 text-sm text-center py-8">Busca una canción para importarla directamente</div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Direct Link Panel -->
+            <div id="panel-direct-link" class="hidden space-y-4">
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Enlace del vídeo o playlist</label>
+                    <input type="text" id="direct-url-input" placeholder="https://www.youtube.com/watch?v=... o Spotify playlist..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500 focus:bg-violet-500/5 transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Género</label>
+                        <input type="text" id="direct-genre-input" value="General" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-violet-500 transition-all">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Lista / Carpeta</label>
+                        <input type="text" id="direct-playlist-input" value="General" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-violet-500 transition-all">
+                    </div>
+                </div>
+
+                <button id="direct-import-btn" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-[0_4px_15px_rgba(124,58,237,0.3)] hover:scale-[1.01] active:scale-[0.99] mt-2">
+                    Comenzar Importación
+                </button>
+            </div>
+
+            <!-- Progress Monitor Panel -->
+            <div id="progress-container" class="bg-black/30 border border-white/5 rounded-xl p-4 space-y-3 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
+                        </span>
+                        <span class="text-xs font-bold text-white uppercase tracking-wider">Estado de descarga</span>
+                    </div>
+                    <span id="progress-percent" class="text-xs font-bold font-mono text-violet-400">0%</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/10">
+                    <div id="progress-bar" class="h-full w-0 bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-300 shadow-[0_0_10px_rgba(139,92,246,0.5)]"></div>
+                </div>
+
+                <!-- Log message -->
+                <div id="progress-log" class="text-xs text-gray-400 bg-black/40 border border-white/5 p-3 rounded-lg font-mono min-h-[40px] break-all leading-normal max-h-[100px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+                    Iniciando conexión con el servicio de descargas...
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Indicator Footer -->
+        <div class="bg-black/50 px-5 py-3 border-t border-white/5 flex justify-between items-center text-[10px] text-gray-500 shrink-0">
+            <span class="flex items-center gap-1.5">
+                <span id="conn-dot" class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                <span id="conn-text">Conectando...</span>
+            </span>
+            <span>API: radio.veredillasfm.es</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = 'https://radio.veredillasfm.es';
+    let socket: any = null;
+    let pollInterval: number | null = null;
+    let isSocketConnected = false;
+
+    // DOM Elements
+    const modal = document.getElementById('import-song-modal');
+    const openBtns = document.querySelectorAll('.import-song-trigger-btn');
+    const closeBtn = document.getElementById('import-modal-close-btn');
+
+    // Tabs
+    const tabSearch = document.getElementById('tab-search');
+    const tabDirectLink = document.getElementById('tab-direct-link');
+    const panelSearch = document.getElementById('panel-search');
+    const panelDirectLink = document.getElementById('panel-direct-link');
+
+    // Search Mode Elements
+    const searchInput = document.getElementById('youtube-search-input') as HTMLInputElement;
+    const searchBtn = document.getElementById('youtube-search-btn');
+    const resultsContainer = document.getElementById('youtube-results');
+
+    // Direct Import Elements
+    const urlInput = document.getElementById('direct-url-input') as HTMLInputElement;
+    const genreInput = document.getElementById('direct-genre-input') as HTMLInputElement;
+    const playlistInput = document.getElementById('direct-playlist-input') as HTMLInputElement;
+    const directImportBtn = document.getElementById('direct-import-btn');
+
+    // Progress Elements
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressLog = document.getElementById('progress-log');
+    
+    // Connection Indicators
+    const connDot = document.getElementById('conn-dot');
+    const connText = document.getElementById('conn-text');
+
+    // Show/Hide Modal
+    openBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal?.classList.add('open');
+            modal?.classList.remove('invisible');
+            modal?.classList.add('opacity-100');
+            initConnection();
+        });
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeModal();
+    });
+
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    function closeModal() {
+        modal?.classList.remove('open');
+        modal?.classList.add('invisible');
+        modal?.classList.remove('opacity-100');
+        // Stop Polling if running
+        stopPolling();
+    }
+
+    // Tabs Switch logic
+    tabSearch?.addEventListener('click', () => {
+        tabSearch.classList.add('bg-white/10', 'text-white', 'border', 'border-white/5');
+        tabSearch.classList.remove('text-gray-400');
+        tabDirectLink?.classList.remove('bg-white/10', 'text-white', 'border', 'border-white/5');
+        tabDirectLink?.classList.add('text-gray-400');
+        panelSearch?.classList.remove('hidden');
+        panelDirectLink?.classList.add('hidden');
+    });
+
+    tabDirectLink?.addEventListener('click', () => {
+        tabDirectLink.classList.add('bg-white/10', 'text-white', 'border', 'border-white/5');
+        tabDirectLink.classList.remove('text-gray-400');
+        tabSearch?.classList.remove('bg-white/10', 'text-white', 'border', 'border-white/5');
+        tabSearch?.classList.add('text-gray-400');
+        panelDirectLink?.classList.remove('hidden');
+        panelSearch?.classList.add('hidden');
+    });
+
+    // YouTube Search
+    async function performSearch() {
+        const query = searchInput?.value.trim();
+        if (!query) return;
+
+        if (resultsContainer) {
+            resultsContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-10 gap-3">
+                    <svg class="animate-spin text-violet-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    <span class="text-sm text-gray-400 font-medium">Buscando en YouTube...</span>
+                </div>
+            `;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/api/search-youtube?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Error al buscar');
+
+            if (resultsContainer) {
+                if (!data.results || data.results.length === 0) {
+                    resultsContainer.innerHTML = '<div class="text-gray-500 text-sm text-center py-8">No se encontraron resultados. Intenta otra búsqueda.</div>';
+                    return;
+                }
+
+                resultsContainer.innerHTML = '';
+                data.results.forEach((item: any) => {
+                    const card = document.createElement('div');
+                    card.className = 'flex items-center justify-between gap-4 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 hover:border-violet-500/20 transition-all';
+                    card.innerHTML = `
+                        <div class="flex-1 overflow-hidden">
+                            <h5 class="text-white text-sm font-semibold truncate" title="${item.title}">${item.title}</h5>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-xs text-gray-400 truncate max-w-[150px]">${item.uploader || 'Canal desconocido'}</span>
+                                <span class="text-[10px] text-violet-400 font-mono bg-violet-500/10 px-2 py-0.5 rounded-full">${item.duration || 'N/A'}</span>
+                            </div>
+                        </div>
+                        <button class="import-action-btn bg-violet-600/25 border border-violet-500/30 hover:bg-violet-600 text-violet-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95" data-url="${item.url}" data-title="${item.title}">
+                            + Importar
+                        </button>
+                    `;
+                    resultsContainer.appendChild(card);
+                });
+
+                // Attach import actions
+                resultsContainer.querySelectorAll('.import-action-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const target = e.currentTarget as HTMLElement;
+                        const url = target.dataset.url || '';
+                        const title = target.dataset.title || '';
+                        triggerImport(url, title);
+                    });
+                });
+            }
+        } catch (err: any) {
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `<div class="text-red-400 text-sm text-center py-8">Error: ${err.message || 'No se pudo completar la búsqueda'}</div>`;
+            }
+        }
+    }
+
+    searchBtn?.addEventListener('click', performSearch);
+    searchInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
+
+    // Direct Import Action
+    directImportBtn?.addEventListener('click', () => {
+        const url = urlInput?.value.trim();
+        const genre = genreInput?.value.trim() || 'General';
+        const playlist = playlistInput?.value.trim() || 'General';
+
+        if (!url) return;
+        triggerImport(url, '', genre, playlist);
+    });
+
+    // Send POST Request to /api/download
+    async function triggerImport(url: string, title = '', genre = 'General', playlist = 'General') {
+        if (progressContainer) progressContainer.classList.remove('hidden');
+        updateProgress(0, 'Iniciando descarga en el servidor...');
+
+        try {
+            const res = await fetch(`${API_BASE}/api/download`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url,
+                    genre,
+                    playlist,
+                    title: title || undefined
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Fallo de importación');
+
+            updateProgress(5, `Servidor: ${data.message || 'Procesando descarga...'}`);
+            
+            // Start Polling immediately as a safeguard, sockets will override if active
+            startPolling();
+
+        } catch (err: any) {
+            updateProgress(0, `Error de inicio: ${err.message}`, 'error');
+        }
+    }
+
+    // Progress State helper
+    function updateProgress(progress: number, message: string, status = 'downloading') {
+        if (progressContainer) progressContainer.classList.remove('hidden');
+        if (progressBar) progressBar.style.width = `${progress}%`;
+        if (progressPercent) progressPercent.textContent = `${progress}%`;
+        if (progressLog) {
+            progressLog.textContent = message;
+            progressLog.scrollTop = progressLog.scrollHeight; // Auto scroll to bottom
+        }
+
+        if (status === 'success') {
+            if (progressBar) {
+                progressBar.classList.remove('from-violet-500', 'to-cyan-400');
+                progressBar.classList.add('bg-emerald-500');
+            }
+            if (progressPercent) {
+                progressPercent.className = 'text-xs font-bold font-mono text-emerald-400';
+            }
+        } else if (status === 'error') {
+            if (progressBar) {
+                progressBar.classList.remove('from-violet-500', 'to-cyan-400');
+                progressBar.classList.add('bg-red-500');
+            }
+            if (progressPercent) {
+                progressPercent.className = 'text-xs font-bold font-mono text-red-400';
+            }
+        } else {
+            // Restore gradient
+            if (progressBar) {
+                progressBar.classList.remove('bg-emerald-500', 'bg-red-500');
+                progressBar.classList.add('bg-gradient-to-r', 'from-violet-500', 'to-cyan-400');
+            }
+            if (progressPercent) {
+                progressPercent.className = 'text-xs font-bold font-mono text-violet-400';
+            }
+        }
+    }
+
+    // WebSockets Setup
+    function initConnection() {
+        if (socket) return;
+
+        try {
+            // Load socket.io globally if window.io exists
+            if (typeof (window as any).io !== 'undefined') {
+                socket = (window as any).io(API_BASE);
+
+                socket.on('connect', () => {
+                    isSocketConnected = true;
+                    if (connDot) {
+                        connDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500';
+                    }
+                    if (connText) connText.textContent = 'Conectado (WebSockets)';
+                });
+
+                socket.on('disconnect', () => {
+                    isSocketConnected = false;
+                    if (connDot) {
+                        connDot.className = 'w-1.5 h-1.5 rounded-full bg-yellow-500';
+                    }
+                    if (connText) connText.textContent = 'Buscando servidor...';
+                    startPolling();
+                });
+
+                socket.on('download-status', (data: any) => {
+                    if (data && data.status !== 'idle') {
+                        updateProgress(data.progress || 0, data.message || '', data.status);
+                        
+                        // If it finishes or errors, stop polling if it was active
+                        if (data.status === 'success' || data.status === 'error') {
+                            stopPolling();
+                        }
+                    }
+                });
+            } else {
+                throw new Error("Socket.io library not loaded");
+            }
+        } catch (e) {
+            console.warn("WebSocket client connection failed, falling back to Polling.", e);
+            if (connDot) {
+                connDot.className = 'w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse';
+            }
+            if (connText) connText.textContent = 'Conectado (Polling activo)';
+            startPolling();
+        }
+    }
+
+    // Polling Fallback
+    function startPolling() {
+        if (pollInterval || isSocketConnected) return;
+
+        // Poll immediately once
+        pollStatus();
+        pollInterval = window.setInterval(pollStatus, 3000);
+    }
+
+    function stopPolling() {
+        if (pollInterval) {
+            window.clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    async function pollStatus() {
+        try {
+            const res = await fetch(`${API_BASE}/api/download/status`);
+            if (!res.ok) return;
+
+            const data = await res.json();
+            if (data && data.status !== 'idle') {
+                updateProgress(data.progress || 0, data.message || '', data.status);
+
+                if (data.status === 'success' || data.status === 'error') {
+                    stopPolling();
+                }
+            }
+        } catch (e) {
+            console.error("Error polling download status:", e);
+        }
+    }
+</script>
+
+<style>
+    .import-song-modal {
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .import-song-modal.open {
+        opacity: 1;
+        visibility: visible;
+    }
+    .import-song-modal.open .modal-wrapper {
+        transform: scale(1);
+    }
+</style>
