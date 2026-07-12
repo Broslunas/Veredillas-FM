@@ -1,5 +1,14 @@
 ---
-// Import Song Modal for Veredillas FM Radio
+interface Props {
+    isRegistered: boolean;
+    isAdmin: boolean;
+}
+
+const { isRegistered, isAdmin } = Astro.props;
+
+if (!isRegistered) {
+    return null;
+}
 ---
 
 <!-- Load Socket.io from CDN -->
@@ -28,15 +37,17 @@
 
         <!-- Content Body -->
         <div class="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-            <!-- Tabs -->
-            <div class="flex border-b border-white/5 p-0.5 bg-black/40 rounded-xl">
-                <button id="tab-search" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold text-white bg-white/10 border border-white/5 transition-all">
-                    🔍 Buscar en YouTube
-                </button>
-                <button id="tab-direct-link" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-all">
-                    🔗 Enlace Spotify / YouTube
-                </button>
-            </div>
+            {isAdmin && (
+                <!-- Tabs -->
+                <div class="flex border-b border-white/5 p-0.5 bg-black/40 rounded-xl">
+                    <button id="tab-search" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold text-white bg-white/10 border border-white/5 transition-all">
+                        🔍 Buscar en YouTube
+                    </button>
+                    <button id="tab-direct-link" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-all">
+                        🔗 Enlace Spotify / YouTube
+                    </button>
+                </div>
+            )}
 
             <!-- Tab 1: Search Panel -->
             <div id="panel-search" class="space-y-4">
@@ -52,28 +63,30 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Direct Link Panel -->
-            <div id="panel-direct-link" class="hidden space-y-4">
-                <div class="space-y-2">
-                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Enlace del vídeo o playlist</label>
-                    <input type="text" id="direct-url-input" placeholder="https://www.youtube.com/watch?v=... o Spotify playlist..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500 focus:bg-violet-500/5 transition-all">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Género</label>
-                        <input type="text" id="direct-genre-input" value="General" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-violet-500 transition-all">
+            {isAdmin && (
+                <!-- Tab 2: Direct Link Panel -->
+                <div id="panel-direct-link" class="hidden space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Enlace del vídeo o playlist</label>
+                        <input type="text" id="direct-url-input" placeholder="https://www.youtube.com/watch?v=... o Spotify playlist..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500 focus:bg-violet-500/5 transition-all">
                     </div>
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Lista / Carpeta</label>
-                        <input type="text" id="direct-playlist-input" value="General" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-violet-500 transition-all">
-                    </div>
-                </div>
 
-                <button id="direct-import-btn" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-[0_4px_15px_rgba(124,58,237,0.3)] hover:scale-[1.01] active:scale-[0.99] mt-2">
-                    Comenzar Importación
-                </button>
-            </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Género</label>
+                            <input type="text" id="direct-genre-input" value="General" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-violet-500 transition-all">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Lista / Carpeta</label>
+                            <input type="text" id="direct-playlist-input" value="General" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-violet-500 transition-all">
+                        </div>
+                    </div>
+
+                    <button id="direct-import-btn" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-[0_4px_15px_rgba(124,58,237,0.3)] hover:scale-[1.01] active:scale-[0.99] mt-2">
+                        Comenzar Importación
+                    </button>
+                </div>
+            )}
 
             <!-- Progress Monitor Panel -->
             <div id="progress-container" class="bg-black/30 border border-white/5 rounded-xl p-4 space-y-3 hidden">
