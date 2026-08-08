@@ -90,7 +90,8 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     cookies.set('auth-token', jwtToken, { path: '/', domain, maxAge, httpOnly: true, secure: true, sameSite: 'lax' });
     cookies.set('user-session', 'true',  { path: '/', domain, maxAge, httpOnly: false, secure: true, sameSite: 'lax' });
 
-    return new Response(null, { status: 302, headers: { Location: '/dashboard' } });
+    const redirectTarget = url.searchParams.get('redirect') || '/dashboard';
+    return new Response(null, { status: 302, headers: { Location: redirectTarget } });
 
   } catch (err) {
     console.error('[CanariasAuth] claim error:', err);
