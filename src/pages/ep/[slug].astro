@@ -1,5 +1,5 @@
 ---
-import { getCollection } from "astro:content";
+import { getCollection, getEntry } from "@/lib/content";
 import Layout from '@/layouts/Layout.astro';
 import Comments from '@/components/Comments.astro';
 import SocialShare from '@/components/SocialShare.astro';
@@ -24,18 +24,10 @@ import EpisodeQuiz from '@/components/EpisodeQuiz.tsx';
 import QuizModal from '@/components/QuizModal.tsx';
 import Breadcrumbs from '@/components/Breadcrumbs.astro';
 
-export const prerender = true;
+export const prerender = false;
 
-export async function getStaticPaths() {
-    const episodes = await getCollection("episodios");
-    return episodes.map((entry) => ({
-        params: { slug: entry.slug },
-        props: { entry },
-    }));
-}
-
-const { entry } = Astro.props;
 const { slug } = Astro.params;
+const entry = slug ? await getEntry("episodios", slug) : null;
 
 if (!entry) {
     return Astro.redirect("/404");
@@ -168,7 +160,7 @@ const timeToSeconds = (timeStr: string) => {
     return 0;
 };
 
-const formattedTranscription = entry.data.transcription?.map((t) => ({
+const formattedTranscription = entry.data.transcription?.map((t: any) => ({
     ...t,
     time: timeToSeconds(t.time),
 }));
@@ -186,7 +178,7 @@ const candidates = allEpisodes
     .filter((ep) => ep.slug !== slug && ep.data.pubDate <= now)
     .map((ep) => {
         const episodeTags = ep.data.tags || [];
-        const contextMatches = episodeTags.filter((t) =>
+        const contextMatches = episodeTags.filter((t: any) =>
             entry.data.tags?.includes(t),
         ).length;
         return {
@@ -641,7 +633,7 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
                             entry.data.tags && (
                                 <li class="pt-4">
                                     <div class="flex flex-wrap gap-2">
-                                        {entry.data.tags.map((tag) => (
+                                        {entry.data.tags.map((tag: any) => (
                                             <a
                                                 href={`/ep?tag=${tag}`}
                                                 class="tag-chip text-[10px] font-bold uppercase px-2 py-1 bg-zinc-800 hover:bg-primary transition-colors rounded"

@@ -1,10 +1,10 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Layout from '@/layouts/Layout.astro';
 import EpisodeCard from '@/components/EpisodeCard.astro';
 import AdImpresoras from '@/components/AdImpresoras.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
 const allEpisodes = await getCollection('episodios');
 const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());

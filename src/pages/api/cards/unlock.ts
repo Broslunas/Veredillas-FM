@@ -2,7 +2,7 @@
 // Called automatically when an episode is marked as completed (≥80% listened)
 import type { APIRoute } from 'astro';
 import { getUserFromCookie } from '@/lib/auth';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import mongoose from 'mongoose';
 import UnlockedCard from '@/models/UnlockedCard';
 import User from '@/models/User';

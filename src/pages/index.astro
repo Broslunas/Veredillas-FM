@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Layout from '@/layouts/Layout.astro';
 import EpisodeCard from '@/components/EpisodeCard.astro';
@@ -11,7 +11,7 @@ import TopListenersWidget from '@/components/TopListenersWidget.astro';
 import TrendingEpisodes from '@/components/TrendingEpisodes.astro';
 import TopClipsWidget from '@/components/TopClipsWidget.astro';
 import AdImpresoras from '@/components/AdImpresoras.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';

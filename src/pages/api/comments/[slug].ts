@@ -198,7 +198,7 @@ export const POST: APIRoute = async ({ params, request }) => {
         }
 
         // Notify admin about pending comment
-        await notifyNewComment(comment, true);
+        await notifyNewComment(comment);
         
         return new Response(JSON.stringify({ 
             success: true, 

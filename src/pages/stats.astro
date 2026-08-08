@@ -1,8 +1,8 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
-export const prerender = true;
+export const prerender = false;
 
 const allEpisodes = await getCollection('episodios');
 // At build time, we use the current date to determine what's "published"

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import Clip from '@/models/Clip';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
 export const prerender = false;
 
@@ -29,7 +29,7 @@ export const GET: APIRoute = async () => {
 
         episodes.forEach(ep => {
             if (ep.data.clips) {
-                ep.data.clips.forEach(clip => {
+                ep.data.clips.forEach((clip: any) => {
                     // Extract ID
                     let videoId = null;
                      const patterns = [

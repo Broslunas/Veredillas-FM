@@ -1,6 +1,6 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
 // Almacenar en caché durante 1 hora en CDN para no saturar la API de Google
 Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');

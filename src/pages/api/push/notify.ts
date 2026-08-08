@@ -4,7 +4,7 @@ import { getUserFromCookie } from '@/lib/auth';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import GuestSubscription from '@/models/GuestSubscription';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
 export const prerender = false;
 

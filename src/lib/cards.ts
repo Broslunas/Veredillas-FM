@@ -1,4 +1,4 @@
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import mongoose from 'mongoose';
 import UnlockedCard from '@/models/UnlockedCard';
 import User from '@/models/User';

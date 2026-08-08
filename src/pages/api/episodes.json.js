@@ -1,4 +1,4 @@
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
 export async function GET() {
   const episodios = await getCollection('episodios');

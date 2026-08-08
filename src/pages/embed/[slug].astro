@@ -1,16 +1,8 @@
 ---
-export const prerender = true;
-import { getCollection, getEntry } from 'astro:content';
+export const prerender = false;
+import { getCollection, getEntry } from '@/lib/content';
 import '@/styles/global.css';
 import { getProxiedAudioUrl } from '@/utils/audioProxy';
-
-// Required for dynamic routes in static builds
-export async function getStaticPaths() {
-  const episodes = await getCollection('episodios');
-  return episodes.map((episode) => ({
-    params: { slug: episode.slug },
-  }));
-}
 
 const { slug } = Astro.params;
 

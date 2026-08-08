@@ -1,7 +1,7 @@
 import rss from '@astrojs/rss';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
-export const prerender = true;
+export const prerender = false;
 
 export async function GET(context) {
   const episodios = await getCollection('episodios');

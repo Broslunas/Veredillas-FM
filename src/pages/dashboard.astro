@@ -1,7 +1,7 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import EpisodeCard from '@/components/EpisodeCard.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import User from '@/models/User';
 import { getUserFromCookie } from '@/lib/auth';
 import type { IUser } from '@/models/User';

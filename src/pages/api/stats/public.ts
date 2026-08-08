@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import dbConnect from '@/lib/mongodb';
 import ListenEvent from '@/models/ListenEvent';
 import User from '@/models/User';

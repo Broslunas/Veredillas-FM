@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from '@/lib/content';
 import Layout from '@/layouts/Layout.astro';
 import SocialShare from '@/components/SocialShare.astro';
 import ShareCardGenerator from '@/components/ShareCardGenerator.astro';
@@ -8,17 +8,15 @@ import SidebarWidget from '@/components/SidebarWidget.astro';
 import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import AdImpresoras from '@/components/AdImpresoras.astro';
 
-export const prerender = true;
+export const prerender = false;
 
-export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map(entry => ({
-    params: { slug: entry.slug }, props: { entry },
-  }));
+const { slug } = Astro.params;
+const entry = slug ? await getEntry('blog', slug) : null;
+
+if (!entry) {
+  return Astro.redirect('/404');
 }
 
-const { entry } = Astro.props;
-const { slug } = Astro.params;
 const { Content } = await entry.render();
 
 const formattedDate = entry.data.pubDate.toLocaleDateString('es-ES', {

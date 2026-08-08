@@ -1,20 +1,12 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from '@/lib/content';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import sharp from 'sharp';
 
-export const prerender = true;
-
-export async function getStaticPaths() {
-    const episodes = await getCollection('episodios');
-    return episodes.map((entry) => ({
-        params: { slug: entry.slug },
-        props: { entry },
-    }));
-}
+export const prerender = false;
 
 // Fetch font securely or use a local one
 const fetchFont = async () => {
@@ -67,8 +59,14 @@ const loadImage = async (imagePath: string): Promise<ArrayBuffer | null> => {
     }
 };
 
-export const GET: APIRoute = async ({ props }) => {
-    const { entry } = props;
+export const GET: APIRoute = async ({ params, props }) => {
+    let entry = props ? (props as any).entry : null;
+    if (!entry && params.slug) {
+        entry = await getEntry('episodios', params.slug);
+    }
+    if (!entry) {
+        return new Response('Episode not found', { status: 404 });
+    }
     const { title, episode, season, image } = entry.data;
     
     const [fontData, imageBuffer] = await Promise.all([

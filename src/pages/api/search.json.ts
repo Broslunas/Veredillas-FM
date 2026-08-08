@@ -1,4 +1,4 @@
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import { teamMembers } from '@/data/team';
 
 export async function GET() {
@@ -15,8 +15,8 @@ export async function GET() {
       image: episode.data.image,
       tags: episode.data.tags || [],
       participants: episode.data.participants || [],
-      transcription: episode.data.transcription ? episode.data.transcription.map(t => ({ text: t.text, time: t.time })) : undefined,
-      transcriptionText: episode.data.transcription ? episode.data.transcription.map(t => t.text).join(' ') : '',
+      transcription: episode.data.transcription ? episode.data.transcription.map((t: any) => ({ text: t.text, time: t.time })) : undefined,
+      transcriptionText: episode.data.transcription ? episode.data.transcription.map((t: any) => t.text).join(' ') : '',
     })),
     ...posts.map((post) => ({
       title: post.data.title,

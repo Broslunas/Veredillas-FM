@@ -8,7 +8,7 @@ import QuizResult from '@/models/QuizResult';
 import Comment from '@/models/Comment';
 import UnlockedCard from '@/models/UnlockedCard';
 import ChatMessage from '@/models/ChatMessage';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import {
   ACHIEVEMENTS,
   computeUnlockedAchievements,
@@ -169,7 +169,7 @@ export const GET: APIRoute = async ({ request }) => {
     // Only return everything if NOT light mode
     const isLight = new URL(request.url).searchParams.get('light') === 'true';
 
-    let achievementsPayload = [];
+    let achievementsPayload: any[] = [];
     if (!isLight) {
       achievementsPayload = ACHIEVEMENTS.map(a => {
         const unlocked = allUnlockedIds.has(a.id);

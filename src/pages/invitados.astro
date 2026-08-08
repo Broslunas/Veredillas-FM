@@ -1,8 +1,8 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
-export const prerender = true
+export const prerender = false;
 
 // 1. Fetch Data
 const allGuests = await getCollection('guests');

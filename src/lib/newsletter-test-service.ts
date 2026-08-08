@@ -1,4 +1,4 @@
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
 import { sendEmail } from '@/lib/mailjet';

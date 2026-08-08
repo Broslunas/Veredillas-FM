@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 import { getUserFromCookie } from '@/lib/auth';
 import User from '@/models/User';
 

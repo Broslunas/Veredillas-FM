@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import User, { type IUser } from '@/models/User';
 import { getLevel, getNextLevel, getProgressToNextLevel } from '@/lib/gamification';
 import LevelsModal from '@/components/LevelsModal.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 const allEpisodes = await getCollection('episodios');
 
 export const prerender = false;

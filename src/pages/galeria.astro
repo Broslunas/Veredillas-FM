@@ -1,7 +1,7 @@
 ---
-export const prerender = true;
+export const prerender = false;
 import Layout from '@/layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from '@/lib/content';
 
 // Fetch collections
 const galleryEntries = await getCollection('gallery');
