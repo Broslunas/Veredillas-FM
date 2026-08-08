@@ -19,7 +19,7 @@ import PremiereCountdown from '@/components/PremiereCountdown.astro';
 import LiveChat from '@/components/LiveChat.astro';
 import ListenerCount from '@/components/ListenerCount.astro';
 import EpisodeActions from '@/components/EpisodeActions.astro';
-import CinemaAudioPlayer from '@/components/player/CinemaAudioPlayer.tsx';
+import NetflixPlayer from '@/components/player/NetflixPlayer.tsx';
 import EpisodeQuiz from '@/components/EpisodeQuiz.tsx';
 import QuizModal from '@/components/QuizModal.tsx';
 import Breadcrumbs from '@/components/Breadcrumbs.astro';
@@ -193,6 +193,8 @@ candidates.sort((a, b) => {
     return b.date - a.date;
 });
 
+import { getDirectR2StreamUrl } from "@/lib/r2";
+
 const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     slug: c.ep.slug,
     title: c.ep.data.title,
@@ -202,6 +204,26 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     season: c.ep.data.season,
     episode: c.ep.data.episode,
 }));
+
+const resolvedVideoUrl = entry.data.videoUrl
+    ? await getDirectR2StreamUrl(entry.data.videoUrl)
+    : undefined;
+
+const allEpisodesList = await Promise.all(
+    allEpisodes.map(async (ep) => ({
+        slug: ep.slug,
+        title: ep.data.title,
+        author: ep.data.author || "Veredillas FM",
+        season: ep.data.season,
+        episode: ep.data.episode,
+        duration: ep.data.duration,
+        image: ep.data.image || "/logo.webp",
+        videoUrl: ep.data.videoUrl
+            ? await getDirectR2StreamUrl(ep.data.videoUrl)
+            : undefined,
+        audioUrl: ep.data.audioUrl,
+    }))
+);
 ---
 
 <Layout
@@ -410,34 +432,19 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
                                         : null}
                                     data-next-episodes={JSON.stringify(nextEpisodes)}
                                 >
-                                    <div id="audio-player-container-post" class={entry.data.videoUrl ? "hidden" : "block relative"}>
-                                        <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5">
-                                            <div class="loader-vfm flex flex-col items-center gap-4">
-                                                <div class="loader-spinner"></div>
-                                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Sintonizando...</span>
-                                            </div>
-                                        </div>
-                                        <CinemaAudioPlayer
+                                    <div id="audio-player-container-post" class="w-full relative">
+                                        <NetflixPlayer
                                             client:load
-                                            audioUrl={entry.data.audioUrl || ""}
-                                            title={entry.data.title || ""}
-                                            cover={entry.data.image || ""}
-                                            author={entry.data.author || "Veredillas FM"}
-                                            transcription={formattedTranscription}
                                             slug={entry.slug}
-                                            videoUrl={entry.data.videoUrl}
-                                            sections={entry.data.sections}
-                                            nextEpisodes={nextEpisodes}
+                                            title={entry.data.title || ""}
+                                            author={entry.data.author || "Veredillas FM"}
+                                            season={entry.data.season}
+                                            episode={entry.data.episode}
+                                            image={entry.data.image || "/logo.webp"}
+                                            videoUrl={resolvedVideoUrl}
+                                            audioUrl={entry.data.audioUrl || ""}
+                                            episodesList={allEpisodesList}
                                         />
-                                    </div>
-
-                                    <div id="video-player-container-post" class={!entry.data.videoUrl ? "hidden" : "block relative"}>
-                                        <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5">
-                                            <div class="loader-vfm flex flex-col items-center gap-4">
-                                                <div class="loader-spinner !border-t-red-500"></div>
-                                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Iniciando Video...</span>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -482,35 +489,20 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
                                         : null}
                                     data-next-episodes={JSON.stringify(nextEpisodes)}
                                 >
-                                    <div id="audio-player-container" class={entry.data.videoUrl ? "hidden" : "block relative"}>
-                                        <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5">
-                                            <div class="loader-vfm flex flex-col items-center gap-4">
-                                                <div class="loader-spinner"></div>
-                                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Sintonizando...</span>
-                                            </div>
-                                        </div>
-                                        <CinemaAudioPlayer
-                                            client:load
-                                            audioUrl={entry.data.audioUrl || ""}
-                                            title={entry.data.title || ""}
-                                            cover={entry.data.image || ""}
-                                            author={entry.data.author || "Veredillas FM"}
-                                            transcription={formattedTranscription}
-                                            slug={entry.slug}
-                                            videoUrl={entry.data.videoUrl}
-                                            sections={entry.data.sections}
-                                            nextEpisodes={nextEpisodes}
-                                        />
-                                    </div>
-
-                                    <div id="video-player-container" class={!entry.data.videoUrl ? "hidden" : "block relative"}>
-                                        <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5">
-                                            <div class="loader-vfm flex flex-col items-center gap-4">
-                                                <div class="loader-spinner !border-t-red-500"></div>
-                                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Iniciando Video...</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div id="netflix-player-container-main" class="w-full relative">
+                                         <NetflixPlayer
+                                             client:load
+                                             slug={entry.slug}
+                                             title={entry.data.title || ""}
+                                             author={entry.data.author || "Veredillas FM"}
+                                             season={entry.data.season}
+                                             episode={entry.data.episode}
+                                             image={entry.data.image || "/logo.webp"}
+                                             videoUrl={resolvedVideoUrl}
+                                             audioUrl={entry.data.audioUrl || ""}
+                                             episodesList={allEpisodesList}
+                                         />
+                                     </div>
                                 </div>
                             </div>
                         </div>
