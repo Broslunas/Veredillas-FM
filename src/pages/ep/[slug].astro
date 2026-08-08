@@ -329,35 +329,20 @@ const allEpisodesList = await Promise.all(
                                     : null}
                                 data-next-episodes={JSON.stringify(nextEpisodes)}
                             >
-                                <div id="audio-player-container" class={entry.data.videoUrl ? "hidden" : "block relative"}>
-                                    <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0f0f0f] rounded-2xl flex items-center justify-center overflow-hidden border border-white/5">
-                                        <div class="loader-vfm flex flex-col items-center gap-4">
-                                            <div class="loader-spinner"></div>
-                                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Sintonizando...</span>
-                                        </div>
-                                    </div>
-                                    <CinemaAudioPlayer
-                                        client:load
-                                        audioUrl={entry.data.audioUrl || ""}
-                                        title={entry.data.title || ""}
-                                        cover={entry.data.image || ""}
-                                        author={entry.data.author || "Veredillas FM"}
-                                        transcription={formattedTranscription}
-                                        slug={entry.slug}
-                                        videoUrl={entry.data.videoUrl}
-                                        sections={entry.data.sections}
-                                        nextEpisodes={nextEpisodes}
-                                    />
-                                </div>
-
-                                <div id="video-player-container" class={!entry.data.videoUrl ? "hidden" : "block relative"}>
-                                    <div class="player-placeholder-visual absolute inset-0 z-0 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/5">
-                                        <div class="loader-vfm flex flex-col items-center gap-4">
-                                            <div class="loader-spinner !border-t-red-500"></div>
-                                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 animate-pulse">Iniciando Video...</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div id="netflix-player-container-live" class="w-full relative">
+                                     <NetflixPlayer
+                                         client:load
+                                         slug={entry.slug}
+                                         title={entry.data.title || ""}
+                                         author={entry.data.author || "Veredillas FM"}
+                                         season={entry.data.season}
+                                         episode={entry.data.episode}
+                                         image={entry.data.image || "/logo.webp"}
+                                         videoUrl={resolvedVideoUrl}
+                                         audioUrl={entry.data.audioUrl || ""}
+                                         episodesList={allEpisodesList}
+                                     />
+                                 </div>
                             </div>
                         </div>
                     </div>
