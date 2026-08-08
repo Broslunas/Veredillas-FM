@@ -370,9 +370,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           src={srcUrl}
           poster={currentEpisode.image}
           playsInline
-          className={`h-full w-full object-contain transition-opacity duration-500 ${
-            isVideo ? 'opacity-100' : 'opacity-20 blur-sm'
-          }`}
+          className="h-full w-full object-contain"
           onClick={togglePlay}
           onPlay={() => {
             setIsPlaying(true);
@@ -407,17 +405,17 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
 
       {/* AUDIO COVER VISUALIZER (WHEN IN AUDIO MODE OR NO VIDEO) */}
       {(!isVideo || mediaMode === 'audio') && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent pointer-events-none z-10">
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-slate-950/60 pointer-events-none z-10">
           <div className="relative group">
             <img
               src={currentEpisode.image || '/logo.webp'}
               alt={currentEpisode.title}
-              className={`w-44 h-44 md:w-56 md:h-56 rounded-2xl shadow-2xl object-cover border border-violet-500/30 transition-transform duration-700 ${
-                isPlaying ? 'scale-105 shadow-violet-600/40' : 'scale-95 opacity-80'
+              className={`w-44 h-44 md:w-56 md:h-56 rounded-2xl shadow-2xl object-cover border border-violet-500/40 transition-transform duration-500 ${
+                isPlaying ? 'scale-105 shadow-violet-600/50' : 'scale-100'
               }`}
             />
             {isPlaying && (
-              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-end gap-1 h-6 px-3 py-1 bg-slate-900/80 backdrop-blur-md rounded-full border border-violet-500/30">
+              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-end gap-1 h-6 px-3 py-1 bg-slate-900/90 backdrop-blur-md rounded-full border border-violet-500/40 shadow-lg">
                 <span className="w-1 bg-violet-500 animate-bounce h-4 rounded-full" style={{ animationDelay: '0ms' }} />
                 <span className="w-1 bg-violet-400 animate-bounce h-5 rounded-full" style={{ animationDelay: '150ms' }} />
                 <span className="w-1 bg-pink-500 animate-bounce h-3 rounded-full" style={{ animationDelay: '300ms' }} />
@@ -425,10 +423,10 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
               </div>
             )}
           </div>
-          <h3 className="mt-6 text-xl md:text-2xl font-bold text-white text-center max-w-lg line-clamp-1">
+          <h3 className="mt-6 text-xl md:text-2xl font-bold text-white text-center max-w-lg line-clamp-1 drop-shadow-md">
             {currentEpisode.title}
           </h3>
-          <p className="text-xs md:text-sm text-slate-400 mt-1">
+          <p className="text-xs md:text-sm text-slate-300 font-medium mt-1 drop-shadow">
             {currentEpisode.season && `Temporada ${currentEpisode.season} · `}
             {currentEpisode.episode && `Episodio ${currentEpisode.episode}`}
           </p>
@@ -437,14 +435,14 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
 
       {/* BUFFERING SPINNER */}
       {isBuffering && isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40 z-20 pointer-events-none backdrop-blur-[2px]">
-          <div className="w-14 h-14 border-4 border-violet-600 border-t-transparent rounded-full animate-spin shadow-lg shadow-violet-900/50" />
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/20 z-20 pointer-events-none">
+          <div className="w-14 h-14 border-4 border-violet-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-violet-900/50" />
         </div>
       )}
 
       {/* PLAYER OVERLAY CONTROLS */}
       <div
-        className={`absolute inset-0 flex flex-col justify-between p-4 md:p-6 transition-opacity duration-300 z-30 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-slate-950/80 ${
+        className={`absolute inset-0 flex flex-col justify-between p-4 md:p-6 transition-opacity duration-300 z-30 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/70 ${
           showControls || !isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
