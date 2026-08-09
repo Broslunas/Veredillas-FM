@@ -30,19 +30,20 @@ if (userPayload) {
 ---
 
 <Layout title="Radio En Directo | Veredillas FM" description="Escucha la emisión en directo de Veredillas FM.">
-  <main class="min-h-[calc(100vh-80px)] py-12 px-4 flex items-center justify-center bg-[#050505] relative overflow-hidden">
-    
+  <main class="min-h-[calc(100vh-80px)] py-10 md:py-16 px-4 flex items-center justify-center bg-[#030304] relative overflow-hidden">
+
     <RadioBackground />
 
-    <div class="radio-page-container w-full max-w-6xl mx-auto relative z-10 flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center" data-is-registered={isRegistered.toString()} data-is-admin={isAdmin.toString()}>
+    <div class="radio-page-container relative z-10 w-full max-w-6xl mx-auto flex flex-col items-center gap-6" data-is-registered={isRegistered.toString()} data-is-admin={isAdmin.toString()}>
 
-        <div class="absolute -top-16 lg:left-0 max-lg:left-1/2 max-lg:-translate-x-1/2 z-20">
+        <div class="w-full flex justify-center sm:justify-end">
             <ListenerCount onlyCurrentPath={true} />
         </div>
 
-        <MainPlayer isRegistered={isRegistered} />
-
-        <SidebarQueue isAdmin={isAdmin} />
+        <div class="w-full flex flex-col lg:flex-row gap-6 items-center lg:items-start justify-center">
+            <MainPlayer isRegistered={isRegistered} />
+            <SidebarQueue isAdmin={isAdmin} />
+        </div>
 
         <DJPanelModal isRegistered={isRegistered} isAdmin={isAdmin} />
 
@@ -65,7 +66,7 @@ if (userPayload) {
         volumeContainer: HTMLElement | null;
         isPlaying: boolean = false;
         hasPlayedTTS: boolean = false;
-        
+
         isRegistered: boolean = false;
         isAdmin: boolean = false;
 
@@ -89,7 +90,7 @@ if (userPayload) {
         djTriggerBtn: HTMLElement | null;
         djModalOverlay: HTMLElement | null;
         djCloseBtn: HTMLElement | null;
-        
+
         djStatusBadge: HTMLElement | null;
         djCurrentSong: HTMLElement | null;
         djBtnPlay: HTMLElement | null;
@@ -107,7 +108,7 @@ if (userPayload) {
         djBtnClearQueue: HTMLElement | null;
         djQueueList: HTMLElement | null;
         djQueueCount: HTMLElement | null;
-        
+
         publicQueueList: HTMLElement | null;
 
         pollInterval: number | undefined;
@@ -120,7 +121,7 @@ if (userPayload) {
 
         constructor(el: HTMLElement) {
             this.el = el;
-            
+
             this.isRegistered = el.dataset.isRegistered === 'true';
             this.isAdmin = el.dataset.isAdmin === 'true';
 
@@ -154,7 +155,7 @@ if (userPayload) {
             this.djBtnClearQueue = el.querySelector('#dj-btn-clear-queue');
             this.djQueueList = el.querySelector('#dj-queue-list');
             this.djQueueCount = el.querySelector('#dj-queue-count');
-            
+
             this.publicQueueList = el.querySelector('#public-queue-list');
 
             this.loadSettings();
@@ -166,7 +167,7 @@ if (userPayload) {
                 this.setupDJControls();
             }
             this.setupMediaSessionHandlers();
-            
+
             // Iniciar polling global para la cola pública y status de radio
             this.pollStatus();
             this.pollInterval = window.setInterval(() => this.pollStatus(), 5000);
@@ -181,7 +182,7 @@ if (userPayload) {
             try {
                 this.audioContext = new AudioContext();
                 this.analyser = this.audioContext.createAnalyser();
-                
+
                 if (this.audio) {
                     this.source = this.audioContext.createMediaElementSource(this.audio);
                     this.source.connect(this.analyser);
@@ -199,16 +200,16 @@ if (userPayload) {
                     }
 
                     this.analyser.getByteFrequencyData(this.dataArray);
-                    
+
                     let sum = 0;
                     for (let i = 0; i < 8; i++) {
                         sum += this.dataArray[i];
                     }
                     const avgBass = sum / 8;
-                    
+
                     const scale = 1 + (avgBass / 255) * 0.4;
                     document.documentElement.style.setProperty('--bass-scale', scale.toString());
-                    
+
                     this.visualizerReqId = requestAnimationFrame(visualize);
                 };
 
@@ -260,7 +261,7 @@ if (userPayload) {
 
         setupCinemaMode() {
             if (!this.cinemaBtn) return;
-            
+
             this.cinemaBtn.addEventListener('click', () => {
                 const isCinema = document.body.classList.contains('cinema-mode');
                 const header = document.querySelector('header');
@@ -269,7 +270,7 @@ if (userPayload) {
                 const countdown = this.el.querySelector('.premiere-countdown');
                 const sidebar = this.el.parentElement?.querySelector('.queue-sidebar');
                 const djBtn = this.el.querySelector('#dj-trigger-btn');
-                
+
                 if (isCinema) {
                     document.body.classList.remove('cinema-mode');
                     if (header) (header as HTMLElement).style.display = '';
@@ -286,7 +287,7 @@ if (userPayload) {
                     }
                     if (sidebar) (sidebar as HTMLElement).style.display = '';
                     if (djBtn) (djBtn as HTMLElement).style.display = '';
-                    
+
                     if (document.fullscreenElement) {
                         document.exitFullscreen().catch(err => console.error(err));
                     }
@@ -306,7 +307,7 @@ if (userPayload) {
                     }
                     if (sidebar) (sidebar as HTMLElement).style.display = 'none';
                     if (djBtn) (djBtn as HTMLElement).style.display = 'none';
-                    
+
                     document.documentElement.requestFullscreen().catch(err => console.error(err));
                 }
             });
@@ -325,13 +326,13 @@ if (userPayload) {
             this.shareBtn.addEventListener('click', async () => {
                 const template = document.getElementById('share-card-template');
                 const titleEl = document.getElementById('share-song-title');
-                
+
                 if (!template || !titleEl) return;
-                
+
                 // Animación de loading en el botón
                 const originalHTML = this.shareBtn!.innerHTML;
                 this.shareBtn!.innerHTML = `<svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
-                
+
                 titleEl.textContent = this.currentSongTitle || "Veredillas FM Radio";
 
                 template.style.top = '0';
@@ -340,7 +341,7 @@ if (userPayload) {
                 template.style.opacity = '1';
 
                 try {
-                    const dataUrl = await htmlToImage.toPng(template, { 
+                    const dataUrl = await htmlToImage.toPng(template, {
                         quality: 0.95,
                         width: 1080,
                         height: 1920
@@ -376,12 +377,12 @@ if (userPayload) {
 
         setupVoiceSettings() {
             const toggleBtn = this.el.querySelector('.voice-toggle-btn');
-            
+
             toggleBtn?.addEventListener('click', () => {
                 this.ttsSettings.enabled = !this.ttsSettings.enabled;
                 this.saveSettings();
                 this.applySettingsToUI();
-                
+
                 if (this.ttsSettings.enabled && this.isPlaying) {
                     this.playTTS(true);
                 }
@@ -410,7 +411,7 @@ if (userPayload) {
             });
 
             this.audio.volume = 0.5;
-            
+
             if(this.volumeSlider) {
                 this.volumeSlider.addEventListener('input', (e) => {
                     const val = parseFloat((e.target as HTMLInputElement).value);
@@ -418,7 +419,7 @@ if (userPayload) {
                     this.updateVolumeIcon(val);
                 });
             }
-            
+
             this.audio.addEventListener('error', (e) => {
                 console.error('Audio stream error');
                 if(this.musicLabel) this.musicLabel.textContent = "Error de conexión";
@@ -456,7 +457,7 @@ if (userPayload) {
 
             const selectedModel = force ? this.ttsSettings.voice : (this.ttsSettings.voice || 'aura-2-selena-es');
             let userName = "amigo";
-            
+
             try {
                 const sessionStr = localStorage.getItem('user-session');
                 if (sessionStr) {
@@ -467,7 +468,7 @@ if (userPayload) {
 
             let phrase = welcomePhrases[Math.floor(Math.random() * welcomePhrases.length)];
             phrase = phrase.replace('{userName}', userName);
-            
+
             try {
                 const response = await fetch('/api/tts', {
                     method: 'POST',
@@ -480,7 +481,7 @@ if (userPayload) {
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 const ttsAudio = new Audio(url);
-                
+
                 const originalVolume = this.audio?.volume || 0.5;
                 if (this.audio) await this.fadeVolume(this.audio, originalVolume * 0.15, 1000);
 
@@ -497,7 +498,7 @@ if (userPayload) {
         updateVolumeIcon(volume: number) {
             const waves = this.el.querySelector('.volume-waves') as HTMLElement;
             const outerWaves = this.el.querySelector('.volume-waves-outer') as HTMLElement;
-            
+
             if(!waves || !outerWaves) return;
 
             if (volume === 0) {
@@ -531,9 +532,9 @@ if (userPayload) {
                 if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
             } else {
                 if(this.musicLabel) this.musicLabel.textContent = "Conectando...";
-                
+
                 this.audio.src = `https://radio.veredillasfm.es/stream?t=${new Date().getTime()}`;
-                
+
                 this.audio.play().then(() => {
                     this.isPlaying = true;
                     this.initVisualizer();
@@ -589,7 +590,7 @@ if (userPayload) {
                     if (file) this.apiUploadCookies(file);
                 });
             }
-            
+
             this.djBtnSearch?.addEventListener('click', () => {
                 this.apiSearch(this.djSearchInput?.value || '');
             });
@@ -633,27 +634,27 @@ if (userPayload) {
         async apiSearch(query: string) {
             if (!this.djResultsList) return;
             this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-5">Buscando...</div>';
-            
+
             try {
                 const url = new URL('https://radio.veredillasfm.es/api/search');
                 if (query) url.searchParams.append('q', query);
-                
+
                 const res = await fetch(url.toString());
                 const data = await res.json();
-                
+
                 if (data.results && data.results.length > 0) {
                     this.djResultsList.innerHTML = '';
                     data.results.forEach((item: any) => {
                         const div = document.createElement('div');
-                        div.className = 'flex flex-col gap-2 bg-white/5 border border-white/10 p-3 rounded-xl hover:bg-white/10 hover:border-cyan-500/30 transition-all';
-                        
+                        div.className = 'flex flex-col gap-2 bg-white/5 border border-white/10 p-3 rounded-2xl hover:bg-white/10 hover:border-secondary/30 transition-all';
+
                         let buttonsHTML = '';
                         if (this.isAdmin) {
-                            buttonsHTML += `<button class="dj-action-btn play-specific flex-1 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-colors" data-idx="${item.index}" title="Reproducir ahora">▶ Play</button>`;
+                            buttonsHTML += `<button class="dj-action-btn play-specific flex-1 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-colors" data-idx="${item.index}" title="Reproducir ahora">▶ Play</button>`;
                         }
                         buttonsHTML += `
-                            <button class="dj-action-btn queue queue-next flex-1 py-1.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold hover:bg-cyan-500/20 transition-colors" data-idx="${item.index}" title="Siguiente">+ Sig</button>
-                            <button class="dj-action-btn queue queue-last flex-1 py-1.5 rounded bg-white/5 text-gray-300 border border-white/10 text-xs font-semibold hover:bg-white/10 transition-colors" data-idx="${item.index}" title="Al final">+ Fin</button>
+                            <button class="dj-action-btn queue queue-next flex-1 py-1.5 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 text-xs font-semibold hover:bg-secondary/20 transition-colors" data-idx="${item.index}" title="Siguiente">+ Sig</button>
+                            <button class="dj-action-btn queue queue-last flex-1 py-1.5 rounded-lg bg-white/5 text-gray-300 border border-white/10 text-xs font-semibold hover:bg-white/10 transition-colors" data-idx="${item.index}" title="Al final">+ Fin</button>
                         `;
 
                         div.innerHTML = `
@@ -816,7 +817,7 @@ if (userPayload) {
 
             try {
                 // Use the configured voice, defaulting to the expressive male voice 'aura-2-aquila-es' or 'aura-orion-en'
-                const selectedModel = this.ttsSettings.voice || 'aura-orion-en'; 
+                const selectedModel = this.ttsSettings.voice || 'aura-orion-en';
 
                 const response = await fetch('/api/tts', {
                     method: 'POST',
@@ -829,7 +830,7 @@ if (userPayload) {
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 const ttsAudio = new Audio(url);
-                
+
                 const originalVolume = this.audio?.volume || 0.5;
                 if (this.audio) await this.fadeVolume(this.audio, originalVolume * 0.15, 1500);
 
@@ -847,11 +848,11 @@ if (userPayload) {
             try {
                 const res = await fetch('https://radio.veredillasfm.es/api/status');
                 const data = await res.json();
-                
+
                 // Actualizar widget de esquina
                 const cornerTitle = document.getElementById('corner-song-title');
                 const cornerWidget = document.getElementById('now-playing-corner');
-                
+
                 if (data.isPlaying && data.currentSongMeta && data.currentSongMeta.title) {
                     if (cornerTitle) cornerTitle.textContent = data.currentSongMeta.title;
                     if (this.isPlaying) {
@@ -862,7 +863,7 @@ if (userPayload) {
                     if (this.currentSongTitle !== data.currentSongMeta.title) {
                         this.currentSongTitle = data.currentSongMeta.title;
                         this.updateMediaSession(this.currentSongTitle);
-                        
+
                         if (this.nextSongTimeoutId) {
                             clearTimeout(this.nextSongTimeoutId);
                             this.nextSongTimeoutId = null;
@@ -893,21 +894,19 @@ if (userPayload) {
                         this.publicQueueList.innerHTML = '';
                         data.playQueue.slice(0, 15).forEach((song: any, idx: number) => {
                             const div = document.createElement('div');
-                            div.className = 'flex items-center justify-between bg-white/5 border border-white/10 p-3.5 rounded-xl hover:bg-white/10 transition-colors';
+                            div.className = 'group flex items-center gap-3 bg-white/[0.04] border border-white/10 p-3 rounded-2xl hover:bg-white/[0.08] hover:border-secondary/30 transition-all';
                             div.innerHTML = `
-                                <div class="flex flex-col overflow-hidden pr-2 w-full">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-xs font-bold text-gray-500 w-4">${idx + 1}.</span>
-                                        <span class="text-white text-sm font-semibold truncate" title="${song.title}">${song.title}</span>
-                                    </div>
-                                    ${song.duration ? `<span class="text-xs text-gray-400 font-mono ml-6">${Math.floor(song.duration/60)}:${String(Math.floor(song.duration%60)).padStart(2,'0')}</span>` : ''}
+                                <span class="shrink-0 w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[0.7rem] font-bold text-gray-400 group-hover:text-secondary group-hover:border-secondary/40 transition-colors">${idx + 1}</span>
+                                <div class="flex-1 overflow-hidden">
+                                    <span class="block text-white text-sm font-semibold truncate" title="${song.title}">${song.title}</span>
                                 </div>
+                                ${song.duration ? `<span class="shrink-0 text-[0.7rem] text-gray-400 font-mono bg-white/5 px-2 py-1 rounded-full">${Math.floor(song.duration/60)}:${String(Math.floor(song.duration%60)).padStart(2,'0')}</span>` : ''}
                             `;
                             this.publicQueueList?.appendChild(div);
                         });
                         if(data.playQueue.length > 15) {
                             const more = document.createElement('div');
-                            more.className = 'text-xs text-center text-gray-500 mt-2 font-medium';
+                            more.className = 'text-xs text-center text-gray-500 mt-1 py-2 font-medium';
                             more.textContent = `+ ${data.playQueue.length - 15} canciones más...`;
                             this.publicQueueList.appendChild(more);
                         }
@@ -943,7 +942,7 @@ if (userPayload) {
 
                     if (data.playQueue && this.djQueueList) {
                         if (this.djQueueCount) this.djQueueCount.textContent = data.playQueue.length;
-                        
+
                         if (data.playQueue.length === 0) {
                             this.djQueueList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-10">La cola está vacía</div>';
                         } else {
@@ -951,7 +950,7 @@ if (userPayload) {
                             data.playQueue.forEach((song: any, idx: number) => {
                                 const div = document.createElement('div');
                                 div.className = 'flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl hover:bg-white/10 transition-colors group';
-                                
+
                                 let removeBtnHTML = '';
                                 if (this.isAdmin) {
                                     removeBtnHTML = `
@@ -969,7 +968,7 @@ if (userPayload) {
                                 `;
                                 this.djQueueList?.appendChild(div);
                             });
-                            
+
                             if (this.isAdmin) {
                                 this.djQueueList.querySelectorAll('.dj-btn-remove-queue').forEach(btn => {
                                     btn.addEventListener('click', (e) => this.apiRemoveQueue(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0')));
@@ -981,7 +980,7 @@ if (userPayload) {
             } catch (err) {
                 const cornerWidget = document.getElementById('now-playing-corner');
                 if (cornerWidget) cornerWidget.classList.remove('visible');
-                
+
                 if (this.publicQueueList) {
                     this.publicQueueList.innerHTML = '<div class="text-red-400 text-sm font-medium text-center mt-10">Desconectado del servidor</div>';
                 }

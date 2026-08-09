@@ -15,22 +15,23 @@ if (!isRegistered) {
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" is:inline></script>
 
 <div class="import-song-modal fixed inset-0 bg-black/85 backdrop-blur-md z-[1050] flex items-center justify-center p-3 sm:p-6 opacity-0 invisible transition-all duration-300" id="import-song-modal">
-    <div class="modal-wrapper w-full max-w-2xl bg-gradient-to-br from-[#131318] to-[#0a0a0c] border border-violet-500/30 rounded-2xl flex flex-col max-h-[90vh] shadow-[0_20px_50px_rgba(139,92,246,0.25)] relative overflow-hidden transform scale-95 transition-all duration-300">
+    <div class="modal-wrapper w-full max-w-2xl bg-gradient-to-br from-[#131318] to-[#0a0a0c] border border-violet-500/30 rounded-[1.75rem] flex flex-col max-h-[90vh] shadow-[0_30px_80px_-15px_rgba(139,92,246,0.3)] relative overflow-hidden transform scale-95 transition-all duration-300">
         <!-- Top border glow -->
-        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent opacity-60"></div>
-        
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-70"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(139,92,246,0.14)_0%,transparent_55%)] pointer-events-none"></div>
+
         <!-- Header -->
-        <div class="flex justify-between items-center p-5 border-b border-white/5 shrink-0">
+        <div class="flex justify-between items-center p-5 border-b border-white/5 shrink-0 relative">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
+                <div class="w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-violet-400 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-white font-bold text-lg leading-tight font-inter tracking-tight">Importar Canción</h3>
+                    <h3 class="text-white font-bold text-lg leading-tight font-display tracking-tight">Importar Canción</h3>
                     <p class="text-xs text-gray-400">Añade música a la programación</p>
                 </div>
             </div>
-            <button id="import-modal-close-btn" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 flex items-center justify-center hover:bg-white/10 hover:text-white hover:rotate-90 transition-all cursor-pointer">
+            <button id="import-modal-close-btn" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 flex items-center justify-center hover:bg-white/10 hover:text-white hover:rotate-90 transition-all cursor-pointer shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
