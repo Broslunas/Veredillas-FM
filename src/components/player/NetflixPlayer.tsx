@@ -168,12 +168,12 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     if (!videoRef.current) return;
     if (isPlaying) {
       videoRef.current.pause();
-      try { (window as any).umami?.track('Pausar Reproductor', { title: meta?.title }); } catch {}
+      try { (window as any).umami?.track('Pausar Reproductor', { title: currentEpisode.title }); } catch {}
     } else {
       videoRef.current.play().catch(console.error);
-      try { (window as any).umami?.track('Reproducir Audio', { title: meta?.title }); } catch {}
+      try { (window as any).umami?.track('Reproducir Audio', { title: currentEpisode.title }); } catch {}
     }
-  }, [isPlaying, meta]);
+  }, [isPlaying, currentEpisode.title]);
 
   // Skip time (-10s / +10s)
   const skipTime = (seconds: number) => {
