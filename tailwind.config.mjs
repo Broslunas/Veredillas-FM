@@ -8,6 +8,10 @@ export default {
         secondary: '#0ea5e9',
         accent: '#ec4899',
       },
+      fontFamily: {
+        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        body: ['Outfit', 'system-ui', 'sans-serif'],
+      },
       animation: {
         'marquee': 'marquee 20s linear infinite',
         'blob-float': 'blob-float 10s infinite alternate',

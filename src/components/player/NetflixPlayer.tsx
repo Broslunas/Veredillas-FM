@@ -1,9 +1,16 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { syncPlaybackData, recordListen } from '@/services/player/playbackSync';
+import { getProxiedAudioUrl } from '@/utils/audioProxy';
 
 export interface SectionInfo {
   title: string;
-  time: string; // "MM:SS" or "HH:MM:SS" or number
+  time: string | number; // "MM:SS" or "HH:MM:SS" or number
+}
+
+export interface TranscriptionCue {
+  time: string | number;
+  text: string;
+  speaker?: string;
 }
 
 export interface EpisodeInfo {
@@ -17,6 +24,7 @@ export interface EpisodeInfo {
   videoUrl?: string;
   audioUrl?: string;
   sections?: SectionInfo[];
+  transcription?: TranscriptionCue[];
 }
 
 export interface NetflixPlayerProps {
@@ -29,8 +37,44 @@ export interface NetflixPlayerProps {
   videoUrl?: string;
   audioUrl?: string;
   sections?: SectionInfo[];
+  transcription?: TranscriptionCue[];
   initialProgress?: number; // in seconds
   episodesList?: EpisodeInfo[];
+}
+
+const PREFS_KEY = 'vfm-player-prefs';
+
+interface PlayerPrefs {
+  volume: number;
+  playbackRate: number;
+  showCaptions: boolean;
+}
+
+function loadPrefs(): PlayerPrefs {
+  const defaults: PlayerPrefs = { volume: 1, playbackRate: 1, showCaptions: false };
+  if (typeof window === 'undefined') return defaults;
+  try {
+    const raw = window.localStorage.getItem(PREFS_KEY);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw);
+    return {
+      volume: typeof parsed.volume === 'number' ? parsed.volume : defaults.volume,
+      playbackRate: typeof parsed.playbackRate === 'number' ? parsed.playbackRate : defaults.playbackRate,
+      showCaptions: Boolean(parsed.showCaptions),
+    };
+  } catch {
+    return defaults;
+  }
+}
+
+function savePrefs(prefs: Partial<PlayerPrefs>) {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = loadPrefs();
+    window.localStorage.setItem(PREFS_KEY, JSON.stringify({ ...current, ...prefs }));
+  } catch {
+    /* noop */
+  }
 }
 
 // Helper to convert timestamp string ("MM:SS" or "HH:MM:SS") to seconds
@@ -43,6 +87,110 @@ function parseTimeToSeconds(timeStr: string | number): number {
   return parseFloat(timeStr) || 0;
 }
 
+/* ---------------------------------------------------------------------- */
+/* ICONS - minimal stroke-based set, consistent with the site's iconography */
+/* ---------------------------------------------------------------------- */
+
+const IconPlay = ({ className = 'w-6 h-6' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.53.85l11-6.86a1 1 0 0 0 0-1.7l-11-6.86A1 1 0 0 0 8 5.14Z" /></svg>
+);
+const IconPause = ({ className = 'w-6 h-6' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+);
+const IconRewind10 = ({ className = 'w-6 h-6' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8Z" fill="currentColor" stroke="none" />
+    <text x="12.5" y="15.5" fontSize="6.5" fontWeight="800" textAnchor="middle" fill="currentColor" fontFamily="var(--font-body, sans-serif)">10</text>
+  </svg>
+);
+const IconForward10 = ({ className = 'w-6 h-6' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 5V1l5 5-5 5V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8Z" fill="currentColor" stroke="none" />
+    <text x="11.5" y="15.5" fontSize="6.5" fontWeight="800" textAnchor="middle" fill="currentColor" fontFamily="var(--font-body, sans-serif)">10</text>
+  </svg>
+);
+const IconVolumeMute = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 5 6 9H2v6h4l5 4V5Z" /><line x1="16" y1="9" x2="22" y2="15" /><line x1="22" y1="9" x2="16" y2="15" />
+  </svg>
+);
+const IconVolumeLow = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 5 6 9H2v6h4l5 4V5Z" /><path d="M16.5 9.5a4 4 0 0 1 0 5.5" />
+  </svg>
+);
+const IconVolumeHigh = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 5 6 9H2v6h4l5 4V5Z" /><path d="M15.5 8.5a5.5 5.5 0 0 1 0 7" /><path d="M18.5 6a9 9 0 0 1 0 12" />
+  </svg>
+);
+const IconCaptions = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="5" width="20" height="14" rx="2.5" />
+    <text x="12" y="15.5" fontSize="7.5" fontWeight="800" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="var(--font-body, sans-serif)">CC</text>
+  </svg>
+);
+const IconChapters = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 3h12a1 1 0 0 1 1 1v16l-7-4-7 4V4a1 1 0 0 1 1-1Z" />
+  </svg>
+);
+const IconQueue = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="6" x2="15" y2="6" /><line x1="4" y1="12" x2="15" y2="12" /><line x1="4" y1="18" x2="11" y2="18" />
+    <path d="M18 9v10l6-5-6-5Z" transform="translate(-1 -3)" fill="currentColor" stroke="none" />
+  </svg>
+);
+const IconPiP = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2" /><rect x="12" y="11" width="8" height="6" rx="1" fill="currentColor" stroke="none" />
+  </svg>
+);
+const IconExpand = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3" />
+  </svg>
+);
+const IconCompress = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 3v3a2 2 0 0 1-2 2H4M15 3v3a2 2 0 0 0 2 2h3M21 15h-3a2 2 0 0 0-2 2v3M3 15h3a2 2 0 0 1 2 2v3" />
+  </svg>
+);
+const IconKeyboard = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="6" width="20" height="12" rx="2" />
+    <line x1="6" y1="10" x2="6" y2="10" /><line x1="10" y1="10" x2="10" y2="10" /><line x1="14" y1="10" x2="14" y2="10" /><line x1="18" y1="10" x2="18" y2="10" />
+    <line x1="7" y1="14" x2="17" y2="14" />
+  </svg>
+);
+const IconClose = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+const IconCheck = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+);
+const IconAlert = ({ className = 'w-8 h-8' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" />
+  </svg>
+);
+const IconReplay = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
+  </svg>
+);
+const IconChevronRight = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6" /></svg>
+);
+
+/* ---------------------------------------------------------------------- */
+
+const ctrlBtn =
+  'flex items-center justify-center text-zinc-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10';
+const ctrlBtnActive = 'bg-primary/25 text-primary hover:text-primary hover:bg-primary/30';
+
 export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   slug: initialSlug,
   title: initialTitle,
@@ -53,6 +201,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   videoUrl: initialVideoUrl,
   audioUrl: initialAudioUrl,
   sections: initialSections = [],
+  transcription: initialTranscription = [],
   initialProgress = 0,
   episodesList = [],
 }) => {
@@ -67,26 +216,32 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     videoUrl: initialVideoUrl,
     audioUrl: initialAudioUrl,
     sections: initialSections,
+    transcription: initialTranscription,
   });
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
+  const initialPrefs = useRef(loadPrefs()).current;
 
   // Playback states
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [bufferedEnd, setBufferedEnd] = useState(0);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(initialPrefs.volume);
   const [isMuted, setIsMuted] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
+  const [playbackRate, setPlaybackRate] = useState(initialPrefs.playbackRate);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [isEnded, setIsEnded] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showEpisodeDrawer, setShowEpisodeDrawer] = useState(false);
   const [showSectionsDrawer, setShowSectionsDrawer] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(initialPrefs.showCaptions);
   const [mediaMode, setMediaMode] = useState<'video' | 'audio'>('video');
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<number>(0);
@@ -94,21 +249,40 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
 
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSyncTimeRef = useRef<number>(0);
+  const pendingResumeRef = useRef<number>(initialProgress || 0);
+  const resumeAppliedRef = useRef(false);
 
-  const srcUrl = currentEpisode.videoUrl || currentEpisode.audioUrl || '';
   const isVideo = Boolean(currentEpisode.videoUrl) && mediaMode === 'video';
+
+  const srcUrl = useMemo(() => {
+    if (isVideo && currentEpisode.videoUrl) return currentEpisode.videoUrl;
+    if (currentEpisode.audioUrl) return getProxiedAudioUrl(currentEpisode.audioUrl);
+    return currentEpisode.videoUrl || '';
+  }, [isVideo, currentEpisode.videoUrl, currentEpisode.audioUrl]);
 
   // Process sections into timestamps
   const parsedSections = useMemo(() => {
-    const raw = currentEpisode.sections || initialSections || [];
+    const raw = currentEpisode.sections || [];
     return raw
       .map((sec) => ({
         title: sec.title,
         seconds: parseTimeToSeconds(sec.time),
-        formattedTime: typeof sec.time === 'string' ? sec.time : formatTime(sec.seconds || 0),
+        formattedTime: typeof sec.time === 'string' ? sec.time : formatTime(parseTimeToSeconds(sec.time)),
       }))
       .sort((a, b) => a.seconds - b.seconds);
-  }, [currentEpisode.sections, initialSections]);
+  }, [currentEpisode.sections]);
+
+  // Process transcription into caption cues with computed end times
+  const parsedCaptions = useMemo(() => {
+    const raw = currentEpisode.transcription || [];
+    const sorted = raw
+      .map((c) => ({ start: parseTimeToSeconds(c.time), text: c.text, speaker: c.speaker }))
+      .sort((a, b) => a.start - b.start);
+    return sorted.map((c, i) => ({
+      ...c,
+      end: i < sorted.length - 1 ? Math.min(sorted[i + 1].start, c.start + 12) : Math.max(c.start + 12, duration || c.start + 12),
+    }));
+  }, [currentEpisode.transcription, duration]);
 
   // Current active section based on currentTime
   const currentActiveSection = useMemo(() => {
@@ -137,6 +311,18 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     }
     return active;
   }, [parsedSections, hoverTime]);
+
+  const activeCaption = useMemo(() => {
+    if (!showCaptions || !parsedCaptions.length) return null;
+    return parsedCaptions.find((c) => currentTime >= c.start && currentTime < c.end) || null;
+  }, [showCaptions, parsedCaptions, currentTime]);
+
+  const nextEpisode = useMemo(() => {
+    if (!episodesList.length) return null;
+    const idx = episodesList.findIndex((ep) => ep.slug === currentEpisode.slug);
+    if (idx === -1 || idx === episodesList.length - 1) return null;
+    return episodesList[idx + 1];
+  }, [episodesList, currentEpisode.slug]);
 
   // Format time (seconds -> MM:SS or HH:MM:SS)
   function formatTime(secs: number) {
@@ -176,61 +362,71 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   }, [isPlaying, currentEpisode.title]);
 
   // Skip time (-10s / +10s)
-  const skipTime = (seconds: number) => {
+  const skipTime = useCallback((seconds: number) => {
     if (!videoRef.current) return;
-    videoRef.current.currentTime = Math.max(0, Math.min(duration, videoRef.current.currentTime + seconds));
-  };
+    videoRef.current.currentTime = Math.max(0, Math.min(duration || Infinity, videoRef.current.currentTime + seconds));
+  }, [duration]);
 
   // Jump to specific time (e.g. section click)
-  const jumpToTime = (seconds: number) => {
+  const jumpToTime = useCallback((seconds: number) => {
     if (!videoRef.current) return;
     videoRef.current.currentTime = seconds;
     setCurrentTime(seconds);
     setShowSectionsDrawer(false);
-    if (!isPlaying) {
+    if (videoRef.current.paused) {
       videoRef.current.play().catch(console.error);
     }
-  };
+  }, []);
 
   // Volume & Mute
-  const handleVolumeChange = (newVal: number) => {
+  const handleVolumeChange = useCallback((newVal: number) => {
     const val = Math.max(0, Math.min(1, newVal));
     setVolume(val);
+    savePrefs({ volume: val });
     if (videoRef.current) {
       videoRef.current.volume = val;
       videoRef.current.muted = val === 0;
     }
     setIsMuted(val === 0);
-  };
+  }, []);
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     if (!videoRef.current) return;
     const newMuted = !isMuted;
     videoRef.current.muted = newMuted;
     setIsMuted(newMuted);
-  };
+  }, [isMuted]);
 
   // Playback Rate
-  const changeSpeed = (rate: number) => {
+  const changeSpeed = useCallback((rate: number) => {
     setPlaybackRate(rate);
+    savePrefs({ playbackRate: rate });
     if (videoRef.current) {
       videoRef.current.playbackRate = rate;
     }
     setShowSpeedMenu(false);
-  };
+  }, []);
+
+  const toggleCaptions = useCallback(() => {
+    setShowCaptions((prev) => {
+      const next = !prev;
+      savePrefs({ showCaptions: next });
+      return next;
+    });
+  }, []);
 
   // Fullscreen toggle
-  const toggleFullscreen = () => {
+  const toggleFullscreen = useCallback(() => {
     if (!playerContainerRef.current) return;
     if (!document.fullscreenElement) {
       playerContainerRef.current.requestFullscreen().catch(console.error);
     } else {
       document.exitFullscreen().catch(console.error);
     }
-  };
+  }, []);
 
   // Picture in Picture
-  const togglePiP = async () => {
+  const togglePiP = useCallback(async () => {
     if (!videoRef.current) return;
     try {
       if (document.pictureInPictureElement) {
@@ -241,7 +437,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     } catch (e) {
       console.error('PiP Error:', e);
     }
-  };
+  }, []);
 
   // Scrubbing / Seeking on progress bar
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -267,17 +463,75 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     setHoverTime(null);
   };
 
-  // Select another episode
-  const handleSelectEpisode = (ep: EpisodeInfo) => {
+  const resetPlaybackState = () => {
+    setCurrentTime(0);
+    setDuration(0);
+    setBufferedEnd(0);
+    setHasError(false);
+    setIsEnded(false);
+    setIsBuffering(true);
+  };
+
+  // Select another episode (swap source in-place, no page navigation)
+  const handleSelectEpisode = useCallback((ep: EpisodeInfo) => {
     setCurrentEpisode(ep);
     setShowEpisodeDrawer(false);
-    setCurrentTime(0);
+    resetPlaybackState();
     setIsPlaying(true);
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(console.error);
+  }, []);
+
+  const handleReplay = useCallback(() => {
+    setIsEnded(false);
+    jumpToTime(0);
+  }, [jumpToTime]);
+
+  const handlePlayNext = useCallback(() => {
+    if (nextEpisode) handleSelectEpisode(nextEpisode);
+  }, [nextEpisode, handleSelectEpisode]);
+
+  const retryLoad = useCallback(() => {
+    setHasError(false);
+    setIsBuffering(true);
+    videoRef.current?.load();
+  }, []);
+
+  // Try to apply resumed progress once metadata + saved position are known
+  const applyPendingResume = useCallback(() => {
+    const v = videoRef.current;
+    const p = pendingResumeRef.current;
+    if (!v || resumeAppliedRef.current || !p || p <= 5) return;
+    if (!v.duration || isNaN(v.duration)) return;
+    if (p >= v.duration - 15) return;
+    v.currentTime = p;
+    setCurrentTime(p);
+    resumeAppliedRef.current = true;
+    if (typeof window !== 'undefined' && (window as any).showToast) {
+      (window as any).showToast(`Reanudado en ${formatTime(p)}`, 'info');
     }
-  };
+  }, []);
+
+  // Fetch saved progress for the current episode
+  useEffect(() => {
+    resumeAppliedRef.current = false;
+    pendingResumeRef.current = currentEpisode.slug === initialSlug && initialProgress > 5 ? initialProgress : 0;
+    const slug = currentEpisode.slug;
+    if (!slug) return;
+    let cancelled = false;
+    fetch(`/api/user/episode-state?slug=${encodeURIComponent(slug)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        if (data.savedProgress && data.savedProgress > 5) {
+          pendingResumeRef.current = data.savedProgress;
+          applyPendingResume();
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentEpisode.slug]);
 
   // Sync listen progress periodically
   useEffect(() => {
@@ -300,6 +554,23 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
       recordListen(currentEpisode.slug);
     }
   }, [isPlaying, currentEpisode.slug]);
+
+  // Broadcast time updates for external sidebar widgets (sections/transcription)
+  useEffect(() => {
+    if (currentTime <= 0) return;
+    document.dispatchEvent(new CustomEvent('veredillas:audio-timeupdate', { detail: { currentTime } }));
+  }, [currentTime]);
+
+  // Listen for external seek requests (sidebar sections / transcription widgets)
+  useEffect(() => {
+    const handleExternalSeek = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      const t = detail?.time;
+      if (typeof t === 'number' && !isNaN(t)) jumpToTime(t);
+    };
+    document.addEventListener('veredillas:audio-seek', handleExternalSeek);
+    return () => document.removeEventListener('veredillas:audio-seek', handleExternalSeek);
+  }, [jumpToTime]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -341,12 +612,26 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           e.preventDefault();
           toggleFullscreen();
           break;
+        case 'c':
+          e.preventDefault();
+          if (parsedCaptions.length > 0) toggleCaptions();
+          break;
+        case '?':
+          e.preventDefault();
+          setShowShortcuts((v) => !v);
+          break;
+        case 'escape':
+          setShowShortcuts(false);
+          setShowSectionsDrawer(false);
+          setShowEpisodeDrawer(false);
+          setShowSpeedMenu(false);
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay, duration, volume]);
+  }, [togglePlay, skipTime, handleVolumeChange, toggleMute, toggleFullscreen, toggleCaptions, volume, parsedCaptions.length]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -361,8 +646,9 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     <div
       ref={playerContainerRef}
       onMouseMove={handleMouseMove}
-      className={`relative w-full overflow-hidden bg-slate-950 text-white select-none transition-all duration-300 font-sans shadow-2xl ${
-        isFullscreen ? 'fixed inset-0 z-[99999] h-screen w-screen rounded-none' : 'aspect-video rounded-2xl border border-violet-500/20'
+      onMouseLeave={() => { if (isPlaying) setShowControls(false); }}
+      className={`relative w-full overflow-hidden bg-black text-white select-none transition-all duration-300 font-body shadow-2xl ${
+        isFullscreen ? 'fixed inset-0 z-[99999] h-screen w-screen rounded-none' : 'aspect-video rounded-2xl border border-zinc-800/80'
       }`}
     >
       {/* MEDIA PLAYER (VIDEO / AUDIO) */}
@@ -372,15 +658,21 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           src={srcUrl}
           poster={currentEpisode.image}
           playsInline
-          className="h-full w-full object-contain"
+          preload="metadata"
+          className="h-full w-full object-contain bg-black"
           onClick={togglePlay}
           onPlay={() => {
             setIsPlaying(true);
             setIsBuffering(false);
+            setIsEnded(false);
           }}
           onPause={() => setIsPlaying(false)}
           onWaiting={() => setIsBuffering(true)}
           onPlaying={() => setIsBuffering(false)}
+          onError={() => {
+            setHasError(true);
+            setIsBuffering(false);
+          }}
           onTimeUpdate={() => {
             if (videoRef.current) {
               setCurrentTime(videoRef.current.currentTime);
@@ -392,43 +684,54 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           onLoadedMetadata={() => {
             if (videoRef.current) {
               setDuration(videoRef.current.duration);
-              if (initialProgress > 0) {
-                videoRef.current.currentTime = initialProgress;
-              }
+              videoRef.current.volume = volume;
+              videoRef.current.playbackRate = playbackRate;
+              applyPendingResume();
             }
           }}
-          onEnded={() => setIsPlaying(false)}
+          onEnded={() => {
+            setIsPlaying(false);
+            setIsEnded(true);
+            syncPlaybackData({
+              slug: currentEpisode.slug,
+              progress: Math.floor(duration),
+              duration: Math.floor(duration),
+              completed: true,
+              isVisible: true,
+              isMuted,
+            });
+          }}
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-slate-950 text-slate-400">
+        <div className="flex h-full w-full items-center justify-center bg-black text-zinc-500 text-sm">
           <p>No hay contenido multimedia disponible para este episodio.</p>
         </div>
       )}
 
       {/* AUDIO COVER VISUALIZER (WHEN IN AUDIO MODE OR NO VIDEO) */}
-      {(!isVideo || mediaMode === 'audio') && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-slate-950/60 pointer-events-none z-10">
-          <div className="relative group">
+      {(!isVideo || mediaMode === 'audio') && srcUrl && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-black pointer-events-none z-10">
+          <div className="relative">
             <img
               src={currentEpisode.image || '/logo.webp'}
               alt={currentEpisode.title}
-              className={`w-44 h-44 md:w-56 md:h-56 rounded-2xl shadow-2xl object-cover border border-violet-500/40 transition-transform duration-500 ${
-                isPlaying ? 'scale-105 shadow-violet-600/50' : 'scale-100'
+              className={`w-40 h-40 md:w-52 md:h-52 rounded-2xl object-cover border border-white/10 transition-all duration-500 ${
+                isPlaying ? 'ring-2 ring-primary/50 scale-[1.02]' : ''
               }`}
             />
             {isPlaying && (
-              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-end gap-1 h-6 px-3 py-1 bg-slate-900/90 backdrop-blur-md rounded-full border border-violet-500/40 shadow-lg">
-                <span className="w-1 bg-violet-500 animate-bounce h-4 rounded-full" style={{ animationDelay: '0ms' }} />
-                <span className="w-1 bg-violet-400 animate-bounce h-5 rounded-full" style={{ animationDelay: '150ms' }} />
-                <span className="w-1 bg-pink-500 animate-bounce h-3 rounded-full" style={{ animationDelay: '300ms' }} />
-                <span className="w-1 bg-sky-400 animate-bounce h-6 rounded-full" style={{ animationDelay: '450ms' }} />
+              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-end gap-1 h-5 px-3 py-1.5 bg-black/80 backdrop-blur-md rounded-full border border-white/10">
+                <span className="w-[3px] bg-primary animate-bounce h-3 rounded-full" style={{ animationDelay: '0ms' }} />
+                <span className="w-[3px] bg-primary animate-bounce h-4 rounded-full" style={{ animationDelay: '150ms' }} />
+                <span className="w-[3px] bg-primary animate-bounce h-2.5 rounded-full" style={{ animationDelay: '300ms' }} />
+                <span className="w-[3px] bg-primary animate-bounce h-5 rounded-full" style={{ animationDelay: '450ms' }} />
               </div>
             )}
           </div>
-          <h3 className="mt-6 text-xl md:text-2xl font-bold text-white text-center max-w-lg line-clamp-1 drop-shadow-md">
+          <h3 className="mt-6 text-lg md:text-xl font-display font-bold text-white text-center max-w-lg line-clamp-1">
             {currentEpisode.title}
           </h3>
-          <p className="text-xs md:text-sm text-slate-300 font-medium mt-1 drop-shadow">
+          <p className="text-xs md:text-sm text-zinc-400 font-medium mt-1">
             {currentEpisode.season && `Temporada ${currentEpisode.season} · `}
             {currentEpisode.episode && `Episodio ${currentEpisode.episode}`}
           </p>
@@ -436,112 +739,144 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
       )}
 
       {/* BUFFERING SPINNER */}
-      {isBuffering && isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/20 z-20 pointer-events-none">
-          <div className="w-14 h-14 border-4 border-violet-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-violet-900/50" />
+      {isBuffering && isPlaying && !hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10 z-20 pointer-events-none">
+          <div className="w-10 h-10 border-[3px] border-white/15 border-t-primary rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* ERROR STATE */}
+      {hasError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 z-40 px-6 text-center">
+          <IconAlert className="w-8 h-8 text-zinc-500" />
+          <p className="text-sm text-zinc-300 font-medium">No se pudo cargar el contenido.</p>
+          <button
+            onClick={retryLoad}
+            className="mt-1 px-4 py-2 rounded-full bg-primary hover:brightness-110 text-white text-xs font-semibold transition"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {/* SUBTITLES / CAPTIONS OVERLAY (independent from control-bar fade) */}
+      {showCaptions && activeCaption && (
+        <div
+          aria-live="polite"
+          className={`absolute left-1/2 -translate-x-1/2 z-30 max-w-[88%] md:max-w-[70%] px-3.5 py-1.5 rounded-md bg-black/75 backdrop-blur-sm text-center transition-all duration-200 pointer-events-none ${
+            showControls || !isPlaying ? 'bottom-24 md:bottom-28' : 'bottom-10'
+          }`}
+        >
+          {activeCaption.speaker && <span className="text-primary font-bold mr-1.5 text-sm">{activeCaption.speaker}:</span>}
+          <span className="text-white text-sm md:text-base font-medium leading-snug">{activeCaption.text}</span>
+        </div>
+      )}
+
+      {/* END SCREEN */}
+      {isEnded && (
+        <div className="absolute inset-0 z-40 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center gap-8">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">Episodio finalizado</p>
+            <h3 className="text-xl md:text-2xl font-display font-bold text-white">{currentEpisode.title}</h3>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full max-w-2xl">
+            <button
+              onClick={handleReplay}
+              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-semibold transition"
+            >
+              <IconReplay className="w-4 h-4" /> Volver a reproducir
+            </button>
+
+            {nextEpisode && (
+              <button
+                onClick={handlePlayNext}
+                className="flex-1 flex items-center gap-3 p-2 pr-4 rounded-xl bg-primary/15 hover:bg-primary/25 border border-primary/30 text-left transition group"
+              >
+                <img
+                  src={nextEpisode.image || '/logo.webp'}
+                  alt=""
+                  className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-white/10"
+                />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-0.5">Siguiente episodio</p>
+                  <p className="text-sm font-semibold text-white truncate">{nextEpisode.title}</p>
+                </div>
+                <IconChevronRight className="w-5 h-5 text-primary flex-shrink-0 ml-auto group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            )}
+          </div>
         </div>
       )}
 
       {/* PLAYER OVERLAY CONTROLS */}
       <div
-        className={`absolute inset-0 flex flex-col justify-between p-4 md:p-6 transition-opacity duration-300 z-30 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/70 ${
-          showControls || !isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        className={`absolute inset-0 flex flex-col justify-between p-4 md:p-6 transition-opacity duration-300 z-30 bg-gradient-to-t from-black/85 via-black/0 to-black/60 ${
+          (showControls || !isPlaying) && !isEnded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
         {/* TOP BAR */}
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-3 md:gap-4">
-            <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-pink-500 font-extrabold text-white text-xs md:text-sm px-3 py-1 rounded-md tracking-wider shadow-lg shadow-purple-900/30 border border-white/10">
-              VEREDILLAS FM
-            </span>
-            <div>
-              <h2 className="text-sm md:text-lg font-bold text-white line-clamp-1">{currentEpisode.title}</h2>
-              <p className="text-xs text-slate-400">
-                {currentEpisode.season && `T${currentEpisode.season}:E${currentEpisode.episode} · `}
-                {currentActiveSection ? `Capítulo: ${currentActiveSection.title}` : currentEpisode.author}
-              </p>
+        <div className="flex items-start justify-between w-full gap-4">
+          <div className="min-w-0">
+            <h2 className="text-sm md:text-lg font-display font-bold text-white line-clamp-1">{currentEpisode.title}</h2>
+            <p className="text-xs text-zinc-400 line-clamp-1 mt-0.5">
+              {currentEpisode.season && `T${currentEpisode.season}:E${currentEpisode.episode} · `}
+              {currentActiveSection ? currentActiveSection.title : currentEpisode.author}
+            </p>
+          </div>
+
+          {/* Audio / Video Switcher */}
+          {currentEpisode.videoUrl && currentEpisode.audioUrl && (
+            <div className="flex items-center bg-black/50 backdrop-blur-md border border-white/10 rounded-full p-1 text-xs flex-shrink-0">
+              <button
+                onClick={() => setMediaMode('video')}
+                className={`px-3 py-1 rounded-full font-semibold transition-all ${
+                  mediaMode === 'video' ? 'bg-primary text-white' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Vídeo
+              </button>
+              <button
+                onClick={() => setMediaMode('audio')}
+                className={`px-3 py-1 rounded-full font-semibold transition-all ${
+                  mediaMode === 'audio' ? 'bg-primary text-white' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Solo audio
+              </button>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Audio / Video Switcher */}
-            {currentEpisode.videoUrl && (
-              <div className="flex items-center bg-slate-900/90 backdrop-blur-md border border-violet-500/20 rounded-lg p-1 text-xs">
-                <button
-                  onClick={() => setMediaMode('video')}
-                  className={`px-3 py-1 rounded-md font-semibold transition-all ${
-                    mediaMode === 'video' ? 'bg-violet-600 text-white shadow-md shadow-violet-900/40' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Vídeo
-                </button>
-                <button
-                  onClick={() => setMediaMode('audio')}
-                  className={`px-3 py-1 rounded-md font-semibold transition-all ${
-                    mediaMode === 'audio' ? 'bg-violet-600 text-white shadow-md shadow-violet-900/40' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Solo Audio
-                </button>
-              </div>
-            )}
-
-            <span className="hidden sm:inline-block border border-violet-500/30 bg-slate-900/80 text-violet-300 text-[10px] font-bold px-2 py-0.5 rounded">
-              HD 1080p
-            </span>
-          </div>
+          )}
         </div>
 
         {/* CENTER BIG BUTTONS */}
         <div className="flex items-center justify-center gap-8 md:gap-14 my-auto">
-          {/* Skip -10s */}
           <button
             onClick={() => skipTime(-10)}
             aria-label="Retroceder 10 segundos"
-            className="group p-3.5 rounded-full bg-slate-900/60 hover:bg-violet-900/40 border border-violet-500/20 backdrop-blur-md transition-all transform hover:scale-110 active:scale-95 shadow-lg"
+            className="p-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 backdrop-blur-md transition-all transform hover:scale-105 active:scale-95"
           >
-            <svg className="w-6 h-6 md:w-8 md:h-8 fill-white group-hover:fill-violet-400 transition-colors" viewBox="0 0 24 24">
-              <path d="M12.5 3C17.19 3 21 6.81 21 11.5C21 16.19 17.19 20 12.5 20C8.71 20 5.5 17.5 4.47 14H6.62C7.54 16.36 9.83 18 12.5 18C16.09 18 19 15.09 19 11.5C19 7.91 16.09 5 12.5 5C10.38 5 8.48 6.02 7.28 7.6L10 10.33H3V3.33L5.8 6.13C7.39 4.21 9.8 3 12.5 3Z" />
-              <text x="10" y="15.5" fontSize="7" fontWeight="bold" textAnchor="middle" fill="currentColor">
-                10
-              </text>
-            </svg>
+            <IconRewind10 className="w-6 h-6 md:w-7 md:h-7 text-white" />
           </button>
 
-          {/* Big Play / Pause */}
           <button
             onClick={togglePlay}
             aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
-            className="p-5 md:p-6 rounded-full bg-gradient-to-tr from-violet-600 via-purple-600 to-pink-500 hover:from-violet-500 hover:to-pink-400 text-white shadow-xl shadow-violet-900/50 border border-white/20 transition-all transform hover:scale-110 active:scale-95"
+            className="p-5 md:p-6 rounded-full bg-primary hover:brightness-110 text-white shadow-xl shadow-black/40 transition-all transform hover:scale-105 active:scale-95"
           >
-            {isPlaying ? (
-              <svg className="w-8 h-8 md:w-10 md:h-10 fill-current" viewBox="0 0 24 24">
-                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-              </svg>
-            ) : (
-              <svg className="w-8 h-8 md:w-10 md:h-10 fill-current ml-1" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            )}
+            {isPlaying ? <IconPause className="w-7 h-7 md:w-9 md:h-9" /> : <IconPlay className="w-7 h-7 md:w-9 md:h-9 ml-0.5" />}
           </button>
 
-          {/* Skip +10s */}
           <button
             onClick={() => skipTime(10)}
             aria-label="Adelantar 10 segundos"
-            className="group p-3.5 rounded-full bg-slate-900/60 hover:bg-violet-900/40 border border-violet-500/20 backdrop-blur-md transition-all transform hover:scale-110 active:scale-95 shadow-lg"
+            className="p-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 backdrop-blur-md transition-all transform hover:scale-105 active:scale-95"
           >
-            <svg className="w-6 h-6 md:w-8 md:h-8 fill-white group-hover:fill-violet-400 transition-colors" viewBox="0 0 24 24">
-              <path d="M11.5 3C6.81 3 3 6.81 3 11.5C3 16.19 6.81 20 11.5 20C15.29 20 18.5 17.5 19.53 14H17.38C16.46 16.36 14.17 18 11.5 18C7.91 18 5 15.09 5 11.5C5 7.91 7.91 5 11.5 5C13.62 5 15.52 6.02 16.72 7.6L14 10.33H21V3.33L18.2 6.13C16.61 4.21 14.2 3 11.5 3Z" />
-              <text x="14" y="15.5" fontSize="7" fontWeight="bold" textAnchor="middle" fill="currentColor">
-                10
-              </text>
-            </svg>
+            <IconForward10 className="w-6 h-6 md:w-7 md:h-7 text-white" />
           </button>
         </div>
 
         {/* BOTTOM CONTROLS & TIMELINE WITH SECTIONS */}
-        <div className="w-full flex flex-col gap-2">
+        <div className="w-full flex flex-col gap-1.5">
           {/* PROGRESS BAR & SECTION MARKERS */}
           <div
             className="relative group cursor-pointer py-2"
@@ -551,16 +886,16 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           >
             <div
               ref={progressBarRef}
-              className="relative w-full h-2 group-hover:h-3 bg-slate-800/90 rounded-full overflow-hidden transition-all shadow-inner border border-white/5"
+              className="relative w-full h-1 group-hover:h-1.5 bg-white/20 rounded-full overflow-hidden transition-all"
             >
               {/* Buffered Progress */}
               <div
-                className="absolute top-0 bottom-0 bg-slate-600/50 rounded-full transition-all"
+                className="absolute top-0 bottom-0 bg-white/25 rounded-full transition-all"
                 style={{ width: `${duration ? (bufferedEnd / duration) * 100 : 0}%` }}
               />
-              {/* Played Progress (Purple Gradient) */}
+              {/* Played Progress */}
               <div
-                className="absolute top-0 bottom-0 bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 rounded-full transition-all shadow-md shadow-violet-600/50"
+                className="absolute top-0 bottom-0 bg-primary rounded-full transition-all"
                 style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
               />
 
@@ -572,7 +907,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                   return (
                     <div
                       key={idx}
-                      className="absolute top-0 bottom-0 w-[2px] bg-white/70 shadow-sm z-10 pointer-events-none group-hover:w-[3px] transition-all"
+                      className="absolute top-0 bottom-0 w-[2px] bg-black/40 z-10 pointer-events-none"
                       style={{ left: `${leftPct}%` }}
                       title={`${sec.formattedTime} - ${sec.title}`}
                     />
@@ -582,131 +917,119 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
 
             {/* Seek Handle Dot */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-violet-600 rounded-full shadow-lg shadow-violet-900/50 scale-0 group-hover:scale-125 transition-transform pointer-events-none"
-              style={{ left: `calc(${duration ? (currentTime / duration) * 100 : 0}% - 8px)` }}
+              className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-md scale-0 group-hover:scale-100 transition-transform pointer-events-none"
+              style={{ left: `calc(${duration ? (currentTime / duration) * 100 : 0}% - 7px)` }}
             />
 
             {/* Hover Tooltip (Time + Section Title) */}
             {hoverTime !== null && (
               <div
-                className="absolute -top-12 -translate-x-1/2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md text-white text-xs font-mono rounded-lg shadow-xl border border-violet-500/30 pointer-events-none whitespace-nowrap z-50 flex flex-col items-center gap-0.5"
+                className="absolute -top-11 -translate-x-1/2 px-2.5 py-1.5 bg-black/90 backdrop-blur-md text-white text-xs font-mono rounded-md shadow-xl border border-white/10 pointer-events-none whitespace-nowrap z-50 flex flex-col items-center gap-0.5"
                 style={{ left: `${Math.max(40, Math.min(hoverPosition, (progressBarRef.current?.getBoundingClientRect().width || 200) - 40))}px` }}
               >
-                <span className="font-bold text-violet-300">{formatTime(hoverTime)}</span>
+                <span className="font-bold text-primary">{formatTime(hoverTime)}</span>
                 {hoveredSection && (
-                  <span className="text-[10px] text-slate-300 max-w-[180px] truncate font-sans">
-                    📌 {hoveredSection.title}
-                  </span>
+                  <span className="text-[10px] text-zinc-300 max-w-[180px] truncate font-sans">{hoveredSection.title}</span>
                 )}
               </div>
             )}
           </div>
 
           {/* BOTTOM BUTTONS ROW */}
-          <div className="flex items-center justify-between w-full pt-1">
+          <div className="flex items-center justify-between w-full">
             {/* Left Controls */}
-            <div className="flex items-center gap-3 md:gap-5">
-              <button onClick={togglePlay} className="text-white hover:text-violet-400 transition-colors">
-                {isPlaying ? (
-                  <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                )}
+            <div className="flex items-center gap-1 md:gap-2">
+              <button onClick={togglePlay} className={ctrlBtn} aria-label={isPlaying ? 'Pausar' : 'Reproducir'}>
+                {isPlaying ? <IconPause className="w-5 h-5" /> : <IconPlay className="w-5 h-5" />}
               </button>
 
-              {/* ENHANCED VOLUME SLIDER POPPER */}
+              {/* VOLUME SLIDER POPPER */}
               <div
                 className="relative flex items-center group/vol"
                 onMouseEnter={() => setIsVolumeHovered(true)}
                 onMouseLeave={() => setIsVolumeHovered(false)}
               >
-                <button onClick={toggleMute} className="text-slate-300 hover:text-violet-400 transition-colors p-1">
+                <button onClick={toggleMute} className={ctrlBtn} aria-label={isMuted ? 'Activar sonido' : 'Silenciar'}>
                   {isMuted || volume === 0 ? (
-                    <svg className="w-5 h-5 fill-current text-slate-500" viewBox="0 0 24 24">
-                      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
-                    </svg>
+                    <IconVolumeMute className="w-5 h-5" />
                   ) : volume < 0.5 ? (
-                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                      <path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z" />
-                    </svg>
+                    <IconVolumeLow className="w-5 h-5" />
                   ) : (
-                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-                    </svg>
+                    <IconVolumeHigh className="w-5 h-5" />
                   )}
                 </button>
 
-                {/* Expandable Smooth Volume Bar */}
                 <div
                   className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ${
-                    isVolumeHovered ? 'w-24 md:w-28 opacity-100 ml-2' : 'w-0 opacity-0 ml-0'
+                    isVolumeHovered ? 'w-24 md:w-28 opacity-100 ml-1' : 'w-0 opacity-0 ml-0'
                   }`}
                 >
-                  <div className="relative w-full flex items-center py-2 cursor-pointer">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={isMuted ? 0 : volume}
-                      onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                      className="w-full h-1.5 bg-slate-700 accent-violet-500 rounded-lg cursor-pointer transition-all"
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-400 min-w-[24px]">
-                    {Math.round((isMuted ? 0 : volume) * 100)}%
-                  </span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                    className="w-full h-1 bg-white/20 accent-primary rounded-lg cursor-pointer"
+                    aria-label="Volumen"
+                  />
+                  <span className="text-[10px] font-mono text-zinc-400 min-w-[24px]">{Math.round((isMuted ? 0 : volume) * 100)}%</span>
                 </div>
               </div>
 
               {/* Time Display */}
-              <span className="text-xs font-mono text-slate-300">
-                {formatTime(currentTime)} / {formatTime(duration)}
+              <span className="text-xs font-mono text-zinc-300 ml-1 hidden xs:inline">
+                {formatTime(currentTime)} <span className="text-zinc-600">/</span> {formatTime(duration)}
               </span>
             </div>
 
             {/* Right Controls */}
-            <div className="flex items-center gap-3 md:gap-4">
-              {/* Sections / Chapters Button (if sections available) */}
+            <div className="flex items-center gap-0.5 md:gap-1">
+              {/* Captions Toggle */}
+              {parsedCaptions.length > 0 && (
+                <button
+                  onClick={toggleCaptions}
+                  className={`${ctrlBtn} ${showCaptions ? ctrlBtnActive : ''}`}
+                  aria-label="Subtítulos"
+                  title="Subtítulos (C)"
+                >
+                  <IconCaptions className="w-5 h-5" />
+                </button>
+              )}
+
+              {/* Sections / Chapters Button */}
               {parsedSections.length > 0 && (
                 <button
-                  onClick={() => setShowSectionsDrawer(!showSectionsDrawer)}
-                  className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border transition ${
-                    showSectionsDrawer
-                      ? 'bg-violet-600 text-white border-violet-400 shadow-md'
-                      : 'text-slate-300 border-white/10 bg-slate-900/60 hover:bg-slate-800'
-                  }`}
+                  onClick={() => setShowSectionsDrawer((v) => !v)}
+                  className={`${ctrlBtn} ${showSectionsDrawer ? ctrlBtnActive : ''}`}
+                  aria-label="Capítulos"
+                  title="Capítulos"
                 >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
-                  </svg>
-                  <span className="hidden sm:inline">Secciones</span>
+                  <IconChapters className="w-5 h-5" />
                 </button>
               )}
 
               {/* Playback Speed Menu */}
               <div className="relative">
                 <button
-                  onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                  className="text-xs font-bold text-slate-300 hover:text-white px-2 py-1 rounded bg-slate-900/60 border border-white/10 hover:bg-slate-800 transition"
+                  onClick={() => setShowSpeedMenu((v) => !v)}
+                  className={`${ctrlBtn} text-xs font-bold w-auto px-2.5 ${showSpeedMenu ? ctrlBtnActive : ''}`}
+                  title="Velocidad de reproducción"
                 >
-                  {playbackRate}x
+                  {playbackRate}×
                 </button>
                 {showSpeedMenu && (
-                  <div className="absolute bottom-10 right-0 bg-slate-900/95 backdrop-blur-md border border-violet-500/20 rounded-lg shadow-xl p-1 flex flex-col gap-1 z-50">
-                    {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((rate) => (
+                  <div className="absolute bottom-11 right-0 bg-zinc-950/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-1 flex flex-col gap-0.5 z-50 min-w-[100px]">
+                    {[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0].map((rate) => (
                       <button
                         key={rate}
                         onClick={() => changeSpeed(rate)}
-                        className={`text-xs px-3 py-1.5 text-left rounded-md transition ${
-                          playbackRate === rate ? 'bg-violet-600 text-white font-bold' : 'text-slate-300 hover:bg-white/10'
+                        className={`text-xs px-3 py-1.5 flex items-center justify-between gap-3 rounded-lg transition ${
+                          playbackRate === rate ? 'text-primary font-bold' : 'text-zinc-300 hover:bg-white/5'
                         }`}
                       >
-                        {rate}x
+                        {rate}× {playbackRate === rate && <IconCheck className="w-3.5 h-3.5" />}
                       </button>
                     ))}
                   </div>
@@ -717,33 +1040,32 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
               {episodesList.length > 0 && (
                 <button
                   onClick={() => setShowEpisodeDrawer(true)}
-                  className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white px-2.5 py-1 rounded bg-slate-900/60 border border-white/10 hover:bg-slate-800 transition"
+                  className={ctrlBtn}
+                  aria-label="Lista de episodios"
+                  title="Episodios"
                 >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" />
-                  </svg>
-                  <span className="hidden sm:inline">Episodios</span>
+                  <IconQueue className="w-5 h-5" />
                 </button>
               )}
 
+              {/* Keyboard shortcuts */}
+              <button
+                onClick={() => setShowShortcuts(true)}
+                className={`${ctrlBtn} hidden md:flex`}
+                aria-label="Atajos de teclado"
+                title="Atajos de teclado (?)"
+              >
+                <IconKeyboard className="w-5 h-5" />
+              </button>
+
               {/* Picture-in-Picture */}
-              <button onClick={togglePiP} className="text-slate-300 hover:text-violet-400 transition-colors" title="Picture in Picture">
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z" />
-                </svg>
+              <button onClick={togglePiP} className={ctrlBtn} aria-label="Picture in Picture" title="Picture in Picture">
+                <IconPiP className="w-5 h-5" />
               </button>
 
               {/* Fullscreen */}
-              <button onClick={toggleFullscreen} className="text-slate-300 hover:text-violet-400 transition-colors">
-                {isFullscreen ? (
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-                  </svg>
-                )}
+              <button onClick={toggleFullscreen} className={ctrlBtn} aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}>
+                {isFullscreen ? <IconCompress className="w-5 h-5" /> : <IconExpand className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -752,32 +1074,26 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
 
       {/* SECTIONS / CHAPTERS OVERLAY POPUP */}
       {showSectionsDrawer && parsedSections.length > 0 && (
-        <div className="absolute bottom-20 right-6 z-50 w-72 max-h-72 bg-slate-900/95 backdrop-blur-xl border border-violet-500/30 rounded-2xl shadow-2xl p-4 flex flex-col">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
-            <h4 className="text-xs font-bold text-violet-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>📌</span> Secciones del Episodio
-            </h4>
-            <button onClick={() => setShowSectionsDrawer(false)} className="text-slate-400 hover:text-white text-xs">
-              ✕
+        <div className="absolute bottom-20 right-4 md:right-6 z-50 w-72 max-h-72 bg-zinc-950/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-4 flex flex-col">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+            <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Capítulos</h4>
+            <button onClick={() => setShowSectionsDrawer(false)} className="text-zinc-500 hover:text-white transition" aria-label="Cerrar">
+              <IconClose className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto space-y-1 pr-1">
             {parsedSections.map((sec, idx) => {
               const isActive = currentActiveSection?.title === sec.title;
               return (
                 <div
                   key={idx}
                   onClick={() => jumpToTime(sec.seconds)}
-                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition text-xs ${
-                    isActive
-                      ? 'bg-violet-600/30 text-violet-300 font-bold border border-violet-500/40'
-                      : 'text-slate-300 hover:bg-slate-800'
+                  className={`flex items-center justify-between gap-2 p-2 rounded-lg cursor-pointer transition text-xs ${
+                    isActive ? 'bg-primary/20 text-primary font-bold' : 'text-zinc-300 hover:bg-white/5'
                   }`}
                 >
-                  <span className="truncate pr-2">{sec.title}</span>
-                  <span className="font-mono text-[10px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-white/5">
-                    {sec.formattedTime}
-                  </span>
+                  <span className="truncate">{sec.title}</span>
+                  <span className="font-mono text-[10px] text-zinc-500 flex-shrink-0">{sec.formattedTime}</span>
                 </div>
               );
             })}
@@ -787,21 +1103,19 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
 
       {/* EPISODE SELECTOR SLIDE-OUT DRAWER */}
       {showEpisodeDrawer && (
-        <div className="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col p-6 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-violet-500 rounded-full animate-pulse" />
-              Episodios Veredillas FM
-            </h3>
+        <div className="absolute inset-0 z-50 bg-zinc-950/97 backdrop-blur-xl flex flex-col p-6 animate-fade-in">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+            <h3 className="text-lg font-display font-bold text-white">Episodios</h3>
             <button
               onClick={() => setShowEpisodeDrawer(false)}
-              className="p-2 text-slate-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition"
+              className="p-2 text-zinc-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition"
+              aria-label="Cerrar"
             >
-              ✕
+              <IconClose className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto space-y-2 pr-2">
             {episodesList.map((ep) => {
               const isCurrent = ep.slug === currentEpisode.slug;
               return (
@@ -809,33 +1123,60 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                   key={ep.slug}
                   onClick={() => handleSelectEpisode(ep)}
                   className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all border ${
-                    isCurrent
-                      ? 'bg-violet-950/50 border-violet-500/50 shadow-lg shadow-violet-950/40'
-                      : 'bg-slate-900/50 border-white/5 hover:bg-slate-800/80 hover:border-white/10'
+                    isCurrent ? 'bg-primary/10 border-primary/40' : 'bg-white/[0.02] border-white/5 hover:bg-white/5 hover:border-white/10'
                   }`}
                 >
-                  <img
-                    src={ep.image || '/logo.webp'}
-                    alt={ep.title}
-                    className="w-20 h-14 object-cover rounded-lg shadow-sm border border-white/10 flex-shrink-0"
-                  />
+                  <img src={ep.image || '/logo.webp'} alt={ep.title} className="w-20 h-14 object-cover rounded-lg border border-white/10 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <h4 className={`text-sm font-semibold truncate ${isCurrent ? 'text-violet-400' : 'text-white'}`}>
-                      {ep.title}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <h4 className={`text-sm font-semibold truncate ${isCurrent ? 'text-primary' : 'text-white'}`}>{ep.title}</h4>
+                    <p className="text-xs text-zinc-500 mt-0.5">
                       {ep.season && `T${ep.season}:E${ep.episode} · `}
                       {ep.duration || 'Veredillas FM'}
                     </p>
                   </div>
                   {isCurrent && (
-                    <span className="text-xs font-bold text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-full border border-violet-500/30">
-                      Reproduciendo
-                    </span>
+                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full flex-shrink-0">Reproduciendo</span>
                   )}
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* KEYBOARD SHORTCUTS MODAL */}
+      {showShortcuts && (
+        <div
+          className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
+          onClick={() => setShowShortcuts(false)}
+        >
+          <div
+            className="bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl p-6 w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-display font-bold text-white">Atajos de teclado</h3>
+              <button onClick={() => setShowShortcuts(false)} className="text-zinc-500 hover:text-white transition" aria-label="Cerrar">
+                <IconClose className="w-4 h-4" />
+              </button>
+            </div>
+            <ul className="space-y-2.5">
+              {[
+                ['Espacio / K', 'Reproducir / Pausar'],
+                ['← / J', 'Retroceder 5s'],
+                ['→ / L', 'Avanzar 5s'],
+                ['↑ / ↓', 'Subir / bajar volumen'],
+                ['M', 'Silenciar'],
+                ['F', 'Pantalla completa'],
+                ['C', 'Subtítulos'],
+                ['?', 'Mostrar/ocultar esta ayuda'],
+              ].map(([key, desc]) => (
+                <li key={key} className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-400">{desc}</span>
+                  <kbd className="font-mono text-[10px] font-bold text-zinc-200 bg-white/10 border border-white/10 rounded px-2 py-1">{key}</kbd>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
