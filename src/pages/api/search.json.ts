@@ -32,24 +32,14 @@ export async function GET() {
       tags: post.data.tags || [],
     })),
     // Integrantes del Equipo
-    ...teamMembers.map((member: any) => {
-      // Slugify simple
-      const memberSlug = member.name
-        .toLowerCase()
-        .trim()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, '-')
-        .replace(/[^\w-]+/g, '');
-
-      return {
-        title: member.name,
-        description: `${member.role} - ${member.department}`,
-        slug: `/equipo/${memberSlug}`, // Updated to new subpage structure
-        type: 'Equipo',
-        date: new Date().toISOString(), // Fecha simulada más reciente
-        image: member.image,
-      };
-    }),
+    ...teamMembers.map((member: any) => ({
+      title: member.name,
+      description: [member.role, member.department].filter(Boolean).join(' - '),
+      slug: `/equipo/${member.slug}`,
+      type: 'Equipo',
+      date: new Date().toISOString(), // Fecha simulada más reciente
+      image: member.image,
+    })),
     // Páginas Estáticas (Acciones Rápidas)
     { title: 'Inicio', description: 'Ir a la página principal', slug: '/', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
     { title: 'Blog', description: 'Ver todos los artículos', slug: '/blog', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
