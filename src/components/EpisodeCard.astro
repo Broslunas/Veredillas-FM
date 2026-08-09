@@ -76,6 +76,8 @@ const isAboutToPremiere = isUpcoming && diffInHours <= 2;
                                     data-cover={post.data.image || "/logo.webp"}
                                     data-slug={post.slug}
                                     data-href={`${urlPrefix}${post.slug}`}
+                                    data-umami-event="Reproduccion Rapida Episodio"
+                                    data-umami-event-title={post.data.title}
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -244,7 +246,10 @@ const isAboutToPremiere = isUpcoming && diffInHours <= 2;
         class="absolute inset-0 z-[30]"
         style="transform: translateZ(100px);"
         aria-label={`Escuchar ${post.data.title}`}
-        data-cursor="play"></a>
+        data-cursor="play"
+        data-umami-event="Click Tarjeta Episodio"
+        data-umami-event-slug={post.slug}
+    ></a>
 </article>
 
 <script>

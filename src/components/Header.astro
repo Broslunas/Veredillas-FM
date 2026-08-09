@@ -82,7 +82,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
     <div class="sh-inner-wrap">
 
       <!-- ── Logo ───────────────────────────── -->
-      <a href="/" class="sh-logo" aria-label="Veredillas FM – Inicio">
+      <a href="/" class="sh-logo" aria-label="Veredillas FM – Inicio" data-umami-event="Header Logo">
         <span class="sh-logo-ring" aria-hidden="true"></span>
         <img src="/logo.webp" alt="" width="36" height="36" class="sh-logo-img" />
         <span class="sh-logo-text">Veredillas<b>FM</b></span>
@@ -95,7 +95,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
             {'dropdown' in item && item.dropdown ? (
               <>
                 {item.href ? (
-                  <a href={item.href} class="sh-nav-btn" aria-haspopup="true">
+                  <a href={item.href} class="sh-nav-btn" aria-haspopup="true" data-umami-event="Navegacion Menu" data-umami-event-page={item.label}>
                     {item.label}
                     <svg class="sh-caret" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                   </a>
@@ -117,6 +117,8 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
                           role="menuitem"
                           target={sub.external ? '_blank' : undefined}
                           rel={sub.external ? 'noopener noreferrer' : undefined}
+                          data-umami-event="Navegacion Menu"
+                          data-umami-event-page={sub.label}
                         >
                           <span class="sh-dd-dot" aria-hidden="true"></span>
                           <span class="sh-dd-label">{sub.label}</span>
@@ -131,7 +133,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
                 </div>
               </>
             ) : (
-              <a href={item.href} class="sh-nav-link">{item.label}</a>
+              <a href={item.href} class="sh-nav-link" data-umami-event="Navegacion Menu" data-umami-event-page={item.label}>{item.label}</a>
             )}
           </div>
         ))}
@@ -140,7 +142,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
       <!-- ── Right Actions ──────────────────── -->
       <div class="sh-actions">
         <!-- CTA En Directo: oculto por defecto, solo visible cuando hay stream activo -->
-        <a id="sh-live-cta" href="/live" class="sh-cta sh-cta--hidden" aria-label="Emisión en directo" aria-hidden="true">
+        <a id="sh-live-cta" href="/live" class="sh-cta sh-cta--hidden" aria-label="Emisión en directo" aria-hidden="true" data-umami-event="CTA En Directo">
           <span class="sh-cta-dot" aria-hidden="true"></span>
           En Directo
         </a>
