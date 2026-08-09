@@ -1,9 +1,13 @@
 import { getCollection } from '@/lib/content';
-import { teamMembers } from '@/data/team';
+import dbConnect from '@/lib/mongodb';
+import Team from '@/models/Team';
 
 export async function GET() {
   const episodios = await getCollection('episodios');
   const posts = await getCollection('blog');
+
+  await dbConnect();
+  const teamMembers = await Team.find({}).lean();
 
   const allContent = [
     ...episodios.map((episode) => ({
@@ -28,7 +32,7 @@ export async function GET() {
       tags: post.data.tags || [],
     })),
     // Integrantes del Equipo
-    ...teamMembers.map((member) => {
+    ...teamMembers.map((member: any) => {
       // Slugify simple
       const memberSlug = member.name
         .toLowerCase()

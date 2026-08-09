@@ -1,40 +1,32 @@
 ---
+export const prerender = false;
 import Layout from '@/layouts/Layout.astro';
-import { teamMembers } from '@/data/team';
+import dbConnect from '@/lib/mongodb';
+import Team from '@/models/Team';
 
-export const prerender = true;
+const { id } = Astro.params;
 
-export function getStaticPaths() {
-  return teamMembers.map((member) => {
-    // Simple slugify: "Miguel Salazar" -> "miguel-salazar"
-    const slug = member.name
-      .toLowerCase()
-      .trim()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]+/g, '');
-      
-    return {
-      params: { id: slug },
-      props: { member },
-    };
-  });
+await dbConnect();
+const memberDoc = id ? await Team.findOne({ slug: id }).lean() : null;
+
+if (!memberDoc) {
+  return Astro.redirect('/equipo');
 }
 
-const { member } = Astro.props;
+const member = memberDoc as any;
 ---
 
-<Layout 
+<Layout
   title={`${member.name} | Equipo Veredillas FM`}
-  description={`${member.role} en Veredillas FM. ${member.bio}`}
-  image={member.image}
+  description={`${member.role || ''} en Veredillas FM. ${member.bio || ''}`}
+  image={member.image || '/logo.webp'}
   robots="noindex, nofollow"
   showFooter={false}
 >
     <!-- Background Elements -->
     <div class="page-bg">
         <div class="bg-gradient"></div>
-        <img class="bg-image" src={member.image} alt="" aria-hidden="true" />
+        <img class="bg-image" src={member.image || '/logo.webp'} alt="" aria-hidden="true" />
     </div>
 
     <div class="container container-full">
@@ -44,9 +36,9 @@ const { member } = Astro.props;
         </a>
 
         <main class="profile-layout glass-panel gs-reveal">
-            
+
             <div class="profile-visual">
-                <img src={member.image} alt={member.name} />
+                <img src={member.image || '/logo.webp'} alt={member.name} />
                 <div class="visual-gradient"></div>
             </div>
 
@@ -54,6 +46,7 @@ const { member } = Astro.props;
                 <div class="content-header">
                    <div class="badges">
                         <span class="dept-badge">{member.department || 'Equipo'}</span>
+                        {member.schoolYear && <span class="dept-badge year-badge">{member.schoolYear}</span>}
                    </div>
                    <h1>{member.name}</h1>
                    <h2 class="role">{member.role}</h2>
@@ -61,10 +54,10 @@ const { member } = Astro.props;
 
                 <div class="content-body">
                     <p class="bio">{member.bio}</p>
-                    
+
                     {member.links && member.links.length > 0 && (
                         <div class="social-links">
-                            {member.links.map((link) => (
+                            {member.links.map((link: { label: string; url: string }) => (
                                 <a href={link.url} target="_blank" rel="noopener noreferrer" class="social-btn">
                                     <span>{link.label}</span>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
@@ -81,7 +74,7 @@ const { member } = Astro.props;
 
 <script>
     import { gsap } from "gsap";
-    
+
     document.addEventListener('astro:page-load', () => {
         gsap.from(".gs-reveal", {
             y: 30,
@@ -215,6 +208,12 @@ const { member } = Astro.props;
         padding-bottom: 1.5rem;
     }
 
+    .badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
     .dept-badge {
         font-size: 0.7rem;
         text-transform: uppercase;
@@ -226,6 +225,11 @@ const { member } = Astro.props;
         border-radius: 4px;
         display: inline-block;
         margin-bottom: 1rem;
+    }
+
+    .year-badge {
+        color: var(--color-text-muted);
+        background: rgba(255, 255, 255, 0.05);
     }
 
     h1 {

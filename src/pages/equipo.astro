@@ -1,20 +1,39 @@
 ---
-export const prerender = true;
+export const prerender = false;
 import Layout from '@/layouts/Layout.astro';
-import { teamMembers as allMembers } from '@/data/team';
+import dbConnect from '@/lib/mongodb';
+import Team from '@/models/Team';
 
-// Helper for slugify (must match other files)
-function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .trim()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '');
+await dbConnect();
+const allMembersRaw = await Team.find({}).sort({ schoolYear: -1, order: 1, name: 1 }).lean();
+
+const allMembers = allMembersRaw.map((m: any) => ({
+  slug: m.slug,
+  name: m.name,
+  role: m.role,
+  image: m.image,
+}));
+
+function schoolYearStartYear(year: string): number {
+  const n = parseInt((year || '').split('/')[0], 10);
+  return Number.isNaN(n) ? 0 : n;
 }
+
+const schoolYears = [...new Set(allMembersRaw.map((m: any) => m.schoolYear as string))].sort(
+  (a, b) => schoolYearStartYear(b) - schoolYearStartYear(a)
+);
+
+const currentYear = schoolYears[0] || '';
+
+const membersByYear = schoolYears.map((year) => ({
+  year,
+  members: allMembersRaw
+    .filter((m: any) => m.schoolYear === year)
+    .map((m: any) => ({ slug: m.slug, name: m.name, role: m.role, image: m.image })),
+}));
 ---
 
-<Layout 
+<Layout
   title="Nuestro Equipo"
   description="Conoce a las personas que hacen posible Veredillas FM. Estudiantes apasionados por la comunicación, la tecnología y la creatividad."
   image="/logo.webp"
@@ -29,35 +48,54 @@ function slugify(text: string) {
             <p class="subtitle">
                 Somos un grupo diverso de estudiantes del IES Las Veredillas unidos por una misma pasión: conectar con nuestra comunidad a través del audio.
             </p>
+
+            {schoolYears.length > 1 && (
+                <div class="year-select-wrap">
+                    <label for="team-year-select">Curso escolar</label>
+                    <select id="team-year-select">
+                        {schoolYears.map((year) => (
+                            <option value={year} selected={year === currentYear}>{year}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
         </header>
 
-        <div class="team-grid gs-reveal">
-            {allMembers.map((member, index) => (
-                <a 
-                    href={`/equipo/${slugify(member.name)}`}
-                    class="member-card" 
-                    aria-label={`Ver perfil de ${member.name}`}
-                >
-                    <div class="card-inner glass-panel">
-                        <div class="image-box">
-                            <img 
-                                src={member.image} 
-                                alt={member.name} 
-                                loading={index < 3 ? "eager" : "lazy"} 
-                            />
-                        </div>
-                        <div class="info-box">
-                            <h3>{member.name}</h3>
-                            <span class="role">{member.role}</span>
-                        </div>
-                        <div class="hover-status">
-                            <span>Ver Perfil Completo</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                        </div>
+        {membersByYear.length === 0 ? (
+            <p class="empty-state">Todavía no hay miembros del equipo publicados.</p>
+        ) : (
+            membersByYear.map(({ year, members }) => (
+                <div class:list={["team-year-section", year !== currentYear && "hidden"]} data-year={year}>
+                    <div class="team-grid gs-reveal">
+                        {members.map((member, index) => (
+                            <a
+                                href={`/equipo/${member.slug}`}
+                                class="member-card"
+                                aria-label={`Ver perfil de ${member.name}`}
+                            >
+                                <div class="card-inner glass-panel">
+                                    <div class="image-box">
+                                        <img
+                                            src={member.image || '/logo.webp'}
+                                            alt={member.name}
+                                            loading={index < 3 ? "eager" : "lazy"}
+                                        />
+                                    </div>
+                                    <div class="info-box">
+                                        <h3>{member.name}</h3>
+                                        <span class="role">{member.role}</span>
+                                    </div>
+                                    <div class="hover-status">
+                                        <span>Ver Perfil Completo</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                    </div>
+                                </div>
+                            </a>
+                        ))}
                     </div>
-                </a>
-            ))}
-        </div>
+                </div>
+            ))
+        )}
 
         <!-- Join CTA -->
         <section class="join-cta glass-panel gs-reveal">
@@ -74,16 +112,33 @@ function slugify(text: string) {
 
     <script>
         import { gsap } from "gsap";
-        
-        document.addEventListener('astro:page-load', () => {
+
+        function initTeamPage() {
             gsap.from(".gs-reveal", {
                 y: 30,
                 opacity: 0,
                 duration: 0.8,
                 stagger: 0.15,
-                ease: "power2.out"
+                ease: "power2.out",
+                clearProps: "all",
             });
-        });
+
+            const select = document.getElementById('team-year-select') as HTMLSelectElement | null;
+            select?.addEventListener('change', () => {
+                document.querySelectorAll('.team-year-section').forEach((section) => {
+                    const year = (section as HTMLElement).dataset.year;
+                    section.classList.toggle('hidden', year !== select.value);
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTeamPage);
+        } else {
+            initTeamPage();
+        }
+
+        document.addEventListener('astro:page-load', initTeamPage);
     </script>
 </Layout>
 
@@ -131,6 +186,47 @@ function slugify(text: string) {
         font-size: 1.2rem;
         color: var(--color-text-muted);
         line-height: 1.6;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: var(--color-text-muted);
+        margin-bottom: 6rem;
+    }
+
+    /* Year Selector */
+    .year-select-wrap {
+        margin-top: 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .year-select-wrap label {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        font-weight: 600;
+    }
+
+    .year-select-wrap select {
+        background: rgba(10, 10, 11, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-text-main);
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+    }
+
+    .year-select-wrap select:focus {
+        outline: none;
+        border-color: var(--color-primary);
+    }
+
+    .team-year-section.hidden {
+        display: none;
     }
 
     /* Grid Layout */
@@ -263,7 +359,7 @@ function slugify(text: string) {
         transform: rotate(-15deg);
         pointer-events: none;
     }
-    
+
     .mic-icon {
         width: 300px;
         height: 300px;
@@ -275,7 +371,7 @@ function slugify(text: string) {
             text-align: center;
             padding: 3rem 1.5rem;
         }
-        
+
         .team-grid {
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 1.5rem;
