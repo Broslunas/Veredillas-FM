@@ -36,7 +36,7 @@ export interface IUser extends mongoose.Document {
   lastActiveAt: Date; // Last time the user interacted/loaded the app
   currentStreak: number; // Consecutive days of activity
   maxStreak: number; // Record streak
-  role: 'user' | 'admin' | 'owner';
+  role: 'user' | 'editor' | 'admin' | 'owner';
   newsletter: boolean;
   likedClips: string[];
   pushSubscriptions: {
@@ -125,7 +125,7 @@ const userSchema = new mongoose.Schema<IUser>({
   },
   role: {
     type: String,
-    enum: ['user', 'admin', 'owner'],
+    enum: ['user', 'editor', 'admin', 'owner'],
     default: 'user'
   },
   likedClips: {

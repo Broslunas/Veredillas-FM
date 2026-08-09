@@ -13,7 +13,7 @@ async function checkAdmin(request: Request) {
     
     await dbConnect();
     const user = await User.findById(userPayload.userId);
-    return user && (user.role === 'admin' || user.role === 'owner');
+    return user && (user.role === 'admin' || user.role === 'owner' || user.role === 'editor');
 }
 
 export const GET: APIRoute = async ({ request }) => {

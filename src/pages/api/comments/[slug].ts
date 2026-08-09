@@ -35,7 +35,7 @@ export const GET: APIRoute = async ({ params, request }) => {
         const user = await User.findById(userPayload.userId);
         if (user) {
             currentUserEmail = user.email.toLowerCase();
-            isModerator = user.role === 'admin' || user.role === 'owner';
+            isModerator = user.role === 'admin' || user.role === 'owner' || user.role === 'editor';
         }
     }
 
@@ -250,7 +250,7 @@ export const DELETE: APIRoute = async ({ request }) => {
         const User = (await import('@/models/User')).default;
         const user = await User.findById(userPayload.userId);
         if (user) {
-            const isAdmin = user.role === 'admin' || user.role === 'owner';
+            const isAdmin = user.role === 'admin' || user.role === 'owner' || user.role === 'editor';
             const isAuthor = user.email.toLowerCase() === comment.email.toLowerCase();
             if (isAdmin || isAuthor) isAuthorized = true;
         }

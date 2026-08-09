@@ -511,7 +511,7 @@ const { slug } = Astro.props;
                     <div class="text-[0.7rem] font-bold text-primary uppercase tracking-wider">${this.escapeHtml(msg.user.name)}</div>
                     <div class="text-xs text-white leading-tight">${this.escapeHtml(msg.content)}</div>
                 </div>
-                ${this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'owner') ? `
+                ${this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'owner' || this.currentUser.role === 'editor') ? `
                 <button class="unpin-btn text-white/40 hover:text-white transition-colors">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
@@ -528,7 +528,7 @@ const { slug } = Astro.props;
             div.className = 'flex gap-3 animate-fade-in-up transition-all duration-300';
             div.dataset.id = msg._id;
             
-            const isAdmin = this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'owner');
+            const isAdmin = this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'owner' || this.currentUser.role === 'editor');
             
             div.innerHTML = `
                 <img src="${this.escapeHtml(msg.user.avatar)}" alt="${this.escapeHtml(msg.user.name)}" class="w-8 h-8 rounded-full bg-slate-800 shadow-md">
