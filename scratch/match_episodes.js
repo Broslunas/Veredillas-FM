@@ -8,10 +8,10 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 const r2 = new S3Client({
   region: "auto",
-  endpoint: "https://1bdeaebce2649429d4562a6272fd127c.eu.r2.cloudflarestorage.com",
+  endpoint: process.env.R2_ENDPOINT,
   credentials: {
-    accessKeyId: "33479da4b52490f9a9bbff3e4a2c92cb",
-    secretAccessKey: "3b7b01723ef853c1b31b4324021144846a29d8b4b71246eac96dda446877a860"
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY
   }
 });
 

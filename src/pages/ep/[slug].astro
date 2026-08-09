@@ -193,8 +193,6 @@ candidates.sort((a, b) => {
     return b.date - a.date;
 });
 
-import { getDirectR2StreamUrl } from "@/lib/r2";
-
 const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     slug: c.ep.slug,
     title: c.ep.data.title,
@@ -205,25 +203,19 @@ const nextEpisodes = candidates.slice(0, 3).map((c) => ({
     episode: c.ep.data.episode,
 }));
 
-const resolvedVideoUrl = entry.data.videoUrl
-    ? await getDirectR2StreamUrl(entry.data.videoUrl)
-    : undefined;
+const resolvedVideoUrl = entry.data.videoUrl;
 
-const allEpisodesList = await Promise.all(
-    allEpisodes.map(async (ep) => ({
-        slug: ep.slug,
-        title: ep.data.title,
-        author: ep.data.author || "Veredillas FM",
-        season: ep.data.season,
-        episode: ep.data.episode,
-        duration: ep.data.duration,
-        image: ep.data.image || "/logo.webp",
-        videoUrl: ep.data.videoUrl
-            ? await getDirectR2StreamUrl(ep.data.videoUrl)
-            : undefined,
-        audioUrl: ep.data.audioUrl,
-    }))
-);
+const allEpisodesList = allEpisodes.map((ep) => ({
+    slug: ep.slug,
+    title: ep.data.title,
+    author: ep.data.author || "Veredillas FM",
+    season: ep.data.season,
+    episode: ep.data.episode,
+    duration: ep.data.duration,
+    image: ep.data.image || "/logo.webp",
+    videoUrl: ep.data.videoUrl,
+    audioUrl: ep.data.audioUrl,
+}));
 ---
 
 <Layout

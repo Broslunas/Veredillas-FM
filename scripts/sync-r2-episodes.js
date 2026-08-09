@@ -1,21 +1,10 @@
 import mongoose from 'mongoose';
-import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
 
 dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
-
-const r2 = new S3Client({
-  region: "auto",
-  endpoint: "https://1bdeaebce2649429d4562a6272fd127c.eu.r2.cloudflarestorage.com",
-  credentials: {
-    accessKeyId: "33479da4b52490f9a9bbff3e4a2c92cb",
-    secretAccessKey: "3b7b01723ef853c1b31b4324021144846a29d8b4b71246eac96dda446877a860"
-  }
-});
+const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || 'https://pub-1bdeaebce2649429d4562a6272fd127c.r2.dev';
 
 const EpisodeContentSchema = new mongoose.Schema({
   slug: String,
@@ -32,46 +21,25 @@ async function main() {
   await mongoose.connect(MONGODB_URI);
   console.log("Connected to MongoDB");
 
-  const r2Res = await r2.send(new ListObjectsV2Command({ Bucket: "vfm-bucket-01" }));
-  const r2Files = r2Res.Contents || [];
-
-  const dbEpisodes = await EpisodeContent.find({}).sort({ season: 1, episode: 1 });
+  const legacyEpisodes = await EpisodeContent.find({ videoUrl: /^\/api\/stream\// }).sort({ season: 1, episode: 1 });
 
   let updatedCount = 0;
 
-  for (const ep of dbEpisodes) {
-    const targetPrefix = `videos/S${ep.season}-E${ep.episode}-`;
-    const matchedR2 = r2Files.find(f => f.Key.startsWith(targetPrefix));
+  for (const ep of legacyEpisodes) {
+    const key = ep.videoUrl.replace(/^\/api\/stream\//, '');
+    const directUrl = `${R2_PUBLIC_URL.replace(/\/+$/, '')}/${key}`;
 
-    if (matchedR2) {
-      const streamUrl = `/api/stream/${matchedR2.Key}`;
-      console.log(`[UPDATED] S${ep.season}E${ep.episode} (${ep.slug}) -> videoUrl: "${streamUrl}"`);
+    console.log(`[UPDATED] S${ep.season}E${ep.episode} (${ep.slug}) -> videoUrl: "${ep.videoUrl}" => "${directUrl}"`);
 
-      // Update Mongo DB
-      await EpisodeContent.updateOne({ slug: ep.slug }, { $set: { videoUrl: streamUrl } });
-
-      // Update Markdown frontmatter if file exists
-      const mdPath = path.join(process.cwd(), 'src', 'content', 'episodios', `${ep.slug}.md`);
-      if (fs.existsSync(mdPath)) {
-        let content = fs.readFileSync(mdPath, 'utf-8');
-        if (content.includes('videoUrl:')) {
-          content = content.replace(/videoUrl:\s*["']?.*["']?/, `videoUrl: "${streamUrl}"`);
-        } else {
-          // Insert videoUrl into frontmatter right before the second ---
-          content = content.replace(/^(---\s*[\s\S]*?)(---)/m, `$1videoUrl: "${streamUrl}"\n$2`);
-        }
-        fs.writeFileSync(mdPath, content, 'utf-8');
-      }
-
-      updatedCount++;
-    }
+    await EpisodeContent.updateOne({ _id: ep._id }, { $set: { videoUrl: directUrl } });
+    updatedCount++;
   }
 
-  console.log(`\nSuccessfully updated ${updatedCount} episodes with Cloudflare R2 video URLs!`);
+  console.log(`\nSuccessfully migrated ${updatedCount} episodes from /api/stream/ URLs to direct R2 public URLs!`);
   await mongoose.disconnect();
 }
 
 main().catch(err => {
-  console.error("Error syncing R2 episodes:", err);
+  console.error("Error migrating episode video URLs:", err);
   process.exit(1);
 });
