@@ -2,31 +2,26 @@
 const currentPath = Astro.url.pathname;
 const navLinks = [
   { group: 'Overview', items: [
-      { href: '/dashboard/admin', label: '📊 Dashboard' },
-      { href: 'http://localhost:3000/user-stats', label: '📈 Analíticas (Nuevo Panel)' },
+      { href: 'http://localhost:3000/', label: '📊 Dashboard (Panel)' },
+      { href: 'http://localhost:3000/user-stats', label: '📈 Analíticas (Panel)' },
   ]},
   { group: 'Usuarios', items: [
-      { href: 'http://localhost:3000/users', label: '👥 Usuarios (Nuevo Panel)' },
-      { href: 'http://localhost:3000/comments', label: '💬 Comentarios (Nuevo Panel)' },
-      { href: 'http://localhost:3000/interviews', label: '📅 Entrevistas (Nuevo Panel)' },
+      { href: 'http://localhost:3000/users', label: '👥 Usuarios (Panel)' },
+      { href: 'http://localhost:3000/comments', label: '💬 Comentarios (Panel)' },
+      { href: 'http://localhost:3000/interviews', label: '📅 Entrevistas (Panel)' },
   ]},
   { group: 'Contenido', items: [
-      { href: '/dashboard/admin/content', label: '🎙️ Episodios' },
-      { href: 'http://localhost:3000/social-clips', label: '📱 Highlights Studio (Nuevo Panel)' },
-      { href: 'http://localhost:3000/buffer', label: '🦬 Social Publisher (Nuevo Panel)' },
+      { href: 'http://localhost:3000/episodes', label: '🎙️ Episodios (Panel)' },
+      { href: 'http://localhost:3000/social-clips', label: '📱 Highlights Studio (Panel)' },
+      { href: 'http://localhost:3000/buffer', label: '🦬 Social Publisher (Panel)' },
   ]},
   { group: 'Utilidades', items: [
-      { href: 'http://localhost:3000/live', label: '🔴 Live (Nuevo Panel)' },
-      { href: '/dashboard/admin/push', label: '🔔 Push' },
-      { href: '/dashboard/admin/wrapped', label: '🎁 Wrapped' },
+      { href: 'http://localhost:3000/live', label: '🔴 Live (Panel)' },
       { href: '/studio/remote', label: '🎙️ Studio' },
   ]},
 ];
 
-const isActive = (href: string) => {
-    if (href === '/dashboard/admin') return currentPath === '/dashboard/admin';
-    return currentPath.startsWith(href);
-};
+const isActive = (href: string) => currentPath.startsWith(href);
 ---
 
 <nav class="mb-8 flex flex-wrap items-center gap-x-8 gap-y-4 p-5 bg-zinc-900/40 border border-white/10 rounded-3xl backdrop-blur-xl">

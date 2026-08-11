@@ -5,7 +5,7 @@ import dbConnect from '@/lib/mongodb';
 import Team from '@/models/Team';
 
 await dbConnect();
-const allMembersRaw = await Team.find({}).sort({ schoolYear: -1, order: 1, name: 1 }).lean();
+const allMembersRaw = await Team.find({ deletedAt: null }).sort({ schoolYear: -1, order: 1, name: 1 }).lean();
 
 const allMembers = allMembersRaw.map((m: any) => ({
   slug: m.slug,

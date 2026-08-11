@@ -16,7 +16,9 @@ export async function GET(context) {
       link: `/ep/${ep.slug}/`,
       author: ep.data.author,
       type: 'episode',
-      image: ep.data.image
+      image: ep.data.image,
+      slug: ep.slug,
+      hasChapters: Array.isArray(ep.data.sections) && ep.data.sections.length > 0
     })),
     ...blog.map(post => ({
       title: post.data.title,
@@ -33,17 +35,27 @@ export async function GET(context) {
     title: 'Veredillas FM',
     description: 'El podcast oficial de Veredillas. Donde te mantenemos al pendiente de los temas más candentes.',
     site: context.site,
-    items: allContent.map(item => ({
-      title: item.title,
-      description: item.description,
-      pubDate: item.pubDate,
-      link: item.link,
-      author: item.author,
-      categories: item.type === 'episode' ? ['Podcast', 'Episodio'] : ['Blog'],
-      customData: item.image 
-        ? `<image>${item.image}</image>`
-        : undefined
-    })),
+    xmlns: {
+      podcast: 'https://podcastindex.org/namespace/1.0'
+    },
+    items: allContent.map(item => {
+      const customDataParts = [];
+      if (item.image) customDataParts.push(`<image>${item.image}</image>`);
+      if (item.type === 'episode' && item.hasChapters) {
+        const chaptersUrl = new URL(`/api/episodes/${item.slug}/chapters.json`, context.site);
+        customDataParts.push(`<podcast:chapters url="${chaptersUrl}" type="application/json+chapters"/>`);
+      }
+
+      return {
+        title: item.title,
+        description: item.description,
+        pubDate: item.pubDate,
+        link: item.link,
+        author: item.author,
+        categories: item.type === 'episode' ? ['Podcast', 'Episodio'] : ['Blog'],
+        customData: customDataParts.length > 0 ? customDataParts.join('') : undefined
+      };
+    }),
     customData: `<language>es-ES</language>`,
   });
 

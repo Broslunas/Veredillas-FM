@@ -138,9 +138,6 @@ const wrappedYear = wrappedSettings?.year || new Date().getFullYear();
                             <a href="/perfil" class="action-pill bg-white/10 hover:bg-white/20 text-white shadow-xl backdrop-blur-md">Editar Perfil</a>
                             <a href="/logros" class="action-pill bg-purple-500/10 text-purple-300 border border-purple-500/30 hover:bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">🏅 Logros</a>
                             <a href="/cromos" class="action-pill bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]">✨ Cromos</a>
-                            {(user.role === 'admin' || user.role === 'owner' || user.role === 'editor') && (
-                                <a href="/dashboard/admin/push" class="action-pill bg-pink-500/10 text-pink-300 border border-pink-500/30 hover:bg-pink-500/20 shadow-[0_0_15px_rgba(236,72,153,0.15)]">🔔 Push</a>
-                            )}
                         </div>
                     </div>
                 </div>

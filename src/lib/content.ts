@@ -52,24 +52,43 @@ function formatEntry(collection: string, doc: any): ContentEntry {
   };
 }
 
+export interface CollectionQueryOptions {
+  // Only relevant for 'episodios' — internal admin views need to see drafts.
+  includeDrafts?: boolean;
+  // Relevant for 'episodios' | 'blog' | 'guests' — internal admin views
+  // need to see items sitting in the panel's trash.
+  includeDeleted?: boolean;
+}
+
 export async function getCollection(
   collection: 'episodios' | 'blog' | 'guests' | 'gallery' | string,
-  filterFn?: (entry: ContentEntry) => boolean
+  filterFn?: (entry: ContentEntry) => boolean,
+  options: CollectionQueryOptions = {}
 ): Promise<ContentEntry[]> {
   await dbConnect();
 
   let docs: any[] = [];
 
   switch (collection) {
-    case 'episodios':
-      docs = await EpisodeContent.find({}).sort({ pubDate: -1 });
+    case 'episodios': {
+      const query: any = {};
+      if (!options.includeDeleted) query.deletedAt = null;
+      if (!options.includeDrafts) query.status = { $ne: 'draft' };
+      docs = await EpisodeContent.find(query).sort({ pubDate: -1 });
       break;
-    case 'blog':
-      docs = await BlogPost.find({}).sort({ pubDate: -1 });
+    }
+    case 'blog': {
+      const query: any = {};
+      if (!options.includeDeleted) query.deletedAt = null;
+      docs = await BlogPost.find(query).sort({ pubDate: -1 });
       break;
-    case 'guests':
-      docs = await Guest.find({});
+    }
+    case 'guests': {
+      const query: any = {};
+      if (!options.includeDeleted) query.deletedAt = null;
+      docs = await Guest.find(query);
       break;
+    }
     case 'gallery':
       docs = await GalleryCategory.find({});
       break;
@@ -88,22 +107,33 @@ export async function getCollection(
 
 export async function getEntry(
   collection: 'episodios' | 'blog' | 'guests' | 'gallery' | string,
-  slug: string
+  slug: string,
+  options: CollectionQueryOptions = {}
 ): Promise<ContentEntry | null> {
   await dbConnect();
 
   let doc: any = null;
 
   switch (collection) {
-    case 'episodios':
-      doc = await EpisodeContent.findOne({ slug });
+    case 'episodios': {
+      const query: any = { slug };
+      if (!options.includeDeleted) query.deletedAt = null;
+      if (!options.includeDrafts) query.status = { $ne: 'draft' };
+      doc = await EpisodeContent.findOne(query);
       break;
-    case 'blog':
-      doc = await BlogPost.findOne({ slug });
+    }
+    case 'blog': {
+      const query: any = { slug };
+      if (!options.includeDeleted) query.deletedAt = null;
+      doc = await BlogPost.findOne(query);
       break;
-    case 'guests':
-      doc = await Guest.findOne({ slug });
+    }
+    case 'guests': {
+      const query: any = { slug };
+      if (!options.includeDeleted) query.deletedAt = null;
+      doc = await Guest.findOne(query);
       break;
+    }
     case 'gallery':
       doc = await GalleryCategory.findOne({ slug });
       break;

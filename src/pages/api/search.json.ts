@@ -7,7 +7,7 @@ export async function GET() {
   const posts = await getCollection('blog');
 
   await dbConnect();
-  const teamMembers = await Team.find({}).lean();
+  const teamMembers = await Team.find({ deletedAt: null }).lean();
 
   const allContent = [
     ...episodios.map((episode) => ({

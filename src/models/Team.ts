@@ -15,6 +15,7 @@ export interface ITeam {
   order: number;
   links: ITeamLink[];
   bio?: string;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +39,7 @@ const TeamSchema = new Schema<ITeam>(
       default: [],
     },
     bio: { type: String },
+    deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true }
 );

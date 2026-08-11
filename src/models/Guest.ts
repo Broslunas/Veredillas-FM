@@ -14,6 +14,7 @@ export interface IGuest {
   description?: string;
   social?: IGuestSocial;
   body: string;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +32,7 @@ const GuestSchema = new Schema<IGuest>(
       website: { type: String },
     },
     body: { type: String, default: '' },
+    deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true }
 );

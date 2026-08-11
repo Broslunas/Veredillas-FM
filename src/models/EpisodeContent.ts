@@ -44,6 +44,8 @@ export interface IEpisodeContent {
   clips?: IClipItem[];
   quiz?: IQuizItem[];
   body: string;
+  status: 'draft' | 'published';
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -93,6 +95,8 @@ const EpisodeContentSchema = new Schema<IEpisodeContent>(
       },
     ],
     body: { type: String, default: '' },
+    status: { type: String, enum: ['draft', 'published'], default: 'published' },
+    deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true }
 );
