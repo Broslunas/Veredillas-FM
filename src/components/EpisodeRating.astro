@@ -6,37 +6,35 @@ interface Props {
 const { slug } = Astro.props;
 ---
 
-<div class="episode-rating-widget group" data-slug={slug}>
+<div class="episode-rating-widget ep-chip group" data-slug={slug}>
   <div class="rating-skeleton">
     <div class="skeleton-pill">
       <div class="shimmer-bar"></div>
     </div>
   </div>
-  
+
   <div class="rating-content" style="display: none;">
-    <div class="stars-container">
-      <div class="stars-row">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <span class="star-display" data-index={i}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="star-icon">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-          </span>
-        ))}
-      </div>
+    <div class="stars-row">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span class="star-display" data-index={i}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="star-icon">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </span>
+      ))}
     </div>
-    
-    <div class="rating-divider"></div>
-    
+
+    <div class="ep-chip-divider"></div>
+
     <div class="rating-data">
-      <span class="rating-average">0.0</span>
-      <span class="rating-count max-sm:hidden">0</span>
+      <span class="rating-average ep-chip-value">0.0</span>
+      <span class="rating-count ep-chip-count max-sm:hidden">0</span>
     </div>
   </div>
-  
+
   <div class="rating-empty" style="display: none;">
     <div class="empty-stars">☆☆☆☆☆</div>
-    <span class="no-rating-text">Sin valoraciones</span>
+    <span class="no-rating-text ep-chip-label">Sin valoraciones</span>
   </div>
 </div>
 
@@ -147,29 +145,14 @@ const { slug } = Astro.props;
 
 <style>
   .episode-rating-widget {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 0.875rem;
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-    min-height: 48px;
-  }
-
-  .episode-rating-widget:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
+    gap: 0.75rem;
   }
 
   /* Skeleton */
   .rating-skeleton {
     display: flex;
     align-items: center;
-    width: 140px;
+    width: 120px;
   }
 
   .skeleton-pill {
@@ -197,12 +180,12 @@ const { slug } = Astro.props;
   .rating-content {
     display: flex;
     align-items: center;
-    gap: 0.875rem;
+    gap: 0.75rem;
   }
 
   .stars-row {
     display: flex;
-    gap: 0.25rem;
+    gap: 0.2rem;
     color: rgba(255, 255, 255, 0.1);
   }
 
@@ -213,105 +196,52 @@ const { slug } = Astro.props;
   .star-display.filled {
     color: #f59e0b;
     filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3));
-    transform: scale(1.1);
-  }
-
-  .rating-divider {
-    width: 1px;
-    height: 20px;
-    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.08);
   }
 
   .rating-data {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
 
   .rating-average {
-    font-size: 1.125rem;
-    font-weight: 800;
-    color: white;
     letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .rating-count {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2px 6px;
-    border-radius: 6px;
-    min-width: 1.5rem;
-    text-align: center;
   }
 
   /* Empty state */
   .rating-empty {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
   }
 
   .empty-stars {
     letter-spacing: 2px;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.15);
   }
 
   .no-rating-text {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+    color: var(--color-text-dim);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   /* Responsive tweaks */
-  @media (max-width: 480px) {
-    .episode-rating-widget {
-      padding: 0.375rem 0.75rem;
-      gap: 0.5rem;
-    }
-    
-    .rating-content {
-      gap: 0.5rem;
-    }
-
-    .stars-row {
-      gap: 0;
-    }
-
-    .star-icon {
+  @media (max-width: 639px) {
+    .stars-row svg {
       width: 15px;
       height: 15px;
     }
-
-    .rating-average {
-      font-size: 1rem;
-    }
-  }
-
-  [data-theme="light"] .episode-rating-widget {
-    background: rgba(0, 0, 0, 0.02);
-    border-color: rgba(0, 0, 0, 0.06);
-  }
-
-  [data-theme="light"] .rating-average {
-    color: #1a1a2e;
-  }
-
-  [data-theme="light"] .rating-divider {
-    background: rgba(0, 0, 0, 0.06);
-  }
-
-  [data-theme="light"] .rating-count {
-    background: rgba(0, 0, 0, 0.04);
-    color: rgba(0, 0, 0, 0.4);
   }
 
   [data-theme="light"] .stars-row {
-    color: rgba(0, 0, 0, 0.08);
+    color: rgba(0, 0, 0, 0.1);
+  }
+
+  [data-theme="light"] .empty-stars {
+    color: rgba(0, 0, 0, 0.15);
   }
 </style>

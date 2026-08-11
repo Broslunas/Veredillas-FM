@@ -8,12 +8,12 @@ const { episodeSlug, className = '' } = Astro.props;
 ---
 
 <div class={`playlist-manager relative ${className}`} data-episode-slug={episodeSlug}>
-  <button 
-    class="btn-playlist flex items-center justify-center gap-2 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+  <button
+    class="btn-playlist ep-chip"
     aria-label="Añadir a lista de reproducción"
     title="Añadir a lista"
   >
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="8" y1="6" x2="21" y2="6"></line>
       <line x1="8" y1="12" x2="21" y2="12"></line>
       <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -21,7 +21,7 @@ const { episodeSlug, className = '' } = Astro.props;
       <line x1="3" y1="12" x2="3.01" y2="12"></line>
       <line x1="3" y1="18" x2="3.01" y2="18"></line>
     </svg>
-    <span class="max-sm:hidden text-sm font-semibold text-white/80">Guardar</span>
+    <span class="ep-chip-label">Guardar</span>
   </button>
 
   <!-- Modal overlay -->
