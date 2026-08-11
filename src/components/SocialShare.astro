@@ -10,7 +10,9 @@ interface Props {
   variant?: 'floating' | 'sidebar' | 'inline';
 }
 
-const { title, image, url = Astro.url, isModal = false, triggerId, variant = 'floating' } = Astro.props;
+const siteOrigin = Astro.site?.href ?? 'https://www.veredillasfm.es/';
+const canonicalUrl = new URL(Astro.url.pathname, siteOrigin);
+const { title, image, url = canonicalUrl, isModal = false, triggerId, variant = 'floating' } = Astro.props;
 const shortUrl = getShortLink(url);
 const shareUrl = encodeURIComponent(shortUrl);
 const shareTitle = encodeURIComponent(title);
