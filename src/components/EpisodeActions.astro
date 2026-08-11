@@ -17,7 +17,7 @@ const { title, audioUrl, image, guests, slug, duration, quiz, className = '' } =
 const normImage = image ? (image.startsWith('http') || image.startsWith('/') ? image : `/${image}`) : '/logo.webp';
 ---
 
-<div class:list={["ep-chip-row justify-center max-[600px]:grid max-[600px]:grid-cols-1", className]}>
+<div class:list={["ep-chip-row", className]}>
     <!-- Create Clip -->
     <button
         id="action-create-clip"
