@@ -125,6 +125,9 @@ guestsWithStats.sort((a, b) => {
     return b.stats.totalMinutes - a.stats.totalMinutes;
 });
 
+// 5. Total time talked across the whole podcast (sum of every guest's on-air time)
+const totalPodcastMinutes = guestsWithStats.reduce((acc, guest) => acc + guest.stats.totalMinutes, 0);
+
 
 // Format utility
 function formatTime(minutes: number) {
@@ -154,6 +157,17 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: '
             <div class="search-container">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" id="guest-search" placeholder="Buscar invitado..." class="search-input" />
+            </div>
+
+            <!-- Total Podcast Airtime -->
+            <div class="total-airtime glass-panel">
+                <div class="total-airtime-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div class="total-airtime-info">
+                    <span class="total-airtime-value text-gradient">{formatTime(totalPodcastMinutes)}</span>
+                    <span class="total-airtime-label">hablados entre todos los invitados</span>
+                </div>
             </div>
         </header>
 
@@ -419,6 +433,47 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: '
         transform: translateY(-50%);
         color: var(--color-text-muted);
         pointer-events: none;
+    }
+
+    /* Total Podcast Airtime */
+    .total-airtime {
+        display: inline-flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 2rem auto 0;
+        padding: 1rem 1.75rem;
+        border-radius: 16px;
+    }
+
+    .total-airtime-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(139, 92, 246, 0.1);
+        color: var(--color-primary);
+        flex-shrink: 0;
+    }
+
+    .total-airtime-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .total-airtime-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .total-airtime-label {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        font-weight: 500;
     }
 
     /* Grid Layout */
