@@ -44,23 +44,54 @@ export interface NetflixPlayerProps {
 
 const PREFS_KEY = 'vfm-player-prefs';
 
+export interface CaptionStyle {
+  size: 'sm' | 'md' | 'lg' | 'xl';
+  font: 'sans' | 'serif' | 'mono';
+  color: string;
+}
+
+const CAPTION_STYLE_DEFAULTS: CaptionStyle = { size: 'md', font: 'sans', color: '#ffffff' };
+const CAPTION_SIZES: CaptionStyle['size'][] = ['sm', 'md', 'lg', 'xl'];
+const CAPTION_FONTS: CaptionStyle['font'][] = ['sans', 'serif', 'mono'];
+const CAPTION_COLORS = ['#ffffff', '#facc15', '#38bdf8', '#f472b6', '#a3e635', '#fb923c'];
+
+const CAPTION_SIZE_CLASSES: Record<CaptionStyle['size'], string> = {
+  sm: 'text-xs md:text-sm',
+  md: 'text-sm md:text-base',
+  lg: 'text-base md:text-lg',
+  xl: 'text-lg md:text-xl',
+};
+
+const CAPTION_FONT_CLASSES: Record<CaptionStyle['font'], string> = {
+  sans: 'font-body',
+  serif: 'font-serif',
+  mono: 'font-mono',
+};
+
 interface PlayerPrefs {
   volume: number;
   playbackRate: number;
   showCaptions: boolean;
+  captionStyle: CaptionStyle;
 }
 
 function loadPrefs(): PlayerPrefs {
-  const defaults: PlayerPrefs = { volume: 1, playbackRate: 1, showCaptions: false };
+  const defaults: PlayerPrefs = { volume: 1, playbackRate: 1, showCaptions: false, captionStyle: CAPTION_STYLE_DEFAULTS };
   if (typeof window === 'undefined') return defaults;
   try {
     const raw = window.localStorage.getItem(PREFS_KEY);
     if (!raw) return defaults;
     const parsed = JSON.parse(raw);
+    const rawCaptionStyle = parsed.captionStyle || {};
     return {
       volume: typeof parsed.volume === 'number' ? parsed.volume : defaults.volume,
       playbackRate: typeof parsed.playbackRate === 'number' ? parsed.playbackRate : defaults.playbackRate,
       showCaptions: Boolean(parsed.showCaptions),
+      captionStyle: {
+        size: CAPTION_SIZES.includes(rawCaptionStyle.size) ? rawCaptionStyle.size : defaults.captionStyle.size,
+        font: CAPTION_FONTS.includes(rawCaptionStyle.font) ? rawCaptionStyle.font : defaults.captionStyle.font,
+        color: typeof rawCaptionStyle.color === 'string' ? rawCaptionStyle.color : defaults.captionStyle.color,
+      },
     };
   } catch {
     return defaults;
@@ -184,6 +215,12 @@ const IconReplay = ({ className = 'w-5 h-5' }: { className?: string }) => (
 const IconChevronRight = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6" /></svg>
 );
+const IconSettings = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+);
 
 /* ---------------------------------------------------------------------- */
 
@@ -242,6 +279,8 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   const [showSectionsDrawer, setShowSectionsDrawer] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showCaptions, setShowCaptions] = useState(initialPrefs.showCaptions);
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyle>(initialPrefs.captionStyle);
+  const [showCaptionSettings, setShowCaptionSettings] = useState(false);
   const [mediaMode, setMediaMode] = useState<'video' | 'audio'>('video');
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<number>(0);
@@ -412,6 +451,15 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     setShowCaptions((prev) => {
       const next = !prev;
       savePrefs({ showCaptions: next });
+      if (!next) setShowCaptionSettings(false);
+      return next;
+    });
+  }, []);
+
+  const updateCaptionStyle = useCallback((patch: Partial<CaptionStyle>) => {
+    setCaptionStyle((prev) => {
+      const next = { ...prev, ...patch };
+      savePrefs({ captionStyle: next });
       return next;
     });
   }, []);
@@ -520,6 +568,33 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
       (window as any).showToast(`Reanudado en ${formatTime(p)}`, 'info');
     }
   }, []);
+
+  // Runs once the media's metadata (duration, etc.) is known
+  const handleLoadedMetadata = useCallback(() => {
+    const v = videoRef.current;
+    if (!v || !v.duration || isNaN(v.duration)) return;
+    setDuration(v.duration);
+    v.volume = volume;
+    v.playbackRate = playbackRate;
+    if (modeSwitchResumeRef.current) {
+      const { time, wasPlaying } = modeSwitchResumeRef.current;
+      modeSwitchResumeRef.current = null;
+      v.currentTime = time;
+      setCurrentTime(time);
+      if (wasPlaying) v.play().catch(console.error);
+    } else {
+      applyPendingResume();
+    }
+  }, [volume, playbackRate, applyPendingResume]);
+
+  // Catch up if the browser already fired `loadedmetadata` before React finished
+  // hydrating and attaching its listener (common for small/cached SSR'd <video src>)
+  useEffect(() => {
+    if (videoRef.current && videoRef.current.readyState >= 1) {
+      handleLoadedMetadata();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [srcUrl]);
 
   // Fetch saved progress for the current episode
   useEffect(() => {
@@ -636,6 +711,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           setShowSectionsDrawer(false);
           setShowEpisodeDrawer(false);
           setShowSpeedMenu(false);
+          setShowCaptionSettings(false);
           break;
       }
     };
@@ -692,22 +768,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
               }
             }
           }}
-          onLoadedMetadata={() => {
-            if (videoRef.current) {
-              setDuration(videoRef.current.duration);
-              videoRef.current.volume = volume;
-              videoRef.current.playbackRate = playbackRate;
-              if (modeSwitchResumeRef.current) {
-                const { time, wasPlaying } = modeSwitchResumeRef.current;
-                modeSwitchResumeRef.current = null;
-                videoRef.current.currentTime = time;
-                setCurrentTime(time);
-                if (wasPlaying) videoRef.current.play().catch(console.error);
-              } else {
-                applyPendingResume();
-              }
-            }
-          }}
+          onLoadedMetadata={handleLoadedMetadata}
           onEnded={() => {
             setIsPlaying(false);
             setIsEnded(true);
@@ -782,12 +843,12 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
       {showCaptions && activeCaption && (
         <div
           aria-live="polite"
-          className={`absolute left-1/2 -translate-x-1/2 z-30 max-w-[88%] md:max-w-[70%] px-3.5 py-1.5 rounded-md bg-black/75 backdrop-blur-sm text-center transition-all duration-200 pointer-events-none ${
+          className={`absolute left-1/2 -translate-x-1/2 z-30 max-w-[88%] md:max-w-[70%] px-3.5 py-1.5 rounded-md bg-black/75 backdrop-blur-sm text-center transition-all duration-200 pointer-events-none ${CAPTION_SIZE_CLASSES[captionStyle.size]} ${CAPTION_FONT_CLASSES[captionStyle.font]} ${
             showControls || !isPlaying ? 'bottom-24 md:bottom-28' : 'bottom-10'
           }`}
         >
-          {activeCaption.speaker && <span className="text-primary font-bold mr-1.5 text-sm">{activeCaption.speaker}:</span>}
-          <span className="text-white text-sm md:text-base font-medium leading-snug">{activeCaption.text}</span>
+          {activeCaption.speaker && <span className="text-primary font-bold mr-1.5">{activeCaption.speaker}:</span>}
+          <span className="font-medium leading-snug" style={{ color: captionStyle.color }}>{activeCaption.text}</span>
         </div>
       )}
 
@@ -1015,6 +1076,86 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                 >
                   <IconCaptions className="w-5 h-5" />
                 </button>
+              )}
+
+              {/* Caption Style Settings */}
+              {parsedCaptions.length > 0 && showCaptions && (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowCaptionSettings((v) => !v)}
+                    className={`${ctrlBtn} ${showCaptionSettings ? ctrlBtnActive : ''}`}
+                    aria-label="Ajustes de subtítulos"
+                    title="Ajustes de subtítulos"
+                  >
+                    <IconSettings className="w-5 h-5" />
+                  </button>
+                  {showCaptionSettings && (
+                    <div className="absolute bottom-11 right-0 bg-zinc-950/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-3.5 flex flex-col gap-3.5 z-50 w-60">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Tamaño</p>
+                        <div className="flex gap-1.5">
+                          {CAPTION_SIZES.map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => updateCaptionStyle({ size: s })}
+                              aria-label={`Tamaño ${s}`}
+                              className={`flex-1 py-1.5 rounded-lg font-bold transition ${CAPTION_SIZE_CLASSES[s]} ${
+                                captionStyle.size === s ? 'bg-primary text-white' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+                              }`}
+                            >
+                              A
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Fuente</p>
+                        <div className="flex gap-1.5">
+                          {CAPTION_FONTS.map((f) => (
+                            <button
+                              key={f}
+                              onClick={() => updateCaptionStyle({ font: f })}
+                              className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition ${CAPTION_FONT_CLASSES[f]} ${
+                                captionStyle.font === f ? 'bg-primary text-white' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+                              }`}
+                            >
+                              {f === 'sans' ? 'Normal' : f === 'serif' ? 'Serif' : 'Mono'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Color</p>
+                        <div className="flex gap-2">
+                          {CAPTION_COLORS.map((c) => (
+                            <button
+                              key={c}
+                              onClick={() => updateCaptionStyle({ color: c })}
+                              aria-label={`Color ${c}`}
+                              className={`w-6 h-6 rounded-full border-2 transition ${
+                                captionStyle.color === c ? 'border-primary scale-110' : 'border-white/20 hover:scale-105'
+                              }`}
+                              style={{ backgroundColor: c }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {activeCaption && (
+                        <div className="rounded-lg bg-black/60 border border-white/10 px-2.5 py-2 text-center">
+                          <span
+                            className={`${CAPTION_SIZE_CLASSES[captionStyle.size]} ${CAPTION_FONT_CLASSES[captionStyle.font]} font-medium leading-snug`}
+                            style={{ color: captionStyle.color }}
+                          >
+                            {activeCaption.text}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Sections / Chapters Button */}
