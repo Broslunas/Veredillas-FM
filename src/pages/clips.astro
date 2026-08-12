@@ -26,14 +26,14 @@ let clips = allEpisodes
       };
     });
   })
-  .filter((clip) => clip.videoId);
+  .filter((clip) => clip.videoId)
+  .sort(() => Math.random() - 0.5); // Simple shuffle
 
 // Build a map of clips grouped by episode slug for the side panel
 const clipsByEpisode: Record<
   string,
   { episodeTitle: string; episodeImage: string; clips: Array<{ title: string; videoId: string; thumbnail: string }> }
 > = {};
-
 allEpisodes.forEach((episode) => {
   const epClips = (episode.data.clips || [])
     .map((clip: any) => ({ title: clip.title, videoId: resolveClipVideoId(clip), thumbnail: resolveClipThumbnail(clip) }))
@@ -48,7 +48,17 @@ allEpisodes.forEach((episode) => {
   }
 });
 
-// Distinct episodes represented in the feed for the filter row
+// If a specific clip was requested, move it to the front so the viewer opens there
+const watchId = Astro.url.searchParams.get('watch');
+if (watchId) {
+  const index = clips.findIndex((c) => c.videoId === watchId);
+  if (index > -1) {
+    const [selectedClip] = clips.splice(index, 1);
+    clips.unshift(selectedClip);
+  }
+}
+
+// Distinct episodes represented in the feed, in feed order, for the filter row
 const seenSlugs = new Set<string>();
 const episodeOptions = clips
   .filter((c) => {
@@ -58,146 +68,134 @@ const episodeOptions = clips
   })
   .map((c) => ({ slug: c.episodeSlug, title: c.episodeTitle }));
 
-Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
+// Cache for 30 minutes. The shuffle will be the same for all users during the cache lifetime.
+Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalidate=900');
 ---
 
-<Layout title="Clips & Momentos" description="Explora todos los momentos destacados de Veredillas FM en formato vídeo.">
+<Layout title="Clips" description="Los mejores momentos de Veredillas FM en formato corto.">
   <section class="clips-hero">
     <div class="clips-bg-glow" aria-hidden="true"></div>
+
+    {episodeOptions.length > 0 && (
+      <div class="clips-marquee" aria-hidden="true">
+        <div class="clips-marquee-track">
+          {[...episodeOptions, ...episodeOptions].map((ep) => (
+            <span class="clips-marquee-item">
+              {ep.title}
+              <span class="clips-marquee-dot">●</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
 
     <div class="clips-hero-inner">
       <div class="clips-eyebrow">
         <span class="clips-eyebrow-dot"></span>
-        Galería Interactiva
+        Momentos destacados
       </div>
       <div class="clips-title-row">
-        <h1 class="clips-title">Clips & Momentos</h1>
-        <span id="clips-count-display" class="clips-count-chip">{clips.length} clips</span>
+        <h1 class="clips-title">Clips</h1>
+        {clips.length > 0 && <span class="clips-count-chip">{clips.length} clips</span>}
       </div>
-      <p class="clips-subtitle">Los mejores momentos de Veredillas FM en formato corto. Descubre clips aleatorios a medida que exploras.</p>
+      <p class="clips-subtitle">Los mejores momentos de Veredillas FM, en formato corto.</p>
     </div>
 
-    <div class="clips-toolbar">
-      <!-- Shuffle Feed Button -->
-      <button id="shuffle-feed-btn" class="clips-btn clips-btn-primary" aria-label="Mezclar clips aleatoriamente">
-        <svg id="shuffle-btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="16 3 21 3 21 8"></polyline>
-          <line x1="4" y1="20" x2="21" y2="3"></line>
-          <polyline points="21 16 21 21 16 21"></polyline>
-          <line x1="15" y1="15" x2="21" y2="21"></line>
-          <line x1="4" y1="4" x2="9" y2="9"></line>
-        </svg>
-        <span>Mezclar Aleatorio</span>
-      </button>
-
-      <!-- Episode Filter Chips -->
-      {episodeOptions.length > 0 && (
-        <div class="ep-chip-row clips-filter-row" id="clips-filter-row">
-          <button class="ep-chip clips-filter-chip is-active" data-filter="all">Todos</button>
-          {episodeOptions.map((ep) => (
-            <button class="ep-chip clips-filter-chip" data-filter={ep.slug}>{ep.title}</button>
-          ))}
-        </div>
-      )}
-    </div>
+    {episodeOptions.length > 1 && (
+      <div class="ep-chip-row clips-filter-row" id="clips-filter-row">
+        <button class="ep-chip clips-filter-chip is-active" data-filter="all">Todos</button>
+        {episodeOptions.map((ep) => (
+          <button class="ep-chip clips-filter-chip" data-filter={ep.slug}>{ep.title}</button>
+        ))}
+      </div>
+    )}
   </section>
 
-  <!-- Infinite Scroll Gallery Grid -->
   <section class="clips-grid-section">
-    <div class="clips-grid" id="clips-grid">
-      <!-- Populated dynamically via JS batch by batch -->
-    </div>
-
-    <!-- Infinite Scroll Sentinel & Loading Indicator -->
-    <div id="infinite-scroll-sentinel" class="infinite-sentinel">
-      <div class="sentinel-loader">
-        <span class="dot"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
+    {clips.length > 0 ? (
+      <div class="clips-grid" id="clips-grid">
+        {clips.map((clip, index) => (
+          <a
+            href={`/clips?watch=${clip.videoId}`}
+            class:list={['clip-card', { 'is-featured': index === 0 }]}
+            data-index={index}
+            data-video-id={clip.videoId}
+            data-episode-slug={clip.episodeSlug}
+          >
+            <img class="clip-card-thumb" src={clip.thumbnail} alt="" loading="lazy" />
+            <div class="clip-card-sheen" aria-hidden="true"></div>
+            <span class="clip-card-episode-tag">{clip.episodeTitle}</span>
+            <div class="clip-card-play">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </div>
+            <div class="clip-card-overlay">
+              {index === 0 && <span class="clip-card-featured-badge">Destacado</span>}
+              <h3 class="clip-card-title">{clip.title}</h3>
+            </div>
+          </a>
+        ))}
       </div>
-      <span class="sentinel-text">Cargando más clips...</span>
-    </div>
-
-    <!-- End of Feed Message -->
-    <div id="clips-end-msg" class="clips-end-msg" style="display: none;">
-      <p>✨ Has explorado todos los clips de esta lista.</p>
-      <button class="clips-btn clips-btn-secondary" onclick="window.reshuffleGrid()">
-        🎲 Volver a mezclar todo
-      </button>
-    </div>
+    ) : (
+      <div class="no-clips">
+        <p>No hay clips disponibles por el momento.</p>
+        <a href="/ep" class="btn btn-primary">Ver episodios</a>
+      </div>
+    )}
   </section>
 
-  <!-- Cinema Lightbox Theater Modal (Non-TikTok Player) -->
-  <div id="clip-cinema-modal" class="cinema-modal" aria-hidden="true">
-    <div class="cinema-backdrop" onclick="window.closeCinemaModal()"></div>
+  <!-- Fullscreen TikTok-style viewer, opened from the gallery -->
+  <div id="clip-viewer-overlay" class="clip-viewer-overlay">
+    <button class="viewer-close-btn" id="viewer-close-btn" aria-label="Cerrar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
 
-    <div class="cinema-dialog">
-      <!-- Header -->
-      <div class="cinema-header">
-        <div class="cinema-meta">
-          <a id="modal-episode-link" href="#" class="cinema-ep-chip">
-            <span class="cinema-ep-icon">🎙️</span>
-            <span id="modal-episode-title">Episodio</span>
-          </a>
-          <h2 id="modal-clip-title" class="cinema-title">Título del clip</h2>
-        </div>
-
-        <button class="cinema-close-btn" onclick="window.closeCinemaModal()" aria-label="Cerrar reproductor">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-
-      <!-- Media Stage -->
-      <div class="cinema-stage">
-        <div class="cinema-video-container">
-          <div id="modal-player-wrapper" class="modal-player-wrapper">
-            <!-- Dynamically populated player iframe / video -->
+    <div class="viewer-scroller" id="viewer-scroller">
+      {clips.map((clip, index) => (
+        <div class="clip-section" id={`clip-section-${index}`} data-index={index} data-video-id={clip.videoId}>
+          <div class="video-wrapper">
+            {clip.playbackKind === 'youtube' ? (
+              <div id={`player-${index}`} class="youtube-player" data-kind="youtube" data-video-id={clip.mediaSrc}></div>
+            ) : (
+              <video id={`player-${index}`} class="native-player" data-kind="self-hosted" data-src={clip.mediaSrc} loop playsinline muted></video>
+            )}
+            <!-- Interaction layer for custom play/pause -->
+            <div class="interaction-layer" data-target={`player-${index}`}></div>
           </div>
-          <div id="modal-interaction-layer" class="modal-interaction-layer" onclick="window.toggleModalPlayback()"></div>
+
+          <div class="clip-overlay">
+            <div class="clip-info">
+              <h2 class="clip-title">{clip.title}</h2>
+              <a href={`/ep/${clip.episodeSlug}`} class="episode-link">
+                <span class="episode-icon">🎙️</span>
+                <span class="episode-name">{clip.episodeTitle}</span>
+              </a>
+            </div>
+
+            <div class="clip-actions">
+              <button class="ep-chip clip-action-chip episode-clips-btn" aria-label="Ver clips del episodio" data-episode-slug={clip.episodeSlug} onclick="handleOpenEpisodeClips(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              </button>
+              <button class="ep-chip clip-action-chip like-btn" aria-label="Me gusta" data-clip-id={clip.videoId} onclick="handleLikeClip(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              </button>
+              <button class="ep-chip clip-action-chip share-btn" aria-label="Compartir" data-clip-id={clip.videoId} onclick="handleShareClip(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+              </button>
+              <a href={`/ep/${clip.episodeSlug}`} class="ep-chip clip-action-chip" aria-label="Ver episodio completo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <!-- Footer Controls & Actions -->
-      <div class="cinema-footer">
-        <div class="cinema-nav-controls">
-          <button class="cinema-nav-btn" onclick="window.navigateCinemaModal(-1)" aria-label="Clip anterior">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            Anterior
-          </button>
-
-          <span id="modal-queue-indicator" class="cinema-queue-indicator">1 / 10</span>
-
-          <button class="cinema-nav-btn" onclick="window.navigateCinemaModal(1)" aria-label="Siguiente clip">
-            Siguiente
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </button>
-        </div>
-
-        <div class="cinema-action-bar">
-          <button id="modal-like-btn" class="cinema-action-btn like-btn" onclick="window.handleModalLike()" aria-label="Me gusta">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-            <span class="btn-label">Me gusta</span>
-          </button>
-
-          <button id="modal-share-btn" class="cinema-action-btn share-btn" onclick="window.handleModalShare()" aria-label="Compartir">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-            <span class="btn-label">Compartir</span>
-          </button>
-
-          <button id="modal-ep-drawer-btn" class="cinema-action-btn drawer-btn" onclick="window.handleModalOpenDrawer()" aria-label="Ver clips del episodio">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            <span class="btn-label">Clips del episodio</span>
-          </button>
-        </div>
-      </div>
+      ))}
     </div>
   </div>
 
-  <!-- Episode Clips Side Panel Drawer -->
-  <div id="episode-panel-backdrop" class="panel-backdrop" onclick="window.handleCloseEpisodeClips()"></div>
+  <!-- Episode Clips Side Panel -->
+  <div id="episode-panel-backdrop" class="panel-backdrop" onclick="handleCloseEpisodeClips()"></div>
   <aside id="episode-clips-panel" class="episode-clips-panel">
     <div class="panel-header">
-      <button class="panel-close-btn" onclick="window.handleCloseEpisodeClips()" aria-label="Cerrar">
+      <button class="panel-close-btn" onclick="handleCloseEpisodeClips()" aria-label="Cerrar">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
@@ -213,25 +211,19 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     </div>
   </aside>
 
-  <!-- Toast Toasting Notification -->
-  <div id="toast-notification" class="toast-notification" aria-live="polite">
-    <span id="toast-message"></span>
-  </div>
-
-  <!-- Inject clips data into JS -->
-  <script is:inline define:vars={{ initialClips: clips, clipsByEpisode }}>
-    window._initialClips = initialClips;
+  <!-- Inject clips-by-episode data for JS -->
+  <script is:inline define:vars={{ clipsByEpisode }}>
     window._clipsByEpisode = clipsByEpisode;
   </script>
 </Layout>
 
 <style>
-  :global(body.cinema-modal-open) {
+  :global(body.clip-viewer-open) {
     overflow: hidden;
   }
 
   /* ═══════════════════════════════════════════════════════════ */
-  /* Hero & Toolbar Section                                      */
+  /* Gallery                                                     */
   /* ═══════════════════════════════════════════════════════════ */
 
   .clips-hero {
@@ -265,13 +257,64 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
   .clips-bg-glow::before {
     top: -220px;
     left: -120px;
-    background: var(--color-primary, #8b5cf6);
+    background: var(--color-primary);
   }
 
   .clips-bg-glow::after {
     top: -160px;
     right: -160px;
-    background: var(--color-accent, #ec4899);
+    background: var(--color-accent);
+  }
+
+  .clips-marquee {
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+    opacity: 0.5;
+    mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+  }
+
+  .clips-marquee-track {
+    display: flex;
+    width: max-content;
+    gap: 2.5rem;
+    animation: clips-marquee-scroll 45s linear infinite;
+  }
+
+  .clips-marquee:hover .clips-marquee-track {
+    animation-play-state: paused;
+  }
+
+  .clips-marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.5rem;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .clips-marquee-dot {
+    color: var(--color-primary);
+    font-size: 0.4rem;
+  }
+
+  @keyframes clips-marquee-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .clips-marquee-track {
+      animation: none;
+    }
   }
 
   .clips-hero-inner {
@@ -282,7 +325,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    color: var(--color-primary, #8b5cf6);
+    color: var(--color-primary);
     font-weight: 900;
     letter-spacing: 0.3em;
     text-transform: uppercase;
@@ -294,8 +337,8 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--color-primary, #8b5cf6);
-    box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+    background: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary-glow);
   }
 
   .clips-title-row {
@@ -306,14 +349,14 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
   }
 
   .clips-title {
-    font-family: var(--font-display, sans-serif);
+    font-family: var(--font-display);
     font-size: clamp(2.5rem, 7vw, 4.5rem);
     font-weight: 900;
-    color: var(--color-text-main, #ffffff);
+    color: var(--color-text-main);
     letter-spacing: -0.03em;
     line-height: 0.95;
     margin-bottom: 0.75rem;
-    text-shadow: 0 0 60px rgba(139, 92, 246, 0.25);
+    text-shadow: 0 0 60px rgba(var(--color-primary-rgb), 0.25);
   }
 
   .clips-count-chip {
@@ -322,131 +365,56 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     height: 2rem;
     padding: 0 0.9rem;
     margin-bottom: 0.75rem;
-    border-radius: 999px;
+    border-radius: var(--radius-full, 999px);
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 0.75rem;
     font-weight: 800;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-text-muted);
   }
 
   .clips-subtitle {
-    color: rgba(255, 255, 255, 0.65);
+    color: var(--color-text-muted);
     font-size: 1.05rem;
-    max-width: 50ch;
-    line-height: 1.5;
-  }
-
-  .clips-toolbar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-    margin-top: 1.75rem;
-  }
-
-  .clips-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.65rem 1.35rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    border: none;
-    outline: none;
-  }
-
-  .clips-btn-primary {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(236, 72, 153, 0.85));
-    color: white;
-    box-shadow: 0 8px 24px -6px rgba(139, 92, 246, 0.5);
-  }
-
-  .clips-btn-primary:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 12px 30px -6px rgba(139, 92, 246, 0.7);
-    background: linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(236, 72, 153, 0.95));
-  }
-
-  .clips-btn-secondary {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
-  }
-
-  .clips-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
+    max-width: 40ch;
   }
 
   .clips-filter-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    overflow-x: auto;
     padding-bottom: 0.25rem;
-    scrollbar-width: none;
-    mask-image: linear-gradient(90deg, black 90%, transparent);
-    -webkit-mask-image: linear-gradient(90deg, black 90%, transparent);
-  }
-
-  .clips-filter-row::-webkit-scrollbar {
-    display: none;
+    mask-image: linear-gradient(90deg, black 88%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, black 88%, transparent);
   }
 
   .clips-filter-chip {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.65);
+    color: var(--color-text-muted);
     white-space: nowrap;
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    cursor: pointer;
-    transition: all 0.25s ease;
-  }
-
-  .clips-filter-chip:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .clips-filter-chip.is-active {
-    background: linear-gradient(120deg, rgba(139, 92, 246, 0.9), rgba(236, 72, 153, 0.75));
+    background: linear-gradient(120deg, rgba(var(--color-primary-rgb), 0.9), rgba(var(--color-accent-rgb), 0.75));
     border-color: transparent;
     color: white;
-    box-shadow: 0 6px 20px -6px rgba(139, 92, 246, 0.6);
+    box-shadow: 0 10px 24px -10px rgba(var(--color-primary-rgb), 0.6);
   }
-
-  /* ═══════════════════════════════════════════════════════════ */
-  /* Infinite Grid                                              */
-  /* ═══════════════════════════════════════════════════════════ */
 
   .clips-grid-section {
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 1rem 1.5rem 6rem;
+    padding: 0 1.5rem 5rem;
   }
 
   .clips-grid {
     display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    gap: 1.25rem;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: dense;
+    gap: 0.9rem;
   }
 
-  @media (min-width: 480px) {
-    .clips-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
-  }
-
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
     .clips-grid {
       grid-template-columns: repeat(3, 1fr);
       gap: 1.25rem;
@@ -456,108 +424,102 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
   @media (min-width: 1024px) {
     .clips-grid {
       grid-template-columns: repeat(4, 1fr);
-      gap: 1.35rem;
     }
   }
 
-  @media (min-width: 1300px) {
+  @media (min-width: 1400px) {
     .clips-grid {
       grid-template-columns: repeat(5, 1fr);
     }
   }
 
-  /* Clip Card */
-  :global(.clip-card) {
+  .clip-card {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    border-radius: 1.25rem;
+    display: block;
+    aspect-ratio: 9 / 16;
+    border-radius: var(--radius-xl, 1.25rem);
     overflow: hidden;
-    background: rgba(18, 15, 28, 0.7);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
     transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease, box-shadow 0.35s ease;
   }
 
-  :global(.clip-card.animate-card-in) {
-    animation: clipCardFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  .clip-card.is-hidden {
+    display: none;
   }
 
-  @keyframes clipCardFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(24px) scale(0.96);
+  .clip-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(var(--color-primary-rgb), 0.5);
+    box-shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--color-primary-rgb), 0.2);
+  }
+
+  @media (min-width: 640px) {
+    .clip-card.is-featured {
+      grid-column: span 2;
+      grid-row: span 2;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
+
+    .clip-card.is-featured .clip-card-title {
+      font-size: 1.2rem;
+      -webkit-line-clamp: 3;
+    }
+
+    .clip-card.is-featured .clip-card-episode-tag {
+      font-size: 0.68rem;
+      padding: 0.4rem 0.8rem;
     }
   }
 
-  :global(.clip-card:hover) {
-    transform: translateY(-6px);
-    border-color: rgba(139, 92, 246, 0.4);
-    box-shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.8), 0 0 25px rgba(139, 92, 246, 0.15);
-  }
-
-  :global(.clip-card-media) {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 9 / 16;
-    overflow: hidden;
-    cursor: pointer;
-    background: #09070f;
-  }
-
-  :global(.clip-card-thumb) {
+  .clip-card-thumb {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.5s ease;
   }
 
-  :global(.clip-card:hover .clip-card-thumb) {
-    transform: scale(1.07);
+  .clip-card:hover .clip-card-thumb {
+    transform: scale(1.06);
   }
 
-  :global(.clip-card-sheen) {
+  .clip-card-sheen {
     position: absolute;
     inset: -50% -20%;
     z-index: 2;
-    background: linear-gradient(75deg, transparent 40%, rgba(255, 255, 255, 0.14) 50%, transparent 60%);
+    background: linear-gradient(75deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%);
     transform: translateX(-120%);
     transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
     pointer-events: none;
   }
 
-  :global(.clip-card:hover .clip-card-sheen) {
+  .clip-card:hover .clip-card-sheen {
     transform: translateX(20%);
   }
 
-  :global(.clip-card-episode-tag) {
+  .clip-card-episode-tag {
     position: absolute;
-    top: 0.65rem;
-    left: 0.65rem;
+    top: 0.6rem;
+    left: 0.6rem;
     z-index: 4;
-    max-width: calc(100% - 1.3rem);
-    padding: 0.3rem 0.65rem;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    font-size: 0.6rem;
+    max-width: calc(100% - 1.2rem);
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-full, 999px);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.58rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.85);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  :global(.clip-card-play) {
+  .clip-card-play {
     position: absolute;
     inset: 0;
     z-index: 3;
@@ -565,426 +527,326 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.25);
-    opacity: 0.85;
-    transition: opacity 0.3s ease, background 0.3s ease;
+    opacity: 0;
+    transition: opacity 0.25s ease;
   }
 
-  :global(.clip-card:hover .clip-card-play) {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.4);
-  }
-
-  :global(.clip-card-play-btn) {
-    width: 48px;
-    height: 48px;
+  .clip-card-play svg {
+    width: 44px;
+    height: 44px;
+    padding: 12px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(236, 72, 153, 0.9));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
-    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    background: rgba(var(--color-primary-rgb), 0.85);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 30px rgba(var(--color-primary-rgb), 0.5);
   }
 
-  :global(.clip-card:hover .clip-card-play-btn) {
-    transform: scale(1.12);
+  .clip-card:hover .clip-card-play {
+    opacity: 1;
   }
 
-  :global(.clip-card-info) {
-    padding: 0.85rem 0.9rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-    background: linear-gradient(180deg, rgba(18, 15, 28, 0.95) 0%, rgba(12, 10, 20, 0.98) 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  .clip-card-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    padding: 1.75rem 0.75rem 0.65rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.35) 60%, transparent 100%);
   }
 
-  :global(.clip-card-title) {
-    font-size: 0.85rem;
+  .clip-card-featured-badge {
+    display: inline-block;
+    margin-bottom: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full, 999px);
+    background: linear-gradient(120deg, var(--color-primary), var(--color-accent));
+    font-size: 0.6rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: white;
+    box-shadow: 0 4px 16px rgba(var(--color-primary-rgb), 0.4);
+  }
+
+  .clip-card-title {
+    font-size: 0.75rem;
     font-weight: 700;
-    line-height: 1.35;
-    color: rgba(255, 255, 255, 0.92);
+    line-height: 1.25;
+    color: rgba(255, 255, 255, 0.95);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    cursor: pointer;
-    margin: 0;
-    transition: color 0.2s ease;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   }
 
-  :global(.clip-card-title:hover) {
-    color: var(--color-primary, #a78bfa);
-  }
-
-  :global(.clip-card-actions) {
+  .no-clips {
+    min-height: 40vh;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding-top: 0.25rem;
-  }
-
-  :global(.clip-action-btn) {
-    display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  :global(.clip-action-btn:hover) {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    transform: scale(1.08);
-  }
-
-  :global(.clip-action-btn.like-btn.liked) {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.35);
-    color: #ef4444;
-  }
-
-  :global(.clip-action-btn.watch-btn) {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: rgba(139, 92, 246, 0.4);
-    color: #a78bfa;
-  }
-
-  :global(.clip-action-btn.watch-btn:hover) {
-    background: rgba(139, 92, 246, 0.4);
-    color: white;
-  }
-
-  /* Infinite Scroll Sentinel */
-  .infinite-sentinel {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 3rem 0;
-  }
-
-  .sentinel-loader {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  .sentinel-loader .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--color-primary, #8b5cf6);
-    animation: sentinelPulse 1.4s infinite ease-in-out both;
-  }
-
-  .sentinel-loader .dot:nth-child(1) { animation-delay: -0.32s; }
-  .sentinel-loader .dot:nth-child(2) { animation-delay: -0.16s; }
-
-  @keyframes sentinelPulse {
-    0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-    40% { transform: scale(1); opacity: 1; }
-  }
-
-  .sentinel-text {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 0.05em;
-  }
-
-  .clips-end-msg {
+    gap: 1.25rem;
     text-align: center;
-    padding: 3rem 1rem;
-    color: rgba(255, 255, 255, 0.6);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
   }
 
   /* ═══════════════════════════════════════════════════════════ */
-  /* Cinema Lightbox Theater Modal                               */
+  /* Fullscreen viewer                                            */
   /* ═══════════════════════════════════════════════════════════ */
 
-  .cinema-modal {
+  .clip-viewer-overlay {
     position: fixed;
     inset: 0;
     z-index: 9500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: #000;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition: opacity 0.3s ease, visibility 0s 0.3s;
   }
 
-  .cinema-modal.active {
+  .clip-viewer-overlay.active {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transition: opacity 0.3s ease, visibility 0s 0s;
   }
 
-  .cinema-backdrop {
+  .viewer-close-btn {
     position: absolute;
-    inset: 0;
-    background: rgba(8, 6, 14, 0.92);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-
-  .cinema-dialog {
-    position: relative;
-    z-index: 10;
-    width: 100%;
-    max-width: 520px;
-    max-height: 94vh;
-    max-height: 94dvh;
-    margin: 1rem;
-    display: flex;
-    flex-direction: column;
-    background: rgba(18, 14, 28, 0.95);
-    border: 1px solid rgba(139, 92, 246, 0.25);
-    border-radius: 1.5rem;
-    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(139, 92, 246, 0.15);
-    overflow: hidden;
-    animation: cinemaDialogIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  @keyframes cinemaDialogIn {
-    from {
-      opacity: 0;
-      transform: scale(0.94) translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  .cinema-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    gap: 1rem;
-    flex-shrink: 0;
-  }
-
-  .cinema-meta {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .cinema-ep-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #a78bfa;
-    text-decoration: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 300px;
-  }
-
-  .cinema-ep-chip:hover {
-    text-decoration: underline;
-  }
-
-  .cinema-title {
-    font-size: 1rem;
-    font-weight: 800;
-    color: white;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .cinema-close-btn {
-    width: 38px;
-    height: 38px;
+    top: max(1.25rem, env(safe-area-inset-top));
+    right: 1.25rem;
+    z-index: 30;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
+    backdrop-filter: blur(10px);
+    transition: all 0.25s ease;
   }
 
-  .cinema-close-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
+  .viewer-close-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
     border-color: rgba(239, 68, 68, 0.4);
     color: #ef4444;
     transform: rotate(90deg);
   }
 
-  .cinema-stage {
+  .viewer-scroller {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+  }
+
+  .viewer-scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Individual Clip Section */
+  .clip-section {
     position: relative;
-    flex: 1;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     background: #000;
     overflow: hidden;
-    min-height: 360px;
   }
 
-  .cinema-video-container {
+  /* Video wrapper */
+  .video-wrapper {
     position: relative;
     width: 100%;
     height: 100%;
-    aspect-ratio: 9 / 16;
-    max-height: 62vh;
-    max-height: 62dvh;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+  }
+
+  .youtube-player,
+  .native-player {
+    width: 100%;
+    height: 100%;
+    max-width: 500px; /* Limit width on desktop for vertical video feel */
+    aspect-ratio: 9/16;
+    pointer-events: none;
+    object-fit: cover;
     background: #000;
   }
 
-  .modal-player-wrapper {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  :global(.modal-player-wrapper iframe),
-  :global(.modal-player-wrapper video) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border: none;
-  }
-
-  .modal-interaction-layer {
+  /* Interaction Layer ensures we capture taps for play/pause and block YouTube controls */
+  .interaction-layer {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 5;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .cinema-footer {
-    padding: 0.9rem 1.25rem 1.1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  @media (min-width: 768px) {
+    .youtube-player,
+    .native-player {
+      height: 90vh;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .video-wrapper {
+      width: auto;
+    }
+    .youtube-player,
+    .native-player,
+    .interaction-layer {
+      width: auto;
+      aspect-ratio: 9/16;
+    }
+  }
+
+  /* Overlay UI */
+  .clip-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 2rem 1.5rem max(6rem, calc(env(safe-area-inset-bottom) + 4rem));
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 30%, transparent 100%);
+    pointer-events: none;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    background: rgba(14, 11, 22, 0.98);
-    flex-shrink: 0;
+    justify-content: flex-end;
+    z-index: 10;
   }
 
-  .cinema-nav-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .clip-info {
+    position: absolute;
+    left: 1.5rem;
+    bottom: 6rem;
+    max-width: 75%;
+    pointer-events: auto;
+    z-index: 20;
   }
 
-  .cinema-nav-btn {
+  .clip-title {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .episode-link {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 0.85rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .cinema-nav-btn:hover {
-    background: rgba(139, 92, 246, 0.25);
-    border-color: rgba(139, 92, 246, 0.4);
-    color: white;
-  }
-
-  .cinema-queue-indicator {
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 0.05em;
-  }
-
-  .cinema-action-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
     gap: 0.5rem;
-    padding-top: 0.25rem;
-  }
-
-  .cinema-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 0.85rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-size: 0.85rem;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.4rem 0.8rem;
+    border-radius: 99px;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
   }
 
-  .cinema-action-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: white;
+  .episode-link:hover {
+    background: rgba(255, 255, 255, 0.2);
   }
 
-  .cinema-action-btn.liked {
+  .clip-actions {
+    position: absolute;
+    right: 1rem;
+    bottom: 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    pointer-events: auto;
+    z-index: 20;
+    align-items: center;
+  }
+
+  /* Circular icon-only variant of the shared .ep-chip glass button */
+  .clip-action-chip {
+    width: 46px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  @media (max-width: 639px) {
+    .clip-action-chip {
+      width: 40px;
+    }
+  }
+
+  .clip-action-chip.liked {
     background: rgba(239, 68, 68, 0.15);
     border-color: rgba(239, 68, 68, 0.35);
     color: #ef4444;
   }
 
-  .cinema-action-btn.liked svg {
+  .clip-action-chip.liked svg {
     fill: #ef4444;
   }
 
-  @media (max-width: 480px) {
-    .cinema-dialog {
-      margin: 0;
-      border-radius: 1.25rem 1.25rem 0 0;
-      max-height: 92vh;
+  /* Desktop adjustments */
+  @media (min-width: 768px) {
+    .clip-overlay {
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      background: transparent;
     }
-    .btn-label {
-      display: none;
+
+    .clip-info {
+      position: absolute;
+      bottom: 2rem;
+      right: 50%;
+      margin-right: 270px;
+      left: auto;
+      transform: none;
+      width: 300px;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
     }
-    .cinema-action-btn {
-      padding: 0.55rem;
-      border-radius: 50%;
+
+    .clip-actions {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      margin-left: 270px;
+      right: auto;
+      transform: none;
+      align-items: flex-start;
     }
   }
 
   /* ═══════════════════════════════════════════════════════════ */
-  /* Side Panel & Toast                                         */
+  /* Episode Clips — Side Panel (Drawer)                       */
   /* ═══════════════════════════════════════════════════════════ */
 
   .panel-backdrop {
@@ -1120,43 +982,50 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     gap: 1rem;
     align-content: start;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.2) transparent;
+  }
+
+  .panel-clips-grid::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .panel-clips-grid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .panel-clips-grid::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.2);
+    border-radius: 99px;
   }
 
   @media (min-width: 768px) {
     .episode-clips-panel {
       width: 420px;
       border-radius: 20px 0 0 20px;
+      box-shadow: -12px 0 60px rgba(0, 0, 0, 0.5), -2px 0 20px rgba(139, 92, 246, 0.06);
+    }
+
+    .panel-episode-cover {
+      width: 72px;
+      height: 72px;
+    }
+
+    .panel-episode-title {
+      font-size: 1.05rem;
     }
   }
 
-  /* Toast Notification */
-  .toast-notification {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    z-index: 10000;
-    padding: 0.75rem 1.4rem;
-    border-radius: 999px;
-    background: rgba(18, 14, 28, 0.95);
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    color: white;
-    font-size: 0.85rem;
-    font-weight: 700;
-    opacity: 0;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-  }
-
-  .toast-notification.active {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
+  @media (max-width: 380px) {
+    .panel-clips-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 </style>
 
-<!-- Global styles for dynamically generated elements -->
+<!-- Global styles for dynamically generated content (JS-injected HTML doesn't get Astro scoping) -->
 <style is:global>
+  /* Grid Clip Card — 9:16 portrait, used inside the episode-clips side panel */
   .grid-clip-card {
     position: relative;
     display: block;
@@ -1168,11 +1037,31 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+    animation: gridCardIn 0.4s ease forwards;
+  }
+
+  @keyframes gridCardIn {
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .grid-clip-card:hover {
     border-color: rgba(139, 92, 246, 0.4);
     transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.15);
+  }
+
+  .grid-clip-card:active {
+    transform: scale(0.97);
+  }
+
+  .grid-clip-card.active-clip {
+    border-color: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
   }
 
   .grid-clip-card img {
@@ -1180,6 +1069,12 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     width: 100%;
     aspect-ratio: 9 / 16;
     object-fit: cover;
+    object-position: center;
+    transition: transform 0.35s ease;
+  }
+
+  .grid-clip-card:hover img {
+    transform: scale(1.08);
   }
 
   .grid-clip-info {
@@ -1187,12 +1082,13 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 1.5rem 0.5rem 0.5rem;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+    padding: 2rem 0.5rem 0.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 55%, transparent 100%);
+    z-index: 4;
   }
 
   .grid-clip-title {
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     font-weight: 600;
     line-height: 1.2;
     color: rgba(255, 255, 255, 0.92);
@@ -1200,359 +1096,372 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  }
+
+  .grid-clip-card:hover .grid-clip-title {
+    color: #fff;
+  }
+
+  .grid-clip-card.active-clip .grid-clip-title {
+    color: rgba(200, 170, 255, 1);
+  }
+
+  .grid-play-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 3;
+  }
+
+  .grid-clip-card:hover .grid-play-icon {
+    opacity: 1;
+  }
+
+  .grid-play-icon svg {
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+  }
+
+  .grid-clip-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.5rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    z-index: 5;
+    line-height: 1.2;
+    backdrop-filter: blur(4px);
+  }
+
+  .grid-clip-card.active-clip::after {
+    content: '▶';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(139, 92, 246, 0.9);
+    color: white;
+    font-size: 0.45rem;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-weight: 700;
+    z-index: 5;
+  }
+
+  @media (min-width: 768px) {
+    .grid-clip-title {
+      font-size: 0.62rem;
+    }
   }
 </style>
 
 <script is:inline>
   (function () {
     const WIN = window;
-    const BATCH_SIZE = 10;
 
-    const rawClips = WIN._initialClips || [];
-    let currentPool = [];
-    let renderedCount = 0;
-    let currentFilter = 'all';
-    let likedClipIds = new Set();
-    let modalClipIndex = -1;
-    let ytPlayer = null;
-    let ytApiReady = false;
-
-    // Helper: Escapes HTML strings
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    // Initialize global state container if not exists (survives astro:page-load re-runs)
+    if (!WIN._clipsState) {
+      WIN._clipsState = {
+        players: {},
+        playbackObserver: null,
+        loadingObserver: null,
+        urlObserver: null,
+        queue: [],
+        apiReady: false,
+      };
     }
 
-    // Helper: Fisher-Yates Shuffle
-    function shuffleArray(arr) {
-      const copy = [...arr];
-      for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy;
-    }
+    const state = WIN._clipsState;
 
-    // --- YOUTUBE API SETUP ---
+    // --- YOUTUBE API SETUP (only needed for clips not yet self-hosted) ---
     if (!WIN.YT) {
       if (!document.getElementById('yt-api-script')) {
         const tag = document.createElement('script');
         tag.id = 'yt-api-script';
         tag.src = 'https://www.youtube.com/iframe_api';
-        const first = document.getElementsByTagName('script')[0];
-        first?.parentNode?.insertBefore(tag, first);
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
       }
 
       WIN.onYouTubeIframeAPIReady = function () {
-        ytApiReady = true;
+        state.apiReady = true;
+        processQueue();
       };
     } else {
-      ytApiReady = true;
+      state.apiReady = true;
+      setTimeout(processQueue, 0);
     }
 
-    // Prepare shuffled pool based on filter
-    function preparePool(filter = 'all') {
-      currentFilter = filter;
-      let filtered = rawClips;
-      if (filter !== 'all') {
-        filtered = rawClips.filter((c) => c.episodeSlug === filter);
+    function processQueue() {
+      while (state.queue.length > 0) {
+        const id = state.queue.shift();
+        if (id) createYouTubePlayer(id);
       }
-      currentPool = shuffleArray(filtered);
-      renderedCount = 0;
     }
 
-    // Create DOM element for clip card
-    function createClipCard(clip, index) {
-      const card = document.createElement('div');
-      card.className = 'clip-card animate-card-in';
-      card.setAttribute('data-video-id', clip.videoId);
-      card.setAttribute('data-episode-slug', clip.episodeSlug);
-
-      const isLiked = likedClipIds.has(clip.videoId);
-
-      card.innerHTML = `
-        <div class="clip-card-media" onclick="window.openCinemaModal('${clip.videoId}')">
-          <img class="clip-card-thumb" src="${clip.thumbnail}" alt="" loading="lazy" />
-          <div class="clip-card-sheen" aria-hidden="true"></div>
-          <span class="clip-card-episode-tag">${escapeHtml(clip.episodeTitle)}</span>
-          <div class="clip-card-play">
-            <div class="clip-card-play-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="clip-card-info">
-          <h3 class="clip-card-title" onclick="window.openCinemaModal('${clip.videoId}')">${escapeHtml(clip.title)}</h3>
-          
-          <div class="clip-card-actions">
-            <button class="clip-action-btn like-btn ${isLiked ? 'liked' : ''}" data-clip-id="${clip.videoId}" onclick="window.handleLikeClip(this, event)" aria-label="Me gusta">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="${isLiked ? '#ef4444' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-            </button>
-
-            <button class="clip-action-btn share-btn" data-clip-id="${clip.videoId}" onclick="window.handleShareClip(this, event)" aria-label="Compartir">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-            </button>
-
-            <button class="clip-action-btn watch-btn" onclick="window.openCinemaModal('${clip.videoId}')" aria-label="Ver clip">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            </button>
-          </div>
-        </div>
-      `;
-
-      return card;
-    }
-
-    // Render batch of cards
-    function renderNextBatch() {
-      const grid = document.getElementById('clips-grid');
-      const sentinel = document.getElementById('infinite-scroll-sentinel');
-      const endMsg = document.getElementById('clips-end-msg');
-      if (!grid) return;
-
-      if (renderedCount >= currentPool.length) {
-        if (sentinel) sentinel.style.display = 'none';
-        if (endMsg && currentPool.length > 0) endMsg.style.display = 'flex';
+    function createYouTubePlayer(id) {
+      if (!WIN.YT || !WIN.YT.Player) {
+        if (!state.queue.includes(id)) state.queue.push(id);
         return;
       }
+      if (state.players[id]) return;
 
-      const nextBatch = currentPool.slice(renderedCount, renderedCount + BATCH_SIZE);
-      const fragment = document.createDocumentFragment();
+      const element = document.getElementById(id);
+      if (!element) return;
+      const videoId = element.getAttribute('data-video-id');
+      if (!videoId) return;
 
-      nextBatch.forEach((clip, i) => {
-        const card = createClipCard(clip, renderedCount + i);
-        fragment.appendChild(card);
+      state.players[id] = new WIN.YT.Player(id, {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          playsinline: 1,
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          showinfo: 0,
+          iv_load_policy: 3,
+          fs: 0,
+          disablekb: 1,
+          origin: WIN.location.origin,
+        },
+        events: {
+          onStateChange: onPlayerStateChange,
+        },
       });
+    }
 
-      grid.appendChild(fragment);
-      renderedCount += nextBatch.length;
-
-      const countDisplay = document.getElementById('clips-count-display');
-      if (countDisplay) {
-        countDisplay.textContent = `${renderedCount} de ${currentPool.length} clips`;
-      }
-
-      if (renderedCount >= currentPool.length) {
-        if (sentinel) sentinel.style.display = 'none';
-        if (endMsg) endMsg.style.display = 'flex';
-      } else {
-        if (sentinel) sentinel.style.display = 'flex';
-        if (endMsg) endMsg.style.display = 'none';
+    function onPlayerStateChange(event) {
+      if (event.data === WIN.YT.PlayerState.ENDED) {
+        event.target.playVideo();
       }
     }
 
-    // Reshuffle grid
-    WIN.reshuffleGrid = function () {
-      const grid = document.getElementById('clips-grid');
-      const endMsg = document.getElementById('clips-end-msg');
-      if (grid) grid.innerHTML = '';
-      if (endMsg) endMsg.style.display = 'none';
-
-      const icon = document.getElementById('shuffle-btn-icon');
-      if (icon) {
-        icon.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 500 });
+    // Lazily attach a source: create the YT player, or set the <video> src
+    function initMedia(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.dataset.kind === 'youtube') {
+        createYouTubePlayer(id);
+      } else if (el.dataset.src && !el.getAttribute('src')) {
+        el.src = el.dataset.src;
       }
+    }
 
-      preparePool(currentFilter);
-      renderNextBatch();
-      WIN.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    function togglePlay(targetId) {
+      const el = document.getElementById(targetId);
+      if (!el) return;
 
-    // Infinite Scroll IntersectionObserver
-    let infiniteObserver = null;
-    function setupInfiniteScroll() {
-      const sentinel = document.getElementById('infinite-scroll-sentinel');
-      if (!sentinel) return;
+      if (el.dataset.kind === 'youtube') {
+        const player = state.players[targetId];
+        if (player && typeof player.getPlayerState === 'function') {
+          const playerState = player.getPlayerState();
+          if (playerState === WIN.YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+          } else {
+            player.playVideo();
+            player.unMute();
+          }
+        }
+      } else {
+        if (!el.paused) {
+          el.pause();
+        } else {
+          el.muted = false;
+          el.play().catch(() => {});
+        }
+      }
+    }
 
-      if (infiniteObserver) infiniteObserver.disconnect();
-      infiniteObserver = new IntersectionObserver(
+    function pauseAllMedia() {
+      Object.values(state.players).forEach((p) => {
+        if (p && typeof p.pauseVideo === 'function') {
+          try {
+            p.pauseVideo();
+          } catch (e) {}
+        }
+      });
+      document.querySelectorAll('.native-player').forEach((v) => v.pause());
+    }
+
+    // --- OBSERVERS (scoped to the fullscreen viewer's own scroller) ---
+    function attachObservers(scroller) {
+      if (state.loadingObserver) state.loadingObserver.disconnect();
+      if (state.playbackObserver) state.playbackObserver.disconnect();
+      if (state.urlObserver) state.urlObserver.disconnect();
+
+      state.loadingObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              renderNextBatch();
+              const mediaEl = entry.target.querySelector('.youtube-player, .native-player');
+              if (mediaEl) initMedia(mediaEl.id);
             }
           });
         },
-        { rootMargin: '250px 0px' }
+        { root: scroller, rootMargin: '50% 0px 50% 0px' }
       );
 
-      infiniteObserver.observe(sentinel);
+      state.playbackObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const mediaEl = entry.target.querySelector('.youtube-player, .native-player');
+            if (!mediaEl) return;
+
+            if (mediaEl.dataset.kind === 'youtube') {
+              const player = state.players[mediaEl.id];
+              if (entry.isIntersecting) {
+                if (player && typeof player.playVideo === 'function') player.playVideo();
+              } else if (player && typeof player.pauseVideo === 'function') {
+                player.pauseVideo();
+              }
+            } else {
+              if (entry.isIntersecting) {
+                if (mediaEl.dataset.src && !mediaEl.getAttribute('src')) mediaEl.src = mediaEl.dataset.src;
+                mediaEl.play().catch(() => {});
+              } else {
+                mediaEl.pause();
+              }
+            }
+          });
+        },
+        { root: scroller, rootMargin: '0px', threshold: 0.6 }
+      );
+
+      state.urlObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const videoId = entry.target.getAttribute('data-video-id');
+              if (videoId) {
+                const url = new URL(WIN.location.href);
+                if (url.searchParams.get('watch') !== videoId) {
+                  url.searchParams.set('watch', videoId);
+                  WIN.history.replaceState({}, '', url);
+                }
+              }
+            }
+          });
+        },
+        { root: scroller, threshold: 0.7 }
+      );
+
+      document.querySelectorAll('.clip-section').forEach((section) => {
+        state.loadingObserver.observe(section);
+        state.playbackObserver.observe(section);
+        state.urlObserver.observe(section);
+      });
     }
 
-    // Toast Notification helper
-    function showToast(message) {
-      const toast = document.getElementById('toast-notification');
-      const msgEl = document.getElementById('toast-message');
-      if (!toast || !msgEl) return;
+    // --- VIEWER OPEN/CLOSE ---
+    function openViewer(index) {
+      const overlay = document.getElementById('clip-viewer-overlay');
+      const scroller = document.getElementById('viewer-scroller');
+      const target = document.getElementById('clip-section-' + index);
+      if (!overlay || !scroller) return;
 
-      msgEl.textContent = message;
-      toast.classList.add('active');
-      setTimeout(() => {
-        toast.classList.remove('active');
-      }, 2500);
+      if (target) scroller.scrollTop = target.offsetTop;
+
+      document.body.classList.add('clip-viewer-open');
+      overlay.classList.add('active');
+      attachObservers(scroller);
     }
 
-    // --- CINEMA MODAL LOGIC ---
-    WIN.openCinemaModal = function (videoId) {
-      let index = currentPool.findIndex((c) => c.videoId === videoId);
-      if (index === -1) {
-        index = rawClips.findIndex((c) => c.videoId === videoId);
-        if (index !== -1) {
-          modalClipIndex = index;
-          renderModalContent(rawClips[index]);
-        }
-      } else {
-        modalClipIndex = index;
-        renderModalContent(currentPool[index]);
-      }
+    function closeViewer() {
+      const overlay = document.getElementById('clip-viewer-overlay');
+      document.body.classList.remove('clip-viewer-open');
+      overlay?.classList.remove('active');
+      pauseAllMedia();
+    }
 
-      const modal = document.getElementById('clip-cinema-modal');
-      if (modal) {
-        document.body.classList.add('cinema-modal-open');
-        modal.classList.add('active');
-        modal.setAttribute('aria-hidden', 'false');
-      }
-
-      const url = new URL(WIN.location.href);
-      url.searchParams.set('watch', videoId);
-      WIN.history.replaceState({}, '', url);
-    };
-
-    WIN.closeCinemaModal = function () {
-      const modal = document.getElementById('clip-cinema-modal');
-      const wrapper = document.getElementById('modal-player-wrapper');
-      if (modal) {
-        document.body.classList.remove('cinema-modal-open');
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true');
-      }
-
-      if (wrapper) wrapper.innerHTML = '';
-      if (ytPlayer && typeof ytPlayer.destroy === 'function') {
-        try { ytPlayer.destroy(); } catch(e) {}
-        ytPlayer = null;
-      }
-
+    function closeViewerAndUpdateUrl() {
+      closeViewer();
       const url = new URL(WIN.location.href);
       url.searchParams.delete('watch');
       WIN.history.replaceState({}, '', url);
-    };
-
-    function renderModalContent(clip) {
-      if (!clip) return;
-
-      const titleEl = document.getElementById('modal-clip-title');
-      const epTitleEl = document.getElementById('modal-episode-title');
-      const epLinkEl = document.getElementById('modal-episode-link');
-      const queueEl = document.getElementById('modal-queue-indicator');
-      const likeBtn = document.getElementById('modal-like-btn');
-      const wrapper = document.getElementById('modal-player-wrapper');
-
-      if (titleEl) titleEl.textContent = clip.title;
-      if (epTitleEl) epTitleEl.textContent = clip.episodeTitle;
-      if (epLinkEl) epLinkEl.href = `/ep/${clip.episodeSlug}`;
-
-      const total = currentPool.length || rawClips.length;
-      const displayIndex = modalClipIndex >= 0 ? modalClipIndex + 1 : 1;
-      if (queueEl) queueEl.textContent = `${displayIndex} / ${total}`;
-
-      const isLiked = likedClipIds.has(clip.videoId);
-      if (likeBtn) {
-        likeBtn.classList.toggle('liked', isLiked);
-        likeBtn.setAttribute('data-clip-id', clip.videoId);
-      }
-
-      if (!wrapper) return;
-      wrapper.innerHTML = '';
-
-      if (clip.playbackKind === 'youtube') {
-        const playerDiv = document.createElement('div');
-        playerDiv.id = 'modal-yt-player';
-        wrapper.appendChild(playerDiv);
-
-        if (WIN.YT && WIN.YT.Player) {
-          ytPlayer = new WIN.YT.Player('modal-yt-player', {
-            height: '100%',
-            width: '100%',
-            videoId: clip.mediaSrc,
-            playerVars: {
-              autoplay: 1,
-              playsinline: 1,
-              controls: 1,
-              rel: 0,
-              modestbranding: 1,
-              origin: WIN.location.origin,
-            },
-          });
-        } else {
-          playerDiv.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${clip.mediaSrc}?autoplay=1&playsinline=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-        }
-      } else {
-        const video = document.createElement('video');
-        video.src = clip.mediaSrc;
-        video.controls = true;
-        video.autoplay = true;
-        video.playsInline = true;
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.style.objectFit = 'cover';
-        wrapper.appendChild(video);
-      }
     }
 
-    WIN.navigateCinemaModal = function (direction) {
-      const list = currentPool.length > 0 ? currentPool : rawClips;
-      if (list.length === 0) return;
+    function getClipIndexByVideoId(videoId) {
+      const section = document.querySelector('.clip-section[data-video-id="' + CSS.escape(videoId) + '"]');
+      return section ? parseInt(section.getAttribute('data-index') || '0', 10) : null;
+    }
 
-      modalClipIndex = (modalClipIndex + direction + list.length) % list.length;
-      const nextClip = list[modalClipIndex];
-      renderModalContent(nextClip);
-
-      const url = new URL(WIN.location.href);
-      url.searchParams.set('watch', nextClip.videoId);
-      WIN.history.replaceState({}, '', url);
-    };
-
-    WIN.toggleModalPlayback = function () {
-      const wrapper = document.getElementById('modal-player-wrapper');
-      const video = wrapper?.querySelector('video');
-      if (video) {
-        if (video.paused) video.play();
-        else video.pause();
+    // --- GALLERY -> VIEWER WIRING ---
+    function initGallery() {
+      const grid = document.getElementById('clips-grid');
+      if (grid && !grid.dataset.wired) {
+        grid.dataset.wired = '1';
+        grid.addEventListener('click', (e) => {
+          const card = e.target.closest('.clip-card');
+          if (!card) return;
+          e.preventDefault();
+          const index = parseInt(card.getAttribute('data-index') || '0', 10);
+          const videoId = card.getAttribute('data-video-id');
+          const url = new URL(WIN.location.href);
+          if (videoId) url.searchParams.set('watch', videoId);
+          WIN.history.pushState({}, '', url);
+          openViewer(index);
+        });
       }
-    };
 
-    WIN.handleModalLike = function () {
-      const likeBtn = document.getElementById('modal-like-btn');
-      if (!likeBtn) return;
-      WIN.handleLikeClip(likeBtn);
-    };
-
-    WIN.handleModalShare = function () {
-      const currentClip = currentPool[modalClipIndex] || rawClips[modalClipIndex];
-      if (!currentClip) return;
-      const url = new URL(WIN.location.href);
-      url.searchParams.set('watch', currentClip.videoId);
-
-      navigator.clipboard.writeText(url.toString()).then(() => {
-        showToast('🔗 ¡Enlace copiado al portapapeles!');
+      document.querySelectorAll('.clips-filter-chip').forEach((chip) => {
+        chip.onclick = () => {
+          document.querySelectorAll('.clips-filter-chip').forEach((c) => c.classList.remove('is-active'));
+          chip.classList.add('is-active');
+          const filter = chip.getAttribute('data-filter');
+          document.querySelectorAll('.clip-card').forEach((card) => {
+            const show = filter === 'all' || card.getAttribute('data-episode-slug') === filter;
+            card.classList.toggle('is-hidden', !show);
+          });
+        };
       });
-    };
+    }
 
-    WIN.handleModalOpenDrawer = function () {
-      const currentClip = currentPool[modalClipIndex] || rawClips[modalClipIndex];
-      if (!currentClip) return;
-      const dummyBtn = document.createElement('button');
-      dummyBtn.setAttribute('data-episode-slug', currentClip.episodeSlug);
-      WIN.handleOpenEpisodeClips(dummyBtn);
-    };
+    const closeBtn = document.getElementById('viewer-close-btn');
+    if (closeBtn) {
+      closeBtn.onclick = () => closeViewerAndUpdateUrl();
+    }
 
-    // --- ACTIONS: LIKE & SHARE ---
-    WIN.handleLikeClip = async function (btn, event) {
-      if (event) {
-        event.stopPropagation();
-        event.preventDefault();
+    document.querySelectorAll('.interaction-layer').forEach((layer) => {
+      layer.onclick = (e) => {
+        const targetId = e.currentTarget.getAttribute('data-target');
+        if (targetId) togglePlay(targetId);
+      };
+    });
+
+    WIN.addEventListener('popstate', () => {
+      const watch = new URLSearchParams(WIN.location.search).get('watch');
+      const overlay = document.getElementById('clip-viewer-overlay');
+      const scroller = document.getElementById('viewer-scroller');
+      if (!watch) {
+        if (overlay && overlay.classList.contains('active')) closeViewer();
+        return;
+      }
+      const index = getClipIndexByVideoId(watch);
+      if (index === null || !overlay || !scroller) return;
+      if (!overlay.classList.contains('active')) {
+        document.body.classList.add('clip-viewer-open');
+        overlay.classList.add('active');
+        attachObservers(scroller);
+      }
+      const target = document.getElementById('clip-section-' + index);
+      if (target) scroller.scrollTop = target.offsetTop;
+    });
+
+    // --- GLOBAL ACTIONS (for onclick) ---
+    WIN.handleLikeClip = async function (btn) {
+      if (WIN.event) {
+        WIN.event.stopPropagation();
+        WIN.event.preventDefault();
       }
 
       const clipId = btn.getAttribute('data-clip-id');
@@ -1562,22 +1471,12 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
 
       if (isLiked) {
         btn.classList.remove('liked');
-        likedClipIds.delete(clipId);
         btn.querySelector('svg')?.setAttribute('fill', 'none');
       } else {
         btn.classList.add('liked');
-        likedClipIds.add(clipId);
         btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
         btn.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3)' }, { transform: 'scale(1)' }], { duration: 200 });
       }
-
-      // Sync other buttons for same clipId
-      document.querySelectorAll(`.like-btn[data-clip-id="${clipId}"]`).forEach((other) => {
-        if (other !== btn) {
-          other.classList.toggle('liked', !isLiked);
-          other.querySelector('svg')?.setAttribute('fill', !isLiked ? '#ef4444' : 'none');
-        }
-      });
 
       try {
         const res = await fetch('/api/clips/like', {
@@ -1586,29 +1485,47 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
           body: JSON.stringify({ clipId }),
         });
         if (res.status === 401) {
-          showToast('🔒 Inicia sesión para guardar me gustas');
+          WIN.location.href = '/login';
+          return;
         }
       } catch (e) {
         console.error(e);
+        if (isLiked) {
+          btn.classList.add('liked');
+          btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
+        } else {
+          btn.classList.remove('liked');
+          btn.querySelector('svg')?.setAttribute('fill', 'none');
+        }
       }
     };
 
-    WIN.handleShareClip = function (btn, event) {
-      if (event) {
-        event.stopPropagation();
-        event.preventDefault();
+    WIN.handleShareClip = function (btn) {
+      if (WIN.event) {
+        WIN.event.stopPropagation();
+        WIN.event.preventDefault();
       }
       const clipId = btn.getAttribute('data-clip-id');
       const url = new URL(WIN.location.href);
       if (clipId) url.searchParams.set('watch', clipId);
 
       navigator.clipboard.writeText(url.toString()).then(() => {
-        showToast('🔗 ¡Enlace del clip copiado!');
+        const original = btn.innerHTML;
+        btn.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        setTimeout(() => {
+          btn.innerHTML = original;
+        }, 2000);
       });
     };
 
-    // --- EPISODE CLIPS SIDE DRAWER ---
+    // --- EPISODE CLIPS SIDE PANEL ---
     WIN.handleOpenEpisodeClips = function (btn) {
+      if (WIN.event) {
+        WIN.event.stopPropagation();
+        WIN.event.preventDefault();
+      }
+
       const slug = btn.getAttribute('data-episode-slug');
       if (!slug || !WIN._clipsByEpisode) return;
 
@@ -1633,11 +1550,28 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
       grid.innerHTML = episodeData.clips
         .map((clip, i) => {
           const isActive = clip.videoId === currentWatch;
+          const delay = (i * 0.06).toFixed(2);
           return (
-            '<div class="grid-clip-card' + (isActive ? ' active-clip' : '') + '" onclick="window.openCinemaModal(\'' + (clip.videoId || '') + '\')">' +
-            '<img src="' + (clip.thumbnail || '') + '" alt="" loading="lazy" />' +
-            '<div class="grid-clip-info"><div class="grid-clip-title">' + escapeHtml(clip.title) + '</div></div>' +
-            '</div>'
+            '<a class="grid-clip-card' +
+            (isActive ? ' active-clip' : '') +
+            '" href="/clips?watch=' +
+            (clip.videoId || '') +
+            '" style="animation-delay:' +
+            delay +
+            's">' +
+            '<span class="grid-clip-badge">' +
+            (i + 1) +
+            '</span>' +
+            '<img src="' +
+            (clip.thumbnail || '') +
+            '" alt="" loading="lazy" />' +
+            '<div class="grid-play-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>' +
+            '<div class="grid-clip-info">' +
+            '<div class="grid-clip-title">' +
+            clip.title +
+            '</div>' +
+            '</div>' +
+            '</a>'
           );
         })
         .join('');
@@ -1653,17 +1587,28 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
       if (backdrop) backdrop.classList.remove('active');
     };
 
-    // Load liked clips from backend
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      const panel = document.getElementById('episode-clips-panel');
+      if (panel && panel.classList.contains('active')) {
+        WIN.handleCloseEpisodeClips();
+        return;
+      }
+      const overlay = document.getElementById('clip-viewer-overlay');
+      if (overlay && overlay.classList.contains('active')) {
+        closeViewerAndUpdateUrl();
+      }
+    });
+
     async function loadLikes() {
       try {
         const res = await fetch('/api/clips/liked');
         if (res.ok) {
           const data = await res.json();
           const liked = data.likedClips || [];
-          likedClipIds = new Set(liked);
           document.querySelectorAll('.like-btn').forEach((btn) => {
             const cid = btn.getAttribute('data-clip-id');
-            if (cid && likedClipIds.has(cid)) {
+            if (cid && liked.includes(cid)) {
               btn.classList.add('liked');
               btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
             }
@@ -1674,62 +1619,26 @@ Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
       }
     }
 
-    // Filter Chips Wiring
-    function initFilters() {
-      document.querySelectorAll('.clips-filter-chip').forEach((chip) => {
-        chip.onclick = () => {
-          document.querySelectorAll('.clips-filter-chip').forEach((c) => c.classList.remove('is-active'));
-          chip.classList.add('is-active');
-          const filter = chip.getAttribute('data-filter') || 'all';
-
-          const grid = document.getElementById('clips-grid');
-          if (grid) grid.innerHTML = '';
-          preparePool(filter);
-          renderNextBatch();
-        };
-      });
-
-      const shuffleBtn = document.getElementById('shuffle-feed-btn');
-      if (shuffleBtn) {
-        shuffleBtn.onclick = () => WIN.reshuffleGrid();
-      }
-    }
-
-    // Keyboard Shortcuts (Esc to close, Left/Right arrows to navigate modal)
-    document.addEventListener('keydown', function (e) {
-      const modal = document.getElementById('clip-cinema-modal');
-      const panel = document.getElementById('episode-clips-panel');
-
-      if (e.key === 'Escape') {
-        if (panel && panel.classList.contains('active')) {
-          WIN.handleCloseEpisodeClips();
-          return;
-        }
-        if (modal && modal.classList.contains('active')) {
-          WIN.closeCinemaModal();
-          return;
-        }
-      }
-
-      if (modal && modal.classList.contains('active')) {
-        if (e.key === 'ArrowLeft') WIN.navigateCinemaModal(-1);
-        if (e.key === 'ArrowRight') WIN.navigateCinemaModal(1);
-      }
-    });
-
-    // INIT
+    // --- INIT ---
     function initPage() {
-      if (!document.getElementById('clips-grid')) return;
+      if (!document.getElementById('clips-grid') && !document.getElementById('clip-viewer-overlay')) return;
 
-      preparePool('all');
-      renderNextBatch();
-      setupInfiniteScroll();
-      initFilters();
+      Object.values(state.players).forEach((p) => {
+        if (p && typeof p.destroy === 'function') {
+          try {
+            p.destroy();
+          } catch (e) {}
+        }
+      });
+      state.players = {};
+
+      initGallery();
       loadLikes();
 
       const watchId = new URLSearchParams(WIN.location.search).get('watch');
       if (watchId) {
-        WIN.openCinemaModal(watchId);
+        const index = getClipIndexByVideoId(watchId);
+        if (index !== null) openViewer(index);
       }
     }
 
