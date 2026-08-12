@@ -68,15 +68,41 @@ const CAPTION_FONT_CLASSES: Record<CaptionStyle['font'], string> = {
   mono: 'font-mono',
 };
 
+const SUBTITLE_LANGUAGES: { code: string; label: string }[] = [
+  { code: 'original', label: 'Original (Español)' },
+  { code: 'en', label: 'Inglés' },
+  { code: 'fr', label: 'Francés' },
+  { code: 'de', label: 'Alemán' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'pt', label: 'Portugués' },
+  { code: 'ca', label: 'Catalán' },
+  { code: 'eu', label: 'Euskera' },
+  { code: 'gl', label: 'Gallego' },
+  { code: 'nl', label: 'Neerlandés' },
+  { code: 'ru', label: 'Ruso' },
+  { code: 'ar', label: 'Árabe' },
+  { code: 'zh-CN', label: 'Chino' },
+  { code: 'ja', label: 'Japonés' },
+  { code: 'ko', label: 'Coreano' },
+];
+const SUBTITLE_LANGUAGE_CODES = SUBTITLE_LANGUAGES.map((l) => l.code);
+
 interface PlayerPrefs {
   volume: number;
   playbackRate: number;
   showCaptions: boolean;
   captionStyle: CaptionStyle;
+  subtitleLanguage: string;
 }
 
 function loadPrefs(): PlayerPrefs {
-  const defaults: PlayerPrefs = { volume: 1, playbackRate: 1, showCaptions: false, captionStyle: CAPTION_STYLE_DEFAULTS };
+  const defaults: PlayerPrefs = {
+    volume: 1,
+    playbackRate: 1,
+    showCaptions: false,
+    captionStyle: CAPTION_STYLE_DEFAULTS,
+    subtitleLanguage: 'original',
+  };
   if (typeof window === 'undefined') return defaults;
   try {
     const raw = window.localStorage.getItem(PREFS_KEY);
@@ -92,6 +118,7 @@ function loadPrefs(): PlayerPrefs {
         font: CAPTION_FONTS.includes(rawCaptionStyle.font) ? rawCaptionStyle.font : defaults.captionStyle.font,
         color: typeof rawCaptionStyle.color === 'string' ? rawCaptionStyle.color : defaults.captionStyle.color,
       },
+      subtitleLanguage: SUBTITLE_LANGUAGE_CODES.includes(parsed.subtitleLanguage) ? parsed.subtitleLanguage : defaults.subtitleLanguage,
     };
   } catch {
     return defaults;
@@ -281,6 +308,10 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   const [showCaptions, setShowCaptions] = useState(initialPrefs.showCaptions);
   const [captionStyle, setCaptionStyle] = useState<CaptionStyle>(initialPrefs.captionStyle);
   const [showCaptionSettings, setShowCaptionSettings] = useState(false);
+  const [subtitleLanguage, setSubtitleLanguage] = useState<string>(initialPrefs.subtitleLanguage);
+  const [translatedCaptionText, setTranslatedCaptionText] = useState<string | null>(null);
+  const [isTranslatingCaption, setIsTranslatingCaption] = useState(false);
+  const translationCacheRef = useRef<Map<string, string>>(new Map());
   const [mediaMode, setMediaMode] = useState<'video' | 'audio'>('video');
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<number>(0);
@@ -464,6 +495,11 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     });
   }, []);
 
+  const changeSubtitleLanguage = useCallback((lang: string) => {
+    setSubtitleLanguage(lang);
+    savePrefs({ subtitleLanguage: lang });
+  }, []);
+
   // Switch between video/audio-only mode without losing playback position
   const switchMediaMode = useCallback((mode: 'video' | 'audio') => {
     setMediaMode((prev) => {
@@ -640,6 +676,48 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
       recordListen(currentEpisode.slug);
     }
   }, [isPlaying, currentEpisode.slug]);
+
+  // Translate the active caption on the fly when a non-original subtitle language is selected
+  useEffect(() => {
+    if (!activeCaption || subtitleLanguage === 'original') {
+      setTranslatedCaptionText(null);
+      setIsTranslatingCaption(false);
+      return;
+    }
+
+    const cacheKey = `${subtitleLanguage}::${activeCaption.text}`;
+    const cached = translationCacheRef.current.get(cacheKey);
+    if (cached) {
+      setTranslatedCaptionText(cached);
+      setIsTranslatingCaption(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsTranslatingCaption(true);
+    fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texts: [activeCaption.text], target: subtitleLanguage }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        const translated = data?.translations?.[0];
+        if (typeof translated === 'string' && translated) {
+          translationCacheRef.current.set(cacheKey, translated);
+          setTranslatedCaptionText(translated);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsTranslatingCaption(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCaption, subtitleLanguage]);
 
   // Broadcast time updates for external sidebar widgets (sections/transcription)
   useEffect(() => {
@@ -848,7 +926,9 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           }`}
         >
           {activeCaption.speaker && <span className="text-primary font-bold mr-1.5">{activeCaption.speaker}:</span>}
-          <span className="font-medium leading-snug" style={{ color: captionStyle.color }}>{activeCaption.text}</span>
+          <span className="font-medium leading-snug" style={{ color: captionStyle.color }}>
+            {translatedCaptionText ?? activeCaption.text}
+          </span>
         </div>
       )}
 
@@ -1092,6 +1172,26 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                   {showCaptionSettings && (
                     <div className="absolute bottom-11 right-0 bg-zinc-950/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-3.5 flex flex-col gap-3.5 z-50 w-60">
                       <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Idioma</p>
+                        <select
+                          value={subtitleLanguage}
+                          onChange={(e) => changeSubtitleLanguage(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                        >
+                          {SUBTITLE_LANGUAGES.map((l) => (
+                            <option key={l.code} value={l.code} className="bg-zinc-900 text-white">
+                              {l.label}
+                            </option>
+                          ))}
+                        </select>
+                        {isTranslatingCaption && (
+                          <p className="text-[10px] text-zinc-500 mt-1.5 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> Traduciendo…
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
                         <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Tamaño</p>
                         <div className="flex gap-1.5">
                           {CAPTION_SIZES.map((s) => (
@@ -1149,7 +1249,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                             className={`${CAPTION_SIZE_CLASSES[captionStyle.size]} ${CAPTION_FONT_CLASSES[captionStyle.font]} font-medium leading-snug`}
                             style={{ color: captionStyle.color }}
                           >
-                            {activeCaption.text}
+                            {translatedCaptionText ?? activeCaption.text}
                           </span>
                         </div>
                       )}
