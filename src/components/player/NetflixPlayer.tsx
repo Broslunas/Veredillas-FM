@@ -188,7 +188,7 @@ const IconChevronRight = ({ className = 'w-4 h-4' }: { className?: string }) => 
 /* ---------------------------------------------------------------------- */
 
 const ctrlBtn =
-  'flex items-center justify-center text-zinc-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10';
+  'flex items-center justify-center text-zinc-300 hover:text-white transition-all p-2 rounded-lg hover:bg-white/10 active:scale-90';
 const ctrlBtnActive = 'bg-primary/25 text-primary hover:text-primary hover:bg-primary/30';
 
 export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
@@ -251,6 +251,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   const lastSyncTimeRef = useRef<number>(0);
   const pendingResumeRef = useRef<number>(initialProgress || 0);
   const resumeAppliedRef = useRef(false);
+  const modeSwitchResumeRef = useRef<{ time: number; wasPlaying: boolean } | null>(null);
 
   const isVideo = Boolean(currentEpisode.videoUrl) && mediaMode === 'video';
 
@@ -412,6 +413,16 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
       const next = !prev;
       savePrefs({ showCaptions: next });
       return next;
+    });
+  }, []);
+
+  // Switch between video/audio-only mode without losing playback position
+  const switchMediaMode = useCallback((mode: 'video' | 'audio') => {
+    setMediaMode((prev) => {
+      if (prev === mode) return prev;
+      const v = videoRef.current;
+      modeSwitchResumeRef.current = { time: v?.currentTime || 0, wasPlaying: v ? !v.paused : false };
+      return mode;
     });
   }, []);
 
@@ -686,7 +697,15 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
               setDuration(videoRef.current.duration);
               videoRef.current.volume = volume;
               videoRef.current.playbackRate = playbackRate;
-              applyPendingResume();
+              if (modeSwitchResumeRef.current) {
+                const { time, wasPlaying } = modeSwitchResumeRef.current;
+                modeSwitchResumeRef.current = null;
+                videoRef.current.currentTime = time;
+                setCurrentTime(time);
+                if (wasPlaying) videoRef.current.play().catch(console.error);
+              } else {
+                applyPendingResume();
+              }
             }
           }}
           onEnded={() => {
@@ -829,7 +848,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           {currentEpisode.videoUrl && currentEpisode.audioUrl && (
             <div className="flex items-center bg-black/50 backdrop-blur-md border border-white/10 rounded-full p-1 text-xs flex-shrink-0">
               <button
-                onClick={() => setMediaMode('video')}
+                onClick={() => switchMediaMode('video')}
                 className={`px-3 py-1 rounded-full font-semibold transition-all ${
                   mediaMode === 'video' ? 'bg-primary text-white' : 'text-zinc-400 hover:text-white'
                 }`}
@@ -837,7 +856,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                 Vídeo
               </button>
               <button
-                onClick={() => setMediaMode('audio')}
+                onClick={() => switchMediaMode('audio')}
                 className={`px-3 py-1 rounded-full font-semibold transition-all ${
                   mediaMode === 'audio' ? 'bg-primary text-white' : 'text-zinc-400 hover:text-white'
                 }`}
@@ -848,45 +867,18 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           )}
         </div>
 
-        {/* CENTER BIG BUTTONS */}
-        <div className="flex items-center justify-center gap-8 md:gap-14 my-auto">
-          <button
-            onClick={() => skipTime(-10)}
-            aria-label="Retroceder 10 segundos"
-            className="p-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 backdrop-blur-md transition-all transform hover:scale-105 active:scale-95"
-          >
-            <IconRewind10 className="w-6 h-6 md:w-7 md:h-7 text-white" />
-          </button>
-
-          <button
-            onClick={togglePlay}
-            aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
-            className="p-5 md:p-6 rounded-full bg-primary hover:brightness-110 text-white shadow-xl shadow-black/40 transition-all transform hover:scale-105 active:scale-95"
-          >
-            {isPlaying ? <IconPause className="w-7 h-7 md:w-9 md:h-9" /> : <IconPlay className="w-7 h-7 md:w-9 md:h-9 ml-0.5" />}
-          </button>
-
-          <button
-            onClick={() => skipTime(10)}
-            aria-label="Adelantar 10 segundos"
-            className="p-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 backdrop-blur-md transition-all transform hover:scale-105 active:scale-95"
-          >
-            <IconForward10 className="w-6 h-6 md:w-7 md:h-7 text-white" />
-          </button>
-        </div>
-
         {/* BOTTOM CONTROLS & TIMELINE WITH SECTIONS */}
         <div className="w-full flex flex-col gap-1.5">
           {/* PROGRESS BAR & SECTION MARKERS */}
           <div
-            className="relative group cursor-pointer py-2"
+            className="relative group cursor-pointer py-2.5"
             onClick={handleSeek}
             onMouseMove={handleProgressBarMouseMove}
             onMouseLeave={handleProgressBarMouseLeave}
           >
             <div
               ref={progressBarRef}
-              className="relative w-full h-1 group-hover:h-1.5 bg-white/20 rounded-full overflow-hidden transition-all"
+              className="relative w-full h-1.5 group-hover:h-2 bg-white/15 rounded-full overflow-hidden transition-all duration-150"
             >
               {/* Buffered Progress */}
               <div
@@ -895,7 +887,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
               />
               {/* Played Progress */}
               <div
-                className="absolute top-0 bottom-0 bg-primary rounded-full transition-all"
+                className="absolute top-0 bottom-0 bg-gradient-to-r from-primary to-accent rounded-full transition-all"
                 style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
               />
 
@@ -917,7 +909,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
 
             {/* Seek Handle Dot */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-md scale-0 group-hover:scale-100 transition-transform pointer-events-none"
+              className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full ring-4 ring-primary/30 shadow-md scale-0 group-hover:scale-100 transition-transform pointer-events-none"
               style={{ left: `calc(${duration ? (currentTime / duration) * 100 : 0}% - 7px)` }}
             />
 
@@ -938,14 +930,36 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           {/* BOTTOM BUTTONS ROW */}
           <div className="flex items-center justify-between w-full">
             {/* Left Controls */}
-            <div className="flex items-center gap-1 md:gap-2">
-              <button onClick={togglePlay} className={ctrlBtn} aria-label={isPlaying ? 'Pausar' : 'Reproducir'}>
-                {isPlaying ? <IconPause className="w-5 h-5" /> : <IconPlay className="w-5 h-5" />}
+            <div className="flex items-center gap-0.5 md:gap-1.5">
+              <button
+                onClick={() => skipTime(-10)}
+                aria-label="Retroceder 10 segundos"
+                className={ctrlBtn}
+                title="Retroceder 10s (J)"
+              >
+                <IconRewind10 className="w-5 h-5" />
               </button>
 
-              {/* VOLUME SLIDER POPPER */}
+              <button
+                onClick={togglePlay}
+                aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+                className="flex-shrink-0 flex items-center justify-center w-9 h-9 md:w-10 md:h-10 mx-0.5 rounded-full bg-primary hover:brightness-110 text-white shadow-lg shadow-primary/30 transition-all transform hover:scale-105 active:scale-95"
+              >
+                {isPlaying ? <IconPause className="w-5 h-5" /> : <IconPlay className="w-5 h-5 ml-0.5" />}
+              </button>
+
+              <button
+                onClick={() => skipTime(10)}
+                aria-label="Adelantar 10 segundos"
+                className={ctrlBtn}
+                title="Adelantar 10s (L)"
+              >
+                <IconForward10 className="w-5 h-5" />
+              </button>
+
+              {/* VOLUME SLIDER POPPER (desktop) */}
               <div
-                className="relative flex items-center group/vol"
+                className="relative hidden sm:flex items-center group/vol"
                 onMouseEnter={() => setIsVolumeHovered(true)}
                 onMouseLeave={() => setIsVolumeHovered(false)}
               >
@@ -978,8 +992,13 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                 </div>
               </div>
 
+              {/* Mute button (mobile, no hover slider) */}
+              <button onClick={toggleMute} className={`${ctrlBtn} sm:hidden`} aria-label={isMuted ? 'Activar sonido' : 'Silenciar'}>
+                {isMuted || volume === 0 ? <IconVolumeMute className="w-5 h-5" /> : <IconVolumeHigh className="w-5 h-5" />}
+              </button>
+
               {/* Time Display */}
-              <span className="text-xs font-mono text-zinc-300 ml-1 hidden xs:inline">
+              <span className="text-[11px] md:text-xs font-mono tabular-nums text-zinc-300 ml-1 whitespace-nowrap">
                 {formatTime(currentTime)} <span className="text-zinc-600">/</span> {formatTime(duration)}
               </span>
             </div>
