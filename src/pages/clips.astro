@@ -1529,7 +1529,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
       const overlay = document.getElementById('clip-viewer-overlay');
       document.body.classList.remove('clip-viewer-open');
       overlay?.classList.remove('active');
-      pauseAllMedia();
+      unloadAllMedia();
     }
 
     function closeViewerAndUpdateUrl() {
