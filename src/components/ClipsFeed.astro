@@ -1416,6 +1416,13 @@ const feedClips = clips.map((c) => ({
       }
     }
 
+    // Hides the loading skeleton for whichever section owns this media element id.
+    function markLoaded(mediaElId) {
+      const el = document.getElementById(mediaElId);
+      const section = el ? el.closest('.clip-section') : null;
+      section?.classList.remove('is-loading');
+    }
+
     function createYouTubePlayer(id) {
       if (!WIN.YT || !WIN.YT.Player) {
         if (!state.queue.includes(id)) state.queue.push(id);
@@ -1444,14 +1451,17 @@ const feedClips = clips.map((c) => ({
           origin: WIN.location.origin,
         },
         events: {
-          onStateChange: onPlayerStateChange,
+          onStateChange: (event) => onPlayerStateChange(event, id),
         },
       });
     }
 
-    function onPlayerStateChange(event) {
+    function onPlayerStateChange(event, id) {
       if (event.data === WIN.YT.PlayerState.ENDED) {
         event.target.playVideo();
+      }
+      if (event.data === WIN.YT.PlayerState.PLAYING || event.data === WIN.YT.PlayerState.BUFFERING) {
+        markLoaded(id);
       }
     }
 
@@ -1463,6 +1473,7 @@ const feedClips = clips.map((c) => ({
         createYouTubePlayer(id);
       } else if (el.dataset.src && !el.getAttribute('src')) {
         el.src = el.dataset.src;
+        el.addEventListener('loadeddata', () => markLoaded(id), { once: true });
       }
     }
 
@@ -1502,6 +1513,7 @@ const feedClips = clips.map((c) => ({
         player.destroy();
       } catch (e) {}
       delete state.players[mediaEl.id];
+      section.classList.add('is-loading');
 
       const wrapper = section.querySelector('.video-wrapper');
       if (!wrapper || document.getElementById(mediaEl.id)) return;
@@ -1524,6 +1536,7 @@ const feedClips = clips.map((c) => ({
         mediaEl.pause();
         mediaEl.removeAttribute('src');
         mediaEl.load();
+        section.classList.add('is-loading');
       }
     }
 
@@ -1772,6 +1785,13 @@ const feedClips = clips.map((c) => ({
     }
 
     function closeViewerAndUpdateUrl() {
+      // A direct /clip/{id} link never rendered the gallery behind the viewer (see
+      // showGallery in the frontmatter), so there's nothing to reveal by just hiding the
+      // overlay — send the user to a real /clips load instead.
+      if (!document.getElementById('clips-grid') && !document.querySelector('.clips-hero')) {
+        WIN.location.href = '/clips';
+        return;
+      }
       closeViewer();
       const url = new URL(WIN.location.href);
       url.pathname = '/clips';
