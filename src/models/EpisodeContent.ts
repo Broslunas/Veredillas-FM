@@ -14,6 +14,8 @@ export interface ISectionItem {
 export interface IClipItem {
   title: string;
   url: string;
+  videoId?: string;
+  thumbnailUrl?: string;
 }
 
 export interface IQuizItem {
@@ -85,6 +87,8 @@ const EpisodeContentSchema = new Schema<IEpisodeContent>(
       {
         title: { type: String, required: true },
         url: { type: String, required: true },
+        videoId: { type: String },
+        thumbnailUrl: { type: String },
       },
     ],
     quiz: [

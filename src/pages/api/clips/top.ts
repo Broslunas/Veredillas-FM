@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import mongoose from 'mongoose';
 import Clip from '@/models/Clip';
 import { getCollection } from '@/lib/content';
+import { resolveClipVideoId, resolveClipThumbnail } from '@/lib/clips';
 
 export const prerender = false;
 
@@ -30,21 +31,7 @@ export const GET: APIRoute = async () => {
         episodes.forEach(ep => {
             if (ep.data.clips) {
                 ep.data.clips.forEach((clip: any) => {
-                    // Extract ID
-                    let videoId = null;
-                     const patterns = [
-                        /youtube\.com\/shorts\/([^?&]+)/,
-                        /(?:youtube\.com\/watch\?v=|youtube\.com\/watch\?.+&v=)([^&]+)/,
-                        /youtu\.be\/([^?&]+)/,
-                        /youtube\.com\/embed\/([^?&]+)/,
-                    ];
-                    for (const pattern of patterns) {
-                        const match = clip.url.match(pattern);
-                        if (match) {
-                            videoId = match[1];
-                            break;
-                        }
-                    }
+                    const videoId = resolveClipVideoId(clip);
 
                     if (videoId) {
                          const meta = {
@@ -52,7 +39,8 @@ export const GET: APIRoute = async () => {
                              episodeTitle: ep.data.title,
                              episodeSlug: ep.slug,
                              episodeImage: ep.data.image,
-                             videoId
+                             videoId,
+                             thumbnail: resolveClipThumbnail(clip),
                          };
                          clipMetadataMap.set(videoId, meta);
                          allClips.push(meta);
@@ -84,8 +72,7 @@ export const GET: APIRoute = async () => {
                 episodeTitle: meta.episodeTitle,
                 episodeSlug: meta.episodeSlug,
                 cover: meta.episodeImage,
-                // YouTube Thumbnail
-                thumbnail: `https://img.youtube.com/vi/${dbClip.videoId}/hqdefault.jpg`
+                thumbnail: meta.thumbnail,
             };
         }).filter(Boolean);
 

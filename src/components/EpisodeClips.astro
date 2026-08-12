@@ -1,7 +1,11 @@
 ---
+import { resolveClipPlayback } from '@/lib/clips';
+
 interface Clip {
   title: string;
   url: string;
+  videoId?: string;
+  thumbnailUrl?: string;
 }
 
 interface Props {
@@ -10,24 +14,14 @@ interface Props {
 
 const { clips } = Astro.props;
 
-function toEmbedUrl(url: string): string {
-  const patterns = [
-    /youtube\.com\/shorts\/([^?&]+)/,
-    /(?:youtube\.com\/watch\?v=|youtube\.com\/watch\?.+&v=)([^&]+)/,
-    /youtu\.be\/([^?&]+)/,
-    /youtube\.com\/embed\/([^?&]+)/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return `https://www.youtube.com/embed/${match[1]}`;
-  }
-  return url;
-}
-
-const embedClips = clips?.map(clip => ({
-  title: clip.title,
-  embedUrl: toEmbedUrl(clip.url),
-})) ?? [];
+const embedClips = clips?.map((clip) => {
+  const playback = resolveClipPlayback(clip);
+  return {
+    title: clip.title,
+    kind: playback.kind,
+    mediaSrc: playback.kind === 'youtube' ? `https://www.youtube.com/embed/${playback.videoId}` : playback.url,
+  };
+}) ?? [];
 ---
 
 {embedClips.length > 0 && (
@@ -84,14 +78,26 @@ const embedClips = clips?.map(clip => ({
                 <div class="flex-[0_0_100%] px-4 py-6 sm:px-8 sm:py-8 flex flex-col items-center justify-center gap-4 sm:gap-6 min-h-0" data-index={i}>
                   <div class="relative h-[min(55vh,500px)] aspect-[9/16] flex-shrink-0 group/video">
                     <div class="w-full h-full bg-black rounded-xl sm:rounded-[24px] overflow-hidden relative z-10 shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_20px_40px_-10px_rgba(0,0,0,0.8)] transition-transform duration-500 group-hover/video:scale-[1.01]">
-                      <iframe
-                        class="w-full h-full border-none pointer-events-auto"
-                        data-src={clip.embedUrl}
-                        title={clip.title}
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen
-                      ></iframe>
+                      {clip.kind === 'youtube' ? (
+                        <iframe
+                          class="media-el w-full h-full border-none pointer-events-auto"
+                          data-kind="youtube"
+                          data-src={clip.mediaSrc}
+                          title={clip.title}
+                          frameborder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowfullscreen
+                        ></iframe>
+                      ) : (
+                        <video
+                          class="media-el w-full h-full object-cover pointer-events-auto"
+                          data-kind="self-hosted"
+                          data-src={clip.mediaSrc}
+                          playsinline
+                          controls
+                          loop
+                        ></video>
+                      )}
                     </div>
                     <div class="absolute -bottom-[10%] left-[5%] right-[5%] h-[20%] bg-gradient-to-b from-primary/20 to-transparent blur-[25px] sm:blur-[35px] z-[1] opacity-60 pointer-events-none"></div>
                   </div>
@@ -183,33 +189,56 @@ const embedClips = clips?.map(clip => ({
       }, { passive: true });
     }
 
-    function loadIframe(index: number, shouldPlay: boolean = false) {
+    function loadMedia(index: number, shouldPlay: boolean = false) {
       const slide = slides[index];
       if (!slide) return;
-      const iframe = slide.querySelector('iframe');
-      if (iframe && iframe.dataset.src) {
-        let targetSrc = iframe.dataset.src;
+      const media = slide.querySelector('.media-el') as (HTMLIFrameElement | HTMLVideoElement | null);
+      if (!media || !media.dataset.src) return;
+
+      const src = media.dataset.src;
+
+      if (media.dataset.kind === 'youtube') {
+        const iframe = media as HTMLIFrameElement;
+        let targetSrc = src;
         if (shouldPlay) {
-          // Add autoplay=1 and mute=0 to ensure it starts playing
+          // Add autoplay=1 to ensure it starts playing
           const connector = targetSrc.includes('?') ? '&' : '?';
           targetSrc = `${targetSrc}${connector}autoplay=1`;
         }
-        
         // Only update if it's different to avoid unnecessary reloads
         if (iframe.getAttribute('src') !== targetSrc) {
           iframe.src = targetSrc;
         }
+      } else {
+        const video = media as HTMLVideoElement;
+        if (video.getAttribute('src') !== src) {
+          video.src = src;
+        }
+        if (shouldPlay) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      }
+    }
+
+    function stopMedia(slide: Element) {
+      const media = slide.querySelector('.media-el') as (HTMLIFrameElement | HTMLVideoElement | null);
+      if (!media) return;
+      if (media.dataset.kind === 'youtube') {
+        media.removeAttribute('src');
+      } else {
+        (media as HTMLVideoElement).pause();
       }
     }
 
     function updateView(index: number) {
       if (index < 0 || index >= slides.length) return;
-      
-      // Stop previous video by clearing its src
+
+      // Stop previous video
       const prevSlide = slides[currentIndex];
       if (prevSlide && index !== currentIndex) {
-        const prevIframe = prevSlide.querySelector('iframe');
-        if (prevIframe) prevIframe.removeAttribute('src');
+        stopMedia(prevSlide);
       }
 
       currentIndex = index;
@@ -222,18 +251,26 @@ const embedClips = clips?.map(clip => ({
         seg.classList.toggle('active', i === index);
       });
 
-      // Load and play current iframe
-      loadIframe(index, true);
-      
+      // Load and play current media
+      loadMedia(index, true);
+
       // Pre-load neighbors WITHOUT playing
-      if (index > 0) loadIframe(index - 1, false);
-      if (index < slides.length - 1) loadIframe(index + 1, false);
+      if (index > 0) loadMedia(index - 1, false);
+      if (index < slides.length - 1) loadMedia(index + 1, false);
     }
 
     function unloadAll() {
       slides.forEach(slide => {
-        const iframe = slide.querySelector('iframe');
-        if (iframe) iframe.removeAttribute('src');
+        const media = slide.querySelector('.media-el') as (HTMLIFrameElement | HTMLVideoElement | null);
+        if (!media) return;
+        if (media.dataset.kind === 'youtube') {
+          media.removeAttribute('src');
+        } else {
+          const video = media as HTMLVideoElement;
+          video.pause();
+          video.removeAttribute('src');
+          video.load();
+        }
       });
     }
 

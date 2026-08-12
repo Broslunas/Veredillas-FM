@@ -1,117 +1,174 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import { getCollection } from '@/lib/content';
+import { resolveClipVideoId, resolveClipThumbnail, resolveClipPlayback } from '@/lib/clips';
 
 export const prerender = false;
 
 const allEpisodes = await getCollection('episodios');
 
-function getVideoId(url: string): string | null {
-  const patterns = [
-    /youtube\.com\/shorts\/([^?&]+)/,
-    /(?:youtube\.com\/watch\?v=|youtube\.com\/watch\?.+&v=)([^&]+)/,
-    /youtu\.be\/([^?&]+)/,
-    /youtube\.com\/embed\/([^?&]+)/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  return null;
-}
-
-// Extract all clips and shuffle them for a "feed" feel
-let clips = allEpisodes.flatMap(episode => {
-  return (episode.data.clips || []).map(clip => ({
-    ...clip,
-    videoId: getVideoId(clip.url),
-    episodeTitle: episode.data.title,
-    episodeSlug: episode.slug,
-    episodeImage: episode.data.image
-  }));
-}).sort(() => Math.random() - 0.5); // Simple shuffle
+// Flatten every episode's clips into a single gallery feed
+let clips = allEpisodes
+  .flatMap((episode) => {
+    return (episode.data.clips || []).map((clip: any) => {
+      const videoId = resolveClipVideoId(clip);
+      const playback = resolveClipPlayback(clip);
+      return {
+        title: clip.title,
+        videoId,
+        thumbnail: resolveClipThumbnail(clip),
+        playbackKind: playback.kind,
+        mediaSrc: playback.kind === 'youtube' ? playback.videoId || '' : playback.url,
+        episodeTitle: episode.data.title,
+        episodeSlug: episode.slug,
+        episodeImage:
+          typeof episode.data.image === 'string' ? episode.data.image : episode.data.image?.src || '/placeholder.jpg',
+      };
+    });
+  })
+  .filter((clip) => clip.videoId)
+  .sort(() => Math.random() - 0.5); // Simple shuffle
 
 // Build a map of clips grouped by episode slug for the side panel
-const clipsByEpisode: Record<string, {episodeTitle: string, episodeImage: string, clips: Array<{title: string, videoId: string | null, url: string}>}> = {};
-allEpisodes.forEach(episode => {
-  const epClips = (episode.data.clips || []).map(clip => ({
-    title: clip.title,
-    videoId: getVideoId(clip.url),
-    url: clip.url
-  }));
+const clipsByEpisode: Record<
+  string,
+  { episodeTitle: string; episodeImage: string; clips: Array<{ title: string; videoId: string; thumbnail: string }> }
+> = {};
+allEpisodes.forEach((episode) => {
+  const epClips = (episode.data.clips || [])
+    .map((clip: any) => ({ title: clip.title, videoId: resolveClipVideoId(clip), thumbnail: resolveClipThumbnail(clip) }))
+    .filter((c: any) => c.videoId);
   if (epClips.length > 0) {
     clipsByEpisode[episode.slug] = {
       episodeTitle: episode.data.title,
-      episodeImage: typeof episode.data.image === 'string' ? episode.data.image : (episode.data.image?.src || '/placeholder.jpg'),
-      clips: epClips
+      episodeImage:
+        typeof episode.data.image === 'string' ? episode.data.image : episode.data.image?.src || '/placeholder.jpg',
+      clips: epClips,
     };
   }
 });
 
-// Check for watch param and move to start
+// If a specific clip was requested, move it to the front so the viewer opens there
 const watchId = Astro.url.searchParams.get('watch');
 if (watchId) {
-    const index = clips.findIndex(c => c.videoId === watchId);
-    if (index > -1) {
-        const [selectedClip] = clips.splice(index, 1);
-        clips.unshift(selectedClip);
-    }
+  const index = clips.findIndex((c) => c.videoId === watchId);
+  if (index > -1) {
+    const [selectedClip] = clips.splice(index, 1);
+    clips.unshift(selectedClip);
+  }
 }
+
+// Distinct episodes represented in the feed, in feed order, for the filter row
+const seenSlugs = new Set<string>();
+const episodeOptions = clips
+  .filter((c) => {
+    if (seenSlugs.has(c.episodeSlug)) return false;
+    seenSlugs.add(c.episodeSlug);
+    return true;
+  })
+  .map((c) => ({ slug: c.episodeSlug, title: c.episodeTitle }));
 
 // Cache for 30 minutes. The shuffle will be the same for all users during the cache lifetime.
 Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalidate=900');
 ---
 
-<Layout title="Clips" description="Los mejores momentos de Veredillas FM en formato corto." showFooter={false}>
-  <div class="clips-container" id="clips-container">
+<Layout title="Clips" description="Los mejores momentos de Veredillas FM en formato corto.">
+  <section class="clips-hero">
+    <div class="clips-hero-inner">
+      <div class="clips-eyebrow">
+        <span class="clips-eyebrow-dot"></span>
+        Momentos destacados
+      </div>
+      <h1 class="clips-title">Clips</h1>
+      <p class="clips-subtitle">Los mejores momentos de Veredillas FM, en formato corto.</p>
+    </div>
+
+    {episodeOptions.length > 1 && (
+      <div class="ep-chip-row clips-filter-row" id="clips-filter-row">
+        <button class="ep-chip clips-filter-chip is-active" data-filter="all">Todos</button>
+        {episodeOptions.map((ep) => (
+          <button class="ep-chip clips-filter-chip" data-filter={ep.slug}>{ep.title}</button>
+        ))}
+      </div>
+    )}
+  </section>
+
+  <section class="clips-grid-section">
     {clips.length > 0 ? (
-      clips.map((clip, index) => {
-        const videoId = clip.videoId;
-        if (!videoId) return null;
-        
-        return (
-        <div class="clip-section" id={`clip-section-${index}`}>
-          <div class="video-wrapper">
-             <div id={`player-${index}`} class="youtube-player" data-video-id={videoId}></div>
-             <!-- Interaction layer for custom play/pause -->
-             <div class="interaction-layer" data-target={`player-${index}`}></div>
-          </div>
-          
-          <div class="clip-overlay">
-            <div class="clip-info">
-                <h2 class="clip-title">{clip.title}</h2>
-                <a href={`/ep/${clip.episodeSlug}`} class="episode-link">
-                    <span class="episode-icon">🎙️</span>
-                    <span class="episode-name">{clip.episodeTitle}</span>
-                </a>
+      <div class="clips-grid" id="clips-grid">
+        {clips.map((clip, index) => (
+          <a
+            href={`/clips?watch=${clip.videoId}`}
+            class="clip-card"
+            data-index={index}
+            data-video-id={clip.videoId}
+            data-episode-slug={clip.episodeSlug}
+          >
+            <img class="clip-card-thumb" src={clip.thumbnail} alt="" loading="lazy" />
+            <div class="clip-card-play">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             </div>
-            
-            <div class="clip-actions">
-                <button class="action-btn episode-clips-btn" aria-label="Ver clips del episodio" data-episode-slug={clip.episodeSlug} onclick="handleOpenEpisodeClips(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                </button>
-                <button class="action-btn like-btn" aria-label="Me gusta" data-clip-id={videoId} onclick="handleLikeClip(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                </button>
-                <button class="action-btn share-btn" aria-label="Compartir" data-clip-id={videoId} onclick="handleShareClip(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                </button>
-                <a href={`/ep/${clip.episodeSlug}`} class="action-btn" aria-label="Ver episodio completo">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
-                </a>
+            <div class="clip-card-overlay">
+              <span class="clip-card-episode">{clip.episodeTitle}</span>
+              <h3 class="clip-card-title">{clip.title}</h3>
             </div>
-            <div class="scroll-indicator">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
-            </div>
-          </div>
-        </div>
-      )})
+          </a>
+        ))}
+      </div>
     ) : (
       <div class="no-clips">
         <p>No hay clips disponibles por el momento.</p>
-        <a href="/ep" class="back-btn">Ver episodios</a>
+        <a href="/ep" class="btn btn-primary">Ver episodios</a>
       </div>
     )}
+  </section>
+
+  <!-- Fullscreen TikTok-style viewer, opened from the gallery -->
+  <div id="clip-viewer-overlay" class="clip-viewer-overlay">
+    <button class="viewer-close-btn" id="viewer-close-btn" aria-label="Cerrar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+
+    <div class="viewer-scroller" id="viewer-scroller">
+      {clips.map((clip, index) => (
+        <div class="clip-section" id={`clip-section-${index}`} data-index={index} data-video-id={clip.videoId}>
+          <div class="video-wrapper">
+            {clip.playbackKind === 'youtube' ? (
+              <div id={`player-${index}`} class="youtube-player" data-kind="youtube" data-video-id={clip.mediaSrc}></div>
+            ) : (
+              <video id={`player-${index}`} class="native-player" data-kind="self-hosted" data-src={clip.mediaSrc} loop playsinline muted></video>
+            )}
+            <!-- Interaction layer for custom play/pause -->
+            <div class="interaction-layer" data-target={`player-${index}`}></div>
+          </div>
+
+          <div class="clip-overlay">
+            <div class="clip-info">
+              <h2 class="clip-title">{clip.title}</h2>
+              <a href={`/ep/${clip.episodeSlug}`} class="episode-link">
+                <span class="episode-icon">🎙️</span>
+                <span class="episode-name">{clip.episodeTitle}</span>
+              </a>
+            </div>
+
+            <div class="clip-actions">
+              <button class="ep-chip clip-action-chip episode-clips-btn" aria-label="Ver clips del episodio" data-episode-slug={clip.episodeSlug} onclick="handleOpenEpisodeClips(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              </button>
+              <button class="ep-chip clip-action-chip like-btn" aria-label="Me gusta" data-clip-id={clip.videoId} onclick="handleLikeClip(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              </button>
+              <button class="ep-chip clip-action-chip share-btn" aria-label="Compartir" data-clip-id={clip.videoId} onclick="handleShareClip(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+              </button>
+              <a href={`/ep/${clip.episodeSlug}`} class="ep-chip clip-action-chip" aria-label="Ver episodio completo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   </div>
 
   <!-- Episode Clips Side Panel -->
@@ -141,29 +198,273 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
 </Layout>
 
 <style>
-  /* Global reset for this page */
-  :global(body) {
-      overflow: hidden; /* Prevent body scroll, handle in main */
-      background-color: #000;
+  :global(body.clip-viewer-open) {
+    overflow: hidden;
   }
 
-  :global(main) {
-    padding-top: 0 !important;
+  /* ═══════════════════════════════════════════════════════════ */
+  /* Gallery                                                     */
+  /* ═══════════════════════════════════════════════════════════ */
+
+  .clips-hero {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 1.5rem;
+  }
+
+  .clips-hero-inner {
+    margin-bottom: 1.5rem;
+  }
+
+  .clips-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--color-primary);
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  .clips-eyebrow-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary-glow);
+  }
+
+  .clips-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 7vw, 4.5rem);
+    font-weight: 900;
+    color: var(--color-text-main);
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    margin-bottom: 0.75rem;
+  }
+
+  .clips-subtitle {
+    color: var(--color-text-muted);
+    font-size: 1.05rem;
+    max-width: 40ch;
+  }
+
+  .clips-filter-row {
+    padding-bottom: 0.25rem;
+  }
+
+  .clips-filter-chip {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .clips-filter-chip.is-active {
+    background: rgba(var(--color-primary-rgb), 0.16);
+    border-color: rgba(var(--color-primary-rgb), 0.4);
+    color: var(--color-text-main);
+  }
+
+  .clips-grid-section {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem 5rem;
+  }
+
+  .clips-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.9rem;
+  }
+
+  @media (min-width: 640px) {
+    .clips-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .clips-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (min-width: 1400px) {
+    .clips-grid {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+
+  .clip-card {
+    position: relative;
+    display: block;
+    aspect-ratio: 9 / 16;
+    border-radius: var(--radius-xl, 1.25rem);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+  }
+
+  .clip-card.is-hidden {
+    display: none;
+  }
+
+  .clip-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(var(--color-primary-rgb), 0.45);
+    box-shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--color-primary-rgb), 0.15);
+  }
+
+  .clip-card-thumb {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .clip-card:hover .clip-card-thumb {
+    transform: scale(1.06);
+  }
+
+  .clip-card-play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .clip-card-play svg {
+    width: 44px;
+    height: 44px;
+    padding: 12px;
+    border-radius: 50%;
+    background: rgba(var(--color-primary-rgb), 0.85);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 30px rgba(var(--color-primary-rgb), 0.5);
+  }
+
+  .clip-card:hover .clip-card-play {
+    opacity: 1;
+  }
+
+  .clip-card-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1.75rem 0.75rem 0.65rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.35) 60%, transparent 100%);
+  }
+
+  .clip-card-episode {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(var(--color-primary-rgb), 0.9);
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .clip-card-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: rgba(255, 255, 255, 0.95);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  }
+
+  .no-clips {
+    min-height: 40vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    gap: 1.25rem;
+    text-align: center;
+  }
+
+  /* ═══════════════════════════════════════════════════════════ */
+  /* Fullscreen viewer                                            */
+  /* ═══════════════════════════════════════════════════════════ */
+
+  .clip-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    background: #000;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+  }
+
+  .clip-viewer-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.3s ease, visibility 0s 0s;
+  }
+
+  .viewer-close-btn {
+    position: absolute;
+    top: max(1.25rem, env(safe-area-inset-top));
+    right: 1.25rem;
+    z-index: 30;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.25s ease;
+  }
+
+  .viewer-close-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+    transform: rotate(90deg);
+  }
+
+  .viewer-scroller {
+    width: 100%;
     height: 100vh;
     height: 100dvh;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
-    scrollbar-width: none; /* Firefox */
-  }
-  
-  :global(main)::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    scrollbar-width: none;
   }
 
-  /* Container */
-  .clips-container {
-    width: 100%;
-    height: 100%;
+  .viewer-scroller::-webkit-scrollbar {
+    display: none;
   }
 
   /* Individual Clip Section */
@@ -190,43 +491,47 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     justify-content: center;
     align-items: center;
   }
-  
-  .youtube-player {
+
+  .youtube-player,
+  .native-player {
     width: 100%;
     height: 100%;
     max-width: 500px; /* Limit width on desktop for vertical video feel */
     aspect-ratio: 9/16;
-    pointer-events: none; /* Disable native interaction mainly, but clicks might pass */
+    pointer-events: none;
+    object-fit: cover;
+    background: #000;
   }
 
   /* Interaction Layer ensures we capture taps for play/pause and block YouTube controls */
   .interaction-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 5;
-      cursor: pointer;
-      /* Ensure taps work on mobile */
-      -webkit-tap-highlight-color: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
   @media (min-width: 768px) {
-      .youtube-player {
-          height: 90vh; /* Give some breathing room on desktop */
-          border-radius: 20px;
-          overflow: hidden;
-      }
-      
-      /* Match interaction layer to player size on desktop */
-      .video-wrapper {
-          width: auto;
-      }
-      .youtube-player, .interaction-layer {
-          width: auto;
-          aspect-ratio: 9/16;
-      }
+    .youtube-player,
+    .native-player {
+      height: 90vh;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .video-wrapper {
+      width: auto;
+    }
+    .youtube-player,
+    .native-player,
+    .interaction-layer {
+      width: auto;
+      aspect-ratio: 9/16;
+    }
   }
 
   /* Overlay UI */
@@ -236,9 +541,9 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     left: 0;
     width: 100%;
     height: 100%;
-    padding: 2rem 1.5rem 6rem; /* Extra padding at bottom for mobile nav bars */
-    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 30%, transparent 100%);
-    pointer-events: none; /* Let clicks pass through */
+    padding: 2rem 1.5rem max(6rem, calc(env(safe-area-inset-bottom) + 4rem));
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 30%, transparent 100%);
+    pointer-events: none;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -259,7 +564,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 0.75rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -278,7 +583,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     border-radius: 99px;
     backdrop-filter: blur(8px);
     transition: background 0.2s;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .episode-link:hover {
@@ -291,113 +596,66 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     bottom: 6rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.1rem;
     pointer-events: auto;
     z-index: 20;
     align-items: center;
   }
 
-  .action-btn {
-    width: 48px;
-    height: 48px;
+  /* Circular icon-only variant of the shared .ep-chip glass button */
+  .clip-action-chip {
+    width: 46px;
+    padding: 0;
     border-radius: 50%;
-    background: rgba(30, 30, 30, 0.5);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s;
   }
 
-  .action-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
+  @media (max-width: 639px) {
+    .clip-action-chip {
+      width: 40px;
+    }
   }
 
-  .action-btn.liked {
-      background: rgba(255, 255, 255, 1);
-      color: #ef4444; /* Red color */
-      border-color: #ef4444;
-  }
-  
-  .action-btn.liked svg {
-      fill: #ef4444;
-  }
-  
-  .scroll-indicator {
-      position: absolute;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255,255,255,0.5);
-      animation: bounce 2s infinite;
-      z-index: 5;
-  }
-  
-  @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% {transform: translateX(-50%) translateY(0);}
-      40% {transform: translateX(-50%) translateY(-10px);}
-      60% {transform: translateX(-50%) translateY(-5px);}
+  .clip-action-chip.liked {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #ef4444;
   }
 
-  /* No clips state */
-  .no-clips {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255,255,255,0.7);
-    gap: 1rem;
-  }
-  
-  .back-btn {
-      padding: 0.75rem 1.5rem;
-      background: var(--color-primary, #8b5cf6);
-      color: white;
-      text-decoration: none;
-      border-radius: 99px;
-      font-weight: 600;
+  .clip-action-chip.liked svg {
+    fill: #ef4444;
   }
 
   /* Desktop adjustments */
   @media (min-width: 768px) {
     .clip-overlay {
-        justify-content: center;
-        align-items: center;
-        pointer-events: none;
-        background: transparent;
-    }
-    
-    .clip-info {
-        position: absolute;
-        bottom: 2rem;
-        right: 50%;
-        margin-right: 270px;
-        left: auto;
-        transform: none;
-        width: 300px;
-        text-align: right;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-    }
-    
-    .clip-actions {
-        position: absolute;
-        bottom: 2rem;
-        left: 50%;
-        margin-left: 270px;
-        right: auto;
-        transform: none;
-        align-items: flex-start;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      background: transparent;
     }
 
-    .scroll-indicator {
-        display: none;
+    .clip-info {
+      position: absolute;
+      bottom: 2rem;
+      right: 50%;
+      margin-right: 270px;
+      left: auto;
+      transform: none;
+      width: 300px;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .clip-actions {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      margin-left: 270px;
+      right: auto;
+      transform: none;
+      align-items: flex-start;
     }
   }
 
@@ -408,7 +666,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
   .panel-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 999;
+    z-index: 9600;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -431,12 +689,8 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     right: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000;
-    background: linear-gradient(
-      180deg,
-      rgba(18, 15, 28, 0.98) 0%,
-      rgba(12, 10, 20, 0.99) 100%
-    );
+    z-index: 9700;
+    background: linear-gradient(180deg, rgba(18, 15, 28, 0.98) 0%, rgba(12, 10, 20, 0.99) 100%);
     border-left: 1px solid rgba(139, 92, 246, 0.12);
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -450,7 +704,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     transform: translateX(0);
   }
 
-  /* Panel Header */
   .panel-header {
     display: flex;
     align-items: center;
@@ -479,7 +732,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     transform: rotate(90deg);
   }
 
-  /* Episode Hero Section */
   .panel-episode-hero {
     display: flex;
     align-items: center;
@@ -496,13 +748,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     left: 1.25rem;
     right: 1.25rem;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(139, 92, 246, 0.25) 30%,
-      rgba(139, 92, 246, 0.25) 70%,
-      transparent
-    );
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.25) 30%, rgba(139, 92, 246, 0.25) 70%, transparent);
   }
 
   .panel-episode-cover {
@@ -541,7 +787,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     letter-spacing: 0.02em;
   }
 
-  /* Clips Grid */
   .panel-clips-grid {
     flex: 1;
     overflow-y: auto;
@@ -568,14 +813,11 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     border-radius: 99px;
   }
 
-  /* Desktop: fixed-width drawer */
   @media (min-width: 768px) {
     .episode-clips-panel {
       width: 420px;
       border-radius: 20px 0 0 20px;
-      box-shadow:
-        -12px 0 60px rgba(0, 0, 0, 0.5),
-        -2px 0 20px rgba(139, 92, 246, 0.06);
+      box-shadow: -12px 0 60px rgba(0, 0, 0, 0.5), -2px 0 20px rgba(139, 92, 246, 0.06);
     }
 
     .panel-episode-cover {
@@ -588,7 +830,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     }
   }
 
-  /* Small mobile: 2 columns */
   @media (max-width: 380px) {
     .panel-clips-grid {
       grid-template-columns: repeat(2, 1fr);
@@ -598,7 +839,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
 
 <!-- Global styles for dynamically generated content (JS-injected HTML doesn't get Astro scoping) -->
 <style is:global>
-  /* Grid Clip Card — 9:16 portrait */
+  /* Grid Clip Card — 9:16 portrait, used inside the episode-clips side panel */
   .grid-clip-card {
     position: relative;
     display: block;
@@ -637,7 +878,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
   }
 
-  /* Image in normal flow — its aspect-ratio defines the card height */
   .grid-clip-card img {
     display: block;
     width: 100%;
@@ -651,14 +891,13 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     transform: scale(1.08);
   }
 
-  /* Title overlay at bottom with gradient */
   .grid-clip-info {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     padding: 2rem 0.5rem 0.5rem;
-    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 55%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 55%, transparent 100%);
     z-index: 4;
   }
 
@@ -671,7 +910,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
   }
 
   .grid-clip-card:hover .grid-clip-title {
@@ -682,7 +921,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     color: rgba(200, 170, 255, 1);
   }
 
-  /* Play overlay */
   .grid-play-icon {
     position: absolute;
     inset: 0;
@@ -703,7 +941,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
   }
 
-  /* Number badge */
   .grid-clip-badge {
     position: absolute;
     top: 4px;
@@ -719,7 +956,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     backdrop-filter: blur(4px);
   }
 
-  /* Active indicator */
   .grid-clip-card.active-clip::after {
     content: '▶';
     position: absolute;
@@ -742,381 +978,489 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
 </style>
 
 <script is:inline>
-    // Use an IIFE or just global scope carefully. 
-    // Since Astro viewtransitions re-runs scripts, we need to be careful about redeclaring variables.
-    // The previous implementation had 'let players' at top level which is fine for module scope, 
-    // BUT if the script tag is re-injected, it re-runs.
-    
-    // We will attach state to window to survive re-runs and avoid "redeclaration" errors if this were a classic script,
-    // though as a module it should be fine. However, let's be extremely robust.
+  (function () {
+    const WIN = window;
 
-    (function() {
-        const WIN = window;
-        
-        // Initialize global state container if not exists
-        if (!WIN._clipsState) {
-            WIN._clipsState = {
-                players: {},
-                playbackObserver: null,
-                loadingObserver: null,
-                urlObserver: null,
-                queue: [],
-                apiReady: false,
-                stateCache: new Map()
-            };
+    // Initialize global state container if not exists (survives astro:page-load re-runs)
+    if (!WIN._clipsState) {
+      WIN._clipsState = {
+        players: {},
+        playbackObserver: null,
+        loadingObserver: null,
+        urlObserver: null,
+        queue: [],
+        apiReady: false,
+      };
+    }
+
+    const state = WIN._clipsState;
+
+    // --- YOUTUBE API SETUP (only needed for clips not yet self-hosted) ---
+    if (!WIN.YT) {
+      if (!document.getElementById('yt-api-script')) {
+        const tag = document.createElement('script');
+        tag.id = 'yt-api-script';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+      }
+
+      WIN.onYouTubeIframeAPIReady = function () {
+        state.apiReady = true;
+        processQueue();
+      };
+    } else {
+      state.apiReady = true;
+      setTimeout(processQueue, 0);
+    }
+
+    function processQueue() {
+      while (state.queue.length > 0) {
+        const id = state.queue.shift();
+        if (id) createYouTubePlayer(id);
+      }
+    }
+
+    function createYouTubePlayer(id) {
+      if (!WIN.YT || !WIN.YT.Player) {
+        if (!state.queue.includes(id)) state.queue.push(id);
+        return;
+      }
+      if (state.players[id]) return;
+
+      const element = document.getElementById(id);
+      if (!element) return;
+      const videoId = element.getAttribute('data-video-id');
+      if (!videoId) return;
+
+      state.players[id] = new WIN.YT.Player(id, {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          playsinline: 1,
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          showinfo: 0,
+          iv_load_policy: 3,
+          fs: 0,
+          disablekb: 1,
+          origin: WIN.location.origin,
+        },
+        events: {
+          onStateChange: onPlayerStateChange,
+        },
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data === WIN.YT.PlayerState.ENDED) {
+        event.target.playVideo();
+      }
+    }
+
+    // Lazily attach a source: create the YT player, or set the <video> src
+    function initMedia(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.dataset.kind === 'youtube') {
+        createYouTubePlayer(id);
+      } else if (el.dataset.src && !el.getAttribute('src')) {
+        el.src = el.dataset.src;
+      }
+    }
+
+    function togglePlay(targetId) {
+      const el = document.getElementById(targetId);
+      if (!el) return;
+
+      if (el.dataset.kind === 'youtube') {
+        const player = state.players[targetId];
+        if (player && typeof player.getPlayerState === 'function') {
+          const playerState = player.getPlayerState();
+          if (playerState === WIN.YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+          } else {
+            player.playVideo();
+            player.unMute();
+          }
         }
-
-        const state = WIN._clipsState;
-
-        // --- YOUTUBE API SETUP ---
-        if (!WIN.YT) {
-            if (!document.getElementById('yt-api-script')) {
-                const tag = document.createElement('script');
-                tag.id = 'yt-api-script';
-                tag.src = "https://www.youtube.com/iframe_api";
-                const firstScriptTag = document.getElementsByTagName('script')[0];
-                firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
-            }
-            
-            WIN.onYouTubeIframeAPIReady = function() {
-                state.apiReady = true;
-                processQueue();
-            };
+      } else {
+        if (!el.paused) {
+          el.pause();
         } else {
-            state.apiReady = true;
-            // Process queue next tick to ensure DOM is ready if valid
-            setTimeout(processQueue, 0);
+          el.muted = false;
+          el.play().catch(() => {});
         }
+      }
+    }
 
-        function processQueue() {
-            while (state.queue.length > 0) {
-                const id = state.queue.shift();
-                if (id) createPlayer(id);
+    function pauseAllMedia() {
+      Object.values(state.players).forEach((p) => {
+        if (p && typeof p.pauseVideo === 'function') {
+          try {
+            p.pauseVideo();
+          } catch (e) {}
+        }
+      });
+      document.querySelectorAll('.native-player').forEach((v) => v.pause());
+    }
+
+    // --- OBSERVERS (scoped to the fullscreen viewer's own scroller) ---
+    function attachObservers(scroller) {
+      if (state.loadingObserver) state.loadingObserver.disconnect();
+      if (state.playbackObserver) state.playbackObserver.disconnect();
+      if (state.urlObserver) state.urlObserver.disconnect();
+
+      state.loadingObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const mediaEl = entry.target.querySelector('.youtube-player, .native-player');
+              if (mediaEl) initMedia(mediaEl.id);
             }
-        }
+          });
+        },
+        { root: scroller, rootMargin: '50% 0px 50% 0px' }
+      );
 
-        function createPlayer(id) {
-            // Check global YT object
-            if (!WIN.YT || !WIN.YT.Player) {
-                if (!state.queue.includes(id)) state.queue.push(id);
-                return;
-            }
+      state.playbackObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const mediaEl = entry.target.querySelector('.youtube-player, .native-player');
+            if (!mediaEl) return;
 
-            if (state.players[id]) return; // Already created
-
-            const element = document.getElementById(id);
-            if (!element) return;
-
-            const videoId = element.getAttribute('data-video-id');
-            if (!videoId) return;
-
-            // Create player
-            state.players[id] = new WIN.YT.Player(id, {
-                height: '100%',
-                width: '100%',
-                videoId: videoId,
-                playerVars: {
-                    'playsinline': 1,
-                    'controls': 0,
-                    'rel': 0,
-                    'modestbranding': 1,
-                    'showinfo': 0, 
-                    'iv_load_policy': 3, 
-                    'fs': 0,
-                    'disablekb': 1,
-                    'origin': WIN.location.origin
-                },
-                events: {
-                    'onStateChange': (e) => onPlayerStateChange(id, e)
-                }
-            });
-        }
-
-        function onPlayerStateChange(id, event) {
-            state.stateCache.set(id, event.data);
-            if (event.data === WIN.YT.PlayerState.ENDED) {
-                event.target.playVideo();
-            }
-        }
-
-        function togglePlay(id) {
-            const player = state.players[id];
-            if (player && typeof player.getPlayerState === 'function') {
-                const playerState = player.getPlayerState();
-                if (playerState === WIN.YT.PlayerState.PLAYING) {
-                    player.pauseVideo();
-                } else {
-                    player.playVideo();
-                    player.unMute();
-                }
-            }
-        }
-
-        // --- OBSERVERS ---
-        function initObservers() {
-            // Loading
-            state.loadingObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const playerDiv = entry.target.querySelector('.youtube-player');
-                        if (playerDiv) createPlayer(playerDiv.id);
-                    }
-                });
-            }, { root: null, rootMargin: '50% 0px 50% 0px' });
-
-            // Playback
-            state.playbackObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    const playerDiv = entry.target.querySelector('.youtube-player');
-                    if (!playerDiv) return;
-                    const id = playerDiv.id;
-                    const player = state.players[id];
-                    
-                    if (entry.isIntersecting) {
-                        if (player && typeof player.playVideo === 'function') player.playVideo();
-                    } else {
-                        if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
-                    }
-                });
-            }, { root: null, rootMargin: '0px', threshold: 0.6 });
-
-            document.querySelectorAll('.clip-section').forEach(section => {
-                state.loadingObserver.observe(section);
-                state.playbackObserver.observe(section);
-            });
-
-            // Interaction Layer Clicks
-            document.querySelectorAll('.interaction-layer').forEach((layer) => {
-                // Remove old listeners? The elements are new on page load, so simple add is fine.
-                layer.onclick = (e) => {
-                    const targetId = e.currentTarget.getAttribute('data-target');
-                    if (targetId) togglePlay(targetId);
-                };
-            });
-        }
-
-        function checkWatchParam() {
-            const urlParams = new URLSearchParams(WIN.location.search);
-            const watchId = urlParams.get('watch');
-            if (!watchId) {
-                const firstPlayer = document.querySelector('.youtube-player');
-                if (firstPlayer) {
-                    const firstId = firstPlayer.getAttribute('data-video-id');
-                    if (firstId) {
-                        const url = new URL(WIN.location.href);
-                        url.searchParams.set('watch', firstId);
-                        WIN.history.replaceState({}, '', url);
-                    }
-                }
-            }
-        }
-
-        function initUrlObserver() {
-            if (state.urlObserver) state.urlObserver.disconnect();
-            
-            state.urlObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const playerDiv = entry.target.querySelector('.youtube-player');
-                        if (playerDiv) {
-                            const videoId = playerDiv.getAttribute('data-video-id');
-                            if (videoId) {
-                                const url = new URL(WIN.location.href);
-                                if (url.searchParams.get('watch') !== videoId) {
-                                    url.searchParams.set('watch', videoId);
-                                    WIN.history.replaceState({}, '', url);
-                                }
-                            }
-                        }
-                    }
-                });
-            }, { threshold: 0.7 });
-
-            document.querySelectorAll('.clip-section').forEach(section => {
-                state.urlObserver.observe(section);
-            });
-        }
-
-        // --- GLOBAL ACTIONS (for onclick) ---
-        WIN.handleLikeClip = async function(btn) {
-            if (WIN.event) {
-                WIN.event.stopPropagation();
-                WIN.event.preventDefault();
-            }
-
-            const clipId = btn.getAttribute('data-clip-id');
-            if (!clipId) return;
-
-            const isLiked = btn.classList.contains('liked');
-
-            // Optimistic
-            if (isLiked) {
-                btn.classList.remove('liked');
-                btn.querySelector('svg')?.setAttribute('fill', 'none');
+            if (mediaEl.dataset.kind === 'youtube') {
+              const player = state.players[mediaEl.id];
+              if (entry.isIntersecting) {
+                if (player && typeof player.playVideo === 'function') player.playVideo();
+              } else if (player && typeof player.pauseVideo === 'function') {
+                player.pauseVideo();
+              }
             } else {
-                btn.classList.add('liked');
-                btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
-                btn.animate([{transform:'scale(1)'}, {transform:'scale(1.3)'}, {transform:'scale(1)'}], {duration:200});
+              if (entry.isIntersecting) {
+                if (mediaEl.dataset.src && !mediaEl.getAttribute('src')) mediaEl.src = mediaEl.dataset.src;
+                mediaEl.play().catch(() => {});
+              } else {
+                mediaEl.pause();
+              }
             }
+          });
+        },
+        { root: scroller, rootMargin: '0px', threshold: 0.6 }
+      );
 
-            try {
-                const res = await fetch('/api/clips/like', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({clipId})
-                });
-                if (res.status === 401) {
-                    WIN.location.href = '/login';
-                    return;
+      state.urlObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const videoId = entry.target.getAttribute('data-video-id');
+              if (videoId) {
+                const url = new URL(WIN.location.href);
+                if (url.searchParams.get('watch') !== videoId) {
+                  url.searchParams.set('watch', videoId);
+                  WIN.history.replaceState({}, '', url);
                 }
-            } catch(e) {
-                console.error(e);
-                // Revert
-                 if (isLiked) {
-                    btn.classList.add('liked');
-                    btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
-                } else {
-                    btn.classList.remove('liked');
-                    btn.querySelector('svg')?.setAttribute('fill', 'none');
-                }
+              }
             }
-        };
+          });
+        },
+        { root: scroller, threshold: 0.7 }
+      );
 
-        WIN.handleShareClip = function(btn) {
-            if (WIN.event) {
-                WIN.event.stopPropagation();
-                WIN.event.preventDefault();
-            }
-            const clipId = btn.getAttribute('data-clip-id');
-            const url = new URL(WIN.location.href);
-            if (clipId) url.searchParams.set('watch', clipId);
-            
-            navigator.clipboard.writeText(url.toString()).then(() => {
-                const original = btn.innerHTML;
-                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                setTimeout(() => { btn.innerHTML = original; }, 2000);
-            });
-        };
+      document.querySelectorAll('.clip-section').forEach((section) => {
+        state.loadingObserver.observe(section);
+        state.playbackObserver.observe(section);
+        state.urlObserver.observe(section);
+      });
+    }
 
-        // --- EPISODE CLIPS SIDE PANEL ---
-        WIN.handleOpenEpisodeClips = function(btn) {
-            if (WIN.event) {
-                WIN.event.stopPropagation();
-                WIN.event.preventDefault();
-            }
+    // --- VIEWER OPEN/CLOSE ---
+    function openViewer(index) {
+      const overlay = document.getElementById('clip-viewer-overlay');
+      const scroller = document.getElementById('viewer-scroller');
+      const target = document.getElementById('clip-section-' + index);
+      if (!overlay || !scroller) return;
 
-            const slug = btn.getAttribute('data-episode-slug');
-            if (!slug || !WIN._clipsByEpisode) return;
+      if (target) scroller.scrollTop = target.offsetTop;
 
-            const episodeData = WIN._clipsByEpisode[slug];
-            if (!episodeData || !episodeData.clips || episodeData.clips.length === 0) return;
+      document.body.classList.add('clip-viewer-open');
+      overlay.classList.add('active');
+      attachObservers(scroller);
+    }
 
-            const panel = document.getElementById('episode-clips-panel');
-            const backdrop = document.getElementById('episode-panel-backdrop');
-            const grid = document.getElementById('panel-clips-grid');
-            const titleEl = document.getElementById('panel-episode-title');
-            const imageEl = document.getElementById('panel-episode-image');
-            const countEl = document.getElementById('panel-clips-count');
-            if (!panel || !grid || !titleEl || !imageEl || !countEl || !backdrop) return;
+    function closeViewer() {
+      const overlay = document.getElementById('clip-viewer-overlay');
+      document.body.classList.remove('clip-viewer-open');
+      overlay?.classList.remove('active');
+      pauseAllMedia();
+    }
 
-            // Get current watch param to highlight active clip
-            const currentWatch = new URLSearchParams(WIN.location.search).get('watch');
+    function closeViewerAndUpdateUrl() {
+      closeViewer();
+      const url = new URL(WIN.location.href);
+      url.searchParams.delete('watch');
+      WIN.history.replaceState({}, '', url);
+    }
 
-            // Populate episode info
-            titleEl.textContent = episodeData.episodeTitle;
-            imageEl.src = episodeData.episodeImage;
-            imageEl.alt = episodeData.episodeTitle;
-            countEl.textContent = '🎬 ' + episodeData.clips.length + ' clips';
+    function getClipIndexByVideoId(videoId) {
+      const section = document.querySelector('.clip-section[data-video-id="' + CSS.escape(videoId) + '"]');
+      return section ? parseInt(section.getAttribute('data-index') || '0', 10) : null;
+    }
 
-            // Build grid HTML with staggered animation
-            grid.innerHTML = episodeData.clips.map((clip, i) => {
-                const thumbUrl = clip.videoId 
-                    ? 'https://img.youtube.com/vi/' + clip.videoId + '/hqdefault.jpg'
-                    : '';
-                const isActive = clip.videoId === currentWatch;
-                const delay = (i * 0.06).toFixed(2);
-                return '<a class="grid-clip-card' + (isActive ? ' active-clip' : '') + '" href="/clips?watch=' + (clip.videoId || '') + '" style="animation-delay:' + delay + 's">' +
-                    '<span class="grid-clip-badge">' + (i + 1) + '</span>' +
-                    '<img src="' + thumbUrl + '" alt="" loading="lazy" />' +
-                    '<div class="grid-play-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>' +
-                    '<div class="grid-clip-info">' +
-                        '<div class="grid-clip-title">' + clip.title + '</div>' +
-                    '</div>' +
-                '</a>';
-            }).join('');
-
-            // Show panel + backdrop
-            panel.classList.add('active');
-            backdrop.classList.add('active');
-        };
-
-        WIN.handleCloseEpisodeClips = function() {
-            const panel = document.getElementById('episode-clips-panel');
-            const backdrop = document.getElementById('episode-panel-backdrop');
-            if (panel) panel.classList.remove('active');
-            if (backdrop) backdrop.classList.remove('active');
-        };
-
-        // Close panel on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const panel = document.getElementById('episode-clips-panel');
-                if (panel && panel.classList.contains('active')) {
-                    WIN.handleCloseEpisodeClips();
-                }
-            }
+    // --- GALLERY -> VIEWER WIRING ---
+    function initGallery() {
+      const grid = document.getElementById('clips-grid');
+      if (grid && !grid.dataset.wired) {
+        grid.dataset.wired = '1';
+        grid.addEventListener('click', (e) => {
+          const card = e.target.closest('.clip-card');
+          if (!card) return;
+          e.preventDefault();
+          const index = parseInt(card.getAttribute('data-index') || '0', 10);
+          const videoId = card.getAttribute('data-video-id');
+          const url = new URL(WIN.location.href);
+          if (videoId) url.searchParams.set('watch', videoId);
+          WIN.history.pushState({}, '', url);
+          openViewer(index);
         });
+      }
 
-        async function loadLikes() {
-            try {
-                const res = await fetch('/api/clips/liked');
-                if (res.ok) {
-                    const data = await res.json();
-                    const liked = data.likedClips || [];
-                    document.querySelectorAll('.like-btn').forEach(btn => {
-                        const cid = btn.getAttribute('data-clip-id');
-                        if (cid && liked.includes(cid)) {
-                            btn.classList.add('liked');
-                            btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
-                        }
-                    });
-                }
-            } catch(e) { console.error(e); }
+      document.querySelectorAll('.clips-filter-chip').forEach((chip) => {
+        chip.onclick = () => {
+          document.querySelectorAll('.clips-filter-chip').forEach((c) => c.classList.remove('is-active'));
+          chip.classList.add('is-active');
+          const filter = chip.getAttribute('data-filter');
+          document.querySelectorAll('.clip-card').forEach((card) => {
+            const show = filter === 'all' || card.getAttribute('data-episode-slug') === filter;
+            card.classList.toggle('is-hidden', !show);
+          });
+        };
+      });
+    }
+
+    const closeBtn = document.getElementById('viewer-close-btn');
+    if (closeBtn) {
+      closeBtn.onclick = () => closeViewerAndUpdateUrl();
+    }
+
+    document.querySelectorAll('.interaction-layer').forEach((layer) => {
+      layer.onclick = (e) => {
+        const targetId = e.currentTarget.getAttribute('data-target');
+        if (targetId) togglePlay(targetId);
+      };
+    });
+
+    WIN.addEventListener('popstate', () => {
+      const watch = new URLSearchParams(WIN.location.search).get('watch');
+      const overlay = document.getElementById('clip-viewer-overlay');
+      const scroller = document.getElementById('viewer-scroller');
+      if (!watch) {
+        if (overlay && overlay.classList.contains('active')) closeViewer();
+        return;
+      }
+      const index = getClipIndexByVideoId(watch);
+      if (index === null || !overlay || !scroller) return;
+      if (!overlay.classList.contains('active')) {
+        document.body.classList.add('clip-viewer-open');
+        overlay.classList.add('active');
+        attachObservers(scroller);
+      }
+      const target = document.getElementById('clip-section-' + index);
+      if (target) scroller.scrollTop = target.offsetTop;
+    });
+
+    // --- GLOBAL ACTIONS (for onclick) ---
+    WIN.handleLikeClip = async function (btn) {
+      if (WIN.event) {
+        WIN.event.stopPropagation();
+        WIN.event.preventDefault();
+      }
+
+      const clipId = btn.getAttribute('data-clip-id');
+      if (!clipId) return;
+
+      const isLiked = btn.classList.contains('liked');
+
+      if (isLiked) {
+        btn.classList.remove('liked');
+        btn.querySelector('svg')?.setAttribute('fill', 'none');
+      } else {
+        btn.classList.add('liked');
+        btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
+        btn.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3)' }, { transform: 'scale(1)' }], { duration: 200 });
+      }
+
+      try {
+        const res = await fetch('/api/clips/like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clipId }),
+        });
+        if (res.status === 401) {
+          WIN.location.href = '/login';
+          return;
         }
-
-        // --- INIT ---
-        function initPage() {
-            // Only run on clips page
-            if (!document.querySelector('.clips-container')) return;
-            
-            // Cleanup
-            if (state.loadingObserver) state.loadingObserver.disconnect();
-            if (state.playbackObserver) state.playbackObserver.disconnect();
-            if (state.urlObserver) state.urlObserver.disconnect();
-            
-            // Destroy old players
-            Object.values(state.players).forEach(p => { 
-                if(p && typeof p.destroy === 'function') { try { p.destroy(); } catch(e) {} }
-            });
-            state.players = {};
-
-            // Start
-            initObservers();
-            loadLikes();
-            checkWatchParam();
-            initUrlObserver();
+      } catch (e) {
+        console.error(e);
+        if (isLiked) {
+          btn.classList.add('liked');
+          btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
+        } else {
+          btn.classList.remove('liked');
+          btn.querySelector('svg')?.setAttribute('fill', 'none');
         }
+      }
+    };
 
-        // Register astro:page-load only once (guard against duplicate registration on script re-run)
-        if (!WIN._clipsPageLoadRegistered) {
-            WIN._clipsPageLoadRegistered = true;
-            document.addEventListener('astro:page-load', initPage);
+    WIN.handleShareClip = function (btn) {
+      if (WIN.event) {
+        WIN.event.stopPropagation();
+        WIN.event.preventDefault();
+      }
+      const clipId = btn.getAttribute('data-clip-id');
+      const url = new URL(WIN.location.href);
+      if (clipId) url.searchParams.set('watch', clipId);
+
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        setTimeout(() => {
+          btn.innerHTML = original;
+        }, 2000);
+      });
+    };
+
+    // --- EPISODE CLIPS SIDE PANEL ---
+    WIN.handleOpenEpisodeClips = function (btn) {
+      if (WIN.event) {
+        WIN.event.stopPropagation();
+        WIN.event.preventDefault();
+      }
+
+      const slug = btn.getAttribute('data-episode-slug');
+      if (!slug || !WIN._clipsByEpisode) return;
+
+      const episodeData = WIN._clipsByEpisode[slug];
+      if (!episodeData || !episodeData.clips || episodeData.clips.length === 0) return;
+
+      const panel = document.getElementById('episode-clips-panel');
+      const backdrop = document.getElementById('episode-panel-backdrop');
+      const grid = document.getElementById('panel-clips-grid');
+      const titleEl = document.getElementById('panel-episode-title');
+      const imageEl = document.getElementById('panel-episode-image');
+      const countEl = document.getElementById('panel-clips-count');
+      if (!panel || !grid || !titleEl || !imageEl || !countEl || !backdrop) return;
+
+      const currentWatch = new URLSearchParams(WIN.location.search).get('watch');
+
+      titleEl.textContent = episodeData.episodeTitle;
+      imageEl.src = episodeData.episodeImage;
+      imageEl.alt = episodeData.episodeTitle;
+      countEl.textContent = '🎬 ' + episodeData.clips.length + ' clips';
+
+      grid.innerHTML = episodeData.clips
+        .map((clip, i) => {
+          const isActive = clip.videoId === currentWatch;
+          const delay = (i * 0.06).toFixed(2);
+          return (
+            '<a class="grid-clip-card' +
+            (isActive ? ' active-clip' : '') +
+            '" href="/clips?watch=' +
+            (clip.videoId || '') +
+            '" style="animation-delay:' +
+            delay +
+            's">' +
+            '<span class="grid-clip-badge">' +
+            (i + 1) +
+            '</span>' +
+            '<img src="' +
+            (clip.thumbnail || '') +
+            '" alt="" loading="lazy" />' +
+            '<div class="grid-play-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>' +
+            '<div class="grid-clip-info">' +
+            '<div class="grid-clip-title">' +
+            clip.title +
+            '</div>' +
+            '</div>' +
+            '</a>'
+          );
+        })
+        .join('');
+
+      panel.classList.add('active');
+      backdrop.classList.add('active');
+    };
+
+    WIN.handleCloseEpisodeClips = function () {
+      const panel = document.getElementById('episode-clips-panel');
+      const backdrop = document.getElementById('episode-panel-backdrop');
+      if (panel) panel.classList.remove('active');
+      if (backdrop) backdrop.classList.remove('active');
+    };
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      const panel = document.getElementById('episode-clips-panel');
+      if (panel && panel.classList.contains('active')) {
+        WIN.handleCloseEpisodeClips();
+        return;
+      }
+      const overlay = document.getElementById('clip-viewer-overlay');
+      if (overlay && overlay.classList.contains('active')) {
+        closeViewerAndUpdateUrl();
+      }
+    });
+
+    async function loadLikes() {
+      try {
+        const res = await fetch('/api/clips/liked');
+        if (res.ok) {
+          const data = await res.json();
+          const liked = data.likedClips || [];
+          document.querySelectorAll('.like-btn').forEach((btn) => {
+            const cid = btn.getAttribute('data-clip-id');
+            if (cid && liked.includes(cid)) {
+              btn.classList.add('liked');
+              btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
+            }
+          });
         }
-        
-        // CRITICAL: Also call initPage() immediately!
-        // With is:inline, the astro:page-load event may have already fired before this script runs.
-        // So we must initialize now.
-        initPage();
-        
-    })();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // --- INIT ---
+    function initPage() {
+      if (!document.getElementById('clips-grid') && !document.getElementById('clip-viewer-overlay')) return;
+
+      Object.values(state.players).forEach((p) => {
+        if (p && typeof p.destroy === 'function') {
+          try {
+            p.destroy();
+          } catch (e) {}
+        }
+      });
+      state.players = {};
+
+      initGallery();
+      loadLikes();
+
+      const watchId = new URLSearchParams(WIN.location.search).get('watch');
+      if (watchId) {
+        const index = getClipIndexByVideoId(watchId);
+        if (index !== null) openViewer(index);
+      }
+    }
+
+    if (!WIN._clipsPageLoadRegistered) {
+      WIN._clipsPageLoadRegistered = true;
+      document.addEventListener('astro:page-load', initPage);
+    }
+
+    initPage();
+  })();
 </script>
