@@ -1272,6 +1272,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
         queue: [],
         apiReady: false,
         soundUnlocked: false,
+        currentIndex: 0,
       };
     }
 
@@ -1380,15 +1381,54 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
       }
     }
 
-    function pauseAllMedia() {
-      Object.values(state.players).forEach((p) => {
-        if (p && typeof p.pauseVideo === 'function') {
-          try {
-            p.pauseVideo();
-          } catch (e) {}
-        }
+    // Fully tears down a YouTube player (frees its iframe + video decoder) and drops
+    // in a fresh placeholder div so the section can be reinitialized if scrolled back into view.
+    function destroyYouTubePlayer(mediaEl, section) {
+      const player = state.players[mediaEl.id];
+      if (!player) return;
+      try {
+        player.destroy();
+      } catch (e) {}
+      delete state.players[mediaEl.id];
+
+      const wrapper = section.querySelector('.video-wrapper');
+      if (!wrapper || document.getElementById(mediaEl.id)) return;
+      const placeholder = document.createElement('div');
+      placeholder.id = mediaEl.id;
+      placeholder.className = 'youtube-player';
+      placeholder.dataset.kind = 'youtube';
+      placeholder.dataset.videoId = section.getAttribute('data-video-id') || '';
+      wrapper.insertBefore(placeholder, wrapper.firstChild);
+    }
+
+    // Releases whatever media a section is holding: destroys YouTube players outright
+    // (each is a full iframe + video decoder) and clears native <video> sources.
+    function unloadMedia(section) {
+      const mediaEl = section.querySelector('.youtube-player, .native-player');
+      if (!mediaEl) return;
+      if (mediaEl.dataset.kind === 'youtube') {
+        destroyYouTubePlayer(mediaEl, section);
+      } else if (mediaEl.getAttribute('src')) {
+        mediaEl.pause();
+        mediaEl.removeAttribute('src');
+        mediaEl.load();
+      }
+    }
+
+    // Mobile browsers crash the tab (and it looks like a reload loop) once too many
+    // YouTube iframes / buffered videos pile up while scrolling a long feed. Keep only
+    // a small window of clips around the active one loaded at any time.
+    const KEEP_RADIUS = 2;
+    function cleanupDistantMedia(centerIndex) {
+      document.querySelectorAll('.clip-section').forEach((section) => {
+        const idx = parseInt(section.getAttribute('data-index') || '0', 10);
+        if (Math.abs(idx - centerIndex) <= KEEP_RADIUS) return;
+        unloadMedia(section);
       });
-      document.querySelectorAll('.native-player').forEach((v) => v.pause());
+    }
+
+    function unloadAllMedia() {
+      document.querySelectorAll('.clip-section').forEach((section) => unloadMedia(section));
     }
 
     // --- OBSERVERS (scoped to the fullscreen viewer's own scroller) ---
@@ -1455,6 +1495,9 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
                   WIN.history.replaceState({}, '', url);
                 }
               }
+              const idx = parseInt(entry.target.getAttribute('data-index') || '0', 10);
+              state.currentIndex = idx;
+              cleanupDistantMedia(idx);
             }
           });
         },
