@@ -46,21 +46,67 @@ function parseDurationToMinutes(durationStr: string | undefined): number {
     return minutes;
 }
 
+// 2b. Helper to parse a transcript line timestamp ("MM:SS" or "H:MM:SS") into seconds
+function parseTimeToSeconds(timeStr: string | undefined): number {
+    if (!timeStr) return 0;
+    const parts = timeStr.split(':').map(p => parseInt(p, 10));
+    if (parts.some(isNaN)) return 0;
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    return 0;
+}
+
+// 2c. Given an episode's transcript, work out how many seconds each speaker actually talked
+// (each line only has a start time, so a line's duration is "until the next line starts")
+function computeSpeakerSeconds(transcription: { time: string; speaker?: string }[] | undefined, totalEpisodeSeconds: number): Map<string, number> {
+    const result = new Map<string, number>();
+    if (!transcription || transcription.length === 0) return result;
+
+    const lines = transcription
+        .map(l => ({ speaker: (l.speaker || '').toLowerCase().trim(), start: parseTimeToSeconds(l.time) }))
+        .filter(l => l.speaker)
+        .sort((a, b) => a.start - b.start);
+
+    lines.forEach((line, i) => {
+        const next = lines[i + 1];
+        const end = next ? next.start : Math.max(totalEpisodeSeconds, line.start);
+        const duration = Math.max(0, end - line.start);
+        result.set(line.speaker, (result.get(line.speaker) || 0) + duration);
+    });
+
+    return result;
+}
+
 // 3. Process Guests with Stats
 const guestsWithStats = allGuests.map(guest => {
     // Find episodes where guest is a participant
-    const guestEpisodes = allEpisodes.filter(ep => 
-        ep.data.participants?.some(p => 
+    const guestEpisodes = allEpisodes.filter(ep =>
+        ep.data.participants?.some(p =>
             p.toLowerCase().trim() === guest.data.name.toLowerCase().trim() ||
             p.toLowerCase().trim().includes(guest.data.name.toLowerCase().trim())
         )
     );
 
     const episodeCount = guestEpisodes.length;
-    
+
     const totalMinutes = guestEpisodes.reduce((acc, ep) => {
         return acc + parseDurationToMinutes(ep.data.duration);
     }, 0);
+
+    // Real speaking time, measured from transcript timestamps rather than full episode duration
+    const guestNameLower = guest.data.name.toLowerCase().trim();
+    const spokenSeconds = guestEpisodes.reduce((acc, ep) => {
+        const totalEpisodeSeconds = parseDurationToMinutes(ep.data.duration) * 60;
+        const speakerSeconds = computeSpeakerSeconds(ep.data.transcription, totalEpisodeSeconds);
+        let epSpokenSeconds = 0;
+        for (const [speaker, seconds] of speakerSeconds) {
+            if (speaker === guestNameLower || speaker.includes(guestNameLower) || guestNameLower.includes(speaker)) {
+                epSpokenSeconds += seconds;
+            }
+        }
+        return acc + epSpokenSeconds;
+    }, 0);
+    const spokenMinutes = Math.round(spokenSeconds / 60);
 
     // Get last appearance date
     const sortedEpisodes = guestEpisodes.sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
@@ -111,6 +157,7 @@ const guestsWithStats = allGuests.map(guest => {
         stats: {
             episodeCount,
             totalMinutes,
+            spokenMinutes,
             lastAppearance
         },
         badges
@@ -235,14 +282,19 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: '
                         {/* Stats Grid */}
                         <div class="stats-grid">
                             <div class="stat-item">
+                                <span class="stat-value">{formatTime(guest.stats.spokenMinutes)}</span>
+                                <span class="stat-label">Hablando</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-item">
                                 <span class="stat-value">{formatTime(guest.stats.totalMinutes)}</span>
                                 <span class="stat-label">En Aire</span>
                             </div>
                             <div class="stat-divider"></div>
                              <div class="stat-item">
                                 <span class="stat-value">
-                                    {guest.stats.lastAppearance 
-                                        ? dateFormatter.format(guest.stats.lastAppearance) 
+                                    {guest.stats.lastAppearance
+                                        ? dateFormatter.format(guest.stats.lastAppearance)
                                         : '-'}
                                 </span>
                                 <span class="stat-label">Último</span>
@@ -729,34 +781,38 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short', year: '
         justify-content: center;
         width: 100%;
         background: rgba(0,0,0,0.2);
-        padding: 0.75rem;
+        padding: 0.75rem 0.5rem;
         border-radius: 12px;
         margin-bottom: 1rem;
-        gap: 1rem;
+        gap: 0.5rem;
     }
-    
+
     .stat-item {
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 50%;
+        flex: 1;
+        min-width: 0;
     }
-    
+
     .stat-divider {
         width: 1px;
         height: 20px;
         background: rgba(255,255,255,0.1);
+        flex-shrink: 0;
     }
-    
+
     .stat-value {
         font-weight: 700;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         color: var(--color-text-main);
+        white-space: nowrap;
     }
-    
+
     .stat-label {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         color: var(--color-text-muted);
+        white-space: nowrap;
     }
 
     /* EPISODE LIST TOGGLE */
