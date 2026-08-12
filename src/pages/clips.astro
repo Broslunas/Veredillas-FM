@@ -74,12 +74,30 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
 
 <Layout title="Clips" description="Los mejores momentos de Veredillas FM en formato corto.">
   <section class="clips-hero">
+    <div class="clips-bg-glow" aria-hidden="true"></div>
+
+    {episodeOptions.length > 0 && (
+      <div class="clips-marquee" aria-hidden="true">
+        <div class="clips-marquee-track">
+          {[...episodeOptions, ...episodeOptions].map((ep) => (
+            <span class="clips-marquee-item">
+              {ep.title}
+              <span class="clips-marquee-dot">●</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+
     <div class="clips-hero-inner">
       <div class="clips-eyebrow">
         <span class="clips-eyebrow-dot"></span>
         Momentos destacados
       </div>
-      <h1 class="clips-title">Clips</h1>
+      <div class="clips-title-row">
+        <h1 class="clips-title">Clips</h1>
+        {clips.length > 0 && <span class="clips-count-chip">{clips.length} clips</span>}
+      </div>
       <p class="clips-subtitle">Los mejores momentos de Veredillas FM, en formato corto.</p>
     </div>
 
@@ -99,17 +117,19 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
         {clips.map((clip, index) => (
           <a
             href={`/clips?watch=${clip.videoId}`}
-            class="clip-card"
+            class:list={['clip-card', { 'is-featured': index === 0 }]}
             data-index={index}
             data-video-id={clip.videoId}
             data-episode-slug={clip.episodeSlug}
           >
             <img class="clip-card-thumb" src={clip.thumbnail} alt="" loading="lazy" />
+            <div class="clip-card-sheen" aria-hidden="true"></div>
+            <span class="clip-card-episode-tag">{clip.episodeTitle}</span>
             <div class="clip-card-play">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             </div>
             <div class="clip-card-overlay">
-              <span class="clip-card-episode">{clip.episodeTitle}</span>
+              {index === 0 && <span class="clip-card-featured-badge">Destacado</span>}
               <h3 class="clip-card-title">{clip.title}</h3>
             </div>
           </a>
@@ -207,10 +227,94 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
   /* ═══════════════════════════════════════════════════════════ */
 
   .clips-hero {
+    position: relative;
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     padding: 3rem 1.5rem 1.5rem;
+    overflow: hidden;
+  }
+
+  .clips-bg-glow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .clips-bg-glow::before,
+  .clips-bg-glow::after {
+    content: '';
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.22;
+  }
+
+  .clips-bg-glow::before {
+    top: -220px;
+    left: -120px;
+    background: var(--color-primary);
+  }
+
+  .clips-bg-glow::after {
+    top: -160px;
+    right: -160px;
+    background: var(--color-accent);
+  }
+
+  .clips-marquee {
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+    opacity: 0.5;
+    mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+  }
+
+  .clips-marquee-track {
+    display: flex;
+    width: max-content;
+    gap: 2.5rem;
+    animation: clips-marquee-scroll 45s linear infinite;
+  }
+
+  .clips-marquee:hover .clips-marquee-track {
+    animation-play-state: paused;
+  }
+
+  .clips-marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.5rem;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .clips-marquee-dot {
+    color: var(--color-primary);
+    font-size: 0.4rem;
+  }
+
+  @keyframes clips-marquee-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .clips-marquee-track {
+      animation: none;
+    }
   }
 
   .clips-hero-inner {
@@ -237,6 +341,13 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     box-shadow: 0 0 10px var(--color-primary-glow);
   }
 
+  .clips-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
   .clips-title {
     font-family: var(--font-display);
     font-size: clamp(2.5rem, 7vw, 4.5rem);
@@ -245,6 +356,21 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     letter-spacing: -0.03em;
     line-height: 0.95;
     margin-bottom: 0.75rem;
+    text-shadow: 0 0 60px rgba(var(--color-primary-rgb), 0.25);
+  }
+
+  .clips-count-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 2rem;
+    padding: 0 0.9rem;
+    margin-bottom: 0.75rem;
+    border-radius: var(--radius-full, 999px);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-text-muted);
   }
 
   .clips-subtitle {
@@ -255,6 +381,8 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
 
   .clips-filter-row {
     padding-bottom: 0.25rem;
+    mask-image: linear-gradient(90deg, black 88%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, black 88%, transparent);
   }
 
   .clips-filter-chip {
@@ -262,12 +390,14 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     font-weight: 700;
     color: var(--color-text-muted);
     white-space: nowrap;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .clips-filter-chip.is-active {
-    background: rgba(var(--color-primary-rgb), 0.16);
-    border-color: rgba(var(--color-primary-rgb), 0.4);
-    color: var(--color-text-main);
+    background: linear-gradient(120deg, rgba(var(--color-primary-rgb), 0.9), rgba(var(--color-accent-rgb), 0.75));
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 10px 24px -10px rgba(var(--color-primary-rgb), 0.6);
   }
 
   .clips-grid-section {
@@ -280,6 +410,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
   .clips-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: dense;
     gap: 0.9rem;
   }
 
@@ -319,8 +450,25 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
 
   .clip-card:hover {
     transform: translateY(-4px);
-    border-color: rgba(var(--color-primary-rgb), 0.45);
-    box-shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--color-primary-rgb), 0.15);
+    border-color: rgba(var(--color-primary-rgb), 0.5);
+    box-shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--color-primary-rgb), 0.2);
+  }
+
+  @media (min-width: 640px) {
+    .clip-card.is-featured {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+
+    .clip-card.is-featured .clip-card-title {
+      font-size: 1.2rem;
+      -webkit-line-clamp: 3;
+    }
+
+    .clip-card.is-featured .clip-card-episode-tag {
+      font-size: 0.68rem;
+      padding: 0.4rem 0.8rem;
+    }
   }
 
   .clip-card-thumb {
@@ -336,9 +484,45 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     transform: scale(1.06);
   }
 
+  .clip-card-sheen {
+    position: absolute;
+    inset: -50% -20%;
+    z-index: 2;
+    background: linear-gradient(75deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    pointer-events: none;
+  }
+
+  .clip-card:hover .clip-card-sheen {
+    transform: translateX(20%);
+  }
+
+  .clip-card-episode-tag {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    z-index: 4;
+    max-width: calc(100% - 1.2rem);
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-full, 999px);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .clip-card-play {
     position: absolute;
     inset: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -366,21 +550,23 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 5;
     padding: 1.75rem 0.75rem 0.65rem;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.35) 60%, transparent 100%);
   }
 
-  .clip-card-episode {
-    display: block;
+  .clip-card-featured-badge {
+    display: inline-block;
+    margin-bottom: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full, 999px);
+    background: linear-gradient(120deg, var(--color-primary), var(--color-accent));
     font-size: 0.6rem;
-    font-weight: 800;
+    font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(var(--color-primary-rgb), 0.9);
-    margin-bottom: 0.2rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: white;
+    box-shadow: 0 4px 16px rgba(var(--color-primary-rgb), 0.4);
   }
 
   .clip-card-title {
