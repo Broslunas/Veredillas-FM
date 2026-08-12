@@ -110,7 +110,7 @@ function loadPrefs(): PlayerPrefs {
     const parsed = JSON.parse(raw);
     const rawCaptionStyle = parsed.captionStyle || {};
     return {
-      volume: typeof parsed.volume === 'number' ? parsed.volume : defaults.volume,
+      volume: typeof parsed.volume === 'number' ? Math.max(0, Math.min(2, parsed.volume)) : defaults.volume,
       playbackRate: typeof parsed.playbackRate === 'number' ? parsed.playbackRate : defaults.playbackRate,
       showCaptions: Boolean(parsed.showCaptions),
       captionStyle: {
@@ -286,16 +286,18 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
-  const initialPrefs = useRef(loadPrefs()).current;
 
   // Playback states
+  // NOTE: these all start at the same static defaults the server renders with (never read
+  // localStorage here) to avoid SSR/hydration mismatches; saved prefs are applied after mount
+  // in a client-only effect below, once React has already reconciled the hydrated tree.
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [bufferedEnd, setBufferedEnd] = useState(0);
-  const [volume, setVolume] = useState(initialPrefs.volume);
+  const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(initialPrefs.playbackRate);
+  const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -305,23 +307,26 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   const [showEpisodeDrawer, setShowEpisodeDrawer] = useState(false);
   const [showSectionsDrawer, setShowSectionsDrawer] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
-  const [showCaptions, setShowCaptions] = useState(initialPrefs.showCaptions);
-  const [captionStyle, setCaptionStyle] = useState<CaptionStyle>(initialPrefs.captionStyle);
+  const [showCaptions, setShowCaptions] = useState(false);
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyle>(CAPTION_STYLE_DEFAULTS);
   const [showCaptionSettings, setShowCaptionSettings] = useState(false);
-  const [subtitleLanguage, setSubtitleLanguage] = useState<string>(initialPrefs.subtitleLanguage);
+  const [subtitleLanguage, setSubtitleLanguage] = useState<string>('original');
   const [translatedCaptionText, setTranslatedCaptionText] = useState<string | null>(null);
   const [isTranslatingCaption, setIsTranslatingCaption] = useState(false);
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const [mediaMode, setMediaMode] = useState<'video' | 'audio'>('video');
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<number>(0);
-  const [isVolumeHovered, setIsVolumeHovered] = useState(false);
+  const [showVolumePanel, setShowVolumePanel] = useState(false);
 
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSyncTimeRef = useRef<number>(0);
   const pendingResumeRef = useRef<number>(initialProgress || 0);
   const resumeAppliedRef = useRef(false);
   const modeSwitchResumeRef = useRef<{ time: number; wasPlaying: boolean } | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const mediaSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   const isVideo = Boolean(currentEpisode.videoUrl) && mediaMode === 'video';
 
@@ -450,16 +455,55 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   }, []);
 
   // Volume & Mute
-  const handleVolumeChange = useCallback((newVal: number) => {
-    const val = Math.max(0, Math.min(1, newVal));
-    setVolume(val);
-    savePrefs({ volume: val });
+  // Native <video>/<audio> elements cap `.volume` at 1 (100%). To boost beyond that
+  // up to 200%, route the element's output through a Web Audio GainNode, created lazily
+  // (on first boost past 100%) so playback is completely unaffected in the common 0-100% case.
+  const ensureGainNode = useCallback((): GainNode | null => {
+    if (!videoRef.current) return null;
+    if (!audioContextRef.current) {
+      try {
+        const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AudioContextCtor();
+        const source = ctx.createMediaElementSource(videoRef.current);
+        const gain = ctx.createGain();
+        source.connect(gain);
+        gain.connect(ctx.destination);
+        audioContextRef.current = ctx;
+        mediaSourceRef.current = source;
+        gainNodeRef.current = gain;
+      } catch (e) {
+        console.error('No se pudo activar el refuerzo de volumen:', e);
+        return null;
+      }
+    }
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().catch(() => {});
+    }
+    return gainNodeRef.current;
+  }, []);
+
+  // Applies a 0–2 (0%–200%) volume value to the media element (native volume, capped at 1)
+  // plus the Web Audio gain (only engaged above 1, i.e. above 100%)
+  const applyVolumeToMedia = useCallback((val: number) => {
     if (videoRef.current) {
-      videoRef.current.volume = val;
+      videoRef.current.volume = Math.min(1, val);
       videoRef.current.muted = val === 0;
     }
+    if (val > 1) {
+      const gain = ensureGainNode();
+      if (gain) gain.gain.value = val;
+    } else if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = 1;
+    }
+  }, [ensureGainNode]);
+
+  const handleVolumeChange = useCallback((newVal: number) => {
+    const val = Math.max(0, Math.min(2, newVal));
+    setVolume(val);
+    savePrefs({ volume: val });
+    applyVolumeToMedia(val);
     setIsMuted(val === 0);
-  }, []);
+  }, [applyVolumeToMedia]);
 
   const toggleMute = useCallback(() => {
     if (!videoRef.current) return;
@@ -610,8 +654,11 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     const v = videoRef.current;
     if (!v || !v.duration || isNaN(v.duration)) return;
     setDuration(v.duration);
-    v.volume = volume;
+    v.volume = Math.min(1, volume);
     v.playbackRate = playbackRate;
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = Math.max(1, volume);
+    }
     if (modeSwitchResumeRef.current) {
       const { time, wasPlaying } = modeSwitchResumeRef.current;
       modeSwitchResumeRef.current = null;
@@ -631,6 +678,21 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [srcUrl]);
+
+  // Apply saved player preferences (volume, captions, etc.) after mount, client-only.
+  // Doing this in an effect — instead of reading localStorage during the initial render —
+  // keeps the first client render identical to the server-rendered HTML, avoiding hydration mismatches.
+  useEffect(() => {
+    const saved = loadPrefs();
+    setVolume(saved.volume);
+    setPlaybackRate(saved.playbackRate);
+    setShowCaptions(saved.showCaptions);
+    setCaptionStyle(saved.captionStyle);
+    setSubtitleLanguage(saved.subtitleLanguage);
+    applyVolumeToMedia(saved.volume);
+    if (videoRef.current) videoRef.current.playbackRate = saved.playbackRate;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch saved progress for the current episode
   useEffect(() => {
@@ -790,6 +852,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           setShowEpisodeDrawer(false);
           setShowSpeedMenu(false);
           setShowCaptionSettings(false);
+          setShowVolumePanel(false);
           break;
       }
     };
@@ -805,6 +868,13 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     };
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  // Release the Web Audio boost graph (if it was ever created) on unmount
+  useEffect(() => {
+    return () => {
+      audioContextRef.current?.close().catch(() => {});
+    };
   }, []);
 
   return (
@@ -1098,13 +1168,14 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                 <IconForward10 className="w-5 h-5" />
               </button>
 
-              {/* VOLUME SLIDER POPPER (desktop) */}
-              <div
-                className="relative hidden sm:flex items-center group/vol"
-                onMouseEnter={() => setIsVolumeHovered(true)}
-                onMouseLeave={() => setIsVolumeHovered(false)}
-              >
-                <button onClick={toggleMute} className={ctrlBtn} aria-label={isMuted ? 'Activar sonido' : 'Silenciar'}>
+              {/* VOLUME (tap/click to open slider, works on mobile too — up to 200%) */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowVolumePanel((v) => !v)}
+                  className={`${ctrlBtn} ${showVolumePanel ? ctrlBtnActive : ''} ${volume > 1 && !isMuted ? 'text-primary' : ''}`}
+                  aria-label="Volumen"
+                  title="Volumen"
+                >
                   {isMuted || volume === 0 ? (
                     <IconVolumeMute className="w-5 h-5" />
                   ) : volume < 0.5 ? (
@@ -1114,29 +1185,45 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                   )}
                 </button>
 
-                <div
-                  className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ${
-                    isVolumeHovered ? 'w-24 md:w-28 opacity-100 ml-1' : 'w-0 opacity-0 ml-0'
-                  }`}
-                >
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={isMuted ? 0 : volume}
-                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                    className="w-full h-1 bg-white/20 accent-primary rounded-lg cursor-pointer"
-                    aria-label="Volumen"
-                  />
-                  <span className="text-[10px] font-mono text-zinc-400 min-w-[24px]">{Math.round((isMuted ? 0 : volume) * 100)}%</span>
-                </div>
-              </div>
+                {showVolumePanel && (
+                  <div className="absolute bottom-11 left-0 bg-zinc-950/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-3.5 flex flex-col gap-2.5 z-50 w-48">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Volumen</span>
+                      <span className={`text-xs font-mono font-bold tabular-nums ${volume > 1 && !isMuted ? 'text-primary' : 'text-zinc-300'}`}>
+                        {Math.round((isMuted ? 0 : volume) * 100)}%
+                      </span>
+                    </div>
 
-              {/* Mute button (mobile, no hover slider) */}
-              <button onClick={toggleMute} className={`${ctrlBtn} sm:hidden`} aria-label={isMuted ? 'Activar sonido' : 'Silenciar'}>
-                {isMuted || volume === 0 ? <IconVolumeMute className="w-5 h-5" /> : <IconVolumeHigh className="w-5 h-5" />}
-              </button>
+                    <div className="relative flex items-center py-1">
+                      <input
+                        type="range"
+                        min="0"
+                        max="2"
+                        step="0.01"
+                        value={isMuted ? 0 : volume}
+                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 accent-primary rounded-lg cursor-pointer"
+                        aria-label="Volumen (hasta 200%)"
+                      />
+                      {/* 100% marker */}
+                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-px h-2.5 bg-white/30 pointer-events-none" />
+                    </div>
+                    <div className="flex items-center justify-between text-[9px] font-mono text-zinc-600 -mt-1">
+                      <span>0%</span>
+                      <span>100%</span>
+                      <span>200%</span>
+                    </div>
+
+                    <button
+                      onClick={toggleMute}
+                      className="flex items-center gap-1.5 text-[11px] text-zinc-400 hover:text-white transition mt-0.5"
+                    >
+                      {isMuted ? <IconVolumeMute className="w-3.5 h-3.5" /> : <IconVolumeHigh className="w-3.5 h-3.5" />}
+                      {isMuted ? 'Activar sonido' : 'Silenciar'}
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {/* Time Display */}
               <span className="text-[11px] md:text-xs font-mono tabular-nums text-zinc-300 ml-1 whitespace-nowrap">
