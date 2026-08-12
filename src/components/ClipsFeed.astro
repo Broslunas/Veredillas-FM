@@ -8,6 +8,11 @@ interface Props {
 
 const { initialWatchId } = Astro.props;
 
+// A direct /clip/{id} link is a single-video permalink: don't pay for building and
+// loading the entire gallery grid (517 thumbnails) in the background just to show one
+// video behind it. The gallery only renders for the bare /clips route.
+const showGallery = !initialWatchId;
+
 const allEpisodes = await getCollection('episodios');
 
 // Flatten every episode's clips into a single gallery feed
@@ -88,6 +93,8 @@ const feedClips = clips.map((c) => ({
 }));
 ---
 
+{showGallery && (
+<>
 <section class="clips-hero">
   <div class="clips-bg-glow" aria-hidden="true"></div>
 
@@ -157,6 +164,8 @@ const feedClips = clips.map((c) => ({
     </div>
   )}
 </section>
+</>
+)}
 
 <!-- Fullscreen TikTok-style viewer, opened from the gallery -->
 <div id="clip-viewer-overlay" class="clip-viewer-overlay">
@@ -166,13 +175,18 @@ const feedClips = clips.map((c) => ({
 
   <div class="viewer-scroller" id="viewer-scroller">
     {viewerClips.map((clip, index) => (
-      <div class="clip-section" id={`clip-section-${index}`} data-index={index} data-video-id={clip.videoId}>
+      <div class="clip-section is-loading" id={`clip-section-${index}`} data-index={index} data-video-id={clip.videoId}>
         <div class="video-wrapper">
           {clip.playbackKind === 'youtube' ? (
             <div id={`player-${index}`} class="youtube-player" data-kind="youtube" data-video-id={clip.mediaSrc}></div>
           ) : (
             <video id={`player-${index}`} class="native-player" data-kind="self-hosted" data-src={clip.mediaSrc} loop playsinline muted></video>
           )}
+          <!-- Shown until the media reports it's actually ready to play -->
+          <div class="clip-skeleton" aria-hidden="true">
+            <div class="clip-skeleton-shimmer"></div>
+            <div class="clip-skeleton-ring"></div>
+          </div>
           <!-- Interaction layer for custom play/pause -->
           <div class="interaction-layer" data-target={`player-${index}`}></div>
         </div>
@@ -764,6 +778,67 @@ const feedClips = clips.map((c) => ({
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Shown over the media until it reports it's actually ready to play */
+  .clip-skeleton {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(165deg, #17121f 0%, #0a0810 100%);
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+  }
+
+  .clip-section.is-loading .clip-skeleton {
+    opacity: 1;
+  }
+
+  .clip-skeleton-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 35%, rgba(255, 255, 255, 0.06) 50%, transparent 65%);
+    background-size: 200% 100%;
+    animation: clip-skeleton-sweep 1.8s ease-in-out infinite;
+  }
+
+  @keyframes clip-skeleton-sweep {
+    0% {
+      background-position: 150% 0;
+    }
+    100% {
+      background-position: -50% 0;
+    }
+  }
+
+  .clip-skeleton-ring {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.14);
+    border-top-color: var(--color-primary);
+    animation: clip-skeleton-spin 0.85s linear infinite;
+  }
+
+  @keyframes clip-skeleton-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .clip-skeleton-shimmer,
+    .clip-skeleton-ring {
+      animation: none;
+    }
+  }
+
   @media (min-width: 768px) {
     .youtube-player,
     .native-player {
@@ -777,9 +852,14 @@ const feedClips = clips.map((c) => ({
     }
     .youtube-player,
     .native-player,
-    .interaction-layer {
+    .interaction-layer,
+    .clip-skeleton {
       width: auto;
       aspect-ratio: 9/16;
+    }
+
+    .clip-skeleton {
+      border-radius: 20px;
     }
   }
 
@@ -1487,9 +1567,10 @@ const feedClips = clips.map((c) => ({
           : '<video id="' + playerId + '" class="native-player" data-kind="self-hosted" data-src="' + mediaSrc + '" loop playsinline muted></video>';
 
       return (
-        '<div class="clip-section" id="clip-section-' + index + '" data-index="' + index + '" data-video-id="' + videoId + '">' +
+        '<div class="clip-section is-loading" id="clip-section-' + index + '" data-index="' + index + '" data-video-id="' + videoId + '">' +
           '<div class="video-wrapper">' +
             mediaHtml +
+            '<div class="clip-skeleton" aria-hidden="true"><div class="clip-skeleton-shimmer"></div><div class="clip-skeleton-ring"></div></div>' +
             '<div class="interaction-layer" data-target="' + playerId + '"></div>' +
           '</div>' +
           '<div class="clip-overlay">' +
