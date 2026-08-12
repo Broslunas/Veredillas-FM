@@ -1271,6 +1271,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
         urlObserver: null,
         queue: [],
         apiReady: false,
+        soundUnlocked: false,
       };
     }
 
@@ -1363,6 +1364,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
           if (playerState === WIN.YT.PlayerState.PLAYING) {
             player.pauseVideo();
           } else {
+            state.soundUnlocked = true;
             player.playVideo();
             player.unMute();
           }
@@ -1371,6 +1373,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
         if (!el.paused) {
           el.pause();
         } else {
+          state.soundUnlocked = true;
           el.muted = false;
           el.play().catch(() => {});
         }
@@ -1415,14 +1418,22 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
             if (mediaEl.dataset.kind === 'youtube') {
               const player = state.players[mediaEl.id];
               if (entry.isIntersecting) {
-                if (player && typeof player.playVideo === 'function') player.playVideo();
+                if (player && typeof player.playVideo === 'function') {
+                  player.playVideo();
+                  if (state.soundUnlocked && typeof player.unMute === 'function') player.unMute();
+                }
               } else if (player && typeof player.pauseVideo === 'function') {
                 player.pauseVideo();
               }
             } else {
               if (entry.isIntersecting) {
                 if (mediaEl.dataset.src && !mediaEl.getAttribute('src')) mediaEl.src = mediaEl.dataset.src;
-                mediaEl.play().catch(() => {});
+                if (state.soundUnlocked) mediaEl.muted = false;
+                mediaEl.play().catch(() => {
+                  // Autoplay-with-sound was blocked; fall back to muted so playback doesn't stall.
+                  mediaEl.muted = true;
+                  mediaEl.play().catch(() => {});
+                });
               } else {
                 mediaEl.pause();
               }
@@ -1499,6 +1510,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
           const card = e.target.closest('.clip-card');
           if (!card) return;
           e.preventDefault();
+          state.soundUnlocked = true;
           const index = parseInt(card.getAttribute('data-index') || '0', 10);
           const videoId = card.getAttribute('data-video-id');
           const url = new URL(WIN.location.href);
