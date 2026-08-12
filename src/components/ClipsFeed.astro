@@ -1544,6 +1544,7 @@ const feedClips = clips.map((c) => ({
         state.urlObserver?.observe(section);
       }
       state.loadedCount = idx;
+      applyLikedState();
     }
 
     // Called as the active clip approaches the end of what's loaded; pulls the next
@@ -1711,10 +1712,15 @@ const feedClips = clips.map((c) => ({
           if (!card) return;
           e.preventDefault();
           state.soundUnlocked = true;
-          const index = parseInt(card.getAttribute('data-index') || '0', 10);
           const videoId = card.getAttribute('data-video-id');
-          WIN.history.pushState({}, '', videoId ? watchUrl(videoId) : WIN.location.href);
-          openViewer(index);
+          if (!videoId) return;
+          WIN.history.pushState({}, '', watchUrl(videoId));
+          const existingIndex = getClipIndexByVideoId(videoId);
+          if (existingIndex !== null) {
+            openViewer(existingIndex);
+          } else {
+            resetViewerTo(videoId);
+          }
         });
       }
 
@@ -1736,12 +1742,16 @@ const feedClips = clips.map((c) => ({
       closeBtn.onclick = () => closeViewerAndUpdateUrl();
     }
 
-    document.querySelectorAll('.interaction-layer').forEach((layer) => {
-      layer.onclick = (e) => {
-        const targetId = e.currentTarget.getAttribute('data-target');
+    // Delegated so interaction layers built later by appendClips() work without rewiring.
+    if (!WIN._clipsInteractionDelegated) {
+      WIN._clipsInteractionDelegated = true;
+      document.addEventListener('click', (e) => {
+        const layer = e.target.closest('.interaction-layer');
+        if (!layer) return;
+        const targetId = layer.getAttribute('data-target');
         if (targetId) togglePlay(targetId);
-      };
-    });
+      });
+    }
 
     WIN.addEventListener('popstate', () => {
       const watch = getWatchIdFromLocation();
@@ -1752,7 +1762,11 @@ const feedClips = clips.map((c) => ({
         return;
       }
       const index = getClipIndexByVideoId(watch);
-      if (index === null || !overlay || !scroller) return;
+      if (index === null) {
+        resetViewerTo(watch);
+        return;
+      }
+      if (!overlay || !scroller) return;
       if (!overlay.classList.contains('active')) {
         document.body.classList.add('clip-viewer-open');
         overlay.classList.add('active');
@@ -1911,17 +1925,24 @@ const feedClips = clips.map((c) => ({
         const res = await fetch('/api/clips/liked');
         if (res.ok) {
           const data = await res.json();
-          const liked = data.likedClips || [];
-          document.querySelectorAll('.like-btn').forEach((btn) => {
-            const cid = btn.getAttribute('data-clip-id');
-            if (cid && liked.includes(cid)) {
-              btn.classList.add('liked');
-            }
-          });
+          state.likedIds = new Set(data.likedClips || []);
+          applyLikedState();
         }
       } catch (e) {
         console.error(e);
       }
+    }
+
+    // Marks .like-btn elements as liked based on the cached set from loadLikes(); called
+    // again after appendClips() so sections added while scrolling get the right state too.
+    function applyLikedState() {
+      if (!state.likedIds) return;
+      document.querySelectorAll('.like-btn').forEach((btn) => {
+        const cid = btn.getAttribute('data-clip-id');
+        if (cid && state.likedIds.has(cid)) {
+          btn.classList.add('liked');
+        }
+      });
     }
 
     // --- INIT ---
@@ -1936,6 +1957,8 @@ const feedClips = clips.map((c) => ({
         }
       });
       state.players = {};
+      state.loadedCount = document.querySelectorAll('.clip-section').length;
+      state.feedCursor = state.loadedCount;
 
       initGallery();
       loadLikes();
@@ -1943,7 +1966,11 @@ const feedClips = clips.map((c) => ({
       const watchId = getWatchIdFromLocation();
       if (watchId) {
         const index = getClipIndexByVideoId(watchId);
-        if (index !== null) openViewer(index);
+        if (index !== null) {
+          openViewer(index);
+        } else {
+          resetViewerTo(watchId);
+        }
       }
     }
 
