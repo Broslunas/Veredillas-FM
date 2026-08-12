@@ -1473,7 +1473,15 @@ const feedClips = clips.map((c) => ({
         createYouTubePlayer(id);
       } else if (el.dataset.src && !el.getAttribute('src')) {
         el.src = el.dataset.src;
-        el.addEventListener('loadeddata', () => markLoaded(id), { once: true });
+        const markReady = () => markLoaded(id);
+        // Mobile Safari in particular can defer actually fetching video data until
+        // playback starts, so `loadeddata` alone isn't reliable here — listen for a few
+        // signals and also hard-timeout, so the skeleton can never get stuck forever
+        // and mask a video that's actually fine underneath.
+        el.addEventListener('loadeddata', markReady, { once: true });
+        el.addEventListener('canplay', markReady, { once: true });
+        el.addEventListener('playing', markReady, { once: true });
+        setTimeout(markReady, 3500);
       }
     }
 
@@ -1721,11 +1729,18 @@ const feedClips = clips.map((c) => ({
               if (entry.isIntersecting) {
                 if (mediaEl.dataset.src && !mediaEl.getAttribute('src')) mediaEl.src = mediaEl.dataset.src;
                 if (state.soundUnlocked) mediaEl.muted = false;
-                mediaEl.play().catch(() => {
-                  // Autoplay-with-sound was blocked; fall back to muted so playback doesn't stall.
-                  mediaEl.muted = true;
-                  mediaEl.play().catch(() => {});
-                });
+                // Actual playback starting is the strongest signal the video is ready.
+                mediaEl
+                  .play()
+                  .then(() => markLoaded(mediaEl.id))
+                  .catch(() => {
+                    // Autoplay-with-sound was blocked; fall back to muted so playback doesn't stall.
+                    mediaEl.muted = true;
+                    mediaEl
+                      .play()
+                      .then(() => markLoaded(mediaEl.id))
+                      .catch(() => {});
+                  });
               } else {
                 mediaEl.pause();
               }
