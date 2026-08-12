@@ -102,10 +102,10 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     </div>
 
     {episodeOptions.length > 1 && (
-      <div class="ep-chip-row clips-filter-row" id="clips-filter-row">
-        <button class="ep-chip clips-filter-chip is-active" data-filter="all">Todos</button>
+      <div class="clips-filter-row" id="clips-filter-row">
+        <button class="clips-tab is-active" data-filter="all">Todos</button>
         {episodeOptions.map((ep) => (
-          <button class="ep-chip clips-filter-chip" data-filter={ep.slug}>{ep.title}</button>
+          <button class="clips-tab" data-filter={ep.slug}>{ep.title}</button>
         ))}
       </div>
     )}
@@ -166,23 +166,27 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
             <div class="clip-info">
               <h2 class="clip-title">{clip.title}</h2>
               <a href={`/ep/${clip.episodeSlug}`} class="episode-link">
-                <span class="episode-icon">🎙️</span>
+                <span class="episode-icon" aria-hidden="true"></span>
                 <span class="episode-name">{clip.episodeTitle}</span>
               </a>
             </div>
 
             <div class="clip-actions">
-              <button class="ep-chip clip-action-chip episode-clips-btn" aria-label="Ver clips del episodio" data-episode-slug={clip.episodeSlug} onclick="handleOpenEpisodeClips(this)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <button class="reel-action episode-clips-btn" aria-label="Ver clips del episodio" data-episode-slug={clip.episodeSlug} onclick="handleOpenEpisodeClips(this)">
+                <span class="reel-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>
+                <span class="reel-action-label">Clips</span>
               </button>
-              <button class="ep-chip clip-action-chip like-btn" aria-label="Me gusta" data-clip-id={clip.videoId} onclick="handleLikeClip(this)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              <button class="reel-action like-btn" aria-label="Me gusta" data-clip-id={clip.videoId} onclick="handleLikeClip(this)">
+                <span class="reel-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></span>
+                <span class="reel-action-label">Me gusta</span>
               </button>
-              <button class="ep-chip clip-action-chip share-btn" aria-label="Compartir" data-clip-id={clip.videoId} onclick="handleShareClip(this)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+              <button class="reel-action share-btn" aria-label="Compartir" data-clip-id={clip.videoId} onclick="handleShareClip(this)">
+                <span class="reel-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></span>
+                <span class="reel-action-label">Compartir</span>
               </button>
-              <a href={`/ep/${clip.episodeSlug}`} class="ep-chip clip-action-chip" aria-label="Ver episodio completo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
+              <a href={`/ep/${clip.episodeSlug}`} class="reel-action" aria-label="Ver episodio completo">
+                <span class="reel-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg></span>
+                <span class="reel-action-label">Episodio</span>
               </a>
             </div>
           </div>
@@ -380,24 +384,62 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
   }
 
   .clips-filter-row {
-    padding-bottom: 0.25rem;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 1.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     mask-image: linear-gradient(90deg, black 88%, transparent);
     -webkit-mask-image: linear-gradient(90deg, black 88%, transparent);
   }
 
-  .clips-filter-chip {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    white-space: nowrap;
-    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  .clips-filter-row::-webkit-scrollbar {
+    display: none;
   }
 
-  .clips-filter-chip.is-active {
-    background: linear-gradient(120deg, rgba(var(--color-primary-rgb), 0.9), rgba(var(--color-accent-rgb), 0.75));
-    border-color: transparent;
-    color: white;
-    box-shadow: 0 10px 24px -10px rgba(var(--color-primary-rgb), 0.6);
+  .clips-tab {
+    position: relative;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0.2rem 0.05rem;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-dim);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.25s ease;
+  }
+
+  .clips-tab::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.95rem;
+    height: 2px;
+    background: linear-gradient(120deg, var(--color-primary), var(--color-accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .clips-tab:hover {
+    color: var(--color-text-main);
+  }
+
+  .clips-tab.is-active {
+    color: var(--color-text-main);
+  }
+
+  .clips-tab.is-active::after {
+    transform: scaleX(1);
   }
 
   .clips-grid-section {
@@ -504,12 +546,12 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     left: 0.6rem;
     z-index: 4;
     max-width: calc(100% - 1.2rem);
-    padding: 0.3rem 0.6rem;
-    border-radius: var(--radius-full, 999px);
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    font-size: 0.58rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: var(--radius-sm);
+    background: rgba(10, 8, 16, 0.6);
+    border-left: 2px solid var(--color-primary);
+    font-family: var(--font-display);
+    font-size: 0.56rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -526,23 +568,28 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.2);
     opacity: 0;
     transition: opacity 0.25s ease;
   }
 
   .clip-card-play svg {
-    width: 44px;
-    height: 44px;
-    padding: 12px;
-    border-radius: 50%;
-    background: rgba(var(--color-primary-rgb), 0.85);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 0 30px rgba(var(--color-primary-rgb), 0.5);
+    width: 42px;
+    height: 42px;
+    padding: 13px;
+    border-radius: var(--radius-lg);
+    background: rgba(10, 8, 16, 0.55);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    transition: border-color 0.25s ease, background 0.25s ease;
   }
 
   .clip-card:hover .clip-card-play {
     opacity: 1;
+  }
+
+  .clip-card:hover .clip-card-play svg {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.3);
   }
 
   .clip-card-overlay {
@@ -559,14 +606,14 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     display: inline-block;
     margin-bottom: 0.4rem;
     padding: 0.25rem 0.6rem;
-    border-radius: var(--radius-full, 999px);
+    border-radius: var(--radius-sm);
     background: linear-gradient(120deg, var(--color-primary), var(--color-accent));
+    font-family: var(--font-display);
     font-size: 0.6rem;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: white;
-    box-shadow: 0 4px 16px rgba(var(--color-primary-rgb), 0.4);
   }
 
   .clip-card-title {
@@ -619,25 +666,23 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     top: max(1.25rem, env(safe-area-inset-top));
     right: 1.25rem;
     z-index: 30;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    background: rgba(10, 8, 16, 0.55);
+    border: 1.5px solid rgba(255, 255, 255, 0.16);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    backdrop-filter: blur(10px);
-    transition: all 0.25s ease;
+    transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
   }
 
   .viewer-close-btn:hover {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.4);
-    color: #ef4444;
-    transform: rotate(90deg);
+    background: rgba(var(--color-primary-rgb), 0.2);
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
   }
 
   .viewer-scroller {
@@ -760,20 +805,32 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
   .episode-link {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.9);
+    gap: 0.55rem;
+    color: rgba(255, 255, 255, 0.92);
     text-decoration: none;
-    font-size: 0.85rem;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 0.4rem 0.8rem;
-    border-radius: 99px;
-    backdrop-filter: blur(8px);
-    transition: background 0.2s;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: rgba(10, 8, 16, 0.5);
+    padding: 0.5rem 0.85rem 0.5rem 0.65rem;
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-primary);
+    transition: background 0.2s ease;
   }
 
   .episode-link:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(var(--color-primary-rgb), 0.22);
+  }
+
+  .episode-icon {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    box-shadow: 0 0 8px var(--color-primary-glow);
+    flex-shrink: 0;
   }
 
   .clip-actions {
@@ -788,27 +845,65 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
     align-items: center;
   }
 
-  /* Circular icon-only variant of the shared .ep-chip glass button */
-  .clip-action-chip {
-    width: 46px;
+  .reel-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: none;
     padding: 0;
-    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .reel-action-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+    background: rgba(10, 8, 16, 0.55);
+    border: 1.5px solid rgba(255, 255, 255, 0.14);
+    transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+  }
+
+  .reel-action-label {
+    font-family: var(--font-display);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .reel-action:hover .reel-action-icon {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.2);
+    transform: translateY(-2px);
   }
 
   @media (max-width: 639px) {
-    .clip-action-chip {
-      width: 40px;
+    .reel-action-icon {
+      width: 42px;
+      height: 42px;
     }
   }
 
-  .clip-action-chip.liked {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.35);
-    color: #ef4444;
+  .reel-action.liked .reel-action-icon {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    background-color: transparent;
+    border: 1.5px solid transparent;
+    box-shadow: 0 6px 20px -6px rgba(var(--color-primary-rgb), 0.7);
   }
 
-  .clip-action-chip.liked svg {
-    fill: #ef4444;
+  .reel-action.liked .heart-icon {
+    fill: white;
+    stroke: white;
   }
 
   /* Desktop adjustments */
@@ -901,21 +996,21 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
   .panel-close-btn {
     width: 38px;
     height: 38px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
   }
 
   .panel-close-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(var(--color-primary-rgb), 0.18);
+    border-color: var(--color-primary);
     color: white;
-    transform: rotate(90deg);
   }
 
   .panel-episode-hero {
@@ -1413,9 +1508,9 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
         });
       }
 
-      document.querySelectorAll('.clips-filter-chip').forEach((chip) => {
+      document.querySelectorAll('.clips-tab').forEach((chip) => {
         chip.onclick = () => {
-          document.querySelectorAll('.clips-filter-chip').forEach((c) => c.classList.remove('is-active'));
+          document.querySelectorAll('.clips-tab').forEach((c) => c.classList.remove('is-active'));
           chip.classList.add('is-active');
           const filter = chip.getAttribute('data-filter');
           document.querySelectorAll('.clip-card').forEach((card) => {
@@ -1471,11 +1566,11 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
 
       if (isLiked) {
         btn.classList.remove('liked');
-        btn.querySelector('svg')?.setAttribute('fill', 'none');
       } else {
         btn.classList.add('liked');
-        btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
-        btn.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3)' }, { transform: 'scale(1)' }], { duration: 200 });
+        btn
+          .querySelector('.reel-action-icon')
+          ?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 200 });
       }
 
       try {
@@ -1490,13 +1585,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
         }
       } catch (e) {
         console.error(e);
-        if (isLiked) {
-          btn.classList.add('liked');
-          btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
-        } else {
-          btn.classList.remove('liked');
-          btn.querySelector('svg')?.setAttribute('fill', 'none');
-        }
+        btn.classList.toggle('liked', isLiked);
       }
     };
 
@@ -1509,12 +1598,19 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
       const url = new URL(WIN.location.href);
       if (clipId) url.searchParams.set('watch', clipId);
 
+      const iconWrap = btn.querySelector('.reel-action-icon');
+      const label = btn.querySelector('.reel-action-label');
+      if (!iconWrap || !label) return;
+
       navigator.clipboard.writeText(url.toString()).then(() => {
-        const original = btn.innerHTML;
-        btn.innerHTML =
+        const originalIcon = iconWrap.innerHTML;
+        const originalLabel = label.textContent;
+        iconWrap.innerHTML =
           '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        label.textContent = 'Copiado';
         setTimeout(() => {
-          btn.innerHTML = original;
+          iconWrap.innerHTML = originalIcon;
+          label.textContent = originalLabel;
         }, 2000);
       });
     };
@@ -1545,7 +1641,7 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
       titleEl.textContent = episodeData.episodeTitle;
       imageEl.src = episodeData.episodeImage;
       imageEl.alt = episodeData.episodeTitle;
-      countEl.textContent = '🎬 ' + episodeData.clips.length + ' clips';
+      countEl.textContent = episodeData.clips.length + ' clips';
 
       grid.innerHTML = episodeData.clips
         .map((clip, i) => {
@@ -1610,7 +1706,6 @@ Astro.response.headers.set('Cache-Control', 's-maxage=1800, stale-while-revalida
             const cid = btn.getAttribute('data-clip-id');
             if (cid && liked.includes(cid)) {
               btn.classList.add('liked');
-              btn.querySelector('svg')?.setAttribute('fill', '#ef4444');
             }
           });
         }
