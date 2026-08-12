@@ -69,6 +69,23 @@ const episodeOptions = clips
     return true;
   })
   .map((c) => ({ slug: c.episodeSlug, title: c.episodeTitle }));
+
+// The gallery grid below renders every clip (just lightweight thumbnails, that's fine).
+// The fullscreen viewer is a different story: each section can become a full YouTube
+// iframe or buffered <video>, and mobile browsers crash once too many of those exist
+// at once. So the viewer only gets an initial handful server-rendered; the rest of the
+// (already-ordered) list is handed to the client as plain data, and JS builds more
+// viewer sections on demand as the user scrolls (see the script below).
+const VIEWER_INITIAL_BATCH = 6;
+const viewerClips = clips.slice(0, VIEWER_INITIAL_BATCH);
+const feedClips = clips.map((c) => ({
+  videoId: c.videoId,
+  title: c.title,
+  playbackKind: c.playbackKind,
+  mediaSrc: c.mediaSrc,
+  episodeSlug: c.episodeSlug,
+  episodeTitle: c.episodeTitle,
+}));
 ---
 
 <section class="clips-hero">
@@ -148,7 +165,7 @@ const episodeOptions = clips
   </button>
 
   <div class="viewer-scroller" id="viewer-scroller">
-    {clips.map((clip, index) => (
+    {viewerClips.map((clip, index) => (
       <div class="clip-section" id={`clip-section-${index}`} data-index={index} data-video-id={clip.videoId}>
         <div class="video-wrapper">
           {clip.playbackKind === 'youtube' ? (
@@ -214,8 +231,12 @@ const episodeOptions = clips
 </aside>
 
 <!-- Inject clips-by-episode data for JS -->
-<script is:inline define:vars={{ clipsByEpisode }}>
+<script is:inline define:vars={{ clipsByEpisode, feedClips, viewerInitialBatch: VIEWER_INITIAL_BATCH }}>
   window._clipsByEpisode = clipsByEpisode;
+  // Full ordered clip list as plain data (title/ids/src, no thumbnails) so the viewer
+  // can build more sections on demand instead of the server rendering all of them.
+  window._allClips = feedClips;
+  window._viewerInitialBatch = viewerInitialBatch;
 </script>
 
 <style>
@@ -1270,6 +1291,8 @@ const episodeOptions = clips
         apiReady: false,
         soundUnlocked: false,
         currentIndex: 0,
+        loadedCount: 0,
+        feedCursor: 0,
       };
     }
 
@@ -1440,6 +1463,131 @@ const episodeOptions = clips
       document.querySelectorAll('.clip-section').forEach((section) => unloadMedia(section));
     }
 
+    // --- INCREMENTAL VIEWER BUILDING ---
+    // Only a handful of clip-sections are server-rendered; window._allClips carries the
+    // full ordered list as plain data (no thumbnails, cheap to ship) and the functions
+    // below build more sections from it as the user scrolls, instead of the server
+    // rendering all 500+ upfront.
+    function escapeHtml(str) {
+      return String(str == null ? '' : str).replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+    }
+
+    function buildClipSectionHTML(clip, index) {
+      const videoId = escapeHtml(clip.videoId);
+      const title = escapeHtml(clip.title);
+      const episodeSlug = escapeHtml(clip.episodeSlug);
+      const episodeTitle = escapeHtml(clip.episodeTitle);
+      const mediaSrc = escapeHtml(clip.mediaSrc);
+      const playerId = 'player-' + index;
+      const mediaHtml =
+        clip.playbackKind === 'youtube'
+          ? '<div id="' + playerId + '" class="youtube-player" data-kind="youtube" data-video-id="' + mediaSrc + '"></div>'
+          : '<video id="' + playerId + '" class="native-player" data-kind="self-hosted" data-src="' + mediaSrc + '" loop playsinline muted></video>';
+
+      return (
+        '<div class="clip-section" id="clip-section-' + index + '" data-index="' + index + '" data-video-id="' + videoId + '">' +
+          '<div class="video-wrapper">' +
+            mediaHtml +
+            '<div class="interaction-layer" data-target="' + playerId + '"></div>' +
+          '</div>' +
+          '<div class="clip-overlay">' +
+            '<div class="clip-info">' +
+              '<h2 class="clip-title">' + title + '</h2>' +
+              '<a href="/ep/' + episodeSlug + '" class="episode-link">' +
+                '<span class="episode-icon" aria-hidden="true"></span>' +
+                '<span class="episode-name">' + episodeTitle + '</span>' +
+              '</a>' +
+            '</div>' +
+            '<div class="clip-actions">' +
+              '<button class="reel-action episode-clips-btn" aria-label="Ver clips del episodio" data-episode-slug="' + episodeSlug + '" onclick="handleOpenEpisodeClips(this)">' +
+                '<span class="reel-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>' +
+                '<span class="reel-action-label">Clips</span>' +
+              '</button>' +
+              '<button class="reel-action like-btn" aria-label="Me gusta" data-clip-id="' + videoId + '" onclick="handleLikeClip(this)">' +
+                '<span class="reel-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></span>' +
+                '<span class="reel-action-label">Me gusta</span>' +
+              '</button>' +
+              '<button class="reel-action share-btn" aria-label="Compartir" data-clip-id="' + videoId + '" onclick="handleShareClip(this)">' +
+                '<span class="reel-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></span>' +
+                '<span class="reel-action-label">Compartir</span>' +
+              '</button>' +
+              '<a href="/ep/' + episodeSlug + '" class="reel-action" aria-label="Ver episodio completo">' +
+                '<span class="reel-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg></span>' +
+                '<span class="reel-action-label">Episodio</span>' +
+              '</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    // Appends clip-sections built from `list` and, if a viewer session is already
+    // observing, wires them into the same observers so they play on scroll like any
+    // server-rendered section.
+    function appendClips(list) {
+      const scroller = document.getElementById('viewer-scroller');
+      if (!scroller || !list || list.length === 0) return;
+      let html = '';
+      let idx = state.loadedCount;
+      list.forEach((clip) => {
+        html += buildClipSectionHTML(clip, idx);
+        idx++;
+      });
+      scroller.insertAdjacentHTML('beforeend', html);
+      for (let i = state.loadedCount; i < idx; i++) {
+        const section = document.getElementById('clip-section-' + i);
+        if (!section) continue;
+        state.loadingObserver?.observe(section);
+        state.playbackObserver?.observe(section);
+        state.urlObserver?.observe(section);
+      }
+      state.loadedCount = idx;
+    }
+
+    // Called as the active clip approaches the end of what's loaded; pulls the next
+    // slice from window._allClips (already-ordered, no network round-trip needed).
+    function maybeLoadMore(centerIndex) {
+      const all = WIN._allClips || [];
+      const batchSize = WIN._viewerInitialBatch || 6;
+      if (state.feedCursor >= all.length) return;
+      if (centerIndex < state.loadedCount - 3) return;
+      const batch = all.slice(state.feedCursor, state.feedCursor + batchSize);
+      state.feedCursor += batch.length;
+      appendClips(batch);
+    }
+
+    // Used when the requested clip isn't among the currently-loaded sections (e.g. a
+    // gallery card far down the list, or a back/forward jump): wipes the viewer and
+    // rebuilds it starting at that clip instead of relying on it already being in the DOM.
+    function resetViewerTo(videoId) {
+      const all = WIN._allClips || [];
+      const startIdx = all.findIndex((c) => c.videoId === videoId);
+      if (startIdx === -1) return false;
+
+      const scroller = document.getElementById('viewer-scroller');
+      if (!scroller) return false;
+
+      Object.values(state.players).forEach((p) => {
+        if (p && typeof p.destroy === 'function') {
+          try {
+            p.destroy();
+          } catch (e) {}
+        }
+      });
+      state.players = {};
+      scroller.innerHTML = '';
+      state.loadedCount = 0;
+
+      const batchSize = WIN._viewerInitialBatch || 6;
+      const batch = all.slice(startIdx, startIdx + batchSize);
+      state.feedCursor = startIdx + batch.length;
+      appendClips(batch);
+      openViewer(0);
+      return true;
+    }
+
     // --- OBSERVERS (scoped to the fullscreen viewer's own scroller) ---
     function attachObservers(scroller) {
       if (state.loadingObserver) state.loadingObserver.disconnect();
@@ -1506,6 +1654,7 @@ const episodeOptions = clips
               const idx = parseInt(entry.target.getAttribute('data-index') || '0', 10);
               state.currentIndex = idx;
               cleanupDistantMedia(idx);
+              maybeLoadMore(idx);
             }
           });
         },
