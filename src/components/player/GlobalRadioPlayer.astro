@@ -1,0 +1,272 @@
+---
+---
+<!--
+  Global persistent radio player.
+  Rendered by Layout.astro on every page with transition:persist so the
+  underlying <audio> element (and its playback) survives Astro client-side
+  navigations. On /radio, RadioPlayerMinimal (src/pages/radio.astro) drives
+  this same #radio-audio element for the full UI. Everywhere else, this
+  component shows a small floating bar so playback keeps going.
+-->
+<div id="global-radio-player" transition:persist>
+    <audio class="waiting-music" preload="none" loop crossorigin="anonymous" id="radio-audio">
+        <source src="https://radio.veredillasfm.es/stream" type="audio/mpeg">
+    </audio>
+
+    <div id="grp-bar" class="grp-bar hidden" role="region" aria-label="Radio en directo (reproductor flotante)">
+        <button id="grp-toggle" class="grp-toggle" aria-label="Reproducir/Pausar radio" type="button">
+            <svg class="grp-icon-play" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <svg class="grp-icon-pause" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+
+        <a href="/radio" class="grp-info" aria-label="Ir a la página de radio">
+            <span class="grp-dot"></span>
+            <span class="grp-text">
+                <strong>Radio en directo</strong>
+                <small>Veredillas FM</small>
+            </span>
+        </a>
+
+        <button id="grp-mute" class="grp-icon-btn" aria-label="Silenciar/Activar sonido" type="button">
+            <svg class="grp-icon-vol-high" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            <svg class="grp-icon-vol-muted" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        </button>
+
+        <button id="grp-close" class="grp-icon-btn grp-close" aria-label="Cerrar y detener la radio" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+</div>
+
+<style>
+    #global-radio-player {
+        position: relative;
+    }
+
+    .grp-bar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 9500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px 8px 8px;
+        border-radius: 999px;
+        background: rgba(10, 10, 12, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(14px);
+        max-width: calc(100vw - 24px);
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+
+    .grp-bar.hidden {
+        display: none;
+    }
+
+    .grp-bar.visible {
+        display: flex;
+        animation: grpSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes grpSlideIn {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .grp-toggle {
+        flex-shrink: 0;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        background: var(--color-primary, #8b5cf6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .grp-toggle:hover {
+        filter: brightness(1.15);
+        transform: scale(1.05);
+    }
+
+    .grp-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        min-width: 0;
+        padding: 2px 4px;
+        border-radius: 10px;
+        transition: background 0.2s ease;
+    }
+
+    .grp-info:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .grp-dot {
+        flex-shrink: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ef4444;
+        box-shadow: 0 0 6px #ef4444;
+    }
+
+    .grp-bar:not(.playing) .grp-dot {
+        background: #71717a;
+        box-shadow: none;
+    }
+
+    .grp-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+        min-width: 0;
+    }
+
+    .grp-text strong {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
+    }
+
+    .grp-text small {
+        font-size: 0.68rem;
+        color: #a1a1aa;
+    }
+
+    .grp-icon-btn {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.06);
+        color: #d4d4d8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .grp-icon-btn:hover {
+        background: rgba(255, 255, 255, 0.14);
+        color: white;
+    }
+
+    .grp-close:hover {
+        background: rgba(239, 68, 68, 0.25);
+        color: #fca5a5;
+    }
+
+    @media (max-width: 640px) {
+        .grp-bar {
+            right: 12px;
+            bottom: 84px;
+            left: 12px;
+            max-width: none;
+        }
+
+        .grp-text strong {
+            max-width: none;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        const WIN = window as any;
+        if (WIN.__grpInited) return;
+        WIN.__grpInited = true;
+
+        const audio = document.getElementById('radio-audio') as HTMLAudioElement | null;
+        const bar = document.getElementById('grp-bar');
+        const toggleBtn = document.getElementById('grp-toggle');
+        const muteBtn = document.getElementById('grp-mute');
+        const closeBtn = document.getElementById('grp-close');
+
+        if (!audio || !bar || !toggleBtn) return;
+
+        const iconPlay = toggleBtn.querySelector('.grp-icon-play') as HTMLElement;
+        const iconPause = toggleBtn.querySelector('.grp-icon-pause') as HTMLElement;
+        const iconVolHigh = muteBtn?.querySelector('.grp-icon-vol-high') as HTMLElement;
+        const iconVolMuted = muteBtn?.querySelector('.grp-icon-vol-muted') as HTMLElement;
+
+        let hasEverPlayed = !audio.paused;
+        let userClosed = sessionStorage.getItem('grp-radio-closed') === 'true';
+
+        function isRadioPage() {
+            const p = window.location.pathname.replace(/\/$/, '');
+            return p === '/radio';
+        }
+
+        function updatePlayIcon() {
+            const playing = !audio!.paused;
+            if (iconPlay) iconPlay.style.display = playing ? 'none' : 'block';
+            if (iconPause) iconPause.style.display = playing ? 'block' : 'none';
+            bar!.classList.toggle('playing', playing);
+        }
+
+        function updateMuteIcon() {
+            if (iconVolHigh) iconVolHigh.style.display = audio!.muted ? 'none' : 'block';
+            if (iconVolMuted) iconVolMuted.style.display = audio!.muted ? 'block' : 'none';
+        }
+
+        function updateVisibility() {
+            const shouldShow = hasEverPlayed && !userClosed && !isRadioPage();
+            bar!.classList.toggle('visible', shouldShow);
+            bar!.classList.toggle('hidden', !shouldShow);
+        }
+
+        audio.addEventListener('play', () => {
+            hasEverPlayed = true;
+            userClosed = false;
+            sessionStorage.removeItem('grp-radio-closed');
+            updatePlayIcon();
+            updateVisibility();
+        });
+        audio.addEventListener('pause', () => {
+            updatePlayIcon();
+            updateVisibility();
+        });
+        audio.addEventListener('volumechange', updateMuteIcon);
+
+        toggleBtn.addEventListener('click', () => {
+            if (audio!.paused) {
+                audio!.play().catch(() => {});
+            } else {
+                audio!.pause();
+            }
+        });
+
+        muteBtn?.addEventListener('click', () => {
+            audio!.muted = !audio!.muted;
+            updateMuteIcon();
+        });
+
+        closeBtn?.addEventListener('click', () => {
+            audio!.pause();
+            userClosed = true;
+            sessionStorage.setItem('grp-radio-closed', 'true');
+            updateVisibility();
+        });
+
+        document.addEventListener('astro:after-swap', updateVisibility);
+
+        updatePlayIcon();
+        updateMuteIcon();
+        updateVisibility();
+    })();
+</script>

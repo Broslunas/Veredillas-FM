@@ -187,7 +187,13 @@ const hueVal = parseInt(id.substring(18, 24), 16) % 360;
             </div>
             
             <script define:vars={{ playlistId: foundPlaylist._id }}>
-                document.addEventListener('DOMContentLoaded', () => {
+                // is:inline (define:vars) scripts re-run on every client-side
+                // navigation, and by the time this executes the preceding
+                // markup is already parsed - no need to wait for
+                // DOMContentLoaded (which never fires again after the first
+                // real page load, and would leave this dead on later
+                // navigations).
+                (() => {
                     const btnEdit = document.getElementById('btn-edit-playlist');
                     const modal = document.getElementById('playlist-edit-modal');
                     const overlay = document.getElementById('playlist-modal-overlay');
@@ -255,7 +261,7 @@ const hueVal = parseInt(id.substring(18, 24), 16) % 360;
                             }
                         }
                     });
-                });
+                })();
             </script>
         )}
     </div>

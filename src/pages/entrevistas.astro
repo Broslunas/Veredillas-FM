@@ -197,7 +197,11 @@ if (!token || !email) {
 </Layout>
 
 <script is:inline define:vars={{ token, email }}>
-    document.addEventListener('DOMContentLoaded', () => {
+    // is:inline scripts re-run on every client-side navigation, and by the
+    // time this executes the preceding markup is already parsed - no need to
+    // wait for DOMContentLoaded (which never fires again after the first
+    // real page load, and would leave this dead on later navigations).
+    (() => {
         const btnToggleEdit = document.getElementById('btn-toggle-edit');
         const btnCloseEdit = document.getElementById('btn-close-edit');
         const displayMode = document.getElementById('displayMode');
@@ -298,7 +302,7 @@ if (!token || !email) {
                 sendResponse('modify', data);
             });
         }
-    });
+    })();
 </script>
 
 <style>

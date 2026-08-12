@@ -28,13 +28,13 @@ const { title, id, isOpen = true, class: className = "" } = Astro.props;
 
 <script>
     // Simple script to handle all collapsible widgets
-    document.addEventListener('DOMContentLoaded', () => {
+    function initSidebarWidgets() {
         const widgets = document.querySelectorAll('.sidebar-widget-collapsible');
-        
+
         widgets.forEach(widget => {
             const header = widget.querySelector('.widget-header');
             const content = widget.querySelector('.widget-content') as HTMLElement;
-            
+
             if(header && content) {
                 header.addEventListener('click', () => {
                     const isOpen = widget.getAttribute('data-is-open') === 'true';
@@ -42,7 +42,19 @@ const { title, id, isOpen = true, class: className = "" } = Astro.props;
                 });
             }
         });
-    });
+    }
+
+    const WIN = window as any;
+    if (!WIN._sidebarWidgetPageLoadRegistered) {
+        WIN._sidebarWidgetPageLoadRegistered = true;
+        document.addEventListener('astro:page-load', initSidebarWidgets);
+    }
+
+    // Initial check in case this script runs after astro:page-load already
+    // fired (module scripts are deferred, so there's a race on first load).
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initSidebarWidgets();
+    }
 </script>
 
 <style>

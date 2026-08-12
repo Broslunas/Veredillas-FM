@@ -593,7 +593,7 @@ if (errorParam === 'InvalidToken') {
 
 
     // Attach event listener safely
-    document.addEventListener('DOMContentLoaded', () => {
+    function initLoginPage() {
         const btn = document.querySelector('.btn-google');
         if (btn) {
             btn.addEventListener('click', openGoogleLogin);
@@ -791,5 +791,17 @@ if (errorParam === 'InvalidToken') {
                 });
             }
         }
-    });
+    }
+
+    const WIN = window as any;
+    if (!WIN._loginPageLoadRegistered) {
+        WIN._loginPageLoadRegistered = true;
+        document.addEventListener('astro:page-load', initLoginPage);
+    }
+
+    // Initial check in case this script runs after astro:page-load already
+    // fired (module scripts are deferred, so there's a race on first load).
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initLoginPage();
+    }
 </script>

@@ -67,8 +67,25 @@
     // Configuration
     const STREAM_URL = 'https://live.veredillasfm.es/stream-pro.m3u8';
     const POLL_INTERVAL = 15000;
-    
-    document.addEventListener('DOMContentLoaded', () => {
+
+    // Cross-navigation state. The widget markup itself isn't transition:persist
+    // (it's replaced on every client-side navigation like ordinary page
+    // content), so any Hls instance/interval from a previous navigation must
+    // be torn down explicitly here rather than left running against detached
+    // elements.
+    let hlsInstance: Hls | null = null;
+    let castCheckIntervalId: ReturnType<typeof setInterval> | null = null;
+
+    function initLivePopup() {
+        if (castCheckIntervalId) {
+            clearInterval(castCheckIntervalId);
+            castCheckIntervalId = null;
+        }
+        if (hlsInstance) {
+            hlsInstance.destroy();
+            hlsInstance = null;
+        }
+
         const widget = document.getElementById('live-popup-widget');
         const closeBtn = document.getElementById('close-popup-btn');
         const video = document.getElementById('popup-video') as HTMLVideoElement;
@@ -126,11 +143,12 @@
             castSession.loadMedia(request);
         }
 
-        const castCheckInterval = setInterval(() => {
+        castCheckIntervalId = setInterval(() => {
             // @ts-ignore
             if (window.cast && window.cast.framework) {
                 initCast();
-                clearInterval(castCheckInterval);
+                if (castCheckIntervalId) clearInterval(castCheckIntervalId);
+                castCheckIntervalId = null;
             }
         }, 1000);
 
@@ -147,8 +165,7 @@
         const iconVolMuted = muteBtn?.querySelector('.icon-vol-muted') as HTMLElement;
 
         if (window.location.pathname === '/live') return;
-        
-        let hls: Hls | null = null;
+
         let isLive = false;
         let hasUserClosed = sessionStorage.getItem('live-popup-closed') === 'true';
         let controlsTimeout: any;
@@ -201,7 +218,10 @@
                 widget.classList.add('hidden');
                 widget.setAttribute('aria-hidden', 'true');
                 video.pause();
-                if (hls) hls.destroy();
+                if (hlsInstance) {
+                    hlsInstance.destroy();
+                    hlsInstance = null;
+                }
             }
             sessionStorage.setItem('live-popup-closed', 'true');
             hasUserClosed = true;
@@ -287,14 +307,14 @@
             if (!video) return;
             
             if (Hls.isSupported()) {
-                if(hls) hls.destroy();
-                hls = new Hls({
+                if (hlsInstance) hlsInstance.destroy();
+                hlsInstance = new Hls({
                     enableWorker: true,
                     lowLatencyMode: true,
                 });
-                hls.loadSource(STREAM_URL);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                hlsInstance.loadSource(STREAM_URL);
+                hlsInstance.attachMedia(video);
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
                     // Try to autoplay muted (preview)
                     video.muted = true;
                     video.play().catch(() => {});
@@ -326,7 +346,10 @@
                             isLive = false;
                             widget?.classList.add('hidden');
                             widget?.setAttribute('aria-hidden', 'true');
-                            if (hls) hls.destroy();
+                            if (hlsInstance) {
+                                hlsInstance.destroy();
+                                hlsInstance = null;
+                            }
                         }
                     }
                 })
@@ -338,7 +361,19 @@
         checkStream();
         // Removed polling to save CPU/Network: only check once on load
         // setInterval(checkStream, POLL_INTERVAL);
-    });
+    }
+
+    const WIN = window as any;
+    if (!WIN._livePopupPageLoadRegistered) {
+        WIN._livePopupPageLoadRegistered = true;
+        document.addEventListener('astro:page-load', initLivePopup);
+    }
+
+    // Initial check in case this script runs after astro:page-load already
+    // fired (module scripts are deferred, so there's a race on first load).
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initLivePopup();
+    }
 </script>
 
 <style>

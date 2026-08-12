@@ -625,6 +625,21 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     }
   }, [volume, playbackRate, applyPendingResume]);
 
+  // Reverse handoff: if the global floating player (src/components/player/
+  // GlobalEpisodePlayer.astro) is currently playing this same episode - e.g.
+  // it was handed off when the user last navigated away from this page, or
+  // started via a quick-play button elsewhere - take control back and hide
+  // the floating widget, resuming from where it left off.
+  useEffect(() => {
+    const gp = (window as any).VeredillasGlobalPlayer;
+    const state = gp?.getEpisodeState?.();
+    if (!state || state.slug !== currentEpisode.slug || state.paused) return;
+
+    modeSwitchResumeRef.current = { time: state.currentTime, wasPlaying: true };
+    gp.releaseEpisode(currentEpisode.slug);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Catch up if the browser already fired `loadedmetadata` before React finished
   // hydrating and attaching its listener (common for small/cached SSR'd <video src>)
   useEffect(() => {
@@ -841,6 +856,12 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
       {srcUrl ? (
         <video
           ref={videoRef}
+          id="netflix-video-element"
+          data-slug={currentEpisode.slug}
+          data-title={currentEpisode.title}
+          data-author={currentEpisode.author || ''}
+          data-href={`/ep/${currentEpisode.slug}`}
+          data-is-video={isVideo ? 'true' : 'false'}
           src={srcUrl}
           poster={currentEpisode.image}
           playsInline

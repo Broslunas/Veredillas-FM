@@ -136,8 +136,11 @@ import Layout from '@/layouts/Layout.astro';
 
   <script>
     import { gsap } from "gsap";
-    
-    document.addEventListener('DOMContentLoaded', () => {
+
+    function initContactPage() {
+        const form = document.getElementById('contactForm') as HTMLFormElement;
+        if (!form && !document.querySelector('.blob') && !document.querySelector('.gs-reveal')) return; // Not on /contacto
+
         // Blob Animations
         if (document.querySelector(".blob")) {
             gsap.to(".blob-1", {
@@ -169,15 +172,13 @@ import Layout from '@/layouts/Layout.astro';
                 ease: "power3.out"
             });
         }
-    });
 
-    const form = document.getElementById('contactForm') as HTMLFormElement;
-    const submitBtn = form?.querySelector('.submit-btn') as HTMLButtonElement;
-    const btnText = submitBtn?.querySelector('.btn-text') as HTMLElement;
-    const btnLoader = submitBtn?.querySelector('.btn-loader') as HTMLElement;
+        const submitBtn = form?.querySelector('.submit-btn') as HTMLButtonElement;
+        const btnText = submitBtn?.querySelector('.btn-text') as HTMLElement;
+        const btnLoader = submitBtn?.querySelector('.btn-loader') as HTMLElement;
 
-    if (form) {
-      form.addEventListener('submit', async (e) => {
+        if (form) {
+          form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         if (!submitBtn || !btnText || !btnLoader) return;
@@ -229,6 +230,19 @@ import Layout from '@/layouts/Layout.astro';
           gsap.to(submitBtn, { scale: 1, duration: 0.2, ease: "back.out(1.7)" });
         }
       });
+    }
+    }
+
+    const WIN = window as any;
+    if (!WIN._contactPageLoadRegistered) {
+        WIN._contactPageLoadRegistered = true;
+        document.addEventListener('astro:page-load', initContactPage);
+    }
+
+    // Initial check in case this script runs after astro:page-load already
+    // fired (module scripts are deferred, so there's a race on first load).
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initContactPage();
     }
   </script>
 </Layout>

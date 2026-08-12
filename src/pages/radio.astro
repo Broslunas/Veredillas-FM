@@ -125,7 +125,10 @@ if (userPayload) {
             this.isRegistered = el.dataset.isRegistered === 'true';
             this.isAdmin = el.dataset.isAdmin === 'true';
 
-            this.audio = el.querySelector('.waiting-music');
+            // The <audio id="radio-audio"> element is now global (rendered by
+            // GlobalRadioPlayer.astro in the Layout) so it survives client-side
+            // navigation instead of living inside .radio-page-container.
+            this.audio = document.getElementById('radio-audio') as HTMLAudioElement | null;
             this.musicBtn = el.querySelector('.music-toggle-btn');
             this.musicLabel = el.querySelector('.music-label');
             this.volumeSlider = el.querySelector('.volume-slider');
@@ -160,6 +163,7 @@ if (userPayload) {
 
             this.loadSettings();
             this.setupAudio();
+            this.syncExistingPlaybackState();
             this.setupVoiceSettings();
             this.setupCinemaMode();
             this.setupShareCard();
@@ -173,22 +177,60 @@ if (userPayload) {
             this.pollInterval = window.setInterval(() => this.pollStatus(), 5000);
         }
 
+        // Stops timers/loops owned by this instance (not the shared #radio-audio
+        // element itself, which must keep playing). Called before a fresh
+        // instance is created on a repeat visit to /radio via SPA navigation.
+        destroy() {
+            if (this.pollInterval) window.clearInterval(this.pollInterval);
+            if (this.nextSongTimeoutId) window.clearTimeout(this.nextSongTimeoutId);
+            if (this.visualizerReqId) cancelAnimationFrame(this.visualizerReqId);
+        }
+
         initVisualizer() {
             if (this.audioContext) return;
 
-            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-            if (!AudioContext) return;
+            // #radio-audio now persists across page navigations, so a returning
+            // visit to /radio must NOT call createMediaElementSource() again on
+            // it - a media element can only ever be connected to a single
+            // MediaElementAudioSourceNode for its whole lifetime, and a second
+            // call throws. Reuse the graph a previous instance already built,
+            // cached as an expando property on the (persisted) element itself.
+            const cachedGraph = this.audio ? (this.audio as any)._veredillasAudioGraph : null;
+
+            if (cachedGraph) {
+                this.audioContext = cachedGraph.audioContext;
+                this.analyser = cachedGraph.analyser;
+                this.source = cachedGraph.source;
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            } else {
+                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                if (!AudioContext) return;
+
+                try {
+                    this.audioContext = new AudioContext();
+                    this.analyser = this.audioContext.createAnalyser();
+
+                    if (this.audio) {
+                        this.source = this.audioContext.createMediaElementSource(this.audio);
+                        this.source.connect(this.analyser);
+                        this.analyser.connect(this.audioContext.destination);
+                        (this.audio as any)._veredillasAudioGraph = {
+                            audioContext: this.audioContext,
+                            analyser: this.analyser,
+                            source: this.source,
+                        };
+                    }
+                } catch (err) {
+                    console.error("Web Audio API Error:", err);
+                    return;
+                }
+            }
+
+            if (!this.analyser) return;
 
             try {
-                this.audioContext = new AudioContext();
-                this.analyser = this.audioContext.createAnalyser();
-
-                if (this.audio) {
-                    this.source = this.audioContext.createMediaElementSource(this.audio);
-                    this.source.connect(this.analyser);
-                    this.analyser.connect(this.audioContext.destination);
-                }
-
                 this.analyser.fftSize = 256;
                 const bufferLength = this.analyser.frequencyBinCount;
                 this.dataArray = new Uint8Array(bufferLength);
@@ -410,7 +452,17 @@ if (userPayload) {
                 this.toggleMusic();
             });
 
-            this.audio.volume = 0.5;
+            // Only apply the default volume the first time this element is ever
+            // set up - it now persists across navigation, so a returning visit
+            // to /radio must not clobber a volume the user already adjusted.
+            if (!this.audio.dataset.vfmVolumeInit) {
+                this.audio.dataset.vfmVolumeInit = 'true';
+                this.audio.volume = 0.5;
+            }
+            if (this.volumeSlider) {
+                this.volumeSlider.value = String(this.audio.volume);
+                this.updateVolumeIcon(this.audio.volume);
+            }
 
             if(this.volumeSlider) {
                 this.volumeSlider.addEventListener('input', (e) => {
@@ -427,6 +479,20 @@ if (userPayload) {
                 this.musicBtn?.classList.remove('playing');
                 this.updateVolumeVisibility();
             });
+        }
+
+        // If the shared #radio-audio element is already playing (persisted from
+        // a previous page via the global floating bar), reflect that in this
+        // page's UI instead of restarting the stream - calling toggleMusic()
+        // here would reset .src and cause an audible cut.
+        syncExistingPlaybackState() {
+            if (!this.audio || !this.musicBtn || this.audio.paused) return;
+            this.isPlaying = true;
+            this.musicBtn.classList.add('playing');
+            if (this.musicLabel) this.musicLabel.textContent = 'En directo';
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+            this.initVisualizer();
+            this.updateVolumeVisibility();
         }
 
         async fadeVolume(audio: HTMLAudioElement, target: number, duration: number) {
@@ -988,13 +1054,33 @@ if (userPayload) {
         }
     }
 
-    document.addEventListener('astro:page-load', () => {
-        const els = document.querySelectorAll('.radio-page-container');
-        els.forEach(el => new RadioPlayerMinimal(el as HTMLElement));
-    });
+    let currentRadioPlayerInstance: RadioPlayerMinimal | null = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const els = document.querySelectorAll('.radio-page-container');
-        els.forEach(el => new RadioPlayerMinimal(el as HTMLElement));
-    });
+    function initRadioPage() {
+        // Only run on the radio page
+        if (!document.querySelector('.radio-page-container')) return;
+
+        // Tear down the previous instance's intervals/timeouts/rAF loop before
+        // creating a fresh one, so revisiting /radio via SPA nav doesn't leak
+        // duplicate polling intervals.
+        currentRadioPlayerInstance?.destroy();
+        currentRadioPlayerInstance = null;
+
+        const el = document.querySelector('.radio-page-container');
+        if (el) currentRadioPlayerInstance = new RadioPlayerMinimal(el as HTMLElement);
+    }
+
+    const WIN = window as any;
+    if (!WIN._radioPageLoadRegistered) {
+        WIN._radioPageLoadRegistered = true;
+        document.addEventListener('astro:page-load', initRadioPage);
+    }
+
+    // Initial check in case this script runs after astro:page-load already
+    // fired (module scripts are deferred, so there's a race on first load).
+    // Do NOT also call this unconditionally - astro:page-load will still
+    // fire normally in the common case, and calling both would double-init.
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initRadioPage();
+    }
 </script>

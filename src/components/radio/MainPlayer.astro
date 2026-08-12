@@ -107,9 +107,9 @@ const { isRegistered } = Astro.props;
             <VolumeBar />
         </div>
 
-        <audio class="waiting-music" preload="none" loop crossorigin="anonymous" id="radio-audio">
-            <source src="https://radio.veredillasfm.es/stream" type="audio/mpeg">
-        </audio>
+        <!-- The actual <audio id="radio-audio"> element lives globally in
+             GlobalRadioPlayer.astro (rendered by Layout on every page) so
+             playback survives client-side navigation. -->
     </div>
 
     <div class="now-playing-corner fixed bottom-6 left-6 bg-[#0a0a0c]/90 backdrop-blur-xl border border-primary/30 rounded-2xl py-3.5 px-5 flex items-center gap-3.5 shadow-[0_15px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.08)] translate-y-[150%] scale-90 opacity-0 transition-all duration-500 z-50 max-w-[320px] [&.visible]:translate-y-0 [&.visible]:scale-100 [&.visible]:opacity-100" id="now-playing-corner">

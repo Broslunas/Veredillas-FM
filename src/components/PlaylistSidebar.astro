@@ -26,7 +26,12 @@ const { currentSlug } = Astro.props;
 </div>
 
 <script define:vars={{ currentSlug }}>
-  document.addEventListener('DOMContentLoaded', async () => {
+  // This script re-runs on every client-side navigation (define:vars scripts
+  // are always inline), and by the time it executes the preceding markup in
+  // this same component is already parsed - no need to wait for
+  // DOMContentLoaded (which, after the first real page load, never fires
+  // again and would leave this dead on every subsequent navigation).
+  (async () => {
     const params = new URLSearchParams(window.location.search);
     const playlistId = params.get('playlist');
     
@@ -86,7 +91,7 @@ const { currentSlug } = Astro.props;
         console.error(err);
       }
     }
-  });
+  })();
 </script>
 
 <style>

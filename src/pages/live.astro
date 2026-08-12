@@ -126,9 +126,25 @@ export const prerender = true;
     import { gsap } from "gsap";
 
     const STREAM_URL = 'https://live.veredillasfm.es/stream-pro.m3u8';
-    
-    document.addEventListener('DOMContentLoaded', () => {
+
+    // Cross-navigation state - leaving /live must stop this instance/polling
+    // (this page's video isn't part of the global persistent player), and a
+    // returning visit must not leak a duplicate on top of a leftover one.
+    let hls: Hls | null = null;
+    let isPolling = false;
+    let pollInterval: any;
+
+    function initLivePage() {
+        if (hls) {
+            hls.destroy();
+            hls = null;
+        }
+        if (pollInterval) clearInterval(pollInterval);
+        isPolling = false;
+
         const video = document.getElementById('live-video') as HTMLVideoElement;
+        if (!video) return; // Not on /live
+
         const videoContainer = document.getElementById('video-container');
         const statusBadge = document.getElementById('status-badge');
         const statusText = statusBadge?.querySelector('.status-text');
@@ -152,7 +168,6 @@ export const prerender = true;
 
         let retryCount = 0;
         const maxRetries = 5;
-        let hls: Hls | null = null;
         let controlsTimeout: any;
 
         function updateDebug(msg: string) {
@@ -343,9 +358,6 @@ export const prerender = true;
             }
         }
 
-        let isPolling = false;
-        let pollInterval: any;
-
         function startPolling() {
             if (isPolling) return;
             isPolling = true;
@@ -408,7 +420,19 @@ export const prerender = true;
             ease: "power3.out",
             delay: 0.2
         });
-    });
+    }
+
+    const WIN = window as any;
+    if (!WIN._livePageLoadRegistered) {
+        WIN._livePageLoadRegistered = true;
+        document.addEventListener('astro:page-load', initLivePage);
+    }
+
+    // Initial check in case this script runs after astro:page-load already
+    // fired (module scripts are deferred, so there's a race on first load).
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initLivePage();
+    }
 </script>
 
 <style>

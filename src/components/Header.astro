@@ -1075,53 +1075,64 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+  function initHeader() {
     const header   = document.getElementById('site-header');
     const ham      = document.getElementById('sh-ham') as HTMLButtonElement;
     const overlay  = document.querySelector('.sh-overlay') as HTMLElement;
     const closeBtn = document.getElementById('sh-overlay-close') as HTMLButtonElement;
+    if (!header || !ham || !overlay) return;
+
+    const WIN = window as any;
 
     // ── Scroll: hide on down, show on up ──
-    let lastY      = window.scrollY;
-    let ticking    = false;
-    const HIDE_THRESHOLD = 80;  // px scrolled before we start hiding
-    const DELTA          = 6;   // minimum scroll delta to react
+    // Bound to `window` only once ever - the Header markup gets replaced on
+    // every client-side navigation, but `window` itself doesn't, so this
+    // must not be re-attached on every navigation (it would pile up).
+    if (!WIN.__headerScrollBound) {
+      WIN.__headerScrollBound = true;
 
-    function handleScroll() {
-      const y     = window.scrollY;
-      const delta = y - lastY;
+      let lastY      = window.scrollY;
+      let ticking    = false;
+      const HIDE_THRESHOLD = 80;  // px scrolled before we start hiding
+      const DELTA          = 6;   // minimum scroll delta to react
 
-      // Scrolled state (glassmorphism intensity)
-      header?.classList.toggle('is-scrolled', y > 20);
+      const handleScroll = () => {
+        // Re-query on every tick instead of closing over `header`/`overlay`:
+        // those get replaced by a fresh Header on each navigation, while this
+        // listener (and its closure) lives for the whole session.
+        const headerEl  = document.getElementById('site-header');
+        const overlayEl = document.querySelector('.sh-overlay') as HTMLElement | null;
+        const y     = window.scrollY;
+        const delta = y - lastY;
 
-      // Hide / show – only if menu is NOT open
-      if (!overlay?.classList.contains('is-open')) {
-        if (y < HIDE_THRESHOLD) {
-          // Always visible near top
-          header?.classList.remove('is-hidden');
-        } else if (delta > DELTA) {
-          // Scrolling DOWN → hide
-          header?.classList.add('is-hidden');
-        } else if (delta < -DELTA) {
-          // Scrolling UP → show
-          header?.classList.remove('is-hidden');
+        headerEl?.classList.toggle('is-scrolled', y > 20);
+
+        if (!overlayEl?.classList.contains('is-open')) {
+          if (y < HIDE_THRESHOLD) {
+            headerEl?.classList.remove('is-hidden');
+          } else if (delta > DELTA) {
+            headerEl?.classList.add('is-hidden');
+          } else if (delta < -DELTA) {
+            headerEl?.classList.remove('is-hidden');
+          }
         }
-      }
 
-      lastY    = y;
-      ticking  = false;
+        lastY    = y;
+        ticking  = false;
+      };
+
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          requestAnimationFrame(handleScroll);
+          ticking = true;
+        }
+      }, { passive: true });
+
+      handleScroll();
     }
 
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        requestAnimationFrame(handleScroll);
-        ticking = true;
-      }
-    }, { passive: true });
-
-    handleScroll();
-
-    // ── Mobile overlay ────────────────────
+    // ── Mobile overlay ──────────────────── (rebound every navigation: these
+    // are fresh elements each time, unlike the scroll listener above)
     function open() {
       overlay.classList.add('is-open');
       overlay.setAttribute('aria-hidden', 'false');
@@ -1149,7 +1160,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
     // ── Check Wrapped Status ──
     async function checkWrapped() {
       if (window.location.pathname === '/wrapped') return; // Don't show on the wrapped page
-      
+
       try {
         const res = await fetch('/api/wrapped/status');
         const data = await res.json();
@@ -1165,10 +1176,22 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
         console.error('Failed to check wrapped status:', err);
       }
     }
-    
+
     // Slight delay to not block main thread loading
     setTimeout(checkWrapped, 500);
-  });
+  }
+
+  const HEADER_WIN = window as any;
+  if (!HEADER_WIN._headerPageLoadRegistered) {
+    HEADER_WIN._headerPageLoadRegistered = true;
+    document.addEventListener('astro:page-load', initHeader);
+  }
+
+  // Initial check in case this script runs after astro:page-load already
+  // fired (module scripts are deferred, so there's a race on first load).
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initHeader();
+  }
 </script>
 
 <script define:vars={{ premieres }}>
@@ -1239,5 +1262,12 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
     .catch(() => updateBanner());
 
   updateBanner();
-  setInterval(updateBanner, 60000);
+
+  // This script re-runs on every client-side navigation (define:vars scripts
+  // are always inline), but the interval must only ever be created once -
+  // otherwise every navigation would add another one, all polling forever.
+  if (!window.__headerLiveBannerIntervalSet) {
+    window.__headerLiveBannerIntervalSet = true;
+    setInterval(updateBanner, 60000);
+  }
 </script>

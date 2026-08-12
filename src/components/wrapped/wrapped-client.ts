@@ -370,9 +370,22 @@ function initSlides() {
 }
 
 // ── Init ─────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+function initWrappedPage() {
+    if (!document.getElementById('wrapped-experience')) return; // Not on /wrapped
     renderCharts();
     initEntry();
     initMusic();
     initSlides();
-});
+}
+
+const WIN = window as any;
+if (!WIN._wrappedPageLoadRegistered) {
+    WIN._wrappedPageLoadRegistered = true;
+    document.addEventListener('astro:page-load', initWrappedPage);
+}
+
+// Initial check in case this script runs after astro:page-load already fired
+// (module scripts are deferred, so there's a race on first load).
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initWrappedPage();
+}

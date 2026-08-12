@@ -252,11 +252,63 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    // Re-queries everything fresh (safe to call from a popstate listener
+    // registered long ago against elements that have since been replaced by
+    // a client-side navigation back to this same page).
+    function filterBlogItems() {
         const filterBtns = document.querySelectorAll('.filter-btn');
         const items = document.querySelectorAll('.post-item');
         const noResults = document.getElementById('no-results');
+        if (!filterBtns.length && !items.length) return; // Not on /blog anymore
+
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('tag') || 'Todos';
+        let visibleCount = 0;
+
+        filterBtns.forEach(btn => {
+            const isSelected = btn.getAttribute('data-filter') === category;
+            btn.classList.toggle('active', isSelected);
+        });
+
+        items.forEach((item) => {
+            const itemEl = item as HTMLElement;
+            const tags = itemEl.getAttribute('data-tags')?.split(',') || [];
+
+            if (category === 'Todos' || tags.includes(category)) {
+                itemEl.style.display = '';
+                void itemEl.offsetWidth;
+                itemEl.classList.add('is-visible');
+                visibleCount++;
+            } else {
+                itemEl.style.display = 'none';
+                itemEl.classList.remove('is-visible');
+            }
+        });
+
+        if (visibleCount === 0) {
+            noResults?.classList.remove('hidden');
+            noResults?.classList.add('flex');
+        } else {
+            noResults?.classList.add('hidden');
+            noResults?.classList.remove('flex');
+        }
+    }
+
+    function setTagInUrl(tag: string) {
+        const url = new URL(window.location.href);
+        if (tag === 'Todos') {
+            url.searchParams.delete('tag');
+        } else {
+            url.searchParams.set('tag', tag);
+        }
+        window.history.pushState({}, '', url);
+    }
+
+    function initBlogIndexPage() {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const items = document.querySelectorAll('.post-item');
         const resetBtn = document.getElementById('reset-filter');
+        if (!filterBtns.length && !items.length) return; // Not on /blog
 
         // Add intersection observer matching ep/index.astro logic
         const observerOptions = { root: null, rootMargin: '100px', threshold: 0.1 };
@@ -271,86 +323,42 @@ Astro.response.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidat
         }, observerOptions);
         items.forEach(item => observer.observe(item));
 
-        // Simplified active logic for the 'season-btn' style
-        const activeClasses = ['active'];
-        const inactiveClasses = [];
+        // Initial filter
+        filterBlogItems();
 
-        // Helper to get current tag from URL
-        function getTagFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('tag') || 'Todos';
+        // Listen for popstate (browser back/forward) only once ever - this
+        // must survive every future navigation without duplicating, since
+        // `window` itself isn't replaced by a client-side navigation like the
+        // page content is.
+        const WIN = window as any;
+        if (!WIN.__blogPopstateBound) {
+            WIN.__blogPopstateBound = true;
+            window.addEventListener('popstate', filterBlogItems);
         }
-
-        // Helper to update URL
-        function setTagInUrl(tag: string) {
-            const url = new URL(window.location.href);
-            if (tag === 'Todos') {
-                url.searchParams.delete('tag');
-            } else {
-                url.searchParams.set('tag', tag);
-            }
-            window.history.pushState({}, '', url);
-        }
-
-        function filterItems() {
-            const category = getTagFromUrl();
-            let visibleCount = 0;
-
-            // Update Active State
-            filterBtns.forEach(btn => {
-                const isSelected = btn.getAttribute('data-filter') === category;
-
-                if (isSelected) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            // Show/Hide Items
-            items.forEach((item) => {
-                const itemEl = item as HTMLElement;
-                const tags = itemEl.getAttribute('data-tags')?.split(',') || [];
-                
-                if (category === 'Todos' || tags.includes(category)) {
-                    itemEl.style.display = '';
-                    // Trigger reflow to restart animation if needed
-                    void itemEl.offsetWidth;
-                    itemEl.classList.add('is-visible'); // We use is-visible from intersection observer pattern
-                    visibleCount++;
-                } else {
-                    itemEl.style.display = 'none';
-                    itemEl.classList.remove('is-visible');
-                }
-            });
-
-            // Empty State
-            if (visibleCount === 0) {
-                noResults?.classList.remove('hidden');
-                noResults?.classList.add('flex');
-            } else {
-                noResults?.classList.add('hidden');
-                noResults?.classList.remove('flex');
-            }
-        }
-
-        // Initial Filter
-        filterItems();
-
-        // Listen for popstate (browser back/forward)
-        window.addEventListener('popstate', filterItems);
 
         filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const category = btn.getAttribute('data-filter') || 'Todos';
                 setTagInUrl(category);
-                filterItems();
+                filterBlogItems();
             });
         });
-        
+
         resetBtn?.addEventListener('click', () => {
             setTagInUrl('Todos');
-            filterItems();
+            filterBlogItems();
         });
-    });
+    }
+
+    const WIN = window as any;
+    if (!WIN._blogIndexPageLoadRegistered) {
+        WIN._blogIndexPageLoadRegistered = true;
+        document.addEventListener('astro:page-load', initBlogIndexPage);
+    }
+
+    // Initial check in case this script runs after astro:page-load already
+    // fired (module scripts are deferred, so there's a race on first load).
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initBlogIndexPage();
+    }
 </script>
