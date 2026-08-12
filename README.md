@@ -14,7 +14,7 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 [![Vercel](https://img.shields.io/badge/Vercel-Deploys-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-[Ver Demo](https://veredillasfm.es) · [Reportar Bug](https://github.com/Broslunas/veredillas-fm/issues) · [Solicitar Feature](https://github.com/Broslunas/veredillas-fm/issues)
+[Ver Demo](https://veredillasfm.es) · [Reportar Bug](https://github.com/broslunas/veredillas-fm-web/issues) · [Solicitar Feature](https://github.com/broslunas/veredillas-fm-web/issues)
 
 </div>
 
@@ -146,7 +146,7 @@ Una ecosistema de medios estudiantil moderno, interactivo y social. Hecho por al
 
 1. **Clonar y Entrar**
    ```bash
-   git clone https://github.com/Broslunas/veredillas-fm.git
+   git clone https://github.com/broslunas/veredillas-fm-web.git
    cd veredillas-fm
    ```
 

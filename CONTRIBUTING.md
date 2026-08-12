@@ -49,7 +49,7 @@ Hay muchas formas de contribuir a Veredillas FM:
 
 ### 1. 🐛 Reportar Bugs
 
-Los bugs se rastrean como [GitHub Issues](https://github.com/Broslunas/veredillas-fm/issues). Antes de crear un issue:
+Los bugs se rastrean como [GitHub Issues](https://github.com/broslunas/veredillas-fm-web/issues). Antes de crear un issue:
 
 - **Verifica** que el bug no haya sido reportado ya
 - **Incluye** detalles sobre tu configuración (SO, navegador, versión)
@@ -97,7 +97,7 @@ La documentación siempre puede mejorar:
 
 3. **Añade** el repositorio original como remote:
    ```bash
-   git remote add upstream https://github.com/Broslunas/veredillas-fm.git
+   git remote add upstream https://github.com/broslunas/veredillas-fm-web.git
    ```
 
 4. **Instala** las dependencias:
@@ -404,7 +404,7 @@ Siempre estamos buscando ayuda con:
 
 Si tienes preguntas sobre cómo contribuir:
 
-- 💬 Abre un [Discussion](https://github.com/Broslunas/veredillas-fm/discussions)
+- 💬 Abre un [Discussion](https://github.com/broslunas/veredillas-fm-web/discussions)
 - 📧 Envía un email a [contacto@veredillasfm.es](mailto:contacto@veredillasfm.es)
 - 🐦 Escríbenos en Twitter [@VeredillasFM](https://twitter.com/VeredillasFM)
 
