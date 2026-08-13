@@ -671,6 +671,13 @@ const feedClips = clips.map((c) => ({
     text-align: center;
   }
 
+</style>
+
+<!-- Global: the viewer's clip-sections are built dynamically by JS (buildClipSectionHTML)
+     to support infinite scroll, and JS-injected HTML never gets Astro's scoped
+     data-astro-cid attribute — so this whole section has to be unscoped or the dynamically
+     built sections (anything past the first server-rendered batch) render unstyled. -->
+<style is:global>
   /* ═══════════════════════════════════════════════════════════ */
   /* Fullscreen viewer                                            */
   /* ═══════════════════════════════════════════════════════════ */
@@ -1037,7 +1044,9 @@ const feedClips = clips.map((c) => ({
       align-items: flex-start;
     }
   }
+</style>
 
+<style>
   /* ═══════════════════════════════════════════════════════════ */
   /* Episode Clips — Side Panel (Drawer)                       */
   /* ═══════════════════════════════════════════════════════════ */
