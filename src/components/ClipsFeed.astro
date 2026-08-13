@@ -1649,21 +1649,36 @@ const feedClips = clips.map((c) => ({
       applyLikedState();
     }
 
-    // Called as the active clip approaches the end of what's loaded; pulls the next
-    // slice from window._allClips (already-ordered, no network round-trip needed). Wraps
-    // back to the start once the catalog is exhausted, so the reel scrolls forever
-    // instead of dead-ending after the last of the ~500 clips.
-    function maybeLoadMore(centerIndex) {
+    // Pulls the next slice from window._allClips (already-ordered, no network round-trip
+    // needed) and appends it. Wraps back to the start once the catalog is exhausted, so
+    // the reel scrolls forever instead of dead-ending after the last of the ~500 clips.
+    function loadNextBatch() {
       const all = WIN._allClips || [];
       if (all.length === 0) return;
       const batchSize = WIN._viewerInitialBatch || 6;
-      if (centerIndex < state.loadedCount - 3) return;
       const batch = [];
       for (let i = 0; i < batchSize; i++) {
         batch.push(all[(state.feedCursor + i) % all.length]);
       }
       state.feedCursor += batch.length;
       appendClips(batch);
+    }
+
+    // Secondary trigger from the urlObserver: load more once the active clip is close to
+    // the end of what's loaded.
+    function maybeLoadMore(centerIndex) {
+      if (centerIndex < state.loadedCount - 3) return;
+      loadNextBatch();
+    }
+
+    // Primary trigger: a plain scroll-position check on the scroller itself. More robust
+    // than relying only on IntersectionObserver threshold crossings, which can be
+    // unreliable during fast native scroll-snap gestures on some mobile browsers.
+    function checkScrollLoadMore(scroller) {
+      const remaining = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+      if (remaining < scroller.clientHeight * 2) {
+        loadNextBatch();
+      }
     }
 
     // Infinite scroll means the DOM would otherwise grow without bound over a long
@@ -1798,6 +1813,18 @@ const feedClips = clips.map((c) => ({
         state.playbackObserver.observe(section);
         state.urlObserver.observe(section);
       });
+
+      // Wired once per scroller element (it's reused across opens/resets), not per call.
+      // No rAF/timer throttling: the check itself is a couple of arithmetic ops, and
+      // scroll events on mobile are already coalesced by the browser, so it's cheap
+      // enough to just run directly and not depend on the paint pipeline at all.
+      if (!scroller.dataset.infiniteScrollWired) {
+        scroller.dataset.infiniteScrollWired = '1';
+        scroller.addEventListener('scroll', () => checkScrollLoadMore(scroller), { passive: true });
+      }
+      // Also run once immediately in case the initial batch doesn't fill the viewport
+      // (e.g. a very tall screen) — nothing to scroll to would mean no scroll event ever fires.
+      checkScrollLoadMore(scroller);
     }
 
     // --- VIEWER OPEN/CLOSE ---
