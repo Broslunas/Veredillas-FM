@@ -1650,15 +1650,36 @@ const feedClips = clips.map((c) => ({
     }
 
     // Called as the active clip approaches the end of what's loaded; pulls the next
-    // slice from window._allClips (already-ordered, no network round-trip needed).
+    // slice from window._allClips (already-ordered, no network round-trip needed). Wraps
+    // back to the start once the catalog is exhausted, so the reel scrolls forever
+    // instead of dead-ending after the last of the ~500 clips.
     function maybeLoadMore(centerIndex) {
       const all = WIN._allClips || [];
+      if (all.length === 0) return;
       const batchSize = WIN._viewerInitialBatch || 6;
-      if (state.feedCursor >= all.length) return;
       if (centerIndex < state.loadedCount - 3) return;
-      const batch = all.slice(state.feedCursor, state.feedCursor + batchSize);
+      const batch = [];
+      for (let i = 0; i < batchSize; i++) {
+        batch.push(all[(state.feedCursor + i) % all.length]);
+      }
       state.feedCursor += batch.length;
       appendClips(batch);
+    }
+
+    // Infinite scroll means the DOM would otherwise grow without bound over a long
+    // session (the same crash risk we fixed for the initial load). Once a section is
+    // well behind the active one, drop it entirely instead of just unloading its media.
+    const PRUNE_RADIUS = 20;
+    function pruneDistantSections(centerIndex) {
+      document.querySelectorAll('.clip-section').forEach((section) => {
+        const idx = parseInt(section.getAttribute('data-index') || '0', 10);
+        if (idx >= centerIndex - PRUNE_RADIUS) return;
+        unloadMedia(section);
+        state.loadingObserver?.unobserve(section);
+        state.playbackObserver?.unobserve(section);
+        state.urlObserver?.unobserve(section);
+        section.remove();
+      });
     }
 
     // Used when the requested clip isn't among the currently-loaded sections (e.g. a
@@ -1765,6 +1786,7 @@ const feedClips = clips.map((c) => ({
               state.currentIndex = idx;
               cleanupDistantMedia(idx);
               maybeLoadMore(idx);
+              pruneDistantSections(idx);
             }
           });
         },
