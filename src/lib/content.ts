@@ -28,6 +28,12 @@ function formatEntry(collection: string, doc: any): ContentEntry {
     dataFields.pubDate = new Date(dataFields.pubDate);
   }
 
+  if (collection === 'episodios' && Array.isArray(dataFields.dubs)) {
+    dataFields.dubs = dataFields.dubs
+      .filter((d: any) => d.status === 'ready' && d.url)
+      .map((d: any) => ({ lang: d.lang, label: d.label, url: d.url }));
+  }
+
   const markdownBody = body || '';
 
   return {

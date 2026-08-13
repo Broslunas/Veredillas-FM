@@ -27,6 +27,12 @@ export interface EpisodeInfo {
   transcription?: TranscriptionCue[];
 }
 
+export interface DubTrackInfo {
+  lang: string;
+  label: string;
+  url: string;
+}
+
 export interface NetflixPlayerProps {
   slug: string;
   title: string;
@@ -40,6 +46,7 @@ export interface NetflixPlayerProps {
   transcription?: TranscriptionCue[];
   initialProgress?: number; // in seconds
   episodesList?: EpisodeInfo[];
+  dubs?: DubTrackInfo[];
 }
 
 const PREFS_KEY = 'vfm-player-prefs';
@@ -93,6 +100,7 @@ interface PlayerPrefs {
   showCaptions: boolean;
   captionStyle: CaptionStyle;
   subtitleLanguage: string;
+  audioLanguage: string;
 }
 
 function loadPrefs(): PlayerPrefs {
@@ -102,6 +110,7 @@ function loadPrefs(): PlayerPrefs {
     showCaptions: false,
     captionStyle: CAPTION_STYLE_DEFAULTS,
     subtitleLanguage: 'original',
+    audioLanguage: 'original',
   };
   if (typeof window === 'undefined') return defaults;
   try {
@@ -119,6 +128,10 @@ function loadPrefs(): PlayerPrefs {
         color: typeof rawCaptionStyle.color === 'string' ? rawCaptionStyle.color : defaults.captionStyle.color,
       },
       subtitleLanguage: SUBTITLE_LANGUAGE_CODES.includes(parsed.subtitleLanguage) ? parsed.subtitleLanguage : defaults.subtitleLanguage,
+      // Can't validate against a static list — the set of valid values is per-episode
+      // (whichever dubs exist). The mount/episode-change effect below resets this to
+      // 'original' if it doesn't match an actual available dub.
+      audioLanguage: typeof parsed.audioLanguage === 'string' ? parsed.audioLanguage : defaults.audioLanguage,
     };
   } catch {
     return defaults;
@@ -186,6 +199,12 @@ const IconCaptions = ({ className = 'w-5 h-5' }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="5" width="20" height="14" rx="2.5" />
     <text x="12" y="15.5" fontSize="7.5" fontWeight="800" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="var(--font-body, sans-serif)">CC</text>
+  </svg>
+);
+const IconLanguage = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18" /><path d="M12 3a14 14 0 0 0 0 18" />
   </svg>
 );
 const IconChapters = ({ className = 'w-5 h-5' }: { className?: string }) => (
@@ -268,6 +287,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   transcription: initialTranscription = [],
   initialProgress = 0,
   episodesList = [],
+  dubs,
 }) => {
   // Current episode state
   const [currentEpisode, setCurrentEpisode] = useState<EpisodeInfo>({
@@ -284,6 +304,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   });
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const dubAudioRef = useRef<HTMLAudioElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -311,6 +332,8 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   const [captionStyle, setCaptionStyle] = useState<CaptionStyle>(CAPTION_STYLE_DEFAULTS);
   const [showCaptionSettings, setShowCaptionSettings] = useState(false);
   const [subtitleLanguage, setSubtitleLanguage] = useState<string>('original');
+  const [audioLanguage, setAudioLanguage] = useState<string>('original');
+  const [showAudioSettings, setShowAudioSettings] = useState(false);
   const [translatedCaptionText, setTranslatedCaptionText] = useState<string | null>(null);
   const [isTranslatingCaption, setIsTranslatingCaption] = useState(false);
   const translationCacheRef = useRef<Map<string, string>>(new Map());
@@ -332,6 +355,15 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     if (currentEpisode.audioUrl) return getProxiedAudioUrl(currentEpisode.audioUrl);
     return currentEpisode.videoUrl || '';
   }, [isVideo, currentEpisode.videoUrl, currentEpisode.audioUrl]);
+
+  // Dubbed audio only applies to the initially-loaded episode — same scope limit as
+  // sections/transcription, which also aren't carried over for episodes picked from
+  // the in-player drawer (see episodesList below).
+  const activeDub = useMemo(
+    () => (currentEpisode.slug === initialSlug ? dubs?.find((d) => d.lang === audioLanguage) ?? null : null),
+    [dubs, audioLanguage, currentEpisode.slug, initialSlug]
+  );
+  const dubSrcUrl = useMemo(() => (activeDub ? getProxiedAudioUrl(activeDub.url) : null), [activeDub]);
 
   // Process sections into timestamps
   const parsedSections = useMemo(() => {
@@ -502,6 +534,11 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     savePrefs({ subtitleLanguage: lang });
   }, []);
 
+  const changeAudioLanguage = useCallback((lang: string) => {
+    setAudioLanguage(lang);
+    savePrefs({ audioLanguage: lang });
+  }, []);
+
   // Switch between video/audio-only mode without losing playback position
   const switchMediaMode = useCallback((mode: 'video' | 'audio') => {
     setMediaMode((prev) => {
@@ -644,6 +681,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     setShowCaptions(saved.showCaptions);
     setCaptionStyle(saved.captionStyle);
     setSubtitleLanguage(saved.subtitleLanguage);
+    setAudioLanguage(saved.audioLanguage);
     if (videoRef.current) {
       videoRef.current.volume = saved.volume;
       videoRef.current.muted = saved.volume === 0;
@@ -810,6 +848,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           setShowEpisodeDrawer(false);
           setShowSpeedMenu(false);
           setShowCaptionSettings(false);
+          setShowAudioSettings(false);
           setShowVolumePanel(false);
           break;
       }
@@ -827,6 +866,44 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
+
+  // Reset to the original audio whenever the loaded episode changes (dubs only apply
+  // to the initially-loaded episode), or whenever the stored/selected language no
+  // longer matches an available dub for this episode.
+  useEffect(() => {
+    if (currentEpisode.slug !== initialSlug) {
+      if (audioLanguage !== 'original') setAudioLanguage('original');
+      return;
+    }
+    if (audioLanguage !== 'original' && !dubs?.some((d) => d.lang === audioLanguage)) {
+      setAudioLanguage('original');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentEpisode.slug, dubs]);
+
+  // Mirror play/pause to the dub audio track
+  useEffect(() => {
+    if (!dubAudioRef.current || !activeDub) return;
+    if (isPlaying) dubAudioRef.current.play().catch(() => {});
+    else dubAudioRef.current.pause();
+  }, [isPlaying, activeDub]);
+
+  // Mirror volume / mute / playback rate to the dub audio track
+  useEffect(() => {
+    if (dubAudioRef.current) dubAudioRef.current.volume = volume;
+  }, [volume, activeDub]);
+  useEffect(() => {
+    if (dubAudioRef.current) dubAudioRef.current.muted = isMuted;
+  }, [isMuted, activeDub]);
+  useEffect(() => {
+    if (dubAudioRef.current) dubAudioRef.current.playbackRate = playbackRate;
+  }, [playbackRate, activeDub]);
+
+  // Silence the ORIGINAL video's own audio track whenever a dub is active, so the two
+  // don't play over each other.
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.muted = isMuted || Boolean(activeDub);
+  }, [isMuted, activeDub]);
 
   return (
     <div
@@ -865,12 +942,25 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
               if (videoRef.current.buffered.length > 0) {
                 setBufferedEnd(videoRef.current.buffered.end(videoRef.current.buffered.length - 1));
               }
+              if (dubAudioRef.current && activeDub) {
+                const drift = Math.abs(dubAudioRef.current.currentTime - videoRef.current.currentTime);
+                if (drift > 0.3) dubAudioRef.current.currentTime = videoRef.current.currentTime;
+              }
+            }
+          }}
+          onSeeked={() => {
+            // No threshold here (unlike onTimeUpdate's drift correction) — a hard sync
+            // right after scrubbing avoids an audible glitch from the two elements
+            // briefly disagreeing on position.
+            if (dubAudioRef.current && activeDub && videoRef.current) {
+              dubAudioRef.current.currentTime = videoRef.current.currentTime;
             }
           }}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={() => {
             setIsPlaying(false);
             setIsEnded(true);
+            dubAudioRef.current?.pause();
             syncPlaybackData({
               slug: currentEpisode.slug,
               progress: Math.floor(duration),
@@ -885,6 +975,29 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
         <div className="flex h-full w-full items-center justify-center bg-black text-zinc-500 text-sm">
           <p>No hay contenido multimedia disponible para este episodio.</p>
         </div>
+      )}
+
+      {/* Hidden dubbed-audio track, kept in sync with the primary <video> above */}
+      {dubSrcUrl && (
+        <audio
+          ref={dubAudioRef}
+          src={dubSrcUrl}
+          preload="auto"
+          className="hidden"
+          onLoadedMetadata={() => {
+            const a = dubAudioRef.current;
+            const v = videoRef.current;
+            if (!a || !v) return;
+            a.currentTime = v.currentTime;
+            a.volume = volume;
+            a.muted = isMuted;
+            a.playbackRate = playbackRate;
+            if (isPlaying) a.play().catch(() => {});
+          }}
+          onError={() => {
+            setAudioLanguage('original');
+          }}
+        />
       )}
 
       {/* AUDIO COVER VISUALIZER (WHEN IN AUDIO MODE OR NO VIDEO) */}
@@ -1282,6 +1395,39 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                           </span>
                         </div>
                       )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Dubbed Audio Language Selector */}
+              {dubs && dubs.length > 0 && currentEpisode.slug === initialSlug && (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowAudioSettings((v) => !v)}
+                    className={`${ctrlBtn} ${showAudioSettings ? ctrlBtnActive : ''}`}
+                    aria-label="Idioma del audio"
+                    title="Idioma del audio"
+                  >
+                    <IconLanguage className="w-5 h-5" />
+                  </button>
+                  {showAudioSettings && (
+                    <div className="absolute bottom-11 right-0 bg-zinc-950/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-3.5 flex flex-col gap-1.5 z-50 w-52">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">Audio</p>
+                      <select
+                        value={audioLanguage}
+                        onChange={(e) => changeAudioLanguage(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                      >
+                        <option value="original" className="bg-zinc-900 text-white">
+                          Original
+                        </option>
+                        {dubs.map((d) => (
+                          <option key={d.lang} value={d.lang} className="bg-zinc-900 text-white">
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   )}
                 </div>
