@@ -5,52 +5,57 @@ import AuthButton from '@/components/AuthButton.astro';
 import { getCollection } from '@/lib/content';
 
 const navItems = [
-  // Links directos prominentes
-  { 
-    label: 'Episodios',  
+  // El programa: episodios, avances y agenda de emisión
+  {
+    label: 'Episodios',
     href: '/ep',
     dropdown: [
       { label: 'Próximos estrenos', href: '/ep?proximos=true', badge: 'Nuevos' },
-      { label: '─', href: '#', divider: true },
-      { label: 'Radio', href: '/radio', badge: 'En Directo' }
+      { label: 'Clips',             href: '/clips' },
+      { label: 'Calendario',        href: '/calendario' },
     ]
   },
-  { label: 'Blog',       href: '/blog' },
 
-  // Dropdown: dónde escuchar + clips
+  // Cómo escuchar: emisión en directo + plataformas externas
   {
-    label: 'Escuchar',
+    label: 'Radio',
+    href: '/radio',
     dropdown: [
-      { label: 'Dónde escucharnos', href: '/plataformas', badge: 'Nuevo' },
-      { label: 'Clips',             href: '/clips' },
-      { label: 'Galería',           href: '/galeria' },
-      { label: 'Tier List',         href: '/tierlist', badge: 'New' },
-      { label: 'Estadísticas',      href: '/stats' },
+      { label: 'Emisión en directo', href: '/live' },
       { label: '─', href: '#', divider: true },
       { label: 'Spotify',           href: 'https://open.spotify.com/show/6mXWyLhzhET5EHk1p72j18',   external: true },
       { label: 'Amazon Music',      href: 'https://music.amazon.es/podcasts/8d708ffa-7ef7-42f0-878d-fe3575491bef/veredillas-fm', external: true },
       { label: 'Apple Podcasts',    href: 'https://podcasts.apple.com/es/podcast/veredillas-fm/id1870103081', external: true },
+      { label: '─', href: '#', divider: true },
+      { label: 'Todas las plataformas', href: '/plataformas' },
     ]
   },
 
-  // Dropdown: personas
+  { label: 'Blog', href: '/blog' },
+
+  // Comunidad: personas del programa + contenido interactivo/gamificado
   {
-    label: 'Personas',
+    label: 'Comunidad',
     dropdown: [
       { label: 'El Equipo',   href: '/equipo' },
       { label: 'Invitados',   href: '/invitados' },
       { label: 'Oyentes',     href: '/usuarios' },
       { label: 'Ranking Top', href: '/top' },
+      { label: '─', href: '#', divider: true },
+      { label: 'Galería',         href: '/galeria' },
+      { label: 'Tier List',       href: '/tierlist', badge: 'Nuevo' },
+      { label: 'Álbum de Cromos', href: '/cromos' },
+      { label: 'Estadísticas',    href: '/stats' },
     ]
   },
 
-  // Dropdown: agenda y participación
+  // Participa: formas de involucrarse y contactar
   {
     label: 'Participa',
     dropdown: [
-      { label: 'Calendario',          href: '/calendario' },
       { label: 'Solicitar entrevista', href: '/solicitar-entrevista', badge: '🎙️' },
       { label: 'Preguntas frecuentes', href: '/faq' },
+      { label: 'Newsletter',           href: '/newsletter' },
       { label: 'Contacto',             href: '/contacto' },
     ]
   },
@@ -192,17 +197,21 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
   </div>
 
   <nav class="sh-overlay-nav">
-    <!-- Direct links -->
+    <!-- Direct links (no dropdown) -->
     <div class="sh-ov-group" style="--i:0">
-      {navItems.filter(i => !('dropdown' in i) || i.label === 'Episodios').map(item => (
+      {navItems.filter(i => !i.dropdown).map(item => (
         <a href={item.href} class={`sh-ov-big${isActive(item.href!) ? ' is-active' : ''}`}>{item.label}</a>
       ))}
     </div>
 
-    <!-- Grouped sections -->
-    {navItems.filter(i => 'dropdown' in i && i.dropdown && i.label !== 'Episodios').map((item, i) => (
+    <!-- Grouped sections (every item with a dropdown, including hybrids that also have their own href) -->
+    {navItems.filter(i => i.dropdown).map((item, i) => (
       <div class="sh-ov-group" style={`--i:${i + 1}`}>
-        <span class="sh-ov-label">{item.label}</span>
+        {item.href ? (
+          <a href={item.href} class={`sh-ov-label sh-ov-label--link${isActive(item.href) ? ' is-active' : ''}`}>{item.label}</a>
+        ) : (
+          <span class="sh-ov-label">{item.label}</span>
+        )}
         <div class="sh-ov-links">
           {item.dropdown!.filter(s => !s.divider).map(sub => (
             <a
@@ -935,6 +944,17 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
   text-transform: uppercase;
   color: var(--color-text-dim);
   margin-bottom: 0.625rem;
+}
+
+.sh-ov-label--link {
+  text-decoration: none;
+  transition: color 0.15s;
+  width: fit-content;
+}
+
+.sh-ov-label--link:hover,
+.sh-ov-label--link.is-active {
+  color: var(--color-text-main);
 }
 
 .sh-ov-links {
