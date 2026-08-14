@@ -45,6 +45,8 @@
 </section>
 
 <script>
+  import { gsap } from 'gsap';
+
   let currentPeriod = 'week';
   
   const section = document.getElementById('trending-section');
@@ -86,17 +88,21 @@
   function renderTrending(items: any[]) {
       if(!grid) return;
       grid.innerHTML = '';
-      
+
+      const maxCount = Math.max(...items.map((i: any) => i.count || 0), 1);
+
       items.forEach((item: any, index: number) => {
           const rank = index + 1;
           const isTop3 = rank <= 3;
-          
+          const barPercent = Math.max(4, Math.round(((item.count || 0) / maxCount) * 100));
+
           const card = document.createElement('a');
           card.href = `/ep/${item.slug}`;
-          card.className = `flex items-center gap-4 p-3 rounded-xl border border-white/5 bg-white/5 cursor-pointer overflow-hidden relative text-decoration-none transition-all duration-300 hover:bg-white/10 hover:border-purple-500/30 hover:shadow-[0_10px_15px_-3px_rgba(168,85,247,0.1)] hover-3d-card group`;
+          card.className = `flex items-center gap-4 p-3 pb-4 rounded-xl border border-white/5 bg-white/5 cursor-pointer overflow-hidden relative text-decoration-none transition-all duration-300 hover:bg-white/10 hover:border-purple-500/30 hover:shadow-[0_10px_15px_-3px_rgba(168,85,247,0.1)] hover-3d-card group`;
           card.setAttribute('data-cursor', 'play');
-          
+
           card.innerHTML = `
+            <div class="trend-bar absolute bottom-0 left-0 h-[3px] bg-gradient-to-r from-primary to-accent rounded-full" style="width:0%" data-target-width="${barPercent}%"></div>
             <div class="shine"></div>
             <!-- Rank Badge -->
             <div class="flex-shrink-0 w-8 text-center font-bold text-xl ${isTop3 ? 'text-purple-400' : 'text-zinc-500'}">
@@ -134,6 +140,15 @@
           `;
           
           grid.appendChild(card);
+      });
+
+      gsap.utils.toArray('.trend-bar').forEach((bar: any, i: number) => {
+          gsap.to(bar, {
+              width: bar.dataset.targetWidth,
+              duration: 1,
+              delay: i * 0.06,
+              ease: 'power2.out',
+          });
       });
   }
 
