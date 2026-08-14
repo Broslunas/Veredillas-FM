@@ -21,15 +21,6 @@ const isUpcoming = post.data.pubDate > now;
 const diffInHours =
     (post.data.pubDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 const isAboutToPremiere = isUpcoming && diffInHours <= 2;
-
-// Countdown ring: fills up as the premiere approaches, over a 7-day lead window
-const LEAD_HOURS = 24 * 7;
-const countdownProgress = isUpcoming
-    ? Math.max(0, Math.min(100, ((LEAD_HOURS - diffInHours) / LEAD_HOURS) * 100))
-    : 0;
-const RING_RADIUS = 16;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-const ringOffset = RING_CIRCUMFERENCE - (RING_CIRCUMFERENCE * countdownProgress) / 100;
 ---
 
 <article
@@ -57,40 +48,6 @@ const ringOffset = RING_CIRCUMFERENCE - (RING_CIRCUMFERENCE * countdownProgress)
             >{isAboutToPremiere ? "¡Falta muy poco!" : "Próximamente"}</span
         >
     </div>
-
-    {
-        isUpcoming && (
-            <div
-                class="countdown-ring absolute top-4 left-4 z-10 w-10 h-10"
-                aria-hidden="true"
-                title={`${Math.round(countdownProgress)}% hasta el estreno`}
-            >
-                <svg width="40" height="40" viewBox="0 0 40 40" class="-rotate-90">
-                    <circle
-                        cx="20"
-                        cy="20"
-                        r={RING_RADIUS}
-                        fill="rgba(0,0,0,0.45)"
-                        stroke="rgba(255,255,255,0.15)"
-                        stroke-width="3"
-                    />
-                    <circle
-                        class="countdown-ring-progress"
-                        cx="20"
-                        cy="20"
-                        r={RING_RADIUS}
-                        fill="none"
-                        stroke="var(--color-primary)"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                        stroke-dasharray={RING_CIRCUMFERENCE}
-                        stroke-dashoffset={RING_CIRCUMFERENCE}
-                        data-offset={ringOffset}
-                    />
-                </svg>
-            </div>
-        )
-    }
 
     <div class="flex flex-col h-full text-inherit">
         {
@@ -296,33 +253,6 @@ const ringOffset = RING_CIRCUMFERENCE - (RING_CIRCUMFERENCE * countdownProgress)
 </article>
 
 <script>
-    import { gsap } from "gsap";
-    import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const initCountdownRings = () => {
-        document.querySelectorAll(".countdown-ring-progress").forEach((el) => {
-            if ((el as HTMLElement).dataset.ringInited) return;
-            (el as HTMLElement).dataset.ringInited = "true";
-            const target = parseFloat(el.getAttribute("data-offset") || "0");
-            ScrollTrigger.create({
-                trigger: el,
-                start: "top 90%",
-                once: true,
-                onEnter: () =>
-                    gsap.to(el, {
-                        strokeDashoffset: target,
-                        duration: 1.2,
-                        ease: "power2.out",
-                    }),
-            });
-        });
-    };
-
-    document.addEventListener("DOMContentLoaded", initCountdownRings);
-    document.addEventListener("astro:page-load", initCountdownRings);
-
     const loadCardRatings = async () => {
         const ratingElements = document.querySelectorAll(
             '.card-rating[data-rating-slug]:not([data-loaded="true"])',

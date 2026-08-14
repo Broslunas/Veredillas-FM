@@ -5,13 +5,12 @@ import Layout from '@/layouts/Layout.astro';
 import EpisodeCard from '@/components/EpisodeCard.astro';
 import PostCard from '@/components/PostCard.astro';
 import FeaturedSlider from '@/components/FeaturedSlider.astro';
-import TopicTabs from '@/components/TopicTabs.astro';
+import EpisodeCarousel from '@/components/EpisodeCarousel.astro';
 import Newsletter from '@/components/Newsletter.astro';
 import TopListenersWidget from '@/components/TopListenersWidget.astro';
 import TrendingEpisodes from '@/components/TrendingEpisodes.astro';
 import TopClipsWidget from '@/components/TopClipsWidget.astro';
 import AdImpresoras from '@/components/AdImpresoras.astro';
-import ListenerCount from '@/components/ListenerCount.astro';
 import { getCollection } from '@/lib/content';
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -20,23 +19,23 @@ import 'swiper/css/pagination';
 const allEpisodes = await getCollection('episodios');
 const allPosts = await getCollection('blog');
 
-// For SSG, we provide a wide pool of episodes.
+// For SSG, we provide a wide pool of episodes. 
 // The client will filter them accurately.
 const sortedEpisodes = allEpisodes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 // Filtered categories (only published)
 const now = new Date();
-const teacherEpisodes = sortedEpisodes.filter(ep =>
+const teacherEpisodes = sortedEpisodes.filter(ep => 
     ep.data.pubDate <= now &&
     ep.data.tags?.some(tag => ['Profesorado', 'Docencia'].includes(tag))
 ).slice(0, 8);
 
-const studentEpisodes = sortedEpisodes.filter(ep =>
+const studentEpisodes = sortedEpisodes.filter(ep => 
     ep.data.pubDate <= now &&
     ep.data.tags?.some(tag => ['Juventud', 'Vida Estudiantil', 'Alumnos', 'Estudiantes'].includes(tag))
 ).slice(0, 8);
 
-const techEpisodes = sortedEpisodes.filter(ep =>
+const techEpisodes = sortedEpisodes.filter(ep => 
     ep.data.pubDate <= now &&
     ep.data.tags?.some(tag => ['Tecnología', 'Informática', 'Ciencia', 'IA'].includes(tag))
 ).slice(0, 8);
@@ -49,22 +48,9 @@ const upcomingCandidatePool = allEpisodes
     .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
 
 const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);
-
-// Real stats used across the hero + SEO sections (no invented numbers)
-const publishedEpisodesCount = sortedEpisodes.filter(ep => ep.data.pubDate <= now).length;
-const earliestEpisodeDate = allEpisodes.length > 0
-    ? allEpisodes.reduce((min, ep) => (ep.data.pubDate < min ? ep.data.pubDate : min), allEpisodes[0].data.pubDate)
-    : now;
-const yearsOnAir = Math.max(1, now.getFullYear() - earliestEpisodeDate.getFullYear() + 1);
-
-const topicGroups = [
-    { id: 'profesorado', label: 'Sala de Profesores', badgeText: 'Docencia', colorClass: 'text-secondary', bgClass: 'bg-secondary', episodes: teacherEpisodes },
-    { id: 'estudiantil', label: 'Voz Estudiantil', badgeText: 'Juventud', colorClass: 'text-accent', bgClass: 'bg-accent', episodes: studentEpisodes },
-    { id: 'tech', label: 'Tecnología y Futuro', badgeText: 'Tech', colorClass: 'text-primary', bgClass: 'bg-primary', episodes: techEpisodes },
-].filter(group => group.episodes.length > 0);
 ---
 
-<Layout
+<Layout 
 	title="Inicio"
 	description="Veredillas FM es el podcast oficial del IES Las Veredillas. Escucha entrevistas exclusivas, noticias del instituto, deportes, cultura y tecnología. Una radio estudiantil hecha por alumnos, para alumnos."
 	image="/logo.webp"
@@ -75,59 +61,38 @@ const topicGroups = [
     <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div class="blob blob-1 absolute w-[600px] h-[600px] rounded-full blur-[80px] opacity-40 top-[-100px] left-[-100px] bg-[radial-gradient(circle,theme(colors.primary),transparent)] animate-blob-float"></div>
         <div class="blob blob-2 absolute w-[600px] h-[600px] rounded-full blur-[80px] opacity-40 bottom-[-100px] right-[-100px] bg-[radial-gradient(circle,theme(colors.secondary),transparent)] animate-blob-float-reverse"></div>
-        <div class="blob blob-3 absolute w-[500px] h-[500px] rounded-full blur-[100px] opacity-20 top-[40%] left-[50%] -translate-x-1/2 bg-[radial-gradient(circle,theme(colors.accent),transparent)] animate-blob-float"></div>
         <div class="grid-overlay absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:50px_50px] [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]"></div>
     </div>
 
     <!-- Hero Section -->
-    <section class="pt-4 pb-16 relative overflow-hidden md:pt-10 md:pb-24">
+    <section class="pt-4 pb-16 relative overflow-hidden md:py-16">
         <div class="container relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 lg:gap-16 items-center text-center lg:text-left">
                 <div class="hero-content">
-                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-8 gs-reveal">
-                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-semibold text-primary">
-                            <span class="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_0_0_rgba(239,68,68,0.7)] animate-pulse"></span>
-                            <span>En vivo desde el instituto</span>
-                        </div>
-                        <ListenerCount />
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8 text-sm font-semibold text-primary gs-reveal">
+                        <span class="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_0_0_rgba(239,68,68,0.7)] animate-pulse"></span>
+                        <span>En vivo desde el instituto</span>
                     </div>
-
-                    <h1 class="hero-title text-[clamp(2.5rem,8vw,5.5rem)] leading-[1.1] font-extrabold mb-6 tracking-tight">
-                        <span class="hero-title-line block">Bienvenidos,</span>
-                        <span class="hero-title-line block">a Veredillas <span class="text-gradient">FM</span></span>
+                    
+                    <h1 class="text-[clamp(2.5rem,8vw,5.5rem)] leading-[1.1] font-extrabold mb-6 tracking-tight gs-reveal">
+                        <span class="block">Bienvenidos,</span>
+                        <span class="block">a Veredillas FM</span>
                     </h1>
-
+                    
                     <p class="text-lg md:text-xl text-zinc-400 max-w-[500px] mb-10 leading-relaxed mx-auto lg:mx-0 gs-reveal">
                         Donde te mantenemos al pendiente de los temas más candentes.
                     </p>
-
+                    
 
                     <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mb-12 flex-wrap gs-reveal">
-                        <a href="#latest-episodes" class="magnetic-btn px-8 py-4 text-lg btn btn-primary rounded-full shine-effect">
+                        <a href="#latest-episodes" class="px-8 py-4 text-lg btn btn-primary rounded-full shine-effect">
                             <span class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                             </span> Escuchar Ahora
                         </a>
-                        <a href="/about" class="magnetic-btn px-8 py-4 text-lg btn btn-outline rounded-full">
+                        <a href="/about" class="px-8 py-4 text-lg btn btn-outline rounded-full">
                             Conocer Más
                         </a>
-                    </div>
-
-                    <div class="flex items-center justify-center lg:justify-start gap-6 sm:gap-10 gs-reveal">
-                        <div class="text-left">
-                            <span class="stat-num block text-3xl font-black text-white leading-none" data-count={publishedEpisodesCount}>0</span>
-                            <span class="text-xs text-zinc-500 uppercase tracking-widest">Episodios</span>
-                        </div>
-                        <div class="w-px h-10 bg-white/10"></div>
-                        <div class="text-left">
-                            <span class="stat-num block text-3xl font-black text-white leading-none" data-count={allPosts.length}>0</span>
-                            <span class="text-xs text-zinc-500 uppercase tracking-widest">Artículos</span>
-                        </div>
-                        <div class="w-px h-10 bg-white/10"></div>
-                        <div class="text-left">
-                            <span class="stat-num block text-3xl font-black text-white leading-none" data-count={yearsOnAir}>0</span>
-                            <span class="text-xs text-zinc-500 uppercase tracking-widest">Años en antena</span>
-                        </div>
                     </div>
                 </div>                <div class="flex justify-center items-center [perspective:1000px] w-full py-8 hero-visual" id="hero-spotlight">
                     {sortedEpisodes.length > 0 ? (
@@ -138,9 +103,9 @@ const topicGroups = [
                                 </div>
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-br from-[#0e0e11] to-black rounded-lg border border-white/10 z-[2] shadow-[0_20px_50px_rgba(0,0,0,0.5)] -rotate-3 overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:rotate-[-5deg] lg:group-hover:-translate-x-[40%]">
-                                <img
+                                <img 
                                     id="hero-img"
-                                    src={sortedEpisodes[0].data.image}
+                                    src={sortedEpisodes[0].data.image} 
                                     alt={sortedEpisodes[0].data.title}
                                     width={600}
                                     height={600}
@@ -165,10 +130,10 @@ const topicGroups = [
                                     </div>
                                     <div class="w-full text-center">
                                         <time id="hero-date" class="text-xs font-semibold text-white/90 tracking-wider uppercase bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
-                                            {sortedEpisodes[0].data.pubDate.toLocaleDateString('es-ES', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric'
+                                            {sortedEpisodes[0].data.pubDate.toLocaleDateString('es-ES', { 
+                                                year: 'numeric', 
+                                                month: 'long', 
+                                                day: 'numeric' 
                                             })}
                                         </time>
                                     </div>
@@ -185,16 +150,8 @@ const topicGroups = [
         </div>
     </section>
 
-    <!-- On Air Ticker -->
-    <div class="on-air-ticker relative overflow-hidden border-y border-white/10 bg-primary py-3.5 md:py-4 -rotate-1 scale-105 my-6 md:my-10">
-        <div class="ticker-track whitespace-nowrap flex w-max will-change-transform">
-            <span class="text-lg md:text-2xl font-black text-black pr-8 uppercase font-display">• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
-            <span class="text-lg md:text-2xl font-black text-black pr-8 uppercase font-display" aria-hidden="true">• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
-        </div>
-    </div>
-
     <!-- Featured Section with Grid -->
-    <section class="container gs-fade-up mb-24 relative z-20">
+    <section class="container gs-fade-up -mt-16 mb-24 relative z-20">
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8 items-stretch">
             <div class="min-w-0">
                 <FeaturedSlider />
@@ -238,7 +195,7 @@ const topicGroups = [
                 </div>
                 <div class="swiper-pagination"></div>
             </div>
-
+            
             <div class="text-center mt-12 gs-fade-up">
                 <a href="/ep" class="btn btn-outline rounded-full">Ver todos los episodios</a>
             </div>
@@ -294,8 +251,49 @@ const topicGroups = [
     <!-- Trending Episodes (Most Listened) -->
     <TrendingEpisodes />
 
-    <!-- Topics (tabbed) -->
-    {topicGroups.length > 0 && <TopicTabs groups={topicGroups} />}
+    {teacherEpisodes.length > 0 && (
+        <EpisodeCarousel 
+            id="teacher-episodes"
+            title="Sala de Profesores"
+            subtitle="Perspectivas y experiencias de nuestros docentes"
+            episodes={teacherEpisodes}
+            badgeText="Docencia"
+            colorClass="text-secondary"
+            bgClass="bg-secondary"
+        />
+    )}
+
+    {studentEpisodes.length > 0 && (
+        <EpisodeCarousel 
+            id="student-episodes"
+            title="Voz Estudiantil"
+            subtitle="La realidad del instituto contada por sus alumnos"
+            episodes={studentEpisodes}
+            badgeText="Juventud"
+            colorClass="text-accent"
+            bgClass="bg-accent"
+        />
+    )}
+
+    {techEpisodes.length > 0 && (
+        <EpisodeCarousel 
+            id="tech-episodes"
+            title="Tecnología y Futuro"
+            subtitle="Explorando el impacto de la innovación en nuestras vidas"
+            episodes={techEpisodes}
+            badgeText="Tech"
+            colorClass="text-primary"
+            bgClass="bg-primary"
+        />
+    )}
+
+    <!-- Marquee Text -->
+    <div class="py-8 bg-primary overflow-hidden -rotate-2 scale-105 my-16">
+        <div class="whitespace-nowrap flex animate-marquee">
+            <span class="text-2xl md:text-4xl font-black text-black pr-8 uppercase font-display">• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
+            <span class="text-2xl md:text-4xl font-black text-black pr-8 uppercase font-display">• ENTREVISTAS EXCLUSIVAS • NOTICIAS DEL INSTITUTO • DEPORTES • CULTURA • CIENCIA Y TECNOLOGÍA • VIDA ESTUDIANTIL • EVENTOS • ORIENTACIÓN ACADÉMICA • COMUNIDAD •</span>
+        </div>
+    </div>
 
     <!-- Recent Posts Section -->
     <section class="py-16 md:py-24 border-t border-white/5">
@@ -316,57 +314,40 @@ const topicGroups = [
                 </div>
             </div>
 
-            {recentPosts.length > 0 && (
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 gs-fade-up items-stretch">
-                    <div>
-                        <PostCard post={recentPosts[0]} size="featured" />
-                    </div>
-                    <div class="grid grid-cols-1 gap-8">
-                        {recentPosts.slice(1, 3).map(post => (
-                            <PostCard post={post} />
-                        ))}
-                    </div>
-                </div>
-            )}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gs-fade-up">
+                {recentPosts.map(post => (
+                    <PostCard post={post} />
+                ))}
+            </div>
         </div>
     </section>
 
-    <!-- About Feature (sequential reveal) -->
-    <section class="story-pin-section py-16 md:py-24">
+    <!-- About Feature -->
+    <section class="py-16 md:py-24">
         <div class="container">
-            <div class="mb-16 text-center gs-fade-up">
-                <div class="inline-flex items-center gap-3 text-primary font-black tracking-[0.3em] uppercase text-[0.65rem] md:text-xs justify-center mb-4">
-                    <span class="w-10 h-[2px] bg-primary rounded-full"></span>
-                    Por qué Veredillas FM
-                    <span class="w-10 h-[2px] bg-primary rounded-full"></span>
-                </div>
-                <h2 class="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter">
-                    Hecho <span class="text-gradient">por alumnos</span>, para el mundo
-                </h2>
-            </div>
-            <div class="story-pin-track grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="story-card p-8 md:p-10 rounded-2xl text-left glass-panel">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="p-8 md:p-10 rounded-2xl text-left transition-transform duration-300 hover:-translate-y-2.5 glass-panel gs-scroll-left">
                     <span class="text-5xl block mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </span>
                     <h3 class="text-xl md:text-2xl mb-4 font-bold">Hecho por alumnos</h3>
                     <p class="text-zinc-400 leading-relaxed">Todo el contenido es producido, grabado y editado por nosotros. Aprendemos haciendo.</p>
                 </div>
-                <div class="story-card p-8 md:p-10 rounded-2xl text-left glass-panel">
+                <div class="p-8 md:p-10 rounded-2xl text-left transition-transform duration-300 hover:-translate-y-2.5 glass-panel gs-scroll-up">
                     <span class="text-5xl block mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     </span>
                     <h3 class="text-xl md:text-2xl mb-4 font-bold">Cromos Digitales</h3>
                     <p class="text-zinc-400 leading-relaxed">¡Colecciona cromos exclusivos de nuestros invitados escuchando las entrevistas!</p>
                 </div>
-                <div class="story-card p-8 md:p-10 rounded-2xl text-left glass-panel">
+                <div class="p-8 md:p-10 rounded-2xl text-left transition-transform duration-300 hover:-translate-y-2.5 glass-panel gs-scroll-up">
                     <span class="text-5xl block mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     </span>
                     <h3 class="text-xl md:text-2xl mb-4 font-bold">Tecnología Punta</h3>
                     <p class="text-zinc-400 leading-relaxed">Utilizamos las últimas herramientas para llevar la radio escolar al siglo XXI.</p>
                 </div>
-                <div class="story-card p-8 md:p-10 rounded-2xl text-left glass-panel">
+                <div class="p-8 md:p-10 rounded-2xl text-left transition-transform duration-300 hover:-translate-y-2.5 glass-panel gs-scroll-right">
                     <span class="text-5xl block mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
                     </span>
@@ -385,23 +366,7 @@ const topicGroups = [
                     <h2 class="text-3xl md:text-5xl font-black text-white leading-tight tracking-tighter">
                         ¿Qué es <span class="text-gradient">Veredillas FM</span>?
                     </h2>
-
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="glass-panel rounded-2xl p-4 text-center">
-                            <span class="stat-num block text-2xl md:text-3xl font-black text-white" data-count={publishedEpisodesCount}>0</span>
-                            <span class="text-[0.65rem] text-zinc-500 uppercase tracking-widest">Episodios</span>
-                        </div>
-                        <div class="glass-panel rounded-2xl p-4 text-center">
-                            <span class="stat-num block text-2xl md:text-3xl font-black text-white" data-count={allPosts.length}>0</span>
-                            <span class="text-[0.65rem] text-zinc-500 uppercase tracking-widest">Artículos</span>
-                        </div>
-                        <div class="glass-panel rounded-2xl p-4 text-center">
-                            <span class="stat-num block text-2xl md:text-3xl font-black text-white" data-count={yearsOnAir}>0</span>
-                            <span class="text-[0.65rem] text-zinc-500 uppercase tracking-widest">Años en antena</span>
-                        </div>
-                    </div>
-
-                    <div class="seo-copy space-y-4 text-zinc-400 text-lg leading-relaxed">
+                    <div class="space-y-4 text-zinc-400 text-lg leading-relaxed">
                         <p>
                             <strong>Veredillas FM</strong> es una radio escolar oficial del <strong>IES Las Veredillas</strong>. Nuestro objetivo es dar voz a los estudiantes y profesores, fomentando la comunicación, el debate y el aprendizaje continuo a través de los micrófonos.
                         </p>
@@ -443,18 +408,13 @@ const topicGroups = [
     </div>
 
     <!-- CTA Final -->
-    <section class="py-24 md:py-32 text-center relative border-t border-white/5 transition-colors duration-500 hover:bg-primary/5 final-cta overflow-hidden">
-        <div class="absolute inset-0 flex items-end justify-center gap-1.5 md:gap-2 opacity-[0.12] pointer-events-none px-4" aria-hidden="true">
-            {Array.from({ length: 32 }).map((_, i) => (
-                <span class="spectrum-bar w-2 md:w-3 bg-gradient-to-t from-primary to-secondary rounded-full" style={`height:${20 + Math.abs(Math.sin(i * 1.3)) * 70}%`}></span>
-            ))}
-        </div>
-        <div class="container relative z-10">
+    <section class="py-24 md:py-32 text-center relative border-t border-white/5 transition-colors duration-500 hover:bg-primary/5 final-cta">
+        <div class="container">
             <div class="gs-scale-up cta-inner">
                 <h2 class="text-3xl md:text-6xl mb-4 font-bold">¿Tienes algo que contar?</h2>
                 <p class="text-lg md:text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">El micrófono está abierto para ti. Únete al equipo de Veredillas FM o ven a contar tu historia.</p>
                 <div class="flex justify-center gap-4">
-                    <a href="/solicitar-entrevista" class="magnetic-btn px-12 py-5 text-xl btn btn-primary rounded-full">Solicitar Entrevista</a>
+                    <a href="/solicitar-entrevista" class="px-12 py-5 text-xl btn btn-primary rounded-full">Solicitar Entrevista</a>
                 </div>
             </div>
         </div>
@@ -464,57 +424,52 @@ const topicGroups = [
 <script>
     import { gsap } from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
-    import { SplitText } from "gsap/SplitText";
     import Swiper from 'swiper';
     import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 
-    gsap.registerPlugin(ScrollTrigger, SplitText);
+    gsap.registerPlugin(ScrollTrigger);
 
     function initPage() {
         // Parallax Background Effect
         if (document.querySelector(".blob")) {
+            // Blob 1 - Moves slower
             gsap.to(".blob-1", {
                 yPercent: 50,
                 ease: "none",
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 }
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1
+                }
             });
 
+            // Blob 2 - Moves differently
             gsap.to(".blob-2", {
                 yPercent: -50,
                 ease: "none",
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.5 }
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1.5
+                }
             });
 
-            gsap.to(".blob-3", {
-                yPercent: 30,
-                xPercent: -10,
-                ease: "none",
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 2 }
-            });
-
+             // Grid Overlay - Subtle movement
              gsap.to(".grid-overlay", {
                 yPercent: 10,
                 ease: "none",
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 }
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1
+                }
             });
         }
 
-        // Hero Kinetic Title (SplitText)
-        const heroTitleEl = document.querySelector(".hero-title");
-        if (heroTitleEl && !heroTitleEl.hasAttribute("data-split-inited")) {
-            heroTitleEl.setAttribute("data-split-inited", "true");
-            const split = SplitText.create(".hero-title-line", { type: "words,chars" });
-            gsap.from(split.chars, {
-                yPercent: 120,
-                opacity: 0,
-                rotateZ: 6,
-                duration: 0.9,
-                stagger: 0.02,
-                ease: "power4.out",
-            });
-        }
-
-        // Hero Reveal (badge, tagline, CTAs, stats)
+        // Hero Animations
         if (document.querySelector(".gs-reveal")) {
             const tl = gsap.timeline();
 
@@ -523,8 +478,7 @@ const topicGroups = [
                 opacity: 0,
                 duration: 1,
                 stagger: 0.2,
-                ease: "power3.out",
-                delay: 0.15,
+                ease: "power3.out"
             })
             .from(".hero-visual", {
                 x: 50,
@@ -535,83 +489,37 @@ const topicGroups = [
             }, "-=0.5");
         }
 
-        // Hero mouse-parallax on the vinyl/episode art
-        const heroSectionEl = document.querySelector(".hero-content")?.closest("section");
-        const heroVisualEl = document.querySelector(".hero-visual");
-        if (heroSectionEl && heroVisualEl && !heroSectionEl.hasAttribute("data-parallax-inited")) {
-            heroSectionEl.setAttribute("data-parallax-inited", "true");
-            const xTo = gsap.quickTo(heroVisualEl, "x", { duration: 0.6, ease: "power3" });
-            const yTo = gsap.quickTo(heroVisualEl, "y", { duration: 0.6, ease: "power3" });
-            heroSectionEl.addEventListener("mousemove", (e) => {
-                const evt = e as MouseEvent;
-                const rect = (heroSectionEl as HTMLElement).getBoundingClientRect();
-                const relX = (evt.clientX - rect.left) / rect.width - 0.5;
-                const relY = (evt.clientY - rect.top) / rect.height - 0.5;
-                xTo(relX * 20);
-                yTo(relY * 20);
-            });
-            heroSectionEl.addEventListener("mouseleave", () => { xTo(0); yTo(0); });
-        }
-
         // Vinyl Rotation
         if (document.querySelector(".vinyl-record")) {
-            gsap.to(".vinyl-record", { rotation: 360, duration: 10, repeat: -1, ease: "linear" });
-        }
-
-        // On Air Ticker: continuous scroll + scroll-velocity skew
-        const tickerTrack = document.querySelector(".ticker-track");
-        if (tickerTrack && !tickerTrack.hasAttribute("data-ticker-inited")) {
-            tickerTrack.setAttribute("data-ticker-inited", "true");
-            gsap.to(tickerTrack, { xPercent: -50, duration: 24, ease: "none", repeat: -1 });
-
-            ScrollTrigger.create({
-                trigger: "body",
-                start: "top top",
-                end: "bottom bottom",
-                onUpdate: (self) => {
-                    const velocity = self.getVelocity() / 300;
-                    const skew = gsap.utils.clamp(-15, 15, velocity);
-                    gsap.to(tickerTrack, { skewX: skew, duration: 0.4, ease: "power3.out", overwrite: "auto" });
-                }
+            gsap.to(".vinyl-record", {
+                rotation: 360,
+                duration: 10,
+                repeat: -1,
+                ease: "linear"
             });
         }
 
-        // Magnetic buttons
-        document.querySelectorAll(".magnetic-btn").forEach((btn) => {
-            if (btn.hasAttribute("data-magnetic-inited")) return;
-            btn.setAttribute("data-magnetic-inited", "true");
-            const xTo = gsap.quickTo(btn, "x", { duration: 0.4, ease: "power3" });
-            const yTo = gsap.quickTo(btn, "y", { duration: 0.4, ease: "power3" });
-            btn.addEventListener("mousemove", (e) => {
-                const evt = e as MouseEvent;
-                const rect = (btn as HTMLElement).getBoundingClientRect();
-                const relX = evt.clientX - rect.left - rect.width / 2;
-                const relY = evt.clientY - rect.top - rect.height / 2;
-                xTo(relX * 0.35);
-                yTo(relY * 0.35);
+        // Stats Counter
+        const stats = document.querySelectorAll('.stat-num');
+        if (stats.length > 0) {
+            stats.forEach(stat => {
+                const target = parseInt(stat.getAttribute('data-count') || "0");
+                gsap.to(stat, {
+                    innerText: target,
+                    duration: 2,
+                    snap: { innerText: 1 },
+                    ease: "power2.out"
+                });
             });
-            btn.addEventListener("mouseleave", () => { xTo(0); yTo(0); });
-        });
+        }
 
-        // Stat counters (hero + SEO section), fire once each enters view
-        gsap.utils.toArray(".stat-num").forEach((stat: any) => {
-            if (stat.hasAttribute("data-counter-inited")) return;
-            stat.setAttribute("data-counter-inited", "true");
-            const target = parseInt(stat.getAttribute("data-count") || "0");
-            ScrollTrigger.create({
-                trigger: stat,
-                start: "top 90%",
-                once: true,
-                onEnter: () => gsap.to(stat, { innerText: target, duration: 2, snap: { innerText: 1 }, ease: "power2.out" })
-            });
-        });
-
-        // Scroll Reveals
+        // Scroll Animations
         gsap.utils.toArray('.gs-fade-up').forEach((elem: any) => {
-            if (elem.hasAttribute("data-reveal-inited")) return;
-            elem.setAttribute("data-reveal-inited", "true");
             gsap.from(elem, {
-                scrollTrigger: { trigger: elem, start: "top 85%" },
+                scrollTrigger: {
+                    trigger: elem,
+                    start: "top 85%",
+                },
                 y: 50,
                 opacity: 0,
                 duration: 0.8,
@@ -619,57 +527,20 @@ const topicGroups = [
             });
         });
 
-        // Story section: pinned sequential card reveal
-        const storySection = document.querySelector(".story-pin-section");
-        const storyTrack = document.querySelector(".story-pin-track");
-        if (storySection && storyTrack && !storySection.hasAttribute("data-story-inited")) {
-            storySection.setAttribute("data-story-inited", "true");
-            const cards = gsap.utils.toArray(".story-card");
-            gsap.set(cards, { autoAlpha: 0, y: 80, rotateX: -15, transformOrigin: "50% 100%" });
-
-            const storyTl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: storyTrack,
-                    start: "top center",
-                    end: "+=90%",
-                    scrub: 0.6,
-                    pin: storyTrack,
-                    pinSpacing: true,
-                }
+        if (document.querySelector(".info-grid")) {
+            gsap.from(".gs-scroll-left", {
+                scrollTrigger: { trigger: ".info-grid", start: "top 80%" },
+                x: -50, opacity: 0, duration: 0.8
             });
-            cards.forEach((card: any, i: number) => {
-                storyTl.to(card, { autoAlpha: 1, y: 0, rotateX: 0, duration: 1, ease: "power2.out" }, i * 0.5);
+            
+            gsap.from(".gs-scroll-up", {
+                scrollTrigger: { trigger: ".info-grid", start: "top 80%" },
+                y: 50, opacity: 0, duration: 0.8, delay: 0.2
             });
-        }
 
-        // SEO copy: line-by-line reveal
-        const seoCopy = document.querySelector(".seo-copy");
-        if (seoCopy && !seoCopy.hasAttribute("data-split-inited")) {
-            seoCopy.setAttribute("data-split-inited", "true");
-            const seoSplit = SplitText.create(".seo-copy p", { type: "lines", linesClass: "seo-line" });
-            gsap.from(seoSplit.lines, {
-                scrollTrigger: { trigger: seoCopy, start: "top 80%" },
-                opacity: 0,
-                y: 20,
-                stagger: 0.03,
-                duration: 0.6,
-                ease: "power2.out"
-            });
-        }
-
-        // CTA final: audio spectrum background
-        if (document.querySelector(".spectrum-bar")) {
-            gsap.utils.toArray(".spectrum-bar").forEach((bar: any) => {
-                if (bar.hasAttribute("data-spectrum-inited")) return;
-                bar.setAttribute("data-spectrum-inited", "true");
-                gsap.set(bar, { transformOrigin: "bottom" });
-                gsap.to(bar, {
-                    scaleY: () => gsap.utils.random(0.4, 1.4),
-                    duration: () => gsap.utils.random(0.6, 1.4),
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "sine.inOut",
-                });
+            gsap.from(".gs-scroll-right", {
+                scrollTrigger: { trigger: ".info-grid", start: "top 80%" },
+                x: 50, opacity: 0, duration: 0.8, delay: 0.4
             });
         }
 
@@ -689,7 +560,7 @@ const topicGroups = [
         const latestWrapper = document.getElementById('latest-episodes-wrapper');
         const upcomingWrapper = document.getElementById('upcoming-episodes-wrapper');
         const upcomingSection = document.getElementById('upcoming-episodes');
-
+        
         const publishedPool: HTMLElement[] = [];
         const upcomingPool: HTMLElement[] = [];
 
@@ -697,16 +568,17 @@ const topicGroups = [
             const slide = slideNode as HTMLElement;
             const pubDateStr = slide.dataset.pubDate;
             if (!pubDateStr) return;
-
+            
             const pubDate = new Date(pubDateStr);
             const badge = slide.querySelector('.dynamic-upcoming-badge');
             const badgeText = badge?.querySelector('.badge-text');
-
+            
             if (pubDate > now) {
                 upcomingPool.push(slide);
                 if (badge) {
                     badge.classList.remove('hidden');
-
+                    
+                    // Update about to premiere status
                     const diffHours = (pubDate.getTime() - now.getTime()) / (1000 * 60 * 60);
                     if (diffHours <= 2 && badgeText) {
                         badgeText.textContent = '¡Falta muy poco!';
@@ -750,11 +622,11 @@ const topicGroups = [
             latestWrapper.innerHTML = '';
             publishedPool.slice(0, 8).forEach(el => latestWrapper.appendChild(el));
         }
-
+        
         if (upcomingWrapper) {
             upcomingWrapper.innerHTML = '';
             upcomingPool.forEach(el => upcomingWrapper.appendChild(el));
-
+            
             if (upcomingPool.length === 0 && upcomingSection) {
                 upcomingSection.classList.add('hidden');
             } else if (upcomingSection) {
@@ -766,6 +638,7 @@ const topicGroups = [
         const swipers = document.querySelectorAll('.episodes-swiper');
         swipers.forEach(swiperNode => {
             const swiperEl = swiperNode as HTMLElement;
+            // Find controls within the same section parent
             const section = swiperEl.closest('section');
             const nextEl = section?.querySelector('.swiper-button-next-custom');
             const prevEl = section?.querySelector('.swiper-button-prev-custom');
@@ -776,6 +649,7 @@ const topicGroups = [
                 observeParents: true,
                 slidesPerView: 1,
                 spaceBetween: 20,
+                // Loop only if enough slides
                 loop: swiperEl.querySelectorAll('.swiper-slide').length > 3,
                 autoplay: {
                     delay: 5000,
@@ -790,17 +664,21 @@ const topicGroups = [
                     prevEl: prevEl as HTMLElement,
                 },
                 breakpoints: {
-                    640: { slidesPerView: 2, spaceBetween: 20 },
-                    1024: { slidesPerView: 3, spaceBetween: 30 },
-                    1280: { slidesPerView: 3.5, spaceBetween: 30 }
+                    640: {
+                        slidesPerView: 2,
+                        spaceBetween: 20,
+                    },
+                    1024: {
+                        slidesPerView: 3,
+                        spaceBetween: 30,
+                    },
+                    1280: {
+                        slidesPerView: 3.5,
+                        spaceBetween: 30,
+                    }
                 },
             });
         });
-
-        // Async widgets (Top Listeners, Top Clips, Trending) inject content after fetch —
-        // refresh ScrollTrigger positions once things settle so later reveals aren't mis-timed.
-        setTimeout(() => ScrollTrigger.refresh(), 900);
-        setTimeout(() => ScrollTrigger.refresh(), 2200);
     }
 
     if (document.readyState === 'loading') {
@@ -810,7 +688,9 @@ const topicGroups = [
     } else {
         initPage();
     }
-
+    
     // Cleanup for Astro view transitions if used later
     document.addEventListener('astro:after-swap', initPage);
 </script>
+
+
