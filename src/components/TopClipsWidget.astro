@@ -1,11 +1,14 @@
 ---
 // src/components/TopClipsWidget.astro
+// Rail of the most-liked clips. Clips are shot vertical (thumbnails are 1080x1920),
+// so the cards are 9:16 like the /clips gallery — a 16:9 card would crop away most
+// of every frame.
 ---
 
-<section class="py-24 relative overflow-hidden border-t border-white/5">
-    <div class="w-full max-w-[1400px] mx-auto px-4">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-8 px-4">
-            <div class="space-y-4">
+<section id="top-clips" class="top-clips py-20 md:py-24 relative border-t border-white/5">
+    <div class="w-full max-w-[1400px] mx-auto px-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 md:mb-12 gap-6">
+            <div class="space-y-4 min-w-0">
                 <div class="flex items-center gap-3 text-primary font-black tracking-[0.3em] uppercase text-[0.65rem] md:text-xs">
                     <span class="w-12 h-[2px] bg-primary rounded-full"></span>
                     Momentos Epicos
@@ -15,164 +18,535 @@
                 </h2>
                 <p class="text-zinc-400 text-lg">Fragmentos destacados que tienes que ver</p>
             </div>
-            
-            <div class="flex items-center gap-4">
-                <button class="clip-prev w-14 h-14 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white transition-all duration-300 hover:bg-primary hover:border-primary hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.4)] disabled:opacity-20 disabled:pointer-events-none group">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="transition-transform group-hover:-translate-x-1"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
-                <button class="clip-next w-14 h-14 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white transition-all duration-300 hover:bg-primary hover:border-primary hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.4)] disabled:opacity-20 disabled:pointer-events-none group">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="transition-transform group-hover:translate-x-1"><path d="M9 18l6-6-6-6"/></svg>
-                </button>
+
+            <div class="flex items-center gap-3 md:gap-4 shrink-0">
+                <a href="/clips" class="tc-all-link">Ver todos</a>
+                <div class="hidden sm:flex gap-3">
+                    <button class="tc-nav clip-prev" aria-label="Clips anteriores">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <button class="tc-nav clip-next" aria-label="Clips siguientes">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div id="clips-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-            {[1, 2, 3].map(i => (
-                <div class="aspect-video bg-white/5 rounded-[2rem] border border-white/5 animate-pulse"></div>
+        <div id="clips-loading" class="tc-skeleton-grid">
+            {[1, 2, 3, 4, 5].map(() => (
+                <div class="tc-skeleton"></div>
             ))}
         </div>
 
-        <div id="clips-container" class="swiper clips-swiper !overflow-visible hidden">
+        <div id="clips-container" class="swiper clips-swiper hidden">
             <div class="swiper-wrapper" id="clips-wrapper">
                 <!-- Filled by JS -->
             </div>
-            <!-- Custom Pagination -->
-            <div class="clip-pagination mt-12 flex justify-center gap-2"></div>
         </div>
+        <div class="clip-pagination"></div>
     </div>
 </section>
 
 <style is:global>
-    .clips-swiper .swiper-slide {
-        transition: opacity 0.5s ease, transform 0.5s ease-out, filter 0.5s ease;
-    }
-    .clips-swiper .swiper-slide:not(.swiper-slide-active) {
-        opacity: 1;
-        transform: scale(0.9);
-    }
-    
-    @keyframes blur-in {
-        from { filter: blur(10px); opacity: 0; transform: translateY(10px); }
-        to { filter: blur(0); opacity: 1; transform: translateY(0); }
+    /* JS-injected markup never gets Astro's scoped attribute, so the card styles
+       have to live in a global block. Everything is `tc-`-prefixed to stay clear of
+       the .clip-card / .clip-title rules that ClipsFeed defines. */
+
+    .top-clips.is-empty {
+        display: none;
     }
 
-    .blur-in {
-        animation: blur-in 0.8s ease forwards;
+    .top-clips .tc-all-link {
+        display: inline-flex;
+        align-items: center;
+        height: 48px;
+        padding: 0 1.1rem;
+        border-radius: var(--radius-full);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.75);
+        text-decoration: none;
+        transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    }
+
+    .top-clips .tc-all-link:hover {
+        color: #fff;
+        border-color: rgba(var(--color-primary-rgb), 0.6);
+        background: rgba(var(--color-primary-rgb), 0.14);
+    }
+
+    .top-clips .tc-nav {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-full);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .top-clips .tc-nav:hover:not(.swiper-button-disabled) {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        transform: translateY(-2px);
+    }
+
+    .top-clips .tc-nav.swiper-button-disabled {
+        opacity: 0.3;
+        pointer-events: none;
+    }
+
+    /* ── Rail ───────────────────────────────────────────────── */
+
+    .clips-swiper {
+        /* Room for the cards' hover lift + glow, which would otherwise get clipped */
+        padding: 0.5rem 0 1.25rem;
+        margin: -0.5rem 0 -1.25rem;
+    }
+
+    .clips-swiper .swiper-slide {
+        height: auto;
+    }
+
+    /* ── Card ───────────────────────────────────────────────── */
+
+    .tc-card {
+        position: relative;
+        display: block;
+        width: 100%;
+        aspect-ratio: 9 / 16;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        background: #14111c;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        text-decoration: none;
+        transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease,
+            box-shadow 0.4s ease;
+    }
+
+    .tc-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(var(--color-primary-rgb), 0.5);
+        box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(var(--color-primary-rgb), 0.2),
+            0 0 40px -12px rgba(var(--color-primary-rgb), 0.45);
+    }
+
+    .tc-card:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    .tc-media {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .tc-card:hover .tc-media {
+        transform: scale(1.06);
+    }
+
+    .tc-veil {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: linear-gradient(
+            to top,
+            rgba(8, 6, 14, 0.95) 0%,
+            rgba(8, 6, 14, 0.72) 26%,
+            rgba(8, 6, 14, 0.12) 58%,
+            rgba(8, 6, 14, 0.35) 100%
+        );
+        pointer-events: none;
+    }
+
+    /* ── Badges ─────────────────────────────────────────────── */
+
+    .tc-rank {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 4;
+        min-width: 2rem;
+        height: 2rem;
+        padding: 0 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.1rem;
+        border-radius: var(--radius-md);
+        background: rgba(10, 8, 16, 0.65);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        font-weight: 900;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .tc-rank::before {
+        content: '#';
+        font-size: 0.6em;
+        opacity: 0.6;
+        margin-right: 0.05em;
+    }
+
+    /* The podium gets the brand gradient, the rest stay quiet */
+    .tc-rank.is-podium {
+        background: linear-gradient(125deg, var(--color-primary), var(--color-accent));
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 6px 18px -6px rgba(var(--color-primary-rgb), 0.8);
+    }
+
+    .tc-rank.is-podium::before {
+        opacity: 0.75;
+    }
+
+    .tc-likes {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        z-index: 4;
+        height: 2rem;
+        padding: 0 0.6rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        border-radius: var(--radius-md);
+        background: rgba(10, 8, 16, 0.65);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 800;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .tc-likes svg {
+        color: var(--color-accent);
+        flex-shrink: 0;
+    }
+
+    /* ── Play affordance ────────────────────────────────────── */
+
+    .tc-play {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 3;
+        width: 3.5rem;
+        height: 3.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(10, 8, 16, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(255, 255, 255, 0.25);
+        color: #fff;
+        transform: translate(-50%, -50%) scale(0.85);
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+            background 0.3s ease, border-color 0.3s ease;
+        pointer-events: none;
+    }
+
+    .tc-card:hover .tc-play {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+        background: rgba(var(--color-primary-rgb), 0.85);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* No hover on touch, so the play button just stays visible there */
+    @media (hover: none) {
+        .tc-play {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            width: 3rem;
+            height: 3rem;
+        }
+    }
+
+    /* ── Text block ─────────────────────────────────────────── */
+
+    .tc-body {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        padding: 1rem 1rem 1.1rem;
+        pointer-events: none;
+    }
+
+    .tc-episode {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-family: var(--font-display);
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(var(--color-primary-rgb), 1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tc-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+        color: #fff;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+    }
+
+    /* ── Pagination ─────────────────────────────────────────── */
+
+    .clip-pagination {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.4rem;
+        margin-top: 2.5rem;
+    }
+
+    .clip-pagination:empty {
+        display: none;
+    }
+
+    .clip-pagination .swiper-pagination-bullet {
+        width: 1.75rem;
+        height: 3px;
+        border-radius: var(--radius-full);
+        background: rgba(255, 255, 255, 0.14);
+        opacity: 1;
+        margin: 0;
+        cursor: pointer;
+        transition: width 0.35s ease, background 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .clip-pagination .swiper-pagination-bullet:hover {
+        background: rgba(255, 255, 255, 0.3);
     }
 
     .clip-pagination .swiper-pagination-bullet-active {
-        @apply !w-12 !bg-primary shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)];
+        width: 3rem;
+        background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+        box-shadow: 0 0 14px rgba(var(--color-primary-rgb), 0.5);
+    }
+
+    /* ── Loading skeletons ──────────────────────────────────── */
+
+    .tc-skeleton-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .tc-skeleton {
+        aspect-ratio: 9 / 16;
+        border-radius: var(--radius-xl);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        animation: tc-pulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes tc-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+    }
+
+    @media (max-width: 639px) {
+        /* Up to 10 clips means a lot of bullets on a narrow screen */
+        .clip-pagination .swiper-pagination-bullet {
+            width: 1.1rem;
+        }
+        .clip-pagination .swiper-pagination-bullet-active {
+            width: 2rem;
+        }
+    }
+
+    @media (min-width: 640px) {
+        .tc-skeleton-grid { grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+    }
+
+    @media (min-width: 1024px) {
+        .tc-skeleton-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    @media (min-width: 1280px) {
+        .tc-skeleton-grid { grid-template-columns: repeat(5, 1fr); }
+        .tc-skeleton:nth-child(n + 6) { display: none; }
+    }
+
+    @media (min-width: 768px) {
+        .tc-title { font-size: 1rem; }
+        .tc-body { padding: 1.1rem 1.15rem 1.25rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .tc-card,
+        .tc-media,
+        .tc-play {
+            transition: none;
+        }
+        .tc-card:hover {
+            transform: none;
+        }
+        .tc-card:hover .tc-media {
+            transform: none;
+        }
+        .tc-skeleton {
+            animation: none;
+        }
+    }
+
+    /* Light theme: the veil needs to stay dark (it sits over photos), but the chrome
+       around the rail follows the theme. */
+    [data-theme='light'] .top-clips .tc-all-link,
+    [data-theme='light'] .top-clips .tc-nav {
+        background: rgba(0, 0, 0, 0.04);
+        border-color: rgba(0, 0, 0, 0.1);
+        color: var(--color-text-main);
+    }
+
+    [data-theme='light'] .clip-pagination .swiper-pagination-bullet {
+        background: rgba(0, 0, 0, 0.14);
     }
 </style>
 
 <script>
     import Swiper from 'swiper';
-    import { Navigation, Pagination, Autoplay, EffectCoverflow } from 'swiper/modules';
+    import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 
     interface Clip {
-        _id: string;
         videoId: string;
         likes: number;
         title: string;
         thumbnail: string;
-        videoUrl: string;
-        duration?: string;
         episodeTitle?: string;
     }
 
+    let clipsSwiper: Swiper | null = null;
+
+    // Titles and episode names come from content files and land inside an HTML string,
+    // so anything with a quote or angle bracket would otherwise break the markup.
+    function escapeHtml(value: string): string {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function cardHTML(clip: Clip, index: number): string {
+        const title = escapeHtml(clip.title);
+        const episode = clip.episodeTitle ? escapeHtml(clip.episodeTitle) : '';
+        const likes = Number(clip.likes) || 0;
+
+        return `
+            <div class="swiper-slide">
+                <a href="/clip/${encodeURIComponent(clip.videoId || '')}" class="tc-card" aria-label="Ver clip: ${title}">
+                    <img class="tc-media" src="${escapeHtml(clip.thumbnail)}" alt="" loading="lazy" decoding="async" />
+                    <div class="tc-veil"></div>
+
+                    <span class="tc-rank${index < 3 ? ' is-podium' : ''}">${index + 1}</span>
+
+                    ${likes > 0 ? `
+                        <span class="tc-likes">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                            ${likes}
+                        </span>
+                    ` : ''}
+
+                    <span class="tc-play" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </span>
+
+                    <div class="tc-body">
+                        ${episode ? `<span class="tc-episode">${episode}</span>` : ''}
+                        <h3 class="tc-title">${title}</h3>
+                    </div>
+                </a>
+            </div>
+        `;
+    }
+
     async function loadClips() {
+        const section = document.getElementById('top-clips');
         const wrapper = document.getElementById('clips-wrapper');
         const container = document.getElementById('clips-container');
         const loading = document.getElementById('clips-loading');
 
-        if (!wrapper || !container || !loading) return;
+        if (!section || !wrapper || !container || !loading) return;
+
+        // astro:page-load fires on every view transition; drop the previous instance
+        // so we don't stack Swipers on the same element.
+        if (clipsSwiper) {
+            clipsSwiper.destroy(true, true);
+            clipsSwiper = null;
+        }
 
         try {
             const response = await fetch('/api/clips/top');
             if (!response.ok) throw new Error('Failed to fetch clips');
-            
+
             const clips: Clip[] = await response.json();
-            
-            if (clips.length === 0) {
-                loading.style.display = 'none';
+
+            // Nothing to show — hide the whole section instead of leaving a headline
+            // hanging over empty space.
+            if (!Array.isArray(clips) || clips.length === 0) {
+                section.classList.add('is-empty');
                 return;
             }
 
-            wrapper.innerHTML = clips.map((clip, index) => `
-                <div class="swiper-slide h-auto py-10 px-4">
-                    <div class="hover-3d-card relative group h-full flex flex-col bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_60px_-15px_rgba(var(--color-primary-rgb),0.4)]">
-                        <div class="shine"></div>
-                        
-                        <!-- Rank & Likes Bagde -->
-                        <div class="absolute top-6 left-6 z-20 flex flex-wrap items-center gap-2">
-                            <div class="bg-primary/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-2xl border border-white/10">
-                                #${index + 1} TOP CLIP
-                            </div>
-                            <div class="bg-white/10 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-2xl border border-white/10 flex items-center gap-1.5">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-accent"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                                ${clip.likes || 0} Likes
-                            </div>
-                        </div>
-
-                        <!-- Thumbnail Container -->
-                        <div class="relative aspect-video overflow-hidden">
-                            <img src="${clip.thumbnail}" alt="${clip.title}" class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 group-hover:rotate-2" loading="lazy" />
-                            
-                            <!-- Premium Play Overlay -->
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/10 transition-all duration-500">
-                                <div class="w-20 h-20 rounded-full bg-white/10 backdrop-blur-2xl border border-white/20 text-white flex items-center justify-center shadow-2xl transition-all duration-500 transform group-hover:scale-125 group-hover:bg-primary group-active:scale-95 group-hover:shadow-[0_0_40px_rgba(var(--color-primary-rgb),0.6)]">
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                                </div>
-                            </div>
-
-                            <!-- Duration/Label -->
-                            <div class="absolute bottom-6 left-6 right-6 flex justify-between items-center z-20">
-                                 ${clip.duration ? `
-                                    <div class="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl text-[0.7rem] font-bold text-white tracking-widest border border-white/10 uppercase shadow-lg">
-                                        ${clip.duration}
-                                    </div>
-                                 ` : ''}
-                            </div>
-                        </div>
-
-                        <!-- Content Section -->
-                        <div class="p-8 pb-10 flex flex-col flex-grow relative z-10">
-                            ${clip.episodeTitle ? `
-                                <div class="text-[0.75rem] font-black text-primary/80 uppercase tracking-[0.25em] mb-3 line-clamp-1 blur-in">
-                                    ${clip.episodeTitle}
-                                </div>
-                            ` : ''}
-                            <h3 class="text-xl md:text-2xl font-black text-white line-clamp-2 leading-[1.1] group-hover:text-primary transition-colors duration-300 mb-6 tracking-tight">
-                                ${clip.title}
-                            </h3>
-                            
-                            <div class="mt-auto pt-6 border-t border-white/5 flex items-center justify-end text-zinc-400">
-                                <div class="text-primary font-black text-[0.7rem] uppercase tracking-widest group-hover:translate-x-2 transition-transform duration-300 flex items-center gap-1">
-                                    Ver Ahora <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <a href="/clip/${clip.videoId || ''}" class="absolute inset-0 z-30" aria-label="Ver clip ${clip.title}"></a>
-                    </div>
-                </div>
-            `).join('');
+            wrapper.innerHTML = clips.map(cardHTML).join('');
 
             loading.classList.add('hidden');
             container.classList.remove('hidden');
 
-            new Swiper('.clips-swiper', {
-                modules: [Navigation, Pagination, Autoplay, EffectCoverflow],
-                slidesPerView: 1.1,
-                spaceBetween: 0, // Handled by padding in slides
-                centeredSlides: true,
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            clipsSwiper = new Swiper(container as HTMLElement, {
+                modules: [Navigation, Pagination, Autoplay],
+                slidesPerView: 1.35,
+                spaceBetween: 16,
                 grabCursor: true,
-                loop: true,
-                speed: 800,
-                autoplay: {
-                    delay: 4000,
-                    disableOnInteraction: true,
-                },
+                speed: 600,
+                watchOverflow: true,
+                // `rewind` instead of `loop`: looping duplicates slides, and with only
+                // ~10 clips against 5 visible Swiper ends up rendering blanks.
+                rewind: true,
+                a11y: { enabled: true },
+                autoplay: reducedMotion
+                    ? false
+                    : { delay: 5000, disableOnInteraction: true, pauseOnMouseEnter: true },
                 navigation: {
                     nextEl: '.clip-next',
                     prevEl: '.clip-prev',
@@ -180,27 +554,20 @@
                 pagination: {
                     el: '.clip-pagination',
                     clickable: true,
-                    renderBullet: function (index, className) {
-                        return '<span class="' + className + ' !w-8 !h-1.5 !rounded-full !bg-white/10 !transition-all duration-300 hover:!bg-primary"></span>';
-                    },
                 },
                 breakpoints: {
-                    768: { 
-                        slidesPerView: 2.1,
-                    },
-                    1280: { 
-                        slidesPerView: 3.1,
-                    }
-                }
+                    480: { slidesPerView: 2.2, spaceBetween: 16 },
+                    768: { slidesPerView: 3.2, spaceBetween: 20 },
+                    1024: { slidesPerView: 4.2, spaceBetween: 20 },
+                    1280: { slidesPerView: 5, spaceBetween: 24 },
+                },
             });
-
         } catch (error) {
             console.error('Error loading clips:', error);
-            loading.style.display = 'none';
+            section.classList.add('is-empty');
         }
     }
 
-    // Initialize
     loadClips();
     document.addEventListener('astro:page-load', loadClips);
 </script>
