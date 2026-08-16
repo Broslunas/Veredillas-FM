@@ -22,13 +22,13 @@ import VolumeBar from './VolumeBar.astro';
                 <span class="absolute inset-0 rounded-full border border-white/15 transition-colors duration-500 group-[.playing]:border-primary/60"></span>
                 <span class="btn-ring absolute inset-1 rounded-full border border-white/5"></span>
                 <span class="relative grid h-[calc(100%-1.25rem)] w-[calc(100%-1.25rem)] place-items-center rounded-full border border-white/10 bg-gradient-to-br from-white/[0.12] to-white/[0.02] transition-transform duration-300 group-hover:scale-[1.04] group-active:scale-95 group-[.playing]:from-primary/25 group-[.playing]:to-primary/5">
-                    <svg class="h-8 w-8 translate-x-[2px] text-white group-[.playing]:hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-                    <svg class="hidden h-7 w-7 text-white group-[.playing]:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.2"/><rect x="14" y="4" width="4" height="16" rx="1.2"/></svg>
+                    <svg class="rd-icon-play h-8 w-8 translate-x-[2px] text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                    <svg class="rd-icon-pause h-7 w-7 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.2"/><rect x="14" y="4" width="4" height="16" rx="1.2"/></svg>
                 </span>
             </button>
 
-            <!-- Mobile-only status, sits next to the button before the layout stacks -->
-            <div class="min-w-0 lg:hidden">
+            <!-- Compact status, sits next to the button until the layout splits -->
+            <div class="min-w-0 lg:hidden" data-console-status="compact">
                 <div class="console-eyebrow">
                     <span class="on-air-dot"></span>
                     <span class="music-label">Pulsa para escuchar</span>
@@ -39,7 +39,7 @@ import VolumeBar from './VolumeBar.astro';
 
         <!-- ── Now playing ───────────────────────────────────────── -->
         <div class="min-w-0">
-            <div class="hidden items-center gap-2.5 lg:flex">
+            <div class="flex items-center gap-2.5 max-lg:hidden" data-console-status="wide">
                 <div class="console-eyebrow">
                     <span class="on-air-dot"></span>
                     <span class="music-label">Pulsa para escuchar</span>
@@ -68,7 +68,7 @@ import VolumeBar from './VolumeBar.astro';
         <div class="flex flex-col gap-3">
             <VolumeBar />
 
-            <a href="#cola" class="rd-next group/next" id="rd-next-card">
+            <a href="#cola" class="rd-next group/next" id="rd-next-card" aria-label="Ver la cola de reproducción">
                 <span class="rd-next-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
                 </span>
@@ -115,7 +115,19 @@ import VolumeBar from './VolumeBar.astro';
         opacity: 0.55;
     }
 
-    /* Transport button */
+    /* Transport button — play/pause swap lives here rather than in utility
+       classes because a global `.hidden { display: none !important }` rule
+       (SharedPlayerStyles.css) beats Tailwind's state variants. */
+    .rd-icon-pause {
+        display: none;
+    }
+    .music-btn.playing .rd-icon-play {
+        display: none;
+    }
+    .music-btn.playing .rd-icon-pause {
+        display: block;
+    }
+
     .btn-halo {
         transform: scale(var(--bass-scale, 1));
         transform-origin: center;
@@ -182,6 +194,9 @@ import VolumeBar from './VolumeBar.astro';
         font-size: 0.65rem;
         font-weight: 700;
         color: var(--color-secondary);
+    }
+    .rd-tag[hidden] {
+        display: none;
     }
 
     /* Title marquee — only scrolls when the text actually overflows */

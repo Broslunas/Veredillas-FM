@@ -24,6 +24,7 @@ const tabs = [
                     class="rd-tab"
                     role="tab"
                     data-tab={tab.id}
+                    aria-label={tab.label}
                     aria-selected={i === 0 ? 'true' : 'false'}
                     aria-controls={`rd-panel-${tab.id}`}
                 >

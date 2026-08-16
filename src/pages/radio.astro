@@ -5,8 +5,10 @@ import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
 
 import RadioBackground from '@/components/radio/RadioBackground.astro';
-import MainPlayer from '@/components/radio/MainPlayer.astro';
-import SidebarQueue from '@/components/radio/SidebarQueue.astro';
+import OnAirConsole from '@/components/radio/OnAirConsole.astro';
+import RadioBrowser from '@/components/radio/RadioBrowser.astro';
+import StationAside from '@/components/radio/StationAside.astro';
+import ShareStoryCard from '@/components/radio/ShareStoryCard.astro';
 import DJPanelModal from '@/components/radio/DJPanelModal.astro';
 import ImportSongModal from '@/components/radio/ImportSongModal.astro';
 import ListenerCount from '@/components/ListenerCount.astro';
@@ -29,324 +31,824 @@ if (userPayload) {
 }
 ---
 
-<Layout title="Radio En Directo | Veredillas FM" description="Escucha la emisión en directo de Veredillas FM.">
-  <main class="min-h-[calc(100vh-80px)] py-10 md:py-16 px-4 flex items-center justify-center bg-[#030304] relative overflow-hidden">
-
+<Layout title="Radio en directo" description="Escucha la emisión en directo de Veredillas FM: qué suena ahora, la cola de reproducción y toda la biblioteca de la emisora.">
     <RadioBackground />
 
-    <div class="radio-page-container relative z-10 w-full max-w-6xl mx-auto flex flex-col items-center gap-6" data-is-registered={isRegistered.toString()} data-is-admin={isAdmin.toString()}>
+    <div
+        class="radio-shell container relative z-10 pb-24 pt-6 md:pt-10"
+        data-is-registered={isRegistered.toString()}
+        data-is-admin={isAdmin.toString()}
+    >
+        <!-- ── Page head ─────────────────────────────────────────── -->
+        <header class="mb-6 flex flex-col gap-6 md:mb-8 md:flex-row md:items-end md:justify-between">
+            <div class="min-w-0">
+                <p class="mb-3 text-[0.68rem] font-extrabold uppercase tracking-[0.22em] text-gray-500">
+                    Veredillas FM · Emisión continua
+                </p>
+                <h1 class="font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                    Radio <span class="text-gradient">en directo</span>
+                </h1>
+                <p class="mt-3 max-w-xl text-sm text-gray-400 sm:text-base">
+                    Sonando 24/7 desde el IES Las Veredillas. Dale al play, mira qué viene después
+                    y bucea en la biblioteca de la emisora.
+                </p>
+            </div>
 
-        <div class="w-full flex justify-center sm:justify-end">
-            <ListenerCount onlyCurrentPath={true} />
+            <div class="ep-chip-row md:justify-end">
+                <ListenerCount onlyCurrentPath={true} />
+
+                <button
+                    type="button"
+                    class="ep-chip voice-toggle-btn enabled"
+                    aria-pressed="true"
+                    title="Locutor: ON"
+                    aria-label="Activar o desactivar la voz del locutor"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                    <span class="ep-chip-label">Locutor</span>
+                </button>
+
+                <button type="button" class="ep-chip cinema-toggle-btn" title="Modo cine" aria-label="Activar el modo cine">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                    <span class="ep-chip-label">Cine</span>
+                </button>
+
+                <button type="button" class="ep-chip share-btn" title="Descargar historia para Instagram" aria-label="Descargar una historia con la canción actual">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+                    <span class="ep-chip-label">Compartir</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ── On-air console (the only thing left in cinema mode) ─ -->
+        <div class="radio-stage">
+            <OnAirConsole />
+
+            <button type="button" class="cinema-exit-btn" aria-label="Salir del modo cine">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <span class="text-xs font-bold">Salir</span>
+            </button>
         </div>
 
-        <div class="w-full flex flex-col lg:flex-row gap-6 items-center lg:items-start justify-center">
-            <MainPlayer isRegistered={isRegistered} />
-            <SidebarQueue isAdmin={isAdmin} />
+        <!-- ── Browser + station panel ───────────────────────────── -->
+        <div class="mt-4 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
+            <RadioBrowser isRegistered={isRegistered} isAdmin={isAdmin} />
+            <StationAside isRegistered={isRegistered} isAdmin={isAdmin} />
         </div>
 
+        <ShareStoryCard />
         <DJPanelModal isRegistered={isRegistered} isAdmin={isAdmin} />
-
         <ImportSongModal isRegistered={isRegistered} isAdmin={isAdmin} />
-
     </div>
-  </main>
 </Layout>
+
+<style is:global>
+    /* ── Header chips ──────────────────────────────────────────── */
+    .radio-shell .voice-toggle-btn.enabled {
+        border-color: rgba(var(--color-primary-rgb), 0.4);
+        background: rgba(var(--color-primary-rgb), 0.12);
+        color: var(--color-primary);
+    }
+    .radio-shell .voice-toggle-btn.enabled:hover {
+        background: rgba(var(--color-primary-rgb), 0.2);
+    }
+    body.radio-cinema .cinema-toggle-btn,
+    .radio-shell .cinema-toggle-btn:hover {
+        color: #fff;
+    }
+
+    /* ── Cinema mode ───────────────────────────────────────────────
+       Everything but the console steps aside; no inline styles so
+       leaving the mode is a single class removal. */
+    .cinema-exit-btn {
+        display: none;
+    }
+
+    body.radio-cinema #site-header,
+    body.radio-cinema > footer,
+    body.radio-cinema #chatbox-root {
+        display: none !important;
+    }
+
+    body.radio-cinema > main {
+        padding-top: 0 !important;
+    }
+
+    body.radio-cinema .radio-shell {
+        max-width: none;
+        padding: 0;
+    }
+
+    body.radio-cinema .radio-shell > *:not(.radio-stage) {
+        display: none !important;
+    }
+
+    body.radio-cinema .radio-stage {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: grid;
+        place-items: center;
+        padding: clamp(1rem, 4vw, 4rem);
+    }
+
+    body.radio-cinema .radio-stage .on-air-console {
+        width: 100%;
+        max-width: 68rem;
+    }
+
+    body.radio-cinema .cinema-exit-btn {
+        position: fixed;
+        top: 1.25rem;
+        right: 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 0.5rem 0.9rem;
+        color: var(--color-text-muted);
+        backdrop-filter: blur(12px);
+        cursor: pointer;
+        transition: color 0.2s ease, background 0.2s ease;
+    }
+    body.radio-cinema .cinema-exit-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+    }
+</style>
 
 <script>
     import * as htmlToImage from 'html-to-image';
     import { welcomePhrases, transitionPhrases, fallbackPhrases } from '@/utils/radioPhrases';
 
-    class RadioPlayerMinimal {
+    const RADIO_API = 'https://radio.veredillasfm.es';
+    const POLL_MS = 6000;
+    const LIBRARY_PAGE = 80;
+
+    interface Track {
+        title: string;
+        key?: string;
+        genre?: string;
+        playlist?: string;
+        duration?: number;
+    }
+
+    function formatTime(seconds: number): string {
+        if (!seconds || !isFinite(seconds) || seconds < 0) return '--:--';
+        const total = Math.floor(seconds);
+        const m = Math.floor(total / 60);
+        const s = total % 60;
+        if (m >= 60) {
+            const h = Math.floor(m / 60);
+            return `${h}:${String(m % 60).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+        return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function formatLongDuration(seconds: number): string {
+        if (!seconds || !isFinite(seconds)) return '–';
+        const h = Math.floor(seconds / 3600);
+        const m = Math.round((seconds % 3600) / 60);
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
+    }
+
+    /** Library titles come in as "Song - Artist"; split on the first separator. */
+    function splitTitle(raw: string): { title: string; artist: string } {
+        if (!raw) return { title: '', artist: '' };
+        const parts = raw.split(' - ');
+        if (parts.length > 1) {
+            return { title: parts[0].trim(), artist: parts.slice(1).join(' - ').trim() };
+        }
+        return { title: raw.trim(), artist: '' };
+    }
+
+    function escapeHtml(value: string): string {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    class RadioStation {
         el: HTMLElement;
+        isRegistered: boolean;
+        isAdmin: boolean;
+
+        // Playback
         audio: HTMLAudioElement | null;
-        musicBtn: HTMLElement | null;
-        musicLabel: HTMLElement | null;
+        playBtn: HTMLElement | null;
+        statusLabels: NodeListOf<HTMLElement>;
         volumeSlider: HTMLInputElement | null;
-        volumeContainer: HTMLElement | null;
-        isPlaying: boolean = false;
-        hasPlayedTTS: boolean = false;
+        volumeMuteBtn: HTMLElement | null;
+        volumeValue: HTMLElement | null;
+        isPlaying = false;
+        lastVolume = 0.5;
 
-        isRegistered: boolean = false;
-        isAdmin: boolean = false;
-
-        // UI toggles
-        cinemaBtn: HTMLElement | null;
-        shareBtn: HTMLElement | null;
-
-        // Web Audio API
+        // Web Audio
         audioContext: AudioContext | null = null;
         analyser: AnalyserNode | null = null;
         source: MediaElementAudioSourceNode | null = null;
-        dataArray: Uint8Array | null = null;
-        visualizerReqId: number | null = null;
+        freqData: Uint8Array | null = null;
+        rafId: number | null = null;
+        spectrum: HTMLCanvasElement | null;
+        spectrumCtx: CanvasRenderingContext2D | null = null;
 
-        // DJ AI Status
-        currentSongTitle: string = '';
-        nextSongTimeoutId: number | null = null;
-        lastKnownQueue: any[] = [];
+        // Now playing
+        titleEl: HTMLElement | null;
+        titleMarquee: HTMLElement | null;
+        artistEl: HTMLElement | null;
+        playlistTag: HTMLElement | null;
+        elapsedEl: HTMLElement | null;
+        durationEl: HTMLElement | null;
+        progressTrack: HTMLElement | null;
+        progressFill: HTMLElement | null;
+        nextTitleEl: HTMLElement | null;
 
-        // DJ Panel elements
-        djTriggerBtn: HTMLElement | null;
+        currentKey = '';
+        currentSongTitle = '';
+        currentDuration = 0;
+        songStartedAt: number | null = null;
+        progressTimer: number | undefined;
+
+        // Data
+        queue: Track[] = [];
+        history: Track[] = [];
+        library: Track[] = [];
+        playlists: { name: string; count: number }[] = [];
+        libraryRendered = false;
+        queueSignature = '';
+        historySignature = '';
+        mixRendered = false;
+
+        // Browser UI
+        tabButtons: NodeListOf<HTMLElement>;
+        panels: Record<string, HTMLElement | null> = {};
+        counts: Record<string, HTMLElement | null> = {};
+        libraryToolbar: HTMLElement | null;
+        librarySearch: HTMLInputElement | null;
+        libraryChips: HTMLElement | null;
+        activeTab = 'queue';
+        libraryQuery = '';
+        libraryPlaylist = 'all';
+        librarySearchTimer: number | undefined;
+
+        // Station aside
+        stationStatus: HTMLElement | null;
+        stationStatusText: HTMLElement | null;
+        statLabels: Record<string, HTMLElement | null> = {};
+        modeLoop: HTMLElement | null;
+        modeShuffle: HTMLElement | null;
+        playlistMix: HTMLElement | null;
+
+        // DJ panel
         djModalOverlay: HTMLElement | null;
-        djCloseBtn: HTMLElement | null;
-
         djStatusBadge: HTMLElement | null;
         djCurrentSong: HTMLElement | null;
-        djBtnPlay: HTMLElement | null;
-        djBtnStop: HTMLElement | null;
-        djBtnSkip: HTMLElement | null;
-        djBtnSync: HTMLElement | null;
         djSearchInput: HTMLInputElement | null;
-        djBtnSearch: HTMLElement | null;
         djResultsList: HTMLElement | null;
         djPlaylistInput: HTMLInputElement | null;
-        djBtnPlaylist: HTMLElement | null;
         djSettingLoop: HTMLInputElement | null;
         djSettingShuffle: HTMLInputElement | null;
-        djCookiesFile: HTMLInputElement | null;
-        djBtnClearQueue: HTMLElement | null;
-        djQueueList: HTMLElement | null;
-        djQueueCount: HTMLElement | null;
 
-        publicQueueList: HTMLElement | null;
+        // Locutor (TTS)
+        hasPlayedWelcome = false;
+        nextSongTimeoutId: number | null = null;
+        ttsSettings = { enabled: true, voice: 'aura-2-selena-es' };
 
-        pollInterval: number | undefined;
-
-        // Settings
-        ttsSettings = {
-            enabled: true,
-            voice: 'aura-2-selena-es'
-        };
+        pollTimer: number | undefined;
+        isFetching = false;
+        cleanups: Array<() => void> = [];
 
         constructor(el: HTMLElement) {
             this.el = el;
-
             this.isRegistered = el.dataset.isRegistered === 'true';
             this.isAdmin = el.dataset.isAdmin === 'true';
 
             this.audio = el.querySelector('.waiting-music');
-            this.musicBtn = el.querySelector('.music-toggle-btn');
-            this.musicLabel = el.querySelector('.music-label');
+            this.playBtn = el.querySelector('.music-toggle-btn');
+            this.statusLabels = el.querySelectorAll('.music-label');
             this.volumeSlider = el.querySelector('.volume-slider');
-            this.volumeContainer = el.querySelector('.vertical-volume-container');
+            this.volumeMuteBtn = el.querySelector('.volume-mute-btn');
+            this.volumeValue = el.querySelector('.volume-value');
+            this.spectrum = el.querySelector('.console-spectrum');
 
-            this.cinemaBtn = el.querySelector('.cinema-toggle-btn');
-            this.shareBtn = el.querySelector('.share-btn');
+            this.titleEl = el.querySelector('#rd-track-title');
+            this.titleMarquee = el.querySelector('#rd-title-marquee');
+            this.artistEl = el.querySelector('#rd-track-artist');
+            this.playlistTag = el.querySelector('#rd-playlist-tag');
+            this.elapsedEl = el.querySelector('#rd-elapsed');
+            this.durationEl = el.querySelector('#rd-duration');
+            this.progressTrack = el.querySelector('#rd-progress-track');
+            this.progressFill = el.querySelector('#rd-progress-fill');
+            this.nextTitleEl = el.querySelector('#rd-next-title');
 
-            this.djTriggerBtn = el.querySelector('#dj-trigger-btn');
+            this.tabButtons = el.querySelectorAll('.rd-tab');
+            this.panels = {
+                queue: el.querySelector('#rd-panel-queue'),
+                history: el.querySelector('#rd-panel-history'),
+                library: el.querySelector('#rd-panel-library'),
+            };
+            this.counts = {
+                queue: el.querySelector('#rd-count-queue'),
+                history: el.querySelector('#rd-count-history'),
+                library: el.querySelector('#rd-count-library'),
+            };
+            this.libraryToolbar = el.querySelector('#rd-library-toolbar');
+            this.librarySearch = el.querySelector('#rd-library-search');
+            this.libraryChips = el.querySelector('#rd-library-playlists');
+
+            this.stationStatus = el.querySelector('#rd-station-status');
+            this.stationStatusText = el.querySelector('#rd-station-status-text');
+            this.statLabels = {
+                queue: el.querySelector('#rd-stat-queue'),
+                library: el.querySelector('#rd-stat-library'),
+                playlists: el.querySelector('#rd-stat-playlists'),
+                runtime: el.querySelector('#rd-stat-runtime'),
+            };
+            this.modeLoop = el.querySelector('#rd-mode-loop');
+            this.modeShuffle = el.querySelector('#rd-mode-shuffle');
+            this.playlistMix = el.querySelector('#rd-playlist-mix');
+
             this.djModalOverlay = el.querySelector('#dj-modal-overlay');
-            this.djCloseBtn = el.querySelector('#dj-close-btn');
-
             this.djStatusBadge = el.querySelector('#dj-status-badge');
             this.djCurrentSong = el.querySelector('#dj-current-song');
-            this.djBtnPlay = el.querySelector('#dj-btn-play');
-            this.djBtnStop = el.querySelector('#dj-btn-stop');
-            this.djBtnSkip = el.querySelector('#dj-btn-skip');
-            this.djBtnSync = el.querySelector('#dj-btn-sync');
             this.djSearchInput = el.querySelector('#dj-search-input');
-            this.djBtnSearch = el.querySelector('#dj-btn-search');
             this.djResultsList = el.querySelector('#dj-results-list');
             this.djPlaylistInput = el.querySelector('#dj-playlist-input');
-            this.djBtnPlaylist = el.querySelector('#dj-btn-playlist');
             this.djSettingLoop = el.querySelector('#dj-setting-loop');
             this.djSettingShuffle = el.querySelector('#dj-setting-shuffle');
-            this.djCookiesFile = el.querySelector('#dj-cookies-file');
-            this.djBtnClearQueue = el.querySelector('#dj-btn-clear-queue');
-            this.djQueueList = el.querySelector('#dj-queue-list');
-            this.djQueueCount = el.querySelector('#dj-queue-count');
-
-            this.publicQueueList = el.querySelector('#public-queue-list');
 
             this.loadSettings();
             this.setupAudio();
-            this.setupVoiceSettings();
+            this.setupVolume();
+            this.setupVoiceToggle();
             this.setupCinemaMode();
             this.setupShareCard();
-            if (this.isRegistered) {
-                this.setupDJControls();
-            }
-            this.setupMediaSessionHandlers();
+            this.setupBrowser();
+            this.setupMarqueeResize();
+            this.setupMediaSession();
+            if (this.isRegistered) this.setupDJControls();
 
-            // Iniciar polling global para la cola pública y status de radio
+            this.progressTimer = window.setInterval(() => this.renderProgress(), 500);
+            this.startPolling();
             this.pollStatus();
-            this.pollInterval = window.setInterval(() => this.pollStatus(), 5000);
         }
+
+        /* ─────────────────────────── Settings ─────────────────── */
+
+        loadSettings() {
+            const saved = localStorage.getItem('veredillas_tts_settings');
+            if (saved) {
+                try {
+                    this.ttsSettings = { ...this.ttsSettings, ...JSON.parse(saved) };
+                } catch (e) {
+                    console.error('Error loading TTS settings', e);
+                }
+            }
+            this.applyVoiceUI();
+
+            const savedVolume = parseFloat(localStorage.getItem('veredillas_radio_volume') || '');
+            if (!isNaN(savedVolume) && savedVolume >= 0 && savedVolume <= 1) {
+                this.lastVolume = savedVolume;
+            }
+        }
+
+        saveSettings() {
+            localStorage.setItem('veredillas_tts_settings', JSON.stringify(this.ttsSettings));
+        }
+
+        setStatusLabel(text: string) {
+            this.statusLabels.forEach((node) => (node.textContent = text));
+        }
+
+        /* ─────────────────────────── Playback ─────────────────── */
+
+        setupAudio() {
+            if (!this.audio || !this.playBtn) return;
+
+            this.playBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.togglePlayback();
+            });
+
+            this.audio.addEventListener('error', () => {
+                if (!this.audio?.src) return; // ignore the empty-source error on first paint
+                this.isPlaying = false;
+                this.playBtn?.classList.remove('playing');
+                this.setStatusLabel('Sin conexión');
+                this.setEnergy(0);
+            });
+
+            this.audio.addEventListener('stalled', () => this.setStatusLabel('Recuperando señal…'));
+            this.audio.addEventListener('playing', () => {
+                if (this.isPlaying) this.setStatusLabel('Emitiendo en directo');
+            });
+        }
+
+        togglePlayback() {
+            if (!this.audio || !this.playBtn) return;
+
+            if (this.isPlaying) {
+                this.audio.pause();
+                this.audio.removeAttribute('src');
+                this.audio.load();
+                this.isPlaying = false;
+                this.playBtn.classList.remove('playing');
+                this.setStatusLabel('Pulsa para escuchar');
+                this.setEnergy(0);
+                if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+                return;
+            }
+
+            this.setStatusLabel('Conectando…');
+            this.audio.src = `${RADIO_API}/stream?t=${Date.now()}`;
+            this.audio.volume = this.lastVolume;
+
+            this.audio
+                .play()
+                .then(() => {
+                    this.isPlaying = true;
+                    this.playBtn!.classList.add('playing');
+                    this.setStatusLabel('Emitiendo en directo');
+                    this.initVisualizer();
+                    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+                    this.playWelcome();
+                })
+                .catch((err) => {
+                    console.error('Audio play failed:', err);
+                    this.isPlaying = false;
+                    this.playBtn!.classList.remove('playing');
+                    this.setStatusLabel('No disponible');
+                    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+                });
+        }
+
+        setupVolume() {
+            if (!this.volumeSlider) return;
+
+            this.applyVolume(this.lastVolume, false);
+
+            this.volumeSlider.addEventListener('input', (e) => {
+                this.applyVolume(parseFloat((e.target as HTMLInputElement).value));
+            });
+
+            this.volumeMuteBtn?.addEventListener('click', () => {
+                const current = this.audio?.volume ?? this.lastVolume;
+                this.applyVolume(current > 0 ? 0 : this.lastVolume || 0.5);
+            });
+        }
+
+        applyVolume(value: number, persist = true) {
+            const volume = Math.min(1, Math.max(0, value));
+            if (this.audio) this.audio.volume = volume;
+            if (this.volumeSlider) {
+                this.volumeSlider.value = volume.toString();
+                this.volumeSlider.style.setProperty('--vol', `${volume * 100}%`);
+            }
+            if (this.volumeValue) this.volumeValue.textContent = Math.round(volume * 100).toString();
+
+            const waves = this.el.querySelector('.volume-waves') as HTMLElement | null;
+            const outer = this.el.querySelector('.volume-waves-outer') as HTMLElement | null;
+            if (waves) waves.style.opacity = volume === 0 ? '0' : '1';
+            if (outer) outer.style.opacity = volume < 0.5 ? '0' : '1';
+
+            if (persist && volume > 0) {
+                this.lastVolume = volume;
+                localStorage.setItem('veredillas_radio_volume', volume.toString());
+            }
+        }
+
+        async fadeVolume(audio: HTMLAudioElement, target: number, duration: number) {
+            const start = audio.volume;
+            const diff = target - start;
+            const startTime = performance.now();
+
+            return new Promise<void>((resolve) => {
+                const tick = (now: number) => {
+                    const progress = Math.min((now - startTime) / duration, 1);
+                    audio.volume = Math.min(1, Math.max(0, start + diff * progress));
+                    if (progress < 1) requestAnimationFrame(tick);
+                    else resolve();
+                };
+                requestAnimationFrame(tick);
+            });
+        }
+
+        /* ─────────────────────────── Visualiser ───────────────── */
 
         initVisualizer() {
-            if (this.audioContext) return;
+            if (this.audioContext) {
+                if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                return;
+            }
 
-            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-            if (!AudioContext) return;
+            const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+            if (!Ctx || !this.audio) return;
 
             try {
-                this.audioContext = new AudioContext();
+                this.audioContext = new Ctx();
                 this.analyser = this.audioContext.createAnalyser();
-
-                if (this.audio) {
-                    this.source = this.audioContext.createMediaElementSource(this.audio);
-                    this.source.connect(this.analyser);
-                    this.analyser.connect(this.audioContext.destination);
-                }
-
                 this.analyser.fftSize = 256;
-                const bufferLength = this.analyser.frequencyBinCount;
-                this.dataArray = new Uint8Array(bufferLength);
+                this.analyser.smoothingTimeConstant = 0.78;
 
-                const visualize = () => {
-                    if (!this.analyser || !this.dataArray || !this.isPlaying) {
-                        this.visualizerReqId = requestAnimationFrame(visualize);
-                        return;
-                    }
+                this.source = this.audioContext.createMediaElementSource(this.audio);
+                this.source.connect(this.analyser);
+                this.analyser.connect(this.audioContext.destination);
 
-                    this.analyser.getByteFrequencyData(this.dataArray);
+                this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
+                this.spectrumCtx = this.spectrum?.getContext('2d') ?? null;
 
-                    let sum = 0;
-                    for (let i = 0; i < 8; i++) {
-                        sum += this.dataArray[i];
-                    }
-                    const avgBass = sum / 8;
-
-                    const scale = 1 + (avgBass / 255) * 0.4;
-                    document.documentElement.style.setProperty('--bass-scale', scale.toString());
-
-                    this.visualizerReqId = requestAnimationFrame(visualize);
-                };
-
-                visualize();
+                this.renderFrame();
             } catch (err) {
-                console.error("Web Audio API Error:", err);
+                console.error('Web Audio API error:', err);
             }
         }
 
-        setupMediaSessionHandlers() {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.setActionHandler('play', () => {
-                    if (!this.isPlaying) this.toggleMusic();
-                });
-                navigator.mediaSession.setActionHandler('pause', () => {
-                    if (this.isPlaying) this.toggleMusic();
-                });
-                navigator.mediaSession.setActionHandler('stop', () => {
-                    if (this.isPlaying) this.toggleMusic();
-                });
+        renderFrame = () => {
+            this.rafId = requestAnimationFrame(this.renderFrame);
+            if (!this.analyser || !this.freqData) return;
+
+            if (!this.isPlaying) {
+                this.setEnergy(0);
+                this.clearSpectrum();
+                return;
             }
+
+            this.analyser.getByteFrequencyData(this.freqData as any);
+
+            let bass = 0;
+            for (let i = 0; i < 8; i++) bass += this.freqData[i];
+            bass /= 8;
+
+            let total = 0;
+            for (let i = 0; i < this.freqData.length; i++) total += this.freqData[i];
+            const average = total / this.freqData.length;
+
+            this.setEnergy(average / 255, bass / 255);
+            this.drawSpectrum();
+        };
+
+        setEnergy(energy: number, bass = 0) {
+            const root = document.documentElement;
+            root.style.setProperty('--rd-energy', energy.toFixed(3));
+            root.style.setProperty('--bass-scale', (1 + bass * 0.35).toFixed(3));
+        }
+
+        clearSpectrum() {
+            if (!this.spectrum || !this.spectrumCtx) return;
+            this.spectrumCtx.clearRect(0, 0, this.spectrum.width, this.spectrum.height);
+        }
+
+        drawSpectrum() {
+            const canvas = this.spectrum;
+            const ctx = this.spectrumCtx;
+            if (!canvas || !ctx || !this.freqData) return;
+
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            if (!width || !height) return;
+
+            if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+                canvas.width = Math.round(width * dpr);
+                canvas.height = Math.round(height * dpr);
+            }
+
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, width, height);
+
+            const bars = Math.max(24, Math.min(72, Math.floor(width / 14)));
+            const gap = 2;
+            const barWidth = (width - gap * (bars - 1)) / bars;
+            const usableBins = Math.floor(this.freqData.length * 0.72);
+
+            const gradient = ctx.createLinearGradient(0, height, 0, 0);
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.95)');
+            gradient.addColorStop(0.55, 'rgba(14, 165, 233, 0.75)');
+            gradient.addColorStop(1, 'rgba(236, 72, 153, 0.35)');
+            ctx.fillStyle = gradient;
+
+            for (let i = 0; i < bars; i++) {
+                const from = Math.floor((i / bars) * usableBins);
+                const to = Math.max(from + 1, Math.floor(((i + 1) / bars) * usableBins));
+                let peak = 0;
+                for (let b = from; b < to; b++) peak = Math.max(peak, this.freqData[b]);
+
+                const barHeight = Math.max(2, (peak / 255) * height);
+                const x = i * (barWidth + gap);
+                const y = height - barHeight;
+                const radius = Math.min(barWidth / 2, 3);
+
+                if (typeof ctx.roundRect === 'function') {
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, barWidth, barHeight, [radius, radius, 0, 0]);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(x, y, barWidth, barHeight);
+                }
+            }
+        }
+
+        /* ─────────────────────── Now playing UI ───────────────── */
+
+        applyNowPlaying(meta: any, isLive: boolean) {
+            const raw = isLive && meta?.title ? meta.title : '';
+            const { title, artist } = splitTitle(raw);
+
+            if (this.titleEl) {
+                const nextTitle = title || 'Veredillas FM';
+                if (this.titleEl.textContent !== nextTitle) {
+                    this.titleEl.textContent = nextTitle;
+                    this.titleEl.title = raw || 'Veredillas FM';
+                    this.refreshMarquee();
+                }
+            }
+
+            if (this.artistEl) {
+                this.artistEl.textContent =
+                    artist || (raw ? 'Veredillas FM' : 'La radio hecha por y para los alumnos del IES Las Veredillas');
+            }
+
+            if (this.playlistTag) {
+                const list = isLive ? meta?.playlist : '';
+                this.playlistTag.textContent = list || '';
+                this.playlistTag.hidden = !list;
+            }
+
+            this.currentDuration = isLive && meta?.duration ? meta.duration : 0;
+            this.renderProgress();
+        }
+
+        refreshMarquee() {
+            const wrap = this.titleMarquee;
+            const text = this.titleEl;
+            if (!wrap || !text) return;
+
+            wrap.classList.remove('is-scrolling');
+            wrap.querySelectorAll('.rd-marquee-clone').forEach((node) => node.remove());
+
+            requestAnimationFrame(() => {
+                const inner = wrap.querySelector('.rd-marquee-inner');
+                if (!inner || text.scrollWidth <= wrap.clientWidth + 4) return;
+
+                const clone = text.cloneNode(true) as HTMLElement;
+                clone.removeAttribute('id');
+                clone.classList.add('rd-marquee-clone');
+                clone.setAttribute('aria-hidden', 'true');
+                inner.appendChild(clone);
+
+                // ~60px/s reads comfortably; the loop travels one copy (text + gap)
+                wrap.style.setProperty('--marquee-duration', `${Math.max(10, (text.scrollWidth + 48) / 60)}s`);
+                wrap.classList.add('is-scrolling');
+            });
+        }
+
+        /** A title that fits on desktop can overflow once the layout narrows. */
+        setupMarqueeResize() {
+            let timer: number | undefined;
+            const onResize = () => {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(() => this.refreshMarquee(), 200);
+            };
+            window.addEventListener('resize', onResize);
+            this.cleanups.push(() => {
+                window.clearTimeout(timer);
+                window.removeEventListener('resize', onResize);
+            });
+        }
+
+        renderProgress() {
+            const duration = this.currentDuration;
+
+            if (this.durationEl) this.durationEl.textContent = duration ? formatTime(duration) : '--:--';
+
+            const known = this.songStartedAt !== null && duration > 0;
+            this.progressTrack?.classList.toggle('is-indeterminate', !known);
+
+            if (!known) {
+                if (this.elapsedEl) this.elapsedEl.textContent = '--:--';
+                this.progressTrack?.removeAttribute('aria-valuenow');
+                return;
+            }
+
+            const elapsed = Math.min((Date.now() - (this.songStartedAt as number)) / 1000, duration);
+            const percent = Math.min(100, (elapsed / duration) * 100);
+
+            if (this.elapsedEl) this.elapsedEl.textContent = formatTime(elapsed);
+            if (this.progressFill) this.progressFill.style.width = `${percent}%`;
+            this.progressTrack?.setAttribute('aria-valuenow', Math.round(percent).toString());
+
+            if ('mediaSession' in navigator && this.isPlaying && navigator.mediaSession.setPositionState) {
+                try {
+                    navigator.mediaSession.setPositionState({ duration, position: elapsed, playbackRate: 1 });
+                } catch (e) {
+                    /* position state is best-effort */
+                }
+            }
+        }
+
+        /* ─────────────────────── Media Session ────────────────── */
+
+        setupMediaSession() {
+            if (!('mediaSession' in navigator)) return;
+            navigator.mediaSession.setActionHandler('play', () => {
+                if (!this.isPlaying) this.togglePlayback();
+            });
+            navigator.mediaSession.setActionHandler('pause', () => {
+                if (this.isPlaying) this.togglePlayback();
+            });
+            navigator.mediaSession.setActionHandler('stop', () => {
+                if (this.isPlaying) this.togglePlayback();
+            });
         }
 
         updateMediaSession(fullTitle: string) {
-            if ('mediaSession' in navigator && fullTitle) {
-                let title = fullTitle;
-                let artist = 'Veredillas FM';
+            if (!('mediaSession' in navigator) || !fullTitle) return;
+            const { title, artist } = splitTitle(fullTitle);
 
-                // Intentar separar artista y título si vienen con guion
-                const parts = fullTitle.split(' - ');
-                if (parts.length > 1) {
-                    title = parts[0].trim();
-                    artist = parts.slice(1).join(' - ').trim();
-                }
-
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: title,
-                    artist: artist,
-                    album: 'Radio en Directo',
-                    artwork: [
-                        { src: '/logo.webp', sizes: '96x96', type: 'image/webp' },
-                        { src: '/logo.webp', sizes: '128x128', type: 'image/webp' },
-                        { src: '/logo.webp', sizes: '192x192', type: 'image/webp' },
-                        { src: '/logo.webp', sizes: '512x512', type: 'image/webp' },
-                    ]
-                });
-            }
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: title || fullTitle,
+                artist: artist || 'Veredillas FM',
+                album: 'Radio en directo',
+                artwork: [96, 128, 192, 512].map((size) => ({
+                    src: '/logo.webp',
+                    sizes: `${size}x${size}`,
+                    type: 'image/webp',
+                })),
+            });
         }
+
+        /* ─────────────────────── Cinema mode ──────────────────── */
 
         setupCinemaMode() {
-            if (!this.cinemaBtn) return;
+            const toggle = this.el.querySelector('.cinema-toggle-btn');
+            const exit = this.el.querySelector('.cinema-exit-btn');
+            if (!toggle) return;
 
-            this.cinemaBtn.addEventListener('click', () => {
-                const isCinema = document.body.classList.contains('cinema-mode');
-                const header = document.querySelector('header');
-                const footer = document.querySelector('footer');
-                const main = document.querySelector('main');
-                const countdown = this.el.querySelector('.premiere-countdown');
-                const sidebar = this.el.parentElement?.querySelector('.queue-sidebar');
-                const djBtn = this.el.querySelector('#dj-trigger-btn');
+            const enter = () => {
+                document.body.classList.add('radio-cinema');
+                document.documentElement.requestFullscreen?.().catch(() => {});
+            };
 
-                if (isCinema) {
-                    document.body.classList.remove('cinema-mode');
-                    if (header) (header as HTMLElement).style.display = '';
-                    if (footer) (footer as HTMLElement).style.display = '';
-                    if (main) {
-                        (main as HTMLElement).style.minHeight = '';
-                        (main as HTMLElement).style.padding = '';
-                    }
-                    if (countdown) {
-                        (countdown as HTMLElement).style.boxShadow = '';
-                        (countdown as HTMLElement).style.border = '';
-                        (countdown as HTMLElement).style.background = '';
-                        (countdown as HTMLElement).style.transform = '';
-                    }
-                    if (sidebar) (sidebar as HTMLElement).style.display = '';
-                    if (djBtn) (djBtn as HTMLElement).style.display = '';
+            const leave = () => {
+                document.body.classList.remove('radio-cinema');
+                if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            };
 
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen().catch(err => console.error(err));
-                    }
-                } else {
-                    document.body.classList.add('cinema-mode');
-                    if (header) (header as HTMLElement).style.display = 'none';
-                    if (footer) (footer as HTMLElement).style.display = 'none';
-                    if (main) {
-                        (main as HTMLElement).style.minHeight = '100vh';
-                        (main as HTMLElement).style.padding = '0';
-                    }
-                    if (countdown) {
-                        (countdown as HTMLElement).style.boxShadow = 'none';
-                        (countdown as HTMLElement).style.border = 'none';
-                        (countdown as HTMLElement).style.background = 'transparent';
-                        (countdown as HTMLElement).style.transform = 'scale(1.1)';
-                    }
-                    if (sidebar) (sidebar as HTMLElement).style.display = 'none';
-                    if (djBtn) (djBtn as HTMLElement).style.display = 'none';
-
-                    document.documentElement.requestFullscreen().catch(err => console.error(err));
-                }
+            toggle.addEventListener('click', () => {
+                if (document.body.classList.contains('radio-cinema')) leave();
+                else enter();
             });
+            exit?.addEventListener('click', leave);
 
-            document.addEventListener('fullscreenchange', () => {
-                if (!document.fullscreenElement) {
-                    const isCinema = document.body.classList.contains('cinema-mode');
-                    if(isCinema) this.cinemaBtn?.click();
-                }
+            const onFullscreenChange = () => {
+                if (!document.fullscreenElement) document.body.classList.remove('radio-cinema');
+            };
+            const onKeyDown = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') document.body.classList.remove('radio-cinema');
+            };
+
+            document.addEventListener('fullscreenchange', onFullscreenChange);
+            document.addEventListener('keydown', onKeyDown);
+            this.cleanups.push(() => {
+                document.removeEventListener('fullscreenchange', onFullscreenChange);
+                document.removeEventListener('keydown', onKeyDown);
+                document.body.classList.remove('radio-cinema');
             });
         }
 
-        setupShareCard() {
-            if (!this.shareBtn) return;
+        /* ─────────────────────── Share story ──────────────────── */
 
-            this.shareBtn.addEventListener('click', async () => {
+        setupShareCard() {
+            const shareBtn = this.el.querySelector('.share-btn') as HTMLElement | null;
+            if (!shareBtn) return;
+
+            shareBtn.addEventListener('click', async () => {
                 const template = document.getElementById('share-card-template');
                 const titleEl = document.getElementById('share-song-title');
-
+                const artistEl = document.getElementById('share-song-artist');
                 if (!template || !titleEl) return;
 
-                // Animación de loading en el botón
-                const originalHTML = this.shareBtn!.innerHTML;
-                this.shareBtn!.innerHTML = `<svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+                const originalHTML = shareBtn.innerHTML;
+                shareBtn.classList.add('is-loading');
+                shareBtn.innerHTML =
+                    '<svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
 
-                titleEl.textContent = this.currentSongTitle || "Veredillas FM Radio";
+                const { title, artist } = splitTitle(this.currentSongTitle);
+                titleEl.textContent = title || 'Veredillas FM Radio';
+                if (artistEl) artistEl.textContent = artist;
 
                 template.style.top = '0';
                 template.style.left = '0';
                 template.style.zIndex = '-99';
-                template.style.opacity = '1';
 
                 try {
-                    const dataUrl = await htmlToImage.toPng(template, {
-                        quality: 0.95,
-                        width: 1080,
-                        height: 1920
-                    });
-
+                    const dataUrl = await htmlToImage.toPng(template, { quality: 0.95, width: 1080, height: 1920 });
                     const link = document.createElement('a');
                     link.download = 'veredillas-fm-story.png';
                     link.href = dataUrl;
@@ -356,138 +858,64 @@ if (userPayload) {
                 } finally {
                     template.style.top = '-9999px';
                     template.style.left = '-9999px';
-                    this.shareBtn!.innerHTML = originalHTML;
+                    shareBtn.classList.remove('is-loading');
+                    shareBtn.innerHTML = originalHTML;
                 }
             });
         }
 
-        loadSettings() {
-            const saved = localStorage.getItem('veredillas_tts_settings');
-            if (saved) {
-                try {
-                    this.ttsSettings = JSON.parse(saved);
-                } catch(e) { console.error("Error loading TTS settings", e); }
-            }
-            this.applySettingsToUI();
-        }
+        /* ─────────────────────── Locutor (TTS) ────────────────── */
 
-        saveSettings() {
-            localStorage.setItem('veredillas_tts_settings', JSON.stringify(this.ttsSettings));
-        }
-
-        setupVoiceSettings() {
+        setupVoiceToggle() {
             const toggleBtn = this.el.querySelector('.voice-toggle-btn');
-
             toggleBtn?.addEventListener('click', () => {
                 this.ttsSettings.enabled = !this.ttsSettings.enabled;
                 this.saveSettings();
-                this.applySettingsToUI();
-
-                if (this.ttsSettings.enabled && this.isPlaying) {
-                    this.playTTS(true);
-                }
+                this.applyVoiceUI();
+                if (this.ttsSettings.enabled && this.isPlaying) this.playWelcome(true);
             });
         }
 
-        applySettingsToUI() {
+        applyVoiceUI() {
             const toggleBtn = this.el.querySelector('.voice-toggle-btn');
-            if (toggleBtn) {
-                if (this.ttsSettings.enabled) {
-                    toggleBtn.classList.add('enabled');
-                    toggleBtn.setAttribute('title', 'Locutor: ON');
-                } else {
-                    toggleBtn.classList.remove('enabled');
-                    toggleBtn.setAttribute('title', 'Locutor: OFF');
-                }
-            }
+            if (!toggleBtn) return;
+            toggleBtn.classList.toggle('enabled', this.ttsSettings.enabled);
+            toggleBtn.setAttribute('aria-pressed', this.ttsSettings.enabled ? 'true' : 'false');
+            toggleBtn.setAttribute('title', this.ttsSettings.enabled ? 'Locutor: ON' : 'Locutor: OFF');
         }
 
-        setupAudio() {
-            if (!this.musicBtn || !this.audio) return;
-
-            this.musicBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.toggleMusic();
-            });
-
-            this.audio.volume = 0.5;
-
-            if(this.volumeSlider) {
-                this.volumeSlider.addEventListener('input', (e) => {
-                    const val = parseFloat((e.target as HTMLInputElement).value);
-                    if(this.audio) this.audio.volume = val;
-                    this.updateVolumeIcon(val);
-                });
-            }
-
-            this.audio.addEventListener('error', (e) => {
-                console.error('Audio stream error');
-                if(this.musicLabel) this.musicLabel.textContent = "Error de conexión";
-                this.isPlaying = false;
-                this.musicBtn?.classList.remove('playing');
-                this.updateVolumeVisibility();
-            });
-        }
-
-        async fadeVolume(audio: HTMLAudioElement, target: number, duration: number) {
-            const startVolume = audio.volume;
-            const diff = target - startVolume;
-            const startTime = performance.now();
-
-            return new Promise<void>(resolve => {
-                const tick = (now: number) => {
-                    const elapsed = now - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    audio.volume = startVolume + diff * progress;
-
-                    if (progress < 1) {
-                        requestAnimationFrame(tick);
-                    } else {
-                        resolve();
-                    }
-                };
-                requestAnimationFrame(tick);
-            });
-        }
-
-        async playTTS(force = false) {
-            if (!this.ttsSettings.enabled && !force) return;
-            if (this.hasPlayedTTS && !force) return;
-            this.hasPlayedTTS = true;
-
-            const selectedModel = force ? this.ttsSettings.voice : (this.ttsSettings.voice || 'aura-2-selena-es');
-            let userName = "amigo";
-
+        getUserName(fallback: string) {
             try {
                 const sessionStr = localStorage.getItem('user-session');
                 if (sessionStr) {
                     const session = JSON.parse(sessionStr);
-                    if (session.name) userName = session.name.split(' ')[0];
+                    if (session.name) return session.name.split(' ')[0];
                 }
-            } catch(e) {}
+            } catch (e) {
+                /* ignore */
+            }
+            return fallback;
+        }
 
-            let phrase = welcomePhrases[Math.floor(Math.random() * welcomePhrases.length)];
-            phrase = phrase.replace('{userName}', userName);
-
+        async speak(phrase: string, duckRatio = 0.15, fadeIn = 1200) {
             try {
                 const response = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: phrase, model: selectedModel })
+                    body: JSON.stringify({ text: phrase, model: this.ttsSettings.voice || 'aura-2-selena-es' }),
                 });
-
                 if (!response.ok) throw new Error('TTS failed');
 
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 const ttsAudio = new Audio(url);
 
-                const originalVolume = this.audio?.volume || 0.5;
-                if (this.audio) await this.fadeVolume(this.audio, originalVolume * 0.15, 1000);
+                const originalVolume = this.audio?.volume ?? this.lastVolume;
+                if (this.audio) await this.fadeVolume(this.audio, originalVolume * duckRatio, 1000);
 
-                ttsAudio.play();
+                await ttsAudio.play();
                 ttsAudio.onended = async () => {
-                    if (this.audio) await this.fadeVolume(this.audio, originalVolume, 1200);
+                    if (this.audio) await this.fadeVolume(this.audio, originalVolume, fadeIn);
                     URL.revokeObjectURL(url);
                 };
             } catch (error) {
@@ -495,506 +923,627 @@ if (userPayload) {
             }
         }
 
-        updateVolumeIcon(volume: number) {
-            const waves = this.el.querySelector('.volume-waves') as HTMLElement;
-            const outerWaves = this.el.querySelector('.volume-waves-outer') as HTMLElement;
+        playWelcome(force = false) {
+            if (!this.ttsSettings.enabled && !force) return;
+            if (this.hasPlayedWelcome && !force) return;
+            this.hasPlayedWelcome = true;
 
-            if(!waves || !outerWaves) return;
-
-            if (volume === 0) {
-                waves.style.opacity = '0';
-                outerWaves.style.opacity = '0';
-            } else if (volume < 0.5) {
-                waves.style.opacity = '1';
-                outerWaves.style.opacity = '0';
-            } else {
-                waves.style.opacity = '1';
-                outerWaves.style.opacity = '1';
-            }
+            const phrase = welcomePhrases[Math.floor(Math.random() * welcomePhrases.length)].replace(
+                '{userName}',
+                this.getUserName('amigo'),
+            );
+            this.speak(phrase);
         }
 
-        updateVolumeVisibility() {
-            if (this.isPlaying) {
-                this.volumeContainer?.classList.add('show');
+        playTransition(currentMeta: any, nextMeta: any) {
+            if (!this.ttsSettings.enabled || !this.isPlaying) return;
+
+            const current = splitTitle(currentMeta?.title || '');
+            const next = splitTitle(nextMeta?.title || '');
+            const userName = this.getUserName('familia');
+
+            const currentArtist = current.artist || 'un artista increíble';
+            const currentTitle = current.title || 'este temazo';
+
+            let phrase: string;
+            if (next.title && next.artist) {
+                phrase = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)]
+                    .replace('{currentArtist}', currentArtist)
+                    .replace('{currentTitle}', currentTitle)
+                    .replace('{nextArtist}', next.artist)
+                    .replace('{nextTitle}', next.title)
+                    .replace('{userName}', userName);
             } else {
-                this.volumeContainer?.classList.remove('show');
+                phrase = fallbackPhrases[Math.floor(Math.random() * fallbackPhrases.length)]
+                    .replace('{currentArtist}', currentArtist)
+                    .replace('{currentTitle}', currentTitle)
+                    .replace('{userName}', userName);
             }
+
+            this.speak(phrase, 0.15, 2000);
         }
 
-        toggleMusic() {
-            if (!this.audio || !this.musicBtn) return;
+        /* ─────────────────────── Browser tabs ─────────────────── */
 
-            if (this.isPlaying) {
-                this.audio.pause();
-                this.isPlaying = false;
-                this.musicBtn.classList.remove('playing');
-                if(this.musicLabel) this.musicLabel.textContent = `Activar Radio`;
-                if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
-            } else {
-                if(this.musicLabel) this.musicLabel.textContent = "Conectando...";
+        setupBrowser() {
+            this.tabButtons.forEach((btn) => {
+                btn.addEventListener('click', () => this.setTab(btn.dataset.tab || 'queue'));
+            });
 
-                this.audio.src = `https://radio.veredillasfm.es/stream?t=${new Date().getTime()}`;
+            this.librarySearch?.addEventListener('input', () => {
+                window.clearTimeout(this.librarySearchTimer);
+                this.librarySearchTimer = window.setTimeout(() => {
+                    this.libraryQuery = (this.librarySearch?.value || '').trim().toLowerCase();
+                    this.renderLibrary();
+                }, 180);
+            });
 
-                this.audio.play().then(() => {
-                    this.isPlaying = true;
-                    this.initVisualizer();
-                    this.musicBtn!.classList.add('playing');
-                    if(this.musicLabel) this.musicLabel!.textContent = `En directo`;
-                    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
-                    this.playTTS();
-                }).catch(e => {
-                    console.error("Audio play failed:", e);
-                    this.isPlaying = false;
-                    this.musicBtn!.classList.remove('playing');
-                    if(this.musicLabel) this.musicLabel!.textContent = "No disponible";
-                    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
-                }).finally(() => {
-                    this.updateVolumeVisibility();
+            // Rows are re-rendered on every poll, so the handlers live on the panels
+            Object.values(this.panels).forEach((panel) => {
+                panel?.addEventListener('click', (e) => this.onRowAction(e));
+            });
+
+            this.libraryChips?.addEventListener('click', (e) => {
+                const chip = (e.target as HTMLElement).closest('.rd-pchip') as HTMLElement | null;
+                if (!chip) return;
+                this.libraryPlaylist = chip.dataset.playlist || 'all';
+                this.libraryChips?.querySelectorAll('.rd-pchip').forEach((node) => {
+                    node.setAttribute('aria-pressed', node === chip ? 'true' : 'false');
                 });
-            }
-            this.updateVolumeVisibility();
+                this.renderLibrary();
+            });
         }
+
+        setTab(tab: string) {
+            this.activeTab = tab;
+
+            this.tabButtons.forEach((btn) => {
+                btn.setAttribute('aria-selected', btn.dataset.tab === tab ? 'true' : 'false');
+            });
+            Object.entries(this.panels).forEach(([id, panel]) => {
+                panel?.classList.toggle('hidden', id !== tab);
+            });
+
+            this.libraryToolbar?.classList.toggle('hidden', tab !== 'library');
+            this.libraryToolbar?.classList.toggle('flex', tab === 'library');
+
+            this.el.querySelectorAll<HTMLElement>('[data-only-tab]').forEach((node) => {
+                node.style.display = node.dataset.onlyTab === tab ? '' : 'none';
+            });
+
+            if (tab === 'library' && !this.libraryRendered) this.renderLibrary();
+        }
+
+        onRowAction(event: Event) {
+            const btn = (event.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
+            if (!btn) return;
+
+            const index = parseInt(btn.dataset.index || '', 10);
+            const action = btn.dataset.action;
+
+            if (action === 'queue-next' && !isNaN(index)) {
+                this.apiQueue(index, 'queue_next');
+                this.flashDone(btn);
+            } else if (action === 'queue-last' && !isNaN(index)) {
+                this.apiQueue(index, 'queue_last');
+                this.flashDone(btn);
+            } else if (action === 'play-now' && !isNaN(index)) {
+                this.apiPlaySpecific(index);
+            } else if (action === 'remove' && !isNaN(index)) {
+                this.apiRemoveQueue(index);
+            } else if (action === 'find-in-library') {
+                this.setTab('library');
+                if (this.librarySearch) {
+                    this.librarySearch.value = btn.dataset.query || '';
+                    this.libraryQuery = (btn.dataset.query || '').toLowerCase();
+                    this.librarySearch.focus();
+                }
+                this.renderLibrary();
+            }
+        }
+
+        flashDone(btn: HTMLElement) {
+            btn.classList.add('is-done');
+            window.setTimeout(() => btn.classList.remove('is-done'), 1400);
+        }
+
+        /* ─────────────────────── Renderers ────────────────────── */
+
+        /** Buttons shown on library rows so listeners can push a track into the queue. */
+        libraryActions(index: number): string {
+            if (!this.isRegistered) return '';
+            const playNow = this.isAdmin
+                ? `<button type="button" class="rd-act rd-act--live" data-action="play-now" data-index="${index}" title="Reproducir ahora">▶</button>`
+                : '';
+            return `
+                <div class="rd-row-actions">
+                    ${playNow}
+                    <button type="button" class="rd-act rd-act--primary" data-action="queue-next" data-index="${index}" title="Poner como siguiente">+ Sig</button>
+                    <button type="button" class="rd-act" data-action="queue-last" data-index="${index}" title="Añadir al final de la cola">+ Fin</button>
+                </div>`;
+        }
+
+        renderQueue() {
+            const panel = this.panels.queue;
+            if (!panel) return;
+
+            const knownProgress = this.songStartedAt !== null && this.currentDuration > 0;
+            let offset = knownProgress
+                ? Math.max(0, this.currentDuration - (Date.now() - (this.songStartedAt as number)) / 1000)
+                : 0;
+
+            // Rebuilding the list on every poll would fight the user's scroll, so
+            // only redraw when the queue (or the ETA minute) actually changed.
+            const signature = [
+                this.queue.length,
+                this.queue[0]?.key ?? '',
+                this.queue[this.queue.length - 1]?.key ?? '',
+                Math.floor(offset / 60),
+            ].join('|');
+            if (signature === this.queueSignature) return;
+            this.queueSignature = signature;
+
+            if (!this.queue.length) {
+                panel.innerHTML = '<div class="rd-empty">La cola está vacía ahora mismo.</div>';
+                return;
+            }
+
+            const rows = this.queue.slice(0, 40).map((song, idx) => {
+                const { title, artist } = splitTitle(song.title);
+                const eta = knownProgress && idx > 0 ? `en ~${formatLongDuration(offset)}` : '';
+                const sub = [artist, song.playlist].filter(Boolean).join(' · ');
+                if (knownProgress) offset += song.duration || 0;
+
+                const removeBtn = this.isAdmin
+                    ? `<div class="rd-row-actions"><button type="button" class="rd-act rd-act--danger" data-action="remove" data-index="${idx}" title="Quitar de la cola" aria-label="Quitar de la cola">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                       </button></div>`
+                    : '';
+
+                return `
+                    <div class="rd-row${idx === 0 ? ' rd-row--next' : ''}">
+                        <span class="rd-row-index">${idx === 0 ? '▶' : idx + 1}</span>
+                        <div class="rd-row-body">
+                            <span class="rd-row-title" title="${escapeHtml(song.title)}">${escapeHtml(title)}</span>
+                            <span class="rd-row-sub">${escapeHtml(sub || 'Veredillas FM')}${eta ? ` · ${eta}` : ''}</span>
+                        </div>
+                        <span class="rd-row-meta">${song.duration ? formatTime(song.duration) : ''}</span>
+                        ${removeBtn}
+                    </div>`;
+            });
+
+            if (this.queue.length > 40) {
+                rows.push(`<div class="rd-more">y ${this.queue.length - 40} canciones más en la cola</div>`);
+            }
+
+            panel.innerHTML = rows.join('');
+        }
+
+        renderHistory() {
+            const panel = this.panels.history;
+            if (!panel) return;
+
+            const signature = `${this.history.length}|${this.history[0]?.key ?? ''}`;
+            if (signature === this.historySignature) return;
+            this.historySignature = signature;
+
+            if (!this.history.length) {
+                panel.innerHTML = '<div class="rd-empty">Todavía no ha sonado nada.</div>';
+                return;
+            }
+
+            panel.innerHTML = this.history
+                .map((song, idx) => {
+                    const { title, artist } = splitTitle(song.title);
+                    const sub = [artist, song.playlist].filter(Boolean).join(' · ');
+                    const findBtn = this.isRegistered
+                        ? `<div class="rd-row-actions"><button type="button" class="rd-act" data-action="find-in-library" data-query="${escapeHtml(title)}" title="Buscar en la biblioteca">Repetir</button></div>`
+                        : '';
+
+                    return `
+                        <div class="rd-row">
+                            <span class="rd-row-index">${idx === 0 ? '·' : idx + 1}</span>
+                            <div class="rd-row-body">
+                                <span class="rd-row-title" title="${escapeHtml(song.title)}">${escapeHtml(title)}</span>
+                                <span class="rd-row-sub">${escapeHtml(sub || 'Veredillas FM')}</span>
+                            </div>
+                            <span class="rd-row-meta">${song.duration ? formatTime(song.duration) : ''}</span>
+                            ${findBtn}
+                        </div>`;
+                })
+                .join('');
+        }
+
+        renderLibraryChips() {
+            if (!this.libraryChips || !this.playlists.length) return;
+
+            const chips = [{ name: 'all', count: this.library.length }, ...this.playlists];
+            this.libraryChips.innerHTML = chips
+                .map((chip) => {
+                    const label = chip.name === 'all' ? 'Todas' : chip.name;
+                    const selected = this.libraryPlaylist === chip.name;
+                    return `<button type="button" class="rd-pchip" data-playlist="${escapeHtml(chip.name)}" aria-pressed="${selected}">${escapeHtml(label)} <span class="opacity-50">${chip.count}</span></button>`;
+                })
+                .join('');
+        }
+
+        renderLibrary() {
+            const panel = this.panels.library;
+            if (!panel) return;
+
+            if (!this.library.length) {
+                panel.innerHTML = '<div class="rd-empty">Cargando biblioteca…</div>';
+                return;
+            }
+
+            this.libraryRendered = true;
+
+            const query = this.libraryQuery;
+            const playlist = this.libraryPlaylist;
+            const matches: { track: Track; index: number }[] = [];
+
+            for (let i = 0; i < this.library.length; i++) {
+                const track = this.library[i];
+                if (playlist !== 'all' && track.playlist !== playlist) continue;
+                if (query && !track.title.toLowerCase().includes(query)) continue;
+                matches.push({ track, index: i });
+            }
+
+            if (!matches.length) {
+                panel.innerHTML = `<div class="rd-empty">Ninguna canción coincide con la búsqueda.</div>`;
+                return;
+            }
+
+            const rows = matches.slice(0, LIBRARY_PAGE).map(({ track, index }) => {
+                const { title, artist } = splitTitle(track.title);
+                const sub = [artist, track.playlist].filter(Boolean).join(' · ');
+                return `
+                    <div class="rd-row">
+                        <span class="rd-row-index">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                        </span>
+                        <div class="rd-row-body">
+                            <span class="rd-row-title" title="${escapeHtml(track.title)}">${escapeHtml(title)}</span>
+                            <span class="rd-row-sub">${escapeHtml(sub || 'Veredillas FM')}</span>
+                        </div>
+                        <span class="rd-row-meta">${track.duration ? formatTime(track.duration) : ''}</span>
+                        ${this.libraryActions(index)}
+                    </div>`;
+            });
+
+            if (matches.length > LIBRARY_PAGE) {
+                rows.push(`<div class="rd-more">${matches.length - LIBRARY_PAGE} resultados más — afina la búsqueda</div>`);
+            }
+
+            panel.innerHTML = rows.join('');
+        }
+
+        renderStation(data: any) {
+            const isLive = Boolean(data.isPlaying);
+
+            if (this.stationStatus) this.stationStatus.dataset.live = isLive ? 'true' : 'false';
+            if (this.stationStatusText) this.stationStatusText.textContent = isLive ? 'En antena' : 'En pausa';
+
+            const queueRuntime = this.queue.reduce((sum, song) => sum + (song.duration || 0), 0);
+
+            if (this.statLabels.queue) this.statLabels.queue.textContent = this.queue.length.toString();
+            if (this.statLabels.library) this.statLabels.library.textContent = this.library.length.toString();
+            if (this.statLabels.playlists) this.statLabels.playlists.textContent = this.playlists.length.toString();
+            if (this.statLabels.runtime) this.statLabels.runtime.textContent = formatLongDuration(queueRuntime);
+
+            if (data.radioSettings) {
+                if (this.modeLoop) this.modeLoop.dataset.on = data.radioSettings.loop ? 'true' : 'false';
+                if (this.modeShuffle) this.modeShuffle.dataset.on = data.radioSettings.shuffle ? 'true' : 'false';
+            }
+
+            if (this.playlistMix && this.playlists.length && !this.mixRendered) {
+                this.mixRendered = true;
+                const top = this.playlists.slice(0, 6);
+                const max = top[0]?.count || 1;
+                this.playlistMix.innerHTML = top
+                    .map(
+                        (list) => `
+                        <div class="rd-mix-row">
+                            <div class="rd-mix-top">
+                                <span class="rd-mix-name">${escapeHtml(list.name)}</span>
+                                <span class="rd-mix-count">${list.count}</span>
+                            </div>
+                            <div class="rd-mix-bar"><div class="rd-mix-fill" style="width:${Math.round((list.count / max) * 100)}%"></div></div>
+                        </div>`,
+                    )
+                    .join('');
+            }
+        }
+
+        renderCounts() {
+            if (this.counts.queue) this.counts.queue.textContent = this.queue.length.toString();
+            if (this.counts.history) this.counts.history.textContent = this.history.length.toString();
+            if (this.counts.library) this.counts.library.textContent = this.library.length.toString();
+        }
+
+        renderNextUp() {
+            if (!this.nextTitleEl) return;
+            const next = this.queue[0];
+            this.nextTitleEl.textContent = next ? splitTitle(next.title).title : 'Nada en cola';
+        }
+
+        /* ─────────────────────── Polling ──────────────────────── */
+
+        startPolling() {
+            window.clearInterval(this.pollTimer);
+            this.pollTimer = window.setInterval(() => {
+                if (document.visibilityState === 'visible') this.pollStatus();
+            }, POLL_MS);
+
+            const onVisibility = () => {
+                if (document.visibilityState === 'visible') this.pollStatus();
+            };
+            document.addEventListener('visibilitychange', onVisibility);
+            this.cleanups.push(() => document.removeEventListener('visibilitychange', onVisibility));
+        }
+
+        async pollStatus() {
+            if (this.isFetching) return;
+            this.isFetching = true;
+
+            try {
+                const res = await fetch(`${RADIO_API}/api/status`);
+                if (!res.ok) throw new Error(`status ${res.status}`);
+                const data = await res.json();
+
+                this.queue = Array.isArray(data.playQueue) ? data.playQueue : [];
+                this.history = Array.isArray(data.history) ? data.history : [];
+
+                if (Array.isArray(data.playlist) && data.playlist.length !== this.library.length) {
+                    this.library = data.playlist;
+                    this.playlists = this.buildPlaylists(data.playlist);
+                    this.mixRendered = false;
+                    this.renderLibraryChips();
+                    if (this.activeTab === 'library') this.renderLibrary();
+                }
+
+                this.trackSongChange(data);
+                this.applyNowPlaying(data.currentSongMeta, Boolean(data.isPlaying));
+                this.renderQueue();
+                this.renderHistory();
+                this.renderCounts();
+                this.renderNextUp();
+                this.renderStation(data);
+                this.syncDJPanel(data);
+            } catch (err) {
+                this.onPollError();
+            } finally {
+                this.isFetching = false;
+            }
+        }
+
+        buildPlaylists(tracks: Track[]) {
+            const counts = new Map<string, number>();
+            tracks.forEach((track) => {
+                const name = track.playlist || 'General';
+                counts.set(name, (counts.get(name) || 0) + 1);
+            });
+            return [...counts.entries()]
+                .map(([name, count]) => ({ name, count }))
+                .sort((a, b) => b.count - a.count);
+        }
+
+        trackSongChange(data: any) {
+            const meta = data.currentSongMeta;
+            const key = data.isPlaying && meta ? meta.key || meta.title || '' : '';
+
+            if (key === this.currentKey) return;
+
+            const hadPrevious = this.currentKey !== '';
+            this.currentKey = key;
+            this.currentSongTitle = meta?.title || '';
+
+            // Elapsed time is only trustworthy once we have seen the track start.
+            this.songStartedAt = hadPrevious && key ? Date.now() : null;
+
+            if (key) this.updateMediaSession(this.currentSongTitle);
+
+            if (this.nextSongTimeoutId) {
+                clearTimeout(this.nextSongTimeoutId);
+                this.nextSongTimeoutId = null;
+            }
+
+            // Announce the next track ~20s before this one ends
+            if (meta?.duration && meta.duration > 30) {
+                const delay = meta.duration - 22.5;
+                if (delay > 0) {
+                    this.nextSongTimeoutId = window.setTimeout(() => {
+                        this.playTransition(meta, this.queue[0]);
+                    }, delay * 1000);
+                }
+            }
+        }
+
+        onPollError() {
+            const panel = this.panels[this.activeTab];
+            if (panel && this.activeTab !== 'library') {
+                panel.innerHTML = '<div class="rd-empty rd-empty--error">Sin conexión con la emisora.</div>';
+                this.queueSignature = '';
+                this.historySignature = '';
+            }
+            if (this.stationStatus) this.stationStatus.dataset.live = 'false';
+            if (this.stationStatusText) this.stationStatusText.textContent = 'Sin señal';
+        }
+
+        /* ─────────────────────── DJ panel ─────────────────────── */
 
         setupDJControls() {
-            if (this.djTriggerBtn && this.djModalOverlay && this.djCloseBtn) {
-                this.djTriggerBtn.addEventListener('click', () => {
-                    this.djModalOverlay?.classList.add('open');
-                });
-                this.djCloseBtn.addEventListener('click', () => {
-                    this.djModalOverlay?.classList.remove('open');
-                });
-                this.djModalOverlay.addEventListener('click', (e) => {
-                    if (e.target === this.djModalOverlay) {
-                        this.djModalOverlay?.classList.remove('open');
-                    }
-                });
-            }
+            const trigger = this.el.querySelector('#dj-trigger-btn');
+            const closeBtn = this.el.querySelector('#dj-close-btn');
+
+            trigger?.addEventListener('click', () => {
+                this.djModalOverlay?.classList.add('open');
+                this.pollStatus(); // the panel only syncs while open, so refresh it now
+            });
+            closeBtn?.addEventListener('click', () => this.djModalOverlay?.classList.remove('open'));
+            this.djModalOverlay?.addEventListener('click', (e) => {
+                if (e.target === this.djModalOverlay) this.djModalOverlay.classList.remove('open');
+            });
 
             if (this.isAdmin) {
-                this.djBtnPlay?.addEventListener('click', () => this.apiPlay());
-                this.djBtnStop?.addEventListener('click', () => this.apiStop());
-                this.djBtnSkip?.addEventListener('click', () => this.apiSkip());
-                this.djBtnSync?.addEventListener('click', () => this.syncStream());
-                this.djBtnPlaylist?.addEventListener('click', () => {
+                this.el.querySelector('#dj-btn-play')?.addEventListener('click', () => this.apiPost('/api/play'));
+                this.el.querySelector('#dj-btn-stop')?.addEventListener('click', () => this.apiPost('/api/stop'));
+                this.el.querySelector('#dj-btn-skip')?.addEventListener('click', () => this.apiPost('/api/skip'));
+                this.el.querySelector('#dj-btn-sync')?.addEventListener('click', () => this.syncStream());
+                this.el.querySelector('#dj-btn-playlist')?.addEventListener('click', () => {
                     this.apiPlayPlaylist(this.djPlaylistInput?.value || '');
                 });
-                this.djSettingLoop?.addEventListener('change', () => {
-                    this.apiUpdateSettings(this.djSettingLoop!.checked, this.djSettingShuffle!.checked);
-                });
-                this.djSettingShuffle?.addEventListener('change', () => {
-                    this.apiUpdateSettings(this.djSettingLoop!.checked, this.djSettingShuffle!.checked);
-                });
-                this.djBtnClearQueue?.addEventListener('click', () => this.apiClearQueue());
-                this.djCookiesFile?.addEventListener('change', (e) => {
-                    const file = (e.target as HTMLInputElement).files?.[0];
-                    if (file) this.apiUploadCookies(file);
-                });
+                this.el.querySelector('#dj-btn-clear-queue')?.addEventListener('click', () => this.apiPost('/api/queue/clear'));
+
+                const pushSettings = () => {
+                    this.apiPost('/api/settings', {
+                        loop: !!this.djSettingLoop?.checked,
+                        shuffle: !!this.djSettingShuffle?.checked,
+                    });
+                };
+                this.djSettingLoop?.addEventListener('change', pushSettings);
+                this.djSettingShuffle?.addEventListener('change', pushSettings);
             }
 
-            this.djBtnSearch?.addEventListener('click', () => {
-                this.apiSearch(this.djSearchInput?.value || '');
+            this.el.querySelector('#dj-btn-search')?.addEventListener('click', () => {
+                this.djSearch(this.djSearchInput?.value || '');
             });
             this.djSearchInput?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.apiSearch(this.djSearchInput?.value || '');
-                }
+                if ((e as KeyboardEvent).key === 'Enter') this.djSearch(this.djSearchInput?.value || '');
             });
+
+            this.djResultsList?.addEventListener('click', (e) => this.onRowAction(e));
         }
 
-        syncStream() {
-            if (this.audio) {
-                this.audio.src = `https://radio.veredillasfm.es/stream?t=${new Date().getTime()}`;
-                if (this.isPlaying) {
-                    this.audio.play().catch(e => console.error("Error syncing stream:", e));
+        syncDJPanel(data: any) {
+            if (!this.isRegistered || !this.djModalOverlay?.classList.contains('open')) return;
+
+            if (this.djStatusBadge) {
+                const live = Boolean(data.isPlaying);
+                this.djStatusBadge.className = live
+                    ? 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_currentColor]'
+                    : 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_currentColor]';
+                this.djStatusBadge.textContent = live ? 'ONLINE' : 'OFFLINE';
+            }
+
+            if (this.djCurrentSong) {
+                this.djCurrentSong.textContent =
+                    data.isPlaying && data.currentSongMeta?.title ? data.currentSongMeta.title : 'Ninguna canción';
+            }
+
+            if (data.radioSettings) {
+                if (this.djSettingLoop && this.djSettingLoop !== document.activeElement) {
+                    this.djSettingLoop.checked = data.radioSettings.loop;
+                }
+                if (this.djSettingShuffle && this.djSettingShuffle !== document.activeElement) {
+                    this.djSettingShuffle.checked = data.radioSettings.shuffle;
                 }
             }
+
         }
 
-        async apiPlay() {
-            try {
-                await fetch('https://radio.veredillasfm.es/api/play', { method: 'POST' });
-                this.pollStatus();
-            } catch (err) {}
-        }
-
-        async apiStop() {
-            try {
-                await fetch('https://radio.veredillasfm.es/api/stop', { method: 'POST' });
-                this.pollStatus();
-            } catch (err) {}
-        }
-
-        async apiSkip() {
-            try {
-                await fetch('https://radio.veredillasfm.es/api/skip', { method: 'POST' });
-                this.pollStatus();
-            } catch (err) {}
-        }
-
-        async apiSearch(query: string) {
+        async djSearch(query: string) {
             if (!this.djResultsList) return;
-            this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-5">Buscando...</div>';
+            this.djResultsList.innerHTML = '<div class="rd-empty">Buscando…</div>';
 
             try {
-                const url = new URL('https://radio.veredillasfm.es/api/search');
+                const url = new URL(`${RADIO_API}/api/search`);
                 if (query) url.searchParams.append('q', query);
 
                 const res = await fetch(url.toString());
                 const data = await res.json();
 
-                if (data.results && data.results.length > 0) {
-                    this.djResultsList.innerHTML = '';
-                    data.results.forEach((item: any) => {
-                        const div = document.createElement('div');
-                        div.className = 'flex flex-col gap-2 bg-white/5 border border-white/10 p-3 rounded-2xl hover:bg-white/10 hover:border-secondary/30 transition-all';
-
-                        let buttonsHTML = '';
-                        if (this.isAdmin) {
-                            buttonsHTML += `<button class="dj-action-btn play-specific flex-1 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-colors" data-idx="${item.index}" title="Reproducir ahora">▶ Play</button>`;
-                        }
-                        buttonsHTML += `
-                            <button class="dj-action-btn queue queue-next flex-1 py-1.5 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 text-xs font-semibold hover:bg-secondary/20 transition-colors" data-idx="${item.index}" title="Siguiente">+ Sig</button>
-                            <button class="dj-action-btn queue queue-last flex-1 py-1.5 rounded-lg bg-white/5 text-gray-300 border border-white/10 text-xs font-semibold hover:bg-white/10 transition-colors" data-idx="${item.index}" title="Al final">+ Fin</button>
-                        `;
-
-                        div.innerHTML = `
-                            <span class="text-white text-sm font-medium truncate" title="${item.title}">${item.title}</span>
-                            <div class="flex items-center gap-2">
-                                ${buttonsHTML}
-                            </div>
-                        `;
-                        this.djResultsList?.appendChild(div);
-                    });
-
-                    if (this.isAdmin) {
-                        this.djResultsList.querySelectorAll('.play-specific').forEach(btn => {
-                            btn.addEventListener('click', (e) => this.apiPlaySpecific(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0')));
-                        });
-                    }
-                    this.djResultsList.querySelectorAll('.queue-next').forEach(btn => {
-                        btn.addEventListener('click', (e) => this.apiQueue(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0'), 'queue_next'));
-                    });
-                    this.djResultsList.querySelectorAll('.queue-last').forEach(btn => {
-                        btn.addEventListener('click', (e) => this.apiQueue(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0'), 'queue_last'));
-                    });
-
-                } else {
-                    this.djResultsList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-5">No se encontraron resultados.</div>';
-                }
-            } catch (err) {
-                this.djResultsList.innerHTML = '<div class="text-red-400 text-sm text-center mt-5">Error al buscar.</div>';
-            }
-        }
-
-        async apiQueue(index: number, action: string) {
-            try {
-                await fetch('https://radio.veredillasfm.es/api/queue', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ index, action })
-                });
-                this.pollStatus();
-            } catch (err) {}
-        }
-
-        async apiPlaySpecific(index: number) {
-            try {
-                await fetch('https://radio.veredillasfm.es/api/play-specific', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ index })
-                });
-                this.pollStatus();
-            } catch (err) {}
-        }
-
-        async apiPlayPlaylist(playlistName: string) {
-            if (!playlistName) return;
-            try {
-                await fetch('https://radio.veredillasfm.es/api/play-playlist', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ playlistName })
-                });
-                this.pollStatus();
-                if (this.djPlaylistInput) this.djPlaylistInput.value = '';
-            } catch (err) {}
-        }
-
-        async apiRemoveQueue(index: number) {
-            try {
-                await fetch('https://radio.veredillasfm.es/api/queue/remove', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ index })
-                });
-                this.pollStatus();
-            } catch (err) {}
-        }
-
-        async apiClearQueue() {
-            try {
-                await fetch('https://radio.veredillasfm.es/api/queue/clear', { method: 'POST' });
-                this.pollStatus();
-            } catch (err) {}
-        }
-
-        async apiUpdateSettings(loop: boolean, shuffle: boolean) {
-            try {
-                await fetch('https://radio.veredillasfm.es/api/settings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ loop, shuffle })
-                });
-                this.pollStatus();
-            } catch (err) {}
-        }
-
-        async apiUploadCookies(file: File) {
-            try {
-                const formData = new FormData();
-                formData.append('cookies', file);
-                await fetch('https://radio.veredillasfm.es/api/cookies', {
-                    method: 'POST',
-                    body: formData
-                });
-                if (this.djCookiesFile) this.djCookiesFile.value = '';
-            } catch (err) {}
-        }
-
-        async playNextSongIntro(currentSongMeta: any, nextSongMeta: any) {
-            if (!this.ttsSettings.enabled || !this.isPlaying) return;
-
-            let currentArtist = "un artista increíble";
-            let currentTitle = "este temazo";
-            if (currentSongMeta && currentSongMeta.title) {
-                const parts = currentSongMeta.title.split(' - ');
-                if (parts.length > 1) {
-                    currentTitle = parts[0].trim();
-                    currentArtist = parts.slice(1).join(' - ').trim();
-                } else {
-                    currentTitle = currentSongMeta.title;
-                }
-            }
-
-            let nextArtist = "";
-            let nextTitle = "";
-            if (nextSongMeta && nextSongMeta.title) {
-                const parts = nextSongMeta.title.split(' - ');
-                if (parts.length > 1) {
-                    nextTitle = parts[0].trim();
-                    nextArtist = parts.slice(1).join(' - ').trim();
-                } else {
-                    nextTitle = nextSongMeta.title;
-                }
-            }
-
-            let userName = "familia";
-            try {
-                const sessionStr = localStorage.getItem('user-session');
-                if (sessionStr) {
-                    const session = JSON.parse(sessionStr);
-                    if (session.name) userName = session.name.split(' ')[0];
-                }
-            } catch(e) {}
-
-            let phrase = "";
-            if (nextTitle && nextArtist) {
-                phrase = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
-                phrase = phrase
-                    .replace('{currentArtist}', currentArtist)
-                    .replace('{currentTitle}', currentTitle)
-                    .replace('{nextArtist}', nextArtist)
-                    .replace('{nextTitle}', nextTitle)
-                    .replace('{userName}', userName);
-            } else {
-                phrase = fallbackPhrases[Math.floor(Math.random() * fallbackPhrases.length)];
-                phrase = phrase
-                    .replace('{currentArtist}', currentArtist)
-                    .replace('{currentTitle}', currentTitle)
-                    .replace('{userName}', userName);
-            }
-
-            try {
-                // Use the configured voice, defaulting to the expressive male voice 'aura-2-aquila-es' or 'aura-orion-en'
-                const selectedModel = this.ttsSettings.voice || 'aura-orion-en';
-
-                const response = await fetch('/api/tts', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: phrase, model: selectedModel })
-                });
-
-                if (!response.ok) throw new Error('TTS failed');
-
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const ttsAudio = new Audio(url);
-
-                const originalVolume = this.audio?.volume || 0.5;
-                if (this.audio) await this.fadeVolume(this.audio, originalVolume * 0.15, 1500);
-
-                ttsAudio.play();
-                ttsAudio.onended = async () => {
-                    if (this.audio) await this.fadeVolume(this.audio, originalVolume, 2000);
-                    URL.revokeObjectURL(url);
-                };
-            } catch (error) {
-                console.error('DJ AI TTS error:', error);
-            }
-        }
-
-        async pollStatus() {
-            try {
-                const res = await fetch('https://radio.veredillasfm.es/api/status');
-                const data = await res.json();
-
-                // Actualizar widget de esquina
-                const cornerTitle = document.getElementById('corner-song-title');
-                const cornerWidget = document.getElementById('now-playing-corner');
-
-                if (data.isPlaying && data.currentSongMeta && data.currentSongMeta.title) {
-                    if (cornerTitle) cornerTitle.textContent = data.currentSongMeta.title;
-                    if (this.isPlaying) {
-                        if (cornerWidget) cornerWidget.classList.add('visible');
-                    }
-
-                    // --- DJ AI LOGIC ---
-                    if (this.currentSongTitle !== data.currentSongMeta.title) {
-                        this.currentSongTitle = data.currentSongMeta.title;
-                        this.updateMediaSession(this.currentSongTitle);
-
-                        if (this.nextSongTimeoutId) {
-                            clearTimeout(this.nextSongTimeoutId);
-                            this.nextSongTimeoutId = null;
-                        }
-
-                        // Schedule the next song intro if duration is known and long enough
-                        if (data.currentSongMeta.duration && data.currentSongMeta.duration > 30) {
-                            // Schedule for 20 seconds before the song ends
-                            // Subtract a small buffer (e.g. 2.5s) to account for polling delay
-                            const timeoutSeconds = data.currentSongMeta.duration - 20 - 2.5;
-                            if (timeoutSeconds > 0) {
-                                this.nextSongTimeoutId = window.setTimeout(() => {
-                                    this.playNextSongIntro(data.currentSongMeta, this.lastKnownQueue?.[0]);
-                                }, timeoutSeconds * 1000);
-                            }
-                        }
-                    }
-                    // -------------------
-
-                } else {
-                    if (cornerWidget) cornerWidget.classList.remove('visible');
+                if (!data.results?.length) {
+                    this.djResultsList.innerHTML = '<div class="rd-empty">No se encontraron resultados.</div>';
+                    return;
                 }
 
-                // Guardar la cola para el DJ AI
-                this.lastKnownQueue = data.playQueue || [];
-                if (this.publicQueueList) {
-                    if (data.playQueue && data.playQueue.length > 0) {
-                        this.publicQueueList.innerHTML = '';
-                        data.playQueue.slice(0, 15).forEach((song: any, idx: number) => {
-                            const div = document.createElement('div');
-                            div.className = 'group flex items-center gap-3 bg-white/[0.04] border border-white/10 p-3 rounded-2xl hover:bg-white/[0.08] hover:border-secondary/30 transition-all';
-                            div.innerHTML = `
-                                <span class="shrink-0 w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[0.7rem] font-bold text-gray-400 group-hover:text-secondary group-hover:border-secondary/40 transition-colors">${idx + 1}</span>
-                                <div class="flex-1 overflow-hidden">
-                                    <span class="block text-white text-sm font-semibold truncate" title="${song.title}">${song.title}</span>
+                this.djResultsList.innerHTML = data.results
+                    .map((item: any) => {
+                        const { title, artist } = splitTitle(item.title);
+                        return `
+                            <div class="rd-row">
+                                <div class="rd-row-body">
+                                    <span class="rd-row-title" title="${escapeHtml(item.title)}">${escapeHtml(title)}</span>
+                                    <span class="rd-row-sub">${escapeHtml(artist || 'Veredillas FM')}</span>
                                 </div>
-                                ${song.duration ? `<span class="shrink-0 text-[0.7rem] text-gray-400 font-mono bg-white/5 px-2 py-1 rounded-full">${Math.floor(song.duration/60)}:${String(Math.floor(song.duration%60)).padStart(2,'0')}</span>` : ''}
-                            `;
-                            this.publicQueueList?.appendChild(div);
-                        });
-                        if(data.playQueue.length > 15) {
-                            const more = document.createElement('div');
-                            more.className = 'text-xs text-center text-gray-500 mt-1 py-2 font-medium';
-                            more.textContent = `+ ${data.playQueue.length - 15} canciones más...`;
-                            this.publicQueueList.appendChild(more);
-                        }
-                    } else {
-                        this.publicQueueList.innerHTML = '<div class="text-gray-500 text-sm font-medium text-center mt-10">La cola está vacía</div>';
-                    }
-                }
-
-                // Si el modal de DJ está abierto, actualizar datos
-                if (this.isRegistered && this.djModalOverlay && this.djModalOverlay.classList.contains('open')) {
-                    if (this.djStatusBadge) {
-                        if (data.isPlaying) {
-                            this.djStatusBadge.className = 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_currentColor]';
-                            this.djStatusBadge.textContent = 'ONLINE';
-                        } else {
-                            this.djStatusBadge.className = 'px-3 py-1 rounded-full text-[0.65rem] font-extrabold tracking-widest uppercase bg-orange-500/15 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_currentColor]';
-                            this.djStatusBadge.textContent = 'OFFLINE';
-                        }
-                    }
-
-                    if (this.djCurrentSong) {
-                        this.djCurrentSong.textContent = (data.isPlaying && data.currentSongMeta?.title) ? data.currentSongMeta.title : 'Ninguna canción';
-                    }
-
-                    if (data.radioSettings) {
-                        if (this.djSettingLoop && this.djSettingLoop !== document.activeElement) {
-                            this.djSettingLoop.checked = data.radioSettings.loop;
-                        }
-                        if (this.djSettingShuffle && this.djSettingShuffle !== document.activeElement) {
-                            this.djSettingShuffle.checked = data.radioSettings.shuffle;
-                        }
-                    }
-
-                    if (data.playQueue && this.djQueueList) {
-                        if (this.djQueueCount) this.djQueueCount.textContent = data.playQueue.length;
-
-                        if (data.playQueue.length === 0) {
-                            this.djQueueList.innerHTML = '<div class="text-gray-500 text-sm text-center mt-10">La cola está vacía</div>';
-                        } else {
-                            this.djQueueList.innerHTML = '';
-                            data.playQueue.forEach((song: any, idx: number) => {
-                                const div = document.createElement('div');
-                                div.className = 'flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl hover:bg-white/10 transition-colors group';
-
-                                let removeBtnHTML = '';
-                                if (this.isAdmin) {
-                                    removeBtnHTML = `
-                                    <button class="dj-btn-remove-queue shrink-0 w-8 h-8 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center lg:opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all" data-idx="${idx}" title="Eliminar">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                    </button>`;
-                                }
-
-                                div.innerHTML = `
-                                    <div class="flex flex-col overflow-hidden pr-2">
-                                        <span class="text-white text-sm font-medium truncate" title="${song.title}">${song.title}</span>
-                                        ${song.duration ? `<span class="text-xs text-gray-500 font-mono">${Math.floor(song.duration/60)}:${String(Math.floor(song.duration%60)).padStart(2,'0')}</span>` : ''}
-                                    </div>
-                                    ${removeBtnHTML}
-                                `;
-                                this.djQueueList?.appendChild(div);
-                            });
-
-                            if (this.isAdmin) {
-                                this.djQueueList.querySelectorAll('.dj-btn-remove-queue').forEach(btn => {
-                                    btn.addEventListener('click', (e) => this.apiRemoveQueue(parseInt((e.currentTarget as HTMLElement).dataset.idx || '0')));
-                                });
-                            }
-                        }
-                    }
-                }
+                                ${this.libraryActions(item.index)}
+                            </div>`;
+                    })
+                    .join('');
             } catch (err) {
-                const cornerWidget = document.getElementById('now-playing-corner');
-                if (cornerWidget) cornerWidget.classList.remove('visible');
-
-                if (this.publicQueueList) {
-                    this.publicQueueList.innerHTML = '<div class="text-red-400 text-sm font-medium text-center mt-10">Desconectado del servidor</div>';
-                }
+                this.djResultsList.innerHTML = '<div class="rd-empty rd-empty--error">Error al buscar.</div>';
             }
+        }
+
+        syncStream() {
+            if (!this.audio || !this.isPlaying) return;
+            this.audio.src = `${RADIO_API}/stream?t=${Date.now()}`;
+            this.audio.play().catch((e) => console.error('Error syncing stream:', e));
+        }
+
+        /* ─────────────────────── Radio API ────────────────────── */
+
+        async apiPost(path: string, body?: Record<string, unknown>) {
+            try {
+                await fetch(`${RADIO_API}${path}`, {
+                    method: 'POST',
+                    ...(body
+                        ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+                        : {}),
+                });
+                this.pollStatus();
+            } catch (err) {
+                console.error(`Radio API ${path} failed`, err);
+            }
+        }
+
+        apiQueue(index: number, action: string) {
+            return this.apiPost('/api/queue', { index, action });
+        }
+
+        apiPlaySpecific(index: number) {
+            return this.apiPost('/api/play-specific', { index });
+        }
+
+        apiRemoveQueue(index: number) {
+            return this.apiPost('/api/queue/remove', { index });
+        }
+
+        apiPlayPlaylist(playlistName: string) {
+            if (!playlistName) return;
+            if (this.djPlaylistInput) this.djPlaylistInput.value = '';
+            return this.apiPost('/api/play-playlist', { playlistName });
+        }
+
+        /* ─────────────────────── Teardown ─────────────────────── */
+
+        destroy() {
+            window.clearInterval(this.pollTimer);
+            window.clearInterval(this.progressTimer);
+            if (this.rafId) cancelAnimationFrame(this.rafId);
+            if (this.nextSongTimeoutId) clearTimeout(this.nextSongTimeoutId);
+            this.audio?.pause();
+            this.audioContext?.close().catch(() => {});
+            this.cleanups.forEach((fn) => fn());
         }
     }
 
-    document.addEventListener('astro:page-load', () => {
-        const els = document.querySelectorAll('.radio-page-container');
-        els.forEach(el => new RadioPlayerMinimal(el as HTMLElement));
-    });
+    let station: RadioStation | null = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const els = document.querySelectorAll('.radio-page-container');
-        els.forEach(el => new RadioPlayerMinimal(el as HTMLElement));
+    function mount() {
+        const el = document.querySelector('.radio-shell') as HTMLElement | null;
+        if (!el || el.dataset.mounted === 'true') return;
+        el.dataset.mounted = 'true';
+        station = new RadioStation(el);
+    }
+
+    document.addEventListener('astro:page-load', mount);
+    document.addEventListener('DOMContentLoaded', mount);
+    if (document.readyState !== 'loading') mount();
+
+    document.addEventListener('astro:before-swap', () => {
+        station?.destroy();
+        station = null;
     });
 </script>
