@@ -6,7 +6,8 @@ export const prerender = false;
 
 // 1. Fetch Data
 const allGuests = await getCollection('guests');
-const allEpisodes = await getCollection('episodios');
+// Needs the full transcript to compute speaker time below.
+const allEpisodes = await getCollection('episodios', undefined, { includeHeavyFields: true });
 
 // 2. Helper to Parse Duration
 function parseDurationToMinutes(durationStr: string | undefined): number {

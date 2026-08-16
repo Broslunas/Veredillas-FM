@@ -3,7 +3,8 @@ import dbConnect from '@/lib/mongodb';
 import Team from '@/models/Team';
 
 export async function GET() {
-  const episodios = await getCollection('episodios');
+  // Needs the full transcript to build the search index below.
+  const episodios = await getCollection('episodios', undefined, { includeHeavyFields: true });
   const posts = await getCollection('blog');
 
   await dbConnect();
