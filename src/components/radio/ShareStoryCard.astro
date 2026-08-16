@@ -1,0 +1,37 @@
+---
+---
+
+<!-- Rendered off-screen and rasterised to a 1080x1920 PNG for Instagram Stories -->
+<div
+    id="share-card-template"
+    aria-hidden="true"
+    class="pointer-events-none absolute left-[-9999px] top-[-9999px] z-[-1] flex h-[1920px] w-[1080px] flex-col items-center justify-center overflow-hidden bg-[linear-gradient(160deg,#0b0b10_0%,#111116_45%,#050506_100%)] text-white"
+>
+    <div class="pointer-events-none absolute inset-0 opacity-70">
+        <div class="absolute left-[-14%] top-[4%] h-[900px] w-[900px] rounded-full bg-primary/40 blur-[180px]"></div>
+        <div class="absolute bottom-[2%] right-[-18%] h-[900px] w-[900px] rounded-full bg-secondary/30 blur-[180px]"></div>
+    </div>
+    <div
+        class="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style="background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px); background-size: 80px 80px;"
+    ></div>
+
+    <img src="/logo.webp" width="220" alt="" class="z-10 mb-20 drop-shadow-[0_0_30px_rgba(139,92,246,0.4)]" />
+
+    <h2 class="z-10 mb-14 bg-gradient-to-b from-white to-gray-400 bg-clip-text px-16 text-center font-display text-8xl font-extrabold tracking-tight text-transparent">
+        Veredillas FM
+    </h2>
+
+    <div class="z-10 flex w-[82%] max-w-[900px] flex-col items-center rounded-[4rem] border border-white/15 bg-white/[0.06] p-16 shadow-[0_40px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
+        <div class="mb-8 flex items-center gap-3">
+            <span class="h-4 w-4 rounded-full bg-primary"></span>
+            <p class="text-3xl font-bold uppercase tracking-[0.2em] text-gray-300">Sonando ahora</p>
+        </div>
+        <h3 class="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-center font-display text-6xl font-extrabold text-transparent" id="share-song-title">
+            Cargando…
+        </h3>
+        <p class="mt-8 text-center text-4xl font-medium text-gray-400" id="share-song-artist"></p>
+    </div>
+
+    <p class="absolute bottom-28 z-10 text-4xl font-semibold tracking-wide text-gray-400">radio.veredillasfm.es</p>
+</div>
