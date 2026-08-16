@@ -1,0 +1,283 @@
+---
+import VolumeBar from './VolumeBar.astro';
+---
+
+<section class="on-air-console relative isolate overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(0,0,0,0.45))] shadow-[0_40px_90px_-50px_rgba(0,0,0,0.95)] backdrop-blur-2xl transition-[border-color,box-shadow] duration-700">
+    <!-- Top hairline that lights up on air -->
+    <span class="console-hairline pointer-events-none absolute inset-x-0 top-0 h-px"></span>
+
+    <!-- Live spectrum, painted behind the content -->
+    <canvas class="console-spectrum pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full sm:h-32" aria-hidden="true"></canvas>
+
+    <div class="relative grid gap-6 p-5 sm:p-7 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,19rem)] lg:items-center lg:gap-8">
+
+        <!-- ── Transport ─────────────────────────────────────────── -->
+        <div class="flex items-center gap-5 lg:block">
+            <button
+                type="button"
+                class="music-btn music-toggle-btn group relative grid h-24 w-24 shrink-0 place-items-center rounded-full sm:h-28 sm:w-28"
+                aria-label="Reproducir o pausar la radio en directo"
+            >
+                <span class="btn-halo absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,var(--color-primary),var(--color-secondary),var(--color-accent),var(--color-primary))] opacity-40 blur-xl transition-opacity duration-700"></span>
+                <span class="absolute inset-0 rounded-full border border-white/15 transition-colors duration-500 group-[.playing]:border-primary/60"></span>
+                <span class="btn-ring absolute inset-1 rounded-full border border-white/5"></span>
+                <span class="relative grid h-[calc(100%-1.25rem)] w-[calc(100%-1.25rem)] place-items-center rounded-full border border-white/10 bg-gradient-to-br from-white/[0.12] to-white/[0.02] transition-transform duration-300 group-hover:scale-[1.04] group-active:scale-95 group-[.playing]:from-primary/25 group-[.playing]:to-primary/5">
+                    <svg class="h-8 w-8 translate-x-[2px] text-white group-[.playing]:hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                    <svg class="hidden h-7 w-7 text-white group-[.playing]:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.2"/><rect x="14" y="4" width="4" height="16" rx="1.2"/></svg>
+                </span>
+            </button>
+
+            <!-- Mobile-only status, sits next to the button before the layout stacks -->
+            <div class="min-w-0 lg:hidden">
+                <div class="console-eyebrow">
+                    <span class="on-air-dot"></span>
+                    <span class="music-label">Pulsa para escuchar</span>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Emisión continua · 24/7</p>
+            </div>
+        </div>
+
+        <!-- ── Now playing ───────────────────────────────────────── -->
+        <div class="min-w-0">
+            <div class="hidden items-center gap-2.5 lg:flex">
+                <div class="console-eyebrow">
+                    <span class="on-air-dot"></span>
+                    <span class="music-label">Pulsa para escuchar</span>
+                </div>
+                <span class="rd-tag" id="rd-playlist-tag" hidden></span>
+            </div>
+
+            <div class="rd-marquee mt-2.5" id="rd-title-marquee">
+                <span class="rd-marquee-inner">
+                    <span class="rd-marquee-text font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl lg:text-4xl" id="rd-track-title">Veredillas FM</span>
+                </span>
+            </div>
+            <p class="mt-1 truncate text-sm text-gray-400 sm:text-base" id="rd-track-artist">La radio hecha por y para los alumnos del IES Las Veredillas</p>
+
+            <!-- Progress -->
+            <div class="mt-5 flex items-center gap-3">
+                <span class="rd-time" id="rd-elapsed">--:--</span>
+                <div class="rd-track is-indeterminate" id="rd-progress-track" role="progressbar" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="100">
+                    <div class="rd-track-fill" id="rd-progress-fill"></div>
+                </div>
+                <span class="rd-time" id="rd-duration">--:--</span>
+            </div>
+        </div>
+
+        <!-- ── Output + up next ──────────────────────────────────── -->
+        <div class="flex flex-col gap-3">
+            <VolumeBar />
+
+            <a href="#cola" class="rd-next group/next" id="rd-next-card">
+                <span class="rd-next-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+                </span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-[0.6rem] font-extrabold uppercase tracking-[0.16em] text-gray-500">A continuación</span>
+                    <span class="block truncate text-sm font-semibold text-gray-200 transition-colors group-hover/next:text-white" id="rd-next-title">Cargando cola…</span>
+                </span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .on-air-console:has(.music-btn.playing) {
+        border-color: rgba(var(--color-primary-rgb), 0.35);
+        box-shadow:
+            0 0 90px -40px rgba(var(--color-primary-rgb), 0.75),
+            0 40px 90px -50px rgba(0, 0, 0, 0.95);
+    }
+
+    .console-hairline {
+        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.18), transparent);
+        transition: background 0.7s ease;
+    }
+    .on-air-console:has(.music-btn.playing) .console-hairline {
+        background: linear-gradient(
+            to right,
+            transparent,
+            rgba(var(--color-primary-rgb), 0.9),
+            rgba(var(--color-secondary-rgb), 0.9),
+            transparent
+        );
+    }
+
+    .console-spectrum {
+        opacity: 0;
+        transition: opacity 0.8s ease;
+        -webkit-mask-image: linear-gradient(to top, black 15%, transparent 100%);
+        mask-image: linear-gradient(to top, black 15%, transparent 100%);
+    }
+    .on-air-console:has(.music-btn.playing) .console-spectrum {
+        opacity: 0.55;
+    }
+
+    /* Transport button */
+    .btn-halo {
+        transform: scale(var(--bass-scale, 1));
+        transform-origin: center;
+        transition: transform 0.08s ease-out, opacity 0.7s ease;
+        will-change: transform;
+    }
+    .music-btn.playing .btn-halo {
+        opacity: 0.85;
+    }
+    .music-btn.playing .btn-ring {
+        animation: rd-ring 2.4s ease-out infinite;
+    }
+    @keyframes rd-ring {
+        0%   { box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0.45); }
+        70%  { box-shadow: 0 0 0 14px rgba(var(--color-primary-rgb), 0); }
+        100% { box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0); }
+    }
+
+    /* Eyebrow / status line */
+    .console-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        white-space: nowrap;
+    }
+    .on-air-console:has(.music-btn.playing) .console-eyebrow {
+        color: var(--color-primary);
+    }
+
+    .on-air-dot {
+        width: 7px;
+        height: 7px;
+        flex-shrink: 0;
+        border-radius: 9999px;
+        background: #52525b;
+        transition: background 0.4s ease, box-shadow 0.4s ease;
+    }
+    .on-air-console:has(.music-btn.playing) .on-air-dot {
+        background: #ef4444;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.85);
+        animation: rd-blink 1.8s ease-in-out infinite;
+    }
+    @keyframes rd-blink {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.35; }
+    }
+
+    .rd-tag {
+        display: inline-flex;
+        max-width: 14rem;
+        align-items: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        border: 1px solid rgba(var(--color-secondary-rgb), 0.25);
+        border-radius: 9999px;
+        background: rgba(var(--color-secondary-rgb), 0.1);
+        padding: 0.15rem 0.6rem;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--color-secondary);
+    }
+
+    /* Title marquee — only scrolls when the text actually overflows */
+    .rd-marquee {
+        position: relative;
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%);
+        mask-image: linear-gradient(to right, black 92%, transparent 100%);
+    }
+    .rd-marquee-inner {
+        display: inline-flex;
+        white-space: nowrap;
+        will-change: transform;
+    }
+    .rd-marquee.is-scrolling .rd-marquee-inner {
+        animation: rd-scroll var(--marquee-duration, 18s) linear infinite;
+    }
+    .rd-marquee.is-scrolling .rd-marquee-text {
+        padding-right: 3rem;
+    }
+    @keyframes rd-scroll {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+    }
+
+    /* Progress */
+    .rd-time {
+        flex-shrink: 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-text-dim);
+    }
+
+    .rd-track {
+        position: relative;
+        height: 6px;
+        flex: 1;
+        overflow: hidden;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.09);
+    }
+
+    .rd-track-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 9999px;
+        background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
+        box-shadow: 0 0 14px rgba(var(--color-primary-rgb), 0.55);
+        transition: width 0.9s linear;
+    }
+
+    /* No reliable elapsed time yet → sweep instead of faking a position */
+    .rd-track.is-indeterminate .rd-track-fill {
+        width: 34%;
+        transition: none;
+        animation: rd-sweep 2.2s ease-in-out infinite;
+    }
+    @keyframes rd-sweep {
+        0%   { transform: translateX(-110%); }
+        100% { transform: translateX(320%); }
+    }
+
+    /* Up next */
+    .rd-next {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        padding: 0.7rem 0.9rem;
+        transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+    }
+    .rd-next:hover {
+        transform: translateY(-1px);
+        border-color: rgba(var(--color-secondary-rgb), 0.3);
+        background: rgba(255, 255, 255, 0.06);
+    }
+    .rd-next-icon {
+        display: grid;
+        height: 1.9rem;
+        width: 1.9rem;
+        flex-shrink: 0;
+        place-items: center;
+        border-radius: 0.6rem;
+        border: 1px solid rgba(var(--color-secondary-rgb), 0.22);
+        background: rgba(var(--color-secondary-rgb), 0.1);
+        color: var(--color-secondary);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .rd-marquee.is-scrolling .rd-marquee-inner,
+        .rd-track.is-indeterminate .rd-track-fill,
+        .music-btn.playing .btn-ring,
+        .on-air-console:has(.music-btn.playing) .on-air-dot {
+            animation: none;
+        }
+    }
+</style>
