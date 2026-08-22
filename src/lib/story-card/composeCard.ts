@@ -178,13 +178,14 @@ function buildMainVisual(model: CardModel, look: Look): CardNode {
     },
   });
 
-  const titleSize = look.titleTypography.sizePx[model.format] ?? 85;
+  const titleSize = model.titleFontSize ?? (look.titleTypography.sizePx[model.format] ?? 85);
+  const titleFont = model.fontFamily || look.titleTypography.fontFamily;
   const title = positioned(model, 'title', {
     type: 'h1',
     props: {
       text: cleanEpisodeTitle(model.title),
       style: {
-        fontFamily: look.titleTypography.fontFamily,
+        fontFamily: titleFont,
         fontWeight: look.titleTypography.weight,
         fontSize: titleSize,
         lineHeight: 1.05,
@@ -207,7 +208,8 @@ function buildMainVisual(model: CardModel, look: Look): CardNode {
       })
     : null;
 
-  const bodySize = look.bodyTypography.sizePx[model.format] ?? 42;
+  const bodySize = model.quoteFontSize ?? (look.bodyTypography.sizePx[model.format] ?? 42);
+  const bodyFont = model.fontFamily || look.bodyTypography.fontFamily;
   const quote = model.quote
     ? positioned(model, 'quote', {
         type: 'div',
@@ -220,7 +222,7 @@ function buildMainVisual(model: CardModel, look: Look): CardNode {
               props: {
                 text: `“${model.quote}”`,
                 style: {
-                  fontFamily: look.bodyTypography.fontFamily,
+                  fontFamily: bodyFont,
                   fontWeight: look.bodyTypography.weight,
                   fontSize: bodySize,
                   fontStyle: 'italic',

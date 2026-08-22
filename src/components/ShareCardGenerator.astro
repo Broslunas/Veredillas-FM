@@ -56,7 +56,6 @@ const displayTitle = cleanEpisodeTitle(title);
                 <div class="tabs-container">
                     <button class="tab-btn active" data-tab="content">Contenido</button>
                     <button class="tab-btn" data-tab="design">Diseño</button>
-                    <button class="tab-btn" data-tab="layout">Distribución</button>
                     <button class="tab-btn" data-tab="export">Exportar</button>
                 </div>
 
@@ -203,6 +202,34 @@ const displayTitle = cleanEpisodeTitle(title);
 
                     <div class="setting-divider"></div>
 
+                    <!-- Section: Typography -->
+                    <div class="control-section">
+                        <h4 class="section-title">Tipografía y Tamaño</h4>
+                        <div class="input-group">
+                            <label for="font-family-select">Fuente</label>
+                            <select id="font-family-select" class="premium-input" style="width: 100%; cursor: pointer;">
+                                <option value="Outfit">Outfit (Moderna Sans)</option>
+                                <option value="'Space Grotesk', sans-serif">Space Grotesk (Tech / Display)</option>
+                                <option value="'Cinzel', serif">Cinzel (Elegante Clásica)</option>
+                                <option value="'Playfair Display', serif">Playfair Display (Editorial / Serif)</option>
+                                <option value="'Inter', sans-serif">Inter (Limpia Minimal)</option>
+                                <option value="'Bebas Neue', sans-serif">Bebas Neue (Condensada / Bold)</option>
+                            </select>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                            <div class="input-group">
+                                <label for="title-font-size-input">Tamaño Título (<span id="title-size-val">85</span>px)</label>
+                                <input type="range" id="title-font-size-input" min="40" max="130" value="85" style="width: 100%; accent-color: var(--card-accent);" />
+                            </div>
+                            <div class="input-group">
+                                <label for="quote-font-size-input">Tamaño Cita (<span id="quote-size-val">42</span>px)</label>
+                                <input type="range" id="quote-font-size-input" min="24" max="70" value="42" style="width: 100%; accent-color: var(--card-accent);" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-divider"></div>
+
                     <!-- Section: Elements -->
                     <div class="control-section">
                         <h4 class="section-title">Elementos Visuales</h4>
@@ -228,48 +255,21 @@ const displayTitle = cleanEpisodeTitle(title);
                                 <label class="switch"><input type="checkbox" id="show-qr"><span class="slider round"></span></label>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="tab-content custom-scrollbar" id="tab-layout" style="display: none;">
-                    <div class="control-section">
-                        <h4 class="section-title">Ajustes Rápidos</h4>
-                        <div class="layouts-grid">
-                            <button class="layout-preset active" data-layout="default">
-                                <div class="layout-mini default"><span></span><span></span><span></span></div>
-                                <span class="layout-name">Clásico</span>
-                            </button>
-                            <button class="layout-preset" data-layout="centered">
-                                <div class="layout-mini centered"><span></span><span></span><span></span></div>
-                                <span class="layout-name">Centrado</span>
-                            </button>
-                            <button class="layout-preset" data-layout="minimal">
-                                <div class="layout-mini minimal"><span></span><span></span><span></span></div>
-                                <span class="layout-name">Mínimo</span>
-                            </button>
-                            <button class="layout-preset" data-layout="split">
-                                <div class="layout-mini split"><span></span><span></span><span></span></div>
-                                <span class="layout-name">Dividido</span>
-                            </button>
-                        </div>
-                        <p class="layout-tip">💡 <strong>Truco:</strong> Puedes arrastrar cualquier elemento en la vista previa para colocarlo donde quieras.</p>
-                        
-                        <div class="setting-divider"></div>
-                        
-                        <button id="reset-layout-btn" class="secondary-btn-outline w-full py-3 rounded-xl border border-white/10 text-sm font-semibold hover:bg-white/5 transition-all">
-                            Restablecer Posiciones
+                        <button id="reset-layout-btn" class="secondary-btn-outline" style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                            Restablecer Posiciones de Elementos
                         </button>
                     </div>
                 </div>
 
                 <div class="tab-content custom-scrollbar" id="tab-export" style="display: none;">
                     <div class="export-options">
-                        <p class="export-desc">Comparte tu fragmento directamente en tus redes o descárgalo a tu dispositivo.</p>
-                        
+                        <p class="export-desc">Guarda en tu biblioteca, copia al portapapeles o descarga tu creación en alta resolución.</p>
+
                         <div class="actions-grid">
-                            <button id="share-native-btn" class="export-btn primary-action">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                                <span>Compartir (Móvil)</span>
+                            <button id="download-card-btn" class="export-btn primary-action">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Descargar Imagen</span>
                             </button>
 
                             <button id="copy-card-btn" class="export-btn secondary-action">
@@ -280,16 +280,6 @@ const displayTitle = cleanEpisodeTitle(title);
                             <button id="save-library-btn" class="export-btn" style="background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2)); border: 1.5px solid rgba(139,92,246,0.4); color: #fff;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                                 <span>Guardar en "Mis Stories"</span>
-                            </button>
-
-                            <button id="download-card-btn" class="export-btn outline-action">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                <span>Guardar Imagen</span>
-                            </button>
-                            
-                            <button id="show-scan-qr-btn" class="export-btn outline-action">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="7" y1="7" x2="7" y2="7"></line><line x1="17" y1="7" x2="17" y2="7"></line><line x1="17" y1="17" x2="17" y2="17"></line><line x1="7" y1="17" x2="7" y2="17"></line></svg>
-                                <span>Escanear para descargar</span>
                             </button>
                         </div>
 
@@ -304,7 +294,7 @@ const displayTitle = cleanEpisodeTitle(title);
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div id="export-status" class="export-status hidden"></div>
                     </div>
                 </div>
@@ -313,11 +303,11 @@ const displayTitle = cleanEpisodeTitle(title);
 
             <!-- Preview Area -->
             <div class="preview-panel">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 380px; margin-bottom: 8px;">
-                    <div class="preview-hint" id="preview-dim-hint" style="margin: 0;">Vista Previa <strong>(Story 1080x1920)</strong></div>
-                    <div class="format-switcher" style="display: flex; background: rgba(255,255,255,0.06); padding: 3px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1);">
-                        <button type="button" class="format-btn active" data-format="story" style="padding: 4px 12px; border-radius: 999px; border: none; background: #fff; color: #000; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Story (9:16)</button>
-                        <button type="button" class="format-btn" data-format="post" style="padding: 4px 12px; border-radius: 999px; border: none; background: transparent; color: rgba(255,255,255,0.6); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Post (1:1)</button>
+                <div class="preview-top-toolbar">
+                    <div class="preview-hint" id="preview-dim-hint">Vista Previa <strong>(Story 1080x1920)</strong></div>
+                    <div class="format-switcher">
+                        <button type="button" class="format-btn active" data-format="story">Story (9:16)</button>
+                        <button type="button" class="format-btn" data-format="post">Post (1:1)</button>
                     </div>
                 </div>
                 <div class="canvas-wrapper">
@@ -468,7 +458,7 @@ const displayTitle = cleanEpisodeTitle(title);
     const elWave = document.getElementById('wave-decoration');
     const elQR = document.getElementById('el-qr');
     
-    // Presets
+    // Presets & Typography
     const bgPresets = document.querySelectorAll('.bg-preset');
     const colorBtns = document.querySelectorAll('.color-btn');
     const lookBtns = document.querySelectorAll('.look-btn');
@@ -476,18 +466,21 @@ const displayTitle = cleanEpisodeTitle(title);
     const customImageInput = document.getElementById('custom-image-input') as HTMLInputElement;
     const uploadImageBtn = document.getElementById('upload-image-btn');
     const resetImageBtn = document.getElementById('reset-image-btn');
+    const fontFamilySelect = document.getElementById('font-family-select') as HTMLSelectElement;
+    const titleFontSizeInput = document.getElementById('title-font-size-input') as HTMLInputElement;
+    const quoteFontSizeInput = document.getElementById('quote-font-size-input') as HTMLInputElement;
+    const titleSizeVal = document.getElementById('title-size-val');
+    const quoteSizeVal = document.getElementById('quote-size-val');
     let originalEpisodeImage = '/logo.webp';
 
     // Exports & Status
     const downloadBtn = document.getElementById('download-card-btn');
-    const shareNativeBtn = document.getElementById('share-native-btn');
     const copyCardBtn = document.getElementById('copy-card-btn');
     const exportStatus = document.getElementById('export-status');
     const resetLayoutBtn = document.getElementById('reset-layout-btn');
     const alignBtns = document.querySelectorAll('.align-btn');
-    
+
     // QR Elements
-    const showScanQRBtn = document.getElementById('show-scan-qr-btn');
     const qrModalOverlay = document.getElementById('qr-modal-overlay');
     const closeQROverlay = document.getElementById('close-qr-overlay');
     const scanQRContainer = document.getElementById('scan-qr-container');
@@ -525,11 +518,6 @@ const displayTitle = cleanEpisodeTitle(title);
         if (show) {
             setTimeout(fitPreview, 100);
             updatePreview();
-            
-            // Native Share Check
-            if (!navigator.canShare) {
-                if (shareNativeBtn) (shareNativeBtn as HTMLElement).style.display = 'none';
-            }
         }
     };
 
@@ -948,10 +936,29 @@ const displayTitle = cleanEpisodeTitle(title);
         if (visualContainer && showCoverInput) {
              visualContainer.style.display = showCoverInput.checked ? 'flex' : 'none';
         }
-        
+
         if (elLogo && showLogoInput) elLogo.style.opacity = showLogoInput.checked ? '1' : '0';
         if (elWebsite && showWebsiteInput) elWebsite.style.opacity = showWebsiteInput.checked ? '1' : '0';
         if (elWave && showWaveInput) elWave.style.opacity = showWaveInput.checked ? '1' : '0';
+
+        // Custom Typography
+        if (fontFamilySelect) {
+            const font = fontFamilySelect.value;
+            if (previewTitle) previewTitle.style.fontFamily = font;
+            if (previewQuote) previewQuote.style.fontFamily = font;
+        }
+
+        if (titleFontSizeInput && previewTitle) {
+            const titleSize = titleFontSizeInput.value;
+            previewTitle.style.fontSize = `${titleSize}px`;
+            if (titleSizeVal) titleSizeVal.textContent = titleSize;
+        }
+
+        if (quoteFontSizeInput && previewQuote) {
+            const quoteSize = quoteFontSizeInput.value;
+            previewQuote.style.fontSize = `${quoteSize}px`;
+            if (quoteSizeVal) quoteSizeVal.textContent = quoteSize;
+        }
 
         if (bgColorInput && solidColorPicker && !solidColorPicker.classList.contains('hidden')) {
             const solidLayer = cardBgLayer?.querySelector('.bg-solid') as HTMLElement;
@@ -963,7 +970,7 @@ const displayTitle = cleanEpisodeTitle(title);
         }
     };
 
-    [titleInput, guestInput, quoteInput, bgColorInput]
+    [titleInput, guestInput, quoteInput, bgColorInput, fontFamilySelect, titleFontSizeInput, quoteFontSizeInput]
         .forEach(el => el?.addEventListener('input', updatePreview));
     
     [showCoverInput, showLogoInput, showWebsiteInput, showWaveInput, showQRInput]
@@ -1287,37 +1294,6 @@ const displayTitle = cleanEpisodeTitle(title);
         }
     });
 
-    shareNativeBtn?.addEventListener('click', async () => {
-        const card = document.getElementById('share-card');
-        if (!card) return;
-        const originalHTML = shareNativeBtn.innerHTML;
-        setExportingState(shareNativeBtn, true, originalHTML);
-        try {
-            const blob = await htmlToImage.toBlob(card, getRenderOptions());
-            if (!blob) throw new Error('Blob is null');
-            
-            const file = new File([blob], `Veredillas_Story_${Date.now()}.png`, { type: 'image/png' });
-            
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    title: titleInput?.value || 'Veredillas FM',
-                    text: '¡Mira este episodio de Veredillas FM!',
-                    files: [file]
-                });
-                showStatus('¡Compartido!');
-            } else {
-                showStatus('Tu navegador no soporta compartir imágenes directamente', true);
-            }
-        } catch (err) {
-            console.error(err);
-            if ((err as Error).name !== 'AbortError') {
-                showStatus('Error al compartir', true);
-            }
-        } finally {
-            setExportingState(shareNativeBtn, false, originalHTML);
-        }
-    });
-
     // Save to Library
     const saveLibraryBtn = document.getElementById('save-library-btn');
     saveLibraryBtn?.addEventListener('click', async () => {
@@ -1336,6 +1312,9 @@ const displayTitle = cleanEpisodeTitle(title);
                 quote: quoteInput?.value || '',
                 background: { kind: 'cover', blur: 100, brightness: 0.4 },
                 coverImageUrl: currentEpisodeImage,
+                fontFamily: fontFamilySelect?.value,
+                titleFontSize: titleFontSizeInput ? parseInt(titleFontSizeInput.value, 10) : undefined,
+                quoteFontSize: quoteFontSizeInput ? parseInt(quoteFontSizeInput.value, 10) : undefined,
                 websiteLabel: 'veredillasfm.es',
                 elements: elementStates,
             };
@@ -1696,15 +1675,42 @@ const displayTitle = cleanEpisodeTitle(title);
 
   /* --- Preview Panel --- */
   .preview-panel {
-      flex: 1; background: #000; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;
-  }
-  
-  /* Background grid pattern */
-  .preview-panel::before {
-      content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5;
+      flex: 1; background: #000; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
   }
 
-  .preview-hint { position: absolute; top: 1.5rem; right: 2rem; color: var(--text-mut); font-size: 0.85rem; font-family: monospace; z-index: 10; background: rgba(0,0,0,0.5); padding: 0.5rem 1rem; border-radius: 100px; backdrop-filter: blur(4px); }
+  .preview-top-toolbar {
+      position: absolute; top: 1.5rem; left: 2rem; right: 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 20; pointer-events: none;
+  }
+
+  .preview-hint {
+      color: var(--text-mut); font-size: 0.85rem; font-family: monospace;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);
+      padding: 0.5rem 1rem; border-radius: 100px; backdrop-filter: blur(8px);
+      pointer-events: auto;
+  }
+
+  .format-switcher {
+      display: flex; background: rgba(0,0,0,0.6); padding: 4px;
+      border-radius: 999px; border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px); pointer-events: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .format-btn {
+      padding: 6px 14px; border-radius: 999px; border: none;
+      background: transparent; color: rgba(255,255,255,0.6);
+      font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  }
+
+  .format-btn:hover {
+      color: #fff;
+  }
+
+  .format-btn.active {
+      background: #fff; color: #000; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
 
   .canvas-wrapper { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
 
