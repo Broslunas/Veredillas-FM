@@ -253,10 +253,10 @@ const member = memberDoc as any;
         color: var(--color-text-muted);
         margin-bottom: 2rem;
         max-width: 100%;
-        display: -webkit-box;
-        -webkit-line-clamp: 6; /* limit lines if absolutely necessary, but font size should prevent it */
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        white-space: pre-line;
+        overflow-y: auto;
+        max-height: 220px;
+        padding-right: 0.25rem;
     }
 
     .social-links {
