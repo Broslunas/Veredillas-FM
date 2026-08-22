@@ -33,7 +33,9 @@ const CommentSchema = new mongoose.Schema({
   },
   text: {
     type: String,
-    required: [function(this: any) { return this.rating === 0; }, 'Please provide the comment text or a rating.'],
+    required: [function(this: any) {
+      return this.rating === 0 && (!this.attachments || this.attachments.length === 0);
+    }, 'Please provide the comment text, a rating, or an attachment.'],
     maxlength: [1500, 'Comment cannot be more than 1500 characters'],
   },
   createdAt: {
