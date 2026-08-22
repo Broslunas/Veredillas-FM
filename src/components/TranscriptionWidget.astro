@@ -82,7 +82,6 @@ if (!transcription || transcription.length === 0) {
         if(btnClose && modal) {
             btnClose.addEventListener('click', () => {
                 modal.close();
-                document.body.style.overflow = '';
             });
         }
         
@@ -90,8 +89,12 @@ if (!transcription || transcription.length === 0) {
              modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.close();
-                    document.body.style.overflow = '';
                 }
+            });
+
+            // Safety net: reset scroll lock on ANY close path (button, backdrop, Escape key)
+            modal.addEventListener('close', () => {
+                document.body.style.overflow = '';
             });
         }
 
@@ -345,62 +348,68 @@ if (!transcription || transcription.length === 0) {
   }
   
   .modal-content {
-      background: #0f172a; /* Slate 900 */
+      background: var(--color-surface);
       width: 90%;
       max-width: 800px;
       height: 80%;
       margin: 5vh auto; /* Use vh for vertical centering */
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--color-border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
       position: relative;
       z-index: 99999;
+      color: var(--color-text-main);
   }
-  
+
   .modal-header {
       padding: 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid var(--color-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(15, 23, 42, 0.95);
-      color: white; /* Ensure text is white */
+      background: var(--color-surface);
+      color: var(--color-text-main);
   }
-  
+
   .modal-header h2 {
       margin: 0;
       font-size: 1.5rem;
-      color: white;
+      font-family: var(--font-display);
+      color: var(--color-text-main);
   }
-  
+
   .modal-scroll {
       padding: 24px;
       flex: 1; /* Ensure it takes available space */
       overflow-y: auto;
       max-height: none; /* Override widget max-height */
   }
-  
+
   .modal-scroll .transcription-line {
       padding: 16px;
       margin-bottom: 12px;
   }
-  
+
+  .modal-scroll .transcription-line:hover {
+      background: var(--color-surface-hover);
+  }
+
   .modal-scroll .text {
       font-size: 1.1rem;
       line-height: 1.6;
-      color: #e2e8f0; /* Light gray */
+      color: var(--color-text-muted);
   }
-  
+
   /* Active state in modal */
   .modal-scroll .transcription-line.active {
-       background: rgba(139, 92, 246, 0.25);
+       background: rgba(var(--color-primary-rgb), 0.2);
   }
-  
+
   .modal-scroll .transcription-line.active .text {
-      color: white;
+      color: var(--color-text-main);
       font-weight: 500;
   }
 
