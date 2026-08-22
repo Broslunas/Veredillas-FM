@@ -168,7 +168,7 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
           </span>
         </button>
 
-        <CommandPalette client:idle />
+        <CommandPalette client:only="react" />
         <AuthButton />
 
         <!-- Hamburger -->
