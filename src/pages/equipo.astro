@@ -14,12 +14,29 @@ const allMembers = allMembersRaw.map((m: any) => ({
   image: m.image,
 }));
 
+function expandSchoolYears(schoolYear: string): string[] {
+  if (!schoolYear) return [];
+  const parts = schoolYear.split('/').map((p) => parseInt(p.trim(), 10));
+  if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
+    const [start, end] = parts;
+    if (end > start) {
+      const years: string[] = [];
+      for (let y = start; y < end; y++) {
+        years.push(`${y}/${y + 1}`);
+      }
+      return years;
+    }
+  }
+  return [schoolYear];
+}
+
 function schoolYearStartYear(year: string): number {
   const n = parseInt((year || '').split('/')[0], 10);
   return Number.isNaN(n) ? 0 : n;
 }
 
-const schoolYears = [...new Set(allMembersRaw.map((m: any) => m.schoolYear as string))].sort(
+const allExpandedYears = allMembersRaw.flatMap((m: any) => expandSchoolYears(m.schoolYear as string));
+const schoolYears = [...new Set(allExpandedYears)].sort(
   (a, b) => schoolYearStartYear(b) - schoolYearStartYear(a)
 );
 
@@ -28,7 +45,7 @@ const currentYear = schoolYears[0] || '';
 const membersByYear = schoolYears.map((year) => ({
   year,
   members: allMembersRaw
-    .filter((m: any) => m.schoolYear === year)
+    .filter((m: any) => expandSchoolYears(m.schoolYear).includes(year))
     .map((m: any) => ({ slug: m.slug, name: m.name, role: m.role, image: m.image })),
 }));
 ---
