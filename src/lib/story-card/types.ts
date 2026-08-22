@@ -87,6 +87,12 @@ export interface CardModel {
   guests: string;
   quote: string;
   background: CardBackgroundSpec;
+  /** Custom typography override for title */
+  fontFamily?: string;
+  /** Custom title font size override */
+  titleFontSize?: number;
+  /** Custom quote font size override */
+  quoteFontSize?: number;
   /** Episode cover image (or a user-uploaded custom image, from Fase 3 onward). */
   coverImageUrl: string;
   websiteLabel: string;

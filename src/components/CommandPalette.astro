@@ -1,0 +1,281 @@
+---
+---
+
+<button id="cmd-palette-trigger" class="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md text-zinc-400 cursor-pointer transition-all duration-200 hover:bg-white/10 hover:border-white/20 hover:text-white text-[0.9rem]" aria-label="Abrir Buscador">
+  <span class="flex items-center">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+  </span>
+  <span class="flex items-center gap-1 text-[0.75rem] opacity-70 max-[640px]:hidden">
+    <kbd class="bg-white/10 px-1.5 py-0.5 rounded font-mono leading-none">Ctrl</kbd> K
+  </span>
+</button>
+
+<dialog id="cmd-palette" class="p-0 border-none bg-transparent w-full h-full max-w-full max-h-full fixed inset-0 z-[9999] flex items-start justify-center pt-[10vh] bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200 open:opacity-100 open:pointer-events-auto max-[640px]:pt-0">
+  <div class="w-[640px] max-w-[95%] bg-gradient-to-b from-[#1f1f23] to-[#18181b] border border-white/10 rounded-xl shadow-[0_40px_80px_-15px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.05)] overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col -translate-y-2.5 scale-[0.98] [[open]_&]:translate-y-0 [[open]_&]:scale-100 max-[640px]:w-full max-[640px]:h-full max-[640px]:max-h-full max-[640px]:rounded-none max-[640px]:transform-none">
+    <div class="flex items-center p-4 px-5 border-b border-white/[0.08] gap-3">
+      <div class="text-zinc-500">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <input type="text" id="palette-input" placeholder="Buscar episodios, equipo, posts..." autocomplete="off" class="flex-1 bg-transparent border-none text-[1.1rem] text-white font-inherit outline-none h-full placeholder:text-zinc-500" />
+      <div class="flex gap-3 text-[0.75rem] text-zinc-400 max-[640px]:hidden">
+        <span class="flex items-center gap-1.5"><kbd class="bg-white/10 px-1 py-0.5 rounded font-mono leading-none">⇅</kbd> navegar</span>
+        <span class="flex items-center gap-1.5"><kbd class="bg-white/10 px-1 py-0.5 rounded font-mono leading-none">↵</kbd> seleccionar</span>
+        <span class="flex items-center gap-1.5"><kbd class="bg-white/10 px-1 py-0.5 rounded font-mono leading-none">Esc</kbd> cerrar</span>
+      </div>
+    </div>
+    
+    <div id="palette-results" class="max-h-[400px] overflow-y-auto p-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <div class="p-4 text-center text-zinc-500">
+            <p>Escribe para buscar...</p>
+            <div class="mt-8 text-left">
+                <span class="text-[0.75rem] uppercase tracking-widest text-zinc-400 mb-3 block">Navegación</span>
+                <div class="grid grid-cols-2 gap-2">
+                   <a href="/ep" class="flex items-center gap-2 p-3 bg-white/[0.03] rounded-lg text-white no-underline text-[0.9rem] transition-colors hover:bg-white/[0.08]">🎙️ Ir a Episodios</a>
+                   <a href="/equipo" class="flex items-center gap-2 p-3 bg-white/[0.03] rounded-lg text-white no-underline text-[0.9rem] transition-colors hover:bg-white/[0.08]">👥 Ver Equipo</a>
+                   <a href="/blog" class="flex items-center gap-2 p-3 bg-white/[0.03] rounded-lg text-white no-underline text-[0.9rem] transition-colors hover:bg-white/[0.08]">📝 Leer Blog</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="p-2 px-4 bg-black/20 border-t border-white/5 flex justify-between text-[0.7rem] text-zinc-500">
+        <span id="results-count"></span>
+        <span>Veredillas FM</span>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import Fuse from 'fuse.js';
+
+  interface SearchItem {
+    title: string;
+    description: string;
+    type: string;
+    slug: string;
+    image?: string;
+    date: string;
+    tags?: string[];
+    transcriptionText?: string;
+    participants?: string[];
+    transcription?: { text: string; time: string }[];
+  }
+
+  let fuseInstance: Fuse<SearchItem> | undefined;
+  let searchData: SearchItem[] = [];
+  let selectedIndex = -1;
+
+  function initCommandPalette() {
+      const dialog = document.getElementById('cmd-palette') as HTMLDialogElement | null;
+      const trigger = document.getElementById('cmd-palette-trigger');
+      const input = document.getElementById('palette-input') as HTMLInputElement | null;
+      const resultsContainer = document.getElementById('palette-results');
+      const countEl = document.getElementById('results-count');
+      
+      if (!dialog || !trigger) return;
+
+      let isOpen = false;
+
+      async function initSearch() {
+        if (searchData.length > 0) return;
+
+        try {
+          const res = await fetch('/api/search.json');
+          searchData = await res.json();
+          
+          fuseInstance = new Fuse(searchData, {
+            keys: [
+                { name: 'title', weight: 0.7 },
+                { name: 'tags', weight: 0.6 },
+                { name: 'participants', weight: 0.5 },
+                { name: 'description', weight: 0.3 },
+                { name: 'transcription.text', weight: 0.2 },
+                { name: 'type', weight: 0.2 }
+            ],
+            threshold: 0.3,
+            ignoreLocation: true,
+            includeMatches: true,
+          });
+        } catch (e) {
+          console.error('Error loading search data', e);
+        }
+      }
+
+      function openPalette() {
+        isOpen = true;
+        dialog?.showModal();
+        dialog?.addEventListener('click', onBackdropClick);
+        document.body.style.overflow = 'hidden';
+        initSearch(); 
+        input?.focus();
+        if(input && input.value) {
+            handleInput({ target: input } as any);
+        }
+      }
+
+      function closePalette() {
+        isOpen = false;
+        dialog?.close();
+        dialog?.removeEventListener('click', onBackdropClick);
+        document.body.style.overflow = '';
+        selectedIndex = -1;
+      }
+
+      function onBackdropClick(e: MouseEvent) {
+        if (e.target === dialog) {
+            closePalette();
+        }
+      }
+
+      function updateSelection(index: number) {
+          const items = resultsContainer?.querySelectorAll('[data-cmd-item]');
+          if (!items) return;
+          
+          items.forEach(el => {
+            el.classList.remove('bg-white/5', 'text-white', 'border-white/5', 'border-l-2', 'border-l-violet-600');
+            el.classList.add('border-transparent');
+          });
+          
+          if (index >= 0 && index < items.length) {
+              const selected = items[index] as HTMLElement;
+              selected.classList.add('bg-white/5', 'text-white', 'border-white/5', 'border-l-2', 'border-l-violet-600');
+              selected.classList.remove('border-transparent');
+              selected.scrollIntoView({ block: 'nearest' });
+          }
+          selectedIndex = index;
+      }
+
+      function handleKeydown(e: KeyboardEvent) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          if (isOpen) closePalette();
+          else openPalette();
+          return;
+        }
+
+        if (!isOpen) return;
+
+        const items = resultsContainer?.querySelectorAll('[data-cmd-item]');
+        const count = items?.length || 0;
+
+        switch(e.key) {
+           case 'ArrowDown':
+               e.preventDefault();
+               if(count > 0) updateSelection((selectedIndex + 1) % count);
+               break;
+           case 'ArrowUp':
+               e.preventDefault();
+               if(count > 0) updateSelection((selectedIndex - 1 + count) % count);
+               break;
+           case 'Enter':
+               e.preventDefault();
+               if (selectedIndex >= 0 && items && items[selectedIndex]) {
+                   (items[selectedIndex] as HTMLElement).click();
+               }
+               break;
+           case 'Escape':
+               closePalette();
+               break;
+        }
+      }
+      
+      function handleInput(e: Event) {
+        const query = (e.target as HTMLInputElement).value;
+        selectedIndex = 0;
+        
+        if (!fuseInstance) return;
+
+        if (query.length === 0) {
+           if(resultsContainer) {
+               resultsContainer.innerHTML = `
+                <div class="p-4 text-center text-zinc-500">
+                    <div class="mt-8 text-left">
+                        <span class="text-[0.75rem] uppercase tracking-widest text-zinc-400 mb-3 block">Navegación</span>
+                        <div class="grid grid-cols-2 gap-2">
+                        <a href="/ep" class="flex items-center gap-2 p-3 bg-white/[0.03] rounded-lg text-white no-underline text-[0.9rem] transition-colors hover:bg-white/[0.08]">🎙️ Ir a Episodios</a>
+                        <a href="/equipo" class="flex items-center gap-2 p-3 bg-white/[0.03] rounded-lg text-white no-underline text-[0.9rem] transition-colors hover:bg-white/[0.08]">👥 Ver Equipo</a>
+                        <a href="/blog" class="flex items-center gap-2 p-3 bg-white/[0.03] rounded-lg text-white no-underline text-[0.9rem] transition-colors hover:bg-white/[0.08]">📝 Leer Blog</a>
+                        </div>
+                    </div>
+                </div>`;
+                if(countEl) countEl.innerText = '';
+           }
+          return;
+        }
+
+        const results = fuseInstance.search(query).slice(0, 10);
+        renderResults(results);
+      }
+
+      function renderResults(results: Fuse.FuseResult<SearchItem>[]) {
+        if (!resultsContainer) return;
+        
+        if(countEl) countEl.innerText = `${results.length} resultados`;
+
+        if (results.length === 0) {
+            resultsContainer.innerHTML = `<div class="p-4 text-center text-zinc-500">No se encontraron resultados.</div>`;
+            return;
+        }
+
+        resultsContainer.innerHTML = results.map((result, index) => {
+             const item = result.item;
+             const isImage = item.image && (item.image.startsWith('http') || item.image?.startsWith('/'));
+             
+             let quoteHtml = '';
+             const txtMatch = result.matches?.find(m => m.key === 'transcription.text');
+             if (txtMatch && txtMatch.refIndex !== undefined) {
+                 const tEntry = item.transcription?.[txtMatch.refIndex];
+                 if (tEntry) {
+                     const val = txtMatch.value || '';
+                     const snippet = val.length > 80 ? val.substring(0, 80) + '...' : val;
+                     quoteHtml = `<div class="text-[0.8rem] italic text-zinc-500 mt-1.5 pl-2 border-l-2 border-l-white/10 block leading-tight">"${snippet}" <span class="text-violet-500 font-medium not-italic text-[0.75rem]">(${tEntry.time})</span></div>`;
+                 }
+             }
+
+             const selectedClasses = index === 0 ? 'bg-white/5 text-white border-white/5 border-l-2 border-l-violet-600' : 'border-transparent';
+
+             return `
+          <a href="${item.slug}" data-cmd-item class="flex items-center gap-3 p-3 rounded-lg text-zinc-400 no-underline cursor-pointer transition-all border ${selectedClasses} mb-[2px] group" data-index="${index}">
+            <div class="w-6 h-6 rounded bg-white/5 flex items-center justify-center text-base object-cover shrink-0 overflow-hidden">
+                ${isImage 
+                    ? `<img src="${item.image}" class="w-full h-full object-cover" />` 
+                    : `<span>#</span>`
+                }
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="font-medium text-[0.95rem] block truncate group-hover:text-white">${item.title}</span>
+              <div class="text-[0.75rem] opacity-60 flex gap-2 items-center">
+                <span class="bg-white/10 px-1.5 py-0.5 rounded text-[0.65rem] uppercase font-bold text-white">${item.type}</span>
+                <span class="truncate">${item.description ? item.description.substring(0, 40) + '...' : ''}</span>
+              </div>
+              ${quoteHtml}
+            </div>
+            <div class="opacity-0 group-[.selected]:opacity-100 -translate-x-1 group-[.selected]:translate-x-0 transition-all">↵</div>
+          </a>
+        `}).join('');
+        
+        const newItems = resultsContainer.querySelectorAll('[data-cmd-item]');
+        newItems.forEach(item => {
+            item.addEventListener('click', () => closePalette());
+            item.addEventListener('mouseenter', (e) => {
+                const idx = parseInt((e.currentTarget as HTMLElement).dataset.index || '0');
+                updateSelection(idx);
+            });
+        });
+      }
+
+      trigger.addEventListener('click', openPalette);
+      input?.addEventListener('input', handleInput);
+      document.addEventListener('keydown', handleKeydown);
+  }
+
+  document.addEventListener('DOMContentLoaded', initCommandPalette);
+  document.addEventListener('astro:page-load', initCommandPalette);
+</script>
+

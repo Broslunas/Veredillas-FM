@@ -1,6 +1,6 @@
 ---
 import ThemeToggle from '@/components/ThemeToggle.astro';
-import CommandPalette from '@/components/CommandPalette';
+import CommandPalette from '@/components/CommandPalette.astro';
 import AuthButton from '@/components/AuthButton.astro';
 import { getCollection } from '@/lib/content';
 
@@ -1274,9 +1274,4 @@ const isDropdownActive = (items: any[]) => items?.some(i => isActive(i.href));
 
   updateBanner();
   setInterval(updateBanner, 60000);
-
-  // Command palette trigger button click
-  document.getElementById('cmd-palette-trigger')?.addEventListener('click', () => {
-    window.dispatchEvent(new CustomEvent('veredillas:open-cmd-palette'));
-  });
 </script>
