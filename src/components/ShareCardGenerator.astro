@@ -1,4 +1,6 @@
 ---
+import { cleanEpisodeTitle } from '@/lib/story-card/text';
+
 interface Props {
   title: string;
   audioUrl?: string;
@@ -14,15 +16,8 @@ interface Props {
 const { title, audioUrl, image, guests = [], url = Astro.url, triggerId, slug, duration, className = '' } = Astro.props;
 const normImage = image ? (image.startsWith('http') || image.startsWith('/') ? image : `/${image}`) : '/logo.webp';
 
-// Process title to remove "ft. X" since we show featuring below
-let displayTitle = title;
-const lowerTitle = displayTitle.toLowerCase();
-[' ft.', ' feat.', ' ft ', ' feat '].forEach(str => {
-    const idx = lowerTitle.indexOf(str);
-    if (idx !== -1) {
-        displayTitle = displayTitle.substring(0, idx).trim();
-    }
-});
+// Process title to remove "ft. X" using shared helper
+const displayTitle = cleanEpisodeTitle(title);
 ---
 
 <!-- Trigger Button (Only if no external trigger ID provided) -->
@@ -37,11 +32,12 @@ const lowerTitle = displayTitle.toLowerCase();
 )}
 
 <!-- Generator Modal -->
-<div id="generator-modal" class="generator-backdrop" 
+<div id="generator-modal" class="generator-backdrop"
     data-trigger-id={triggerId}
     data-title={title}
     data-image={normImage}
     data-guests={guests?.join(',')}
+    data-slug={slug}
 >
     <div class="generator-dialog">
         <!-- Close button floating -->
@@ -92,9 +88,15 @@ const lowerTitle = displayTitle.toLowerCase();
                         </div>
                         
                         <div class="input-group">
-                            <label for="card-quote">Frase Destacada</label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label for="card-quote" style="margin: 0;">Frase Destacada</label>
+                                <button type="button" id="suggest-quote-btn" style="background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2)); border: 1px solid rgba(139,92,246,0.4); color: #c084fc; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                                    <span>✨ Sugerir con IA</span>
+                                </button>
+                            </div>
+                            <div id="ai-quotes-suggestions" class="hidden" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;"></div>
                             <div class="input-with-actions">
-                                <textarea id="card-quote" class="premium-input" rows="3" placeholder="Escribe una cita inspiradora del episodio..."></textarea>
+                                <textarea id="card-quote" class="premium-input" rows="3" placeholder="Escribe una cita inspiradora del episodio o usa 'Sugerir con IA'..."></textarea>
                                 <div class="align-controls" data-target="quote">
                                     <button class="align-btn active" data-align="left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"></line></svg></button>
                                     <button class="align-btn" data-align="center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"></line></svg></button>
@@ -106,6 +108,48 @@ const lowerTitle = displayTitle.toLowerCase();
                 </div>
 
                 <div class="tab-content custom-scrollbar" id="tab-design" style="display: none;">
+                    <!-- Section: Looks / Templates -->
+                    <div class="control-section">
+                        <h4 class="section-title">Plantilla / Look</h4>
+                        <div class="looks-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <button class="look-btn active" data-look="classic" style="padding: 12px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
+                                <div style="width: 100%; height: 36px; border-radius: 6px; background: linear-gradient(135deg, #8b5cf6, #ec4899);"></div>
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">Clásico</span>
+                            </button>
+                            <button class="look-btn" data-look="midnight" style="padding: 12px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
+                                <div style="width: 100%; height: 36px; border-radius: 6px; background: linear-gradient(180deg, #09090b, #06b6d4);"></div>
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">Midnight</span>
+                            </button>
+                            <button class="look-btn" data-look="sunset" style="padding: 12px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
+                                <div style="width: 100%; height: 36px; border-radius: 6px; background: linear-gradient(135deg, #f97316, #db2777);"></div>
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">Sunset</span>
+                            </button>
+                            <button class="look-btn" data-look="minimalist" style="padding: 12px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
+                                <div style="width: 100%; height: 36px; border-radius: 6px; background: #09090b; border: 1px solid #333;"></div>
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">Minimalist</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="setting-divider"></div>
+
+                    <!-- Section: Custom Image Upload -->
+                    <div class="control-section">
+                        <h4 class="section-title">Imagen Personalizada</h4>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="file" id="custom-image-input" accept="image/jpeg,image/png,image/webp" style="display: none;" />
+                            <button id="upload-image-btn" class="secondary-btn-outline" style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <span>Subir Imagen Propia</span>
+                            </button>
+                            <button id="reset-image-btn" class="secondary-btn-outline hidden" title="Restablecer portada original" style="padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="setting-divider"></div>
+
                     <!-- Section: Background -->
                     <div class="control-section">
                         <h4 class="section-title">Estilo de Fondo</h4>
@@ -141,12 +185,19 @@ const lowerTitle = displayTitle.toLowerCase();
                     <!-- Section: Colors -->
                     <div class="control-section">
                         <h4 class="section-title">Color de Acento</h4>
-                        <div class="color-options">
+                        <div class="color-options" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <button class="color-btn active" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
-                            <button class="color-btn" data-color="#E1306C" style="background: #E1306C;"></button>
+                            <button class="color-btn" data-color="#06b6d4" style="background: #06b6d4;"></button>
+                            <button class="color-btn" data-color="#f97316" style="background: #f97316;"></button>
+                            <button class="color-btn" data-color="#db2777" style="background: #db2777;"></button>
                             <button class="color-btn" data-color="#22c55e" style="background: #22c55e;"></button>
-                            <button class="color-btn" data-color="#fbbf24" style="background: #fbbf24;"></button>
                             <button class="color-btn" data-color="#ffffff" style="background: #ffffff;"></button>
+                            <div class="custom-color-picker-wrap" style="position: relative; display: flex; align-items: center;">
+                                <input type="color" id="custom-accent-color" value="#8b5cf6" style="opacity: 0; width: 32px; height: 32px; position: absolute; cursor: pointer;" title="Color personalizado" />
+                                <div class="color-btn custom-color-swatch" style="width: 32px; height: 32px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                                    <span style="font-size: 10px; color: #fff;">+</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -226,6 +277,11 @@ const lowerTitle = displayTitle.toLowerCase();
                                 <span>Copiar al Portapapeles</span>
                             </button>
 
+                            <button id="save-library-btn" class="export-btn" style="background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2)); border: 1.5px solid rgba(139,92,246,0.4); color: #fff;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                <span>Guardar en "Mis Stories"</span>
+                            </button>
+
                             <button id="download-card-btn" class="export-btn outline-action">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 <span>Guardar Imagen</span>
@@ -257,7 +313,13 @@ const lowerTitle = displayTitle.toLowerCase();
 
             <!-- Preview Area -->
             <div class="preview-panel">
-                <div class="preview-hint">Vista Previa <strong>(1080x1920)</strong></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 380px; margin-bottom: 8px;">
+                    <div class="preview-hint" id="preview-dim-hint" style="margin: 0;">Vista Previa <strong>(Story 1080x1920)</strong></div>
+                    <div class="format-switcher" style="display: flex; background: rgba(255,255,255,0.06); padding: 3px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1);">
+                        <button type="button" class="format-btn active" data-format="story" style="padding: 4px 12px; border-radius: 999px; border: none; background: #fff; color: #000; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Story (9:16)</button>
+                        <button type="button" class="format-btn" data-format="post" style="padding: 4px 12px; border-radius: 999px; border: none; background: transparent; color: rgba(255,255,255,0.6); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Post (1:1)</button>
+                    </div>
+                </div>
                 <div class="canvas-wrapper">
                     <div class="canvas-container">
                         <div id="share-card" class="share-card">
@@ -359,6 +421,7 @@ const lowerTitle = displayTitle.toLowerCase();
     import * as htmlToImage from 'html-to-image';
     // @ts-ignore
     import QRCode from 'qrcode';
+    import { cleanEpisodeTitle } from '@/lib/story-card/text';
 
     const modal = document.getElementById('generator-modal');
     const openBtn = document.getElementById('open-generator-btn');
@@ -372,6 +435,9 @@ const lowerTitle = displayTitle.toLowerCase();
     const titleInput = document.getElementById('card-title') as HTMLTextAreaElement;
     const guestInput = document.getElementById('card-guest') as HTMLInputElement;
     const quoteInput = document.getElementById('card-quote') as HTMLTextAreaElement;
+    const suggestQuoteBtn = document.getElementById('suggest-quote-btn');
+    const aiQuotesSuggestions = document.getElementById('ai-quotes-suggestions');
+    let currentEpisodeSlug: string | null = null;
     
     // Groups & Controls
     const solidColorPicker = document.getElementById('solid-color-picker');
@@ -405,6 +471,12 @@ const lowerTitle = displayTitle.toLowerCase();
     // Presets
     const bgPresets = document.querySelectorAll('.bg-preset');
     const colorBtns = document.querySelectorAll('.color-btn');
+    const lookBtns = document.querySelectorAll('.look-btn');
+    const customAccentInput = document.getElementById('custom-accent-color') as HTMLInputElement;
+    const customImageInput = document.getElementById('custom-image-input') as HTMLInputElement;
+    const uploadImageBtn = document.getElementById('upload-image-btn');
+    const resetImageBtn = document.getElementById('reset-image-btn');
+    let originalEpisodeImage = '/logo.webp';
 
     // Exports & Status
     const downloadBtn = document.getElementById('download-card-btn');
@@ -461,24 +533,54 @@ const lowerTitle = displayTitle.toLowerCase();
         }
     };
 
+    let currentFormat: 'story' | 'post' = 'story';
+    const formatBtns = document.querySelectorAll('.format-btn');
+    const previewDimHint = document.getElementById('preview-dim-hint');
+
     const fitPreview = () => {
         const wrapper = document.querySelector('.canvas-wrapper') as HTMLElement;
         const container = document.querySelector('.canvas-container') as HTMLElement;
+        const card = document.getElementById('share-card');
         if (!wrapper || !container) return;
+
+        const targetW = currentFormat === 'post' ? 1080 : 1080;
+        const targetH = currentFormat === 'post' ? 1080 : 1920;
+
+        if (card) {
+            card.style.width = `${targetW}px`;
+            card.style.height = `${targetH}px`;
+        }
 
         // Reset for measurement
         container.style.transform = 'scale(1)';
-        
+
         const padding = 60;
         const availableW = (container.closest('.preview-panel') as HTMLElement)?.clientWidth - padding;
         const availableH = (container.closest('.preview-panel') as HTMLElement)?.clientHeight - padding;
-        
-        const scaleW = availableW / 1080;
-        const scaleH = availableH / 1920;
+
+        const scaleW = availableW / targetW;
+        const scaleH = availableH / targetH;
         const scale = Math.min(scaleW, scaleH, 1);
-        
+
         container.style.transform = `translate(-50%, -50%) scale(${scale})`;
     };
+
+    formatBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const fmt = btn.getAttribute('data-format') as 'story' | 'post';
+            if (!fmt) return;
+            currentFormat = fmt;
+            formatBtns.forEach(b => {
+                const isActive = b.getAttribute('data-format') === fmt;
+                (b as HTMLElement).style.background = isActive ? '#fff' : 'transparent';
+                (b as HTMLElement).style.color = isActive ? '#000' : 'rgba(255,255,255,0.6)';
+            });
+            if (previewDimHint) {
+                previewDimHint.innerHTML = `Vista Previa <strong>(${fmt === 'post' ? 'Post 1080x1080' : 'Story 1080x1920'})</strong>`;
+            }
+            fitPreview();
+        });
+    });
 
     window.addEventListener('resize', fitPreview);
 
@@ -595,19 +697,16 @@ const lowerTitle = displayTitle.toLowerCase();
         const defaults = {
             title: modal?.dataset.title || '',
             image: modal?.dataset.image || '/logo.webp',
-            guests: modal?.dataset.guests?.split(',') || []
+            guests: modal?.dataset.guests?.split(',') || [],
+            slug: modal?.dataset.slug || ''
         };
         const finalData = { ...defaults, ...data };
-        
+
+        if (finalData.slug) currentEpisodeSlug = finalData.slug;
         if (finalData.url) currentEpisodeUrl = typeof finalData.url === 'string' ? finalData.url : finalData.url.href;
         
         if (titleInput && finalData.title !== undefined) {
-             let cleanTitle = finalData.title;
-             [' ft.', ' feat.', ' ft ', ' feat '].forEach(str => {
-                 const idx = cleanTitle.toLowerCase().indexOf(str);
-                 if (idx !== -1) cleanTitle = cleanTitle.substring(0, idx).trim();
-             });
-             titleInput.value = cleanTitle;
+             titleInput.value = cleanEpisodeTitle(finalData.title);
         }
         if (guestInput && finalData.guests !== undefined) {
              guestInput.value = Array.isArray(finalData.guests) ? finalData.guests.join(', ') : finalData.guests;
@@ -616,8 +715,9 @@ const lowerTitle = displayTitle.toLowerCase();
         if (finalData.image) {
              const img = finalData.image.startsWith('http') || finalData.image.startsWith('/') ? finalData.image : `/${finalData.image}`;
              currentEpisodeImage = img;
+             originalEpisodeImage = img;
              const bgImg = cardBgLayer?.querySelector('.bg-image') as HTMLImageElement;
-             if (bgImg) bgImg.src = img; 
+             if (bgImg) bgImg.src = img;
              if (cardCoverImg) (cardCoverImg as HTMLImageElement).src = img;
         }
         
@@ -906,9 +1006,9 @@ const lowerTitle = displayTitle.toLowerCase();
              colorBtns.forEach(b => b.classList.remove('active'));
              btn.classList.add('active');
              const color = btn.getAttribute('data-color') || '#8b5cf6';
-             
+
              document.documentElement.style.setProperty('--card-accent', color);
-             
+
              const accentEls = document.querySelectorAll('.accent-text');
              accentEls.forEach((el) => (el as HTMLElement).style.color = color);
              const accentBgs = document.querySelectorAll('.accent-bg');
@@ -922,7 +1022,206 @@ const lowerTitle = displayTitle.toLowerCase();
         });
     });
 
-    // --- Export Logic ---
+    // Custom Color Picker
+    customAccentInput?.addEventListener('input', (e) => {
+        const color = (e.target as HTMLInputElement).value;
+        colorBtns.forEach(b => b.classList.remove('active'));
+        document.documentElement.style.setProperty('--card-accent', color);
+
+        const accentEls = document.querySelectorAll('.accent-text');
+        accentEls.forEach((el) => (el as HTMLElement).style.color = color);
+        const accentBgs = document.querySelectorAll('.accent-bg');
+        accentBgs.forEach((el) => (el as HTMLElement).style.backgroundColor = color);
+        const accentFills = document.querySelectorAll('.accent-fill');
+        accentFills.forEach((el) => (el as HTMLElement).style.fill = color);
+
+        if (coverGlow) {
+            coverGlow.style.boxShadow = `0 0 100px 20px ${color}80`;
+        }
+    });
+
+    // Custom Image Upload
+    uploadImageBtn?.addEventListener('click', () => customImageInput?.click());
+
+    customImageInput?.addEventListener('change', async () => {
+        const file = customImageInput.files?.[0];
+        if (!file) return;
+
+        const originalText = uploadImageBtn?.innerHTML || '';
+        if (uploadImageBtn) uploadImageBtn.innerHTML = '<span>Subiendo...</span>';
+
+        try {
+            const res = await fetch('/api/share/upload-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fileName: file.name, contentType: file.type })
+            });
+
+            if (res.ok) {
+                const { presignedUrl, publicUrl } = await res.json();
+                await fetch(presignedUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': file.type },
+                    body: file
+                });
+
+                currentEpisodeImage = publicUrl;
+                const bgImg = cardBgLayer?.querySelector('.bg-image') as HTMLImageElement;
+                if (bgImg) bgImg.src = publicUrl;
+                if (cardCoverImg) (cardCoverImg as HTMLImageElement).src = publicUrl;
+                resetImageBtn?.classList.remove('hidden');
+                showStatus('Imagen subida correctamente');
+            } else {
+                // Client-side fallback via FileReader/ObjectURL if R2 is unavailable
+                const localUrl = URL.createObjectURL(file);
+                currentEpisodeImage = localUrl;
+                const bgImg = cardBgLayer?.querySelector('.bg-image') as HTMLImageElement;
+                if (bgImg) bgImg.src = localUrl;
+                if (cardCoverImg) (cardCoverImg as HTMLImageElement).src = localUrl;
+                resetImageBtn?.classList.remove('hidden');
+                showStatus('Imagen cargada localmente');
+            }
+        } catch (err) {
+            const localUrl = URL.createObjectURL(file);
+            currentEpisodeImage = localUrl;
+            const bgImg = cardBgLayer?.querySelector('.bg-image') as HTMLImageElement;
+            if (bgImg) bgImg.src = localUrl;
+            if (cardCoverImg) (cardCoverImg as HTMLImageElement).src = localUrl;
+            resetImageBtn?.classList.remove('hidden');
+            showStatus('Imagen cargada localmente');
+        } finally {
+            if (uploadImageBtn) uploadImageBtn.innerHTML = originalText;
+        }
+    });
+
+    resetImageBtn?.addEventListener('click', () => {
+        currentEpisodeImage = originalEpisodeImage;
+        const bgImg = cardBgLayer?.querySelector('.bg-image') as HTMLImageElement;
+        if (bgImg) bgImg.src = originalEpisodeImage;
+        if (cardCoverImg) (cardCoverImg as HTMLImageElement).src = originalEpisodeImage;
+        resetImageBtn.classList.add('hidden');
+        if (customImageInput) customImageInput.value = '';
+    });
+
+    // Look Switching
+    lookBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            lookBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const lookId = btn.getAttribute('data-look');
+
+            if (lookId === 'midnight') {
+                applyLayout('default');
+                const midColor = '#06b6d4';
+                document.documentElement.style.setProperty('--card-accent', midColor);
+                if (cardBgLayer) {
+                    cardBgLayer.className = 'card-bg gradient-midnight';
+                    const bgImg = cardBgLayer.querySelector('.bg-image') as HTMLElement;
+                    if (bgImg) bgImg.style.display = 'none';
+                }
+            } else if (lookId === 'sunset') {
+                applyLayout('centered');
+                const sunColor = '#f97316';
+                document.documentElement.style.setProperty('--card-accent', sunColor);
+                if (cardBgLayer) {
+                    cardBgLayer.className = 'card-bg gradient-sunset';
+                    const bgImg = cardBgLayer.querySelector('.bg-image') as HTMLElement;
+                    if (bgImg) bgImg.style.display = 'none';
+                }
+            } else if (lookId === 'minimalist') {
+                applyLayout('minimal');
+                const minColor = '#ffffff';
+                document.documentElement.style.setProperty('--card-accent', minColor);
+                if (cardBgLayer) {
+                    cardBgLayer.className = 'card-bg';
+                    const bgImg = cardBgLayer.querySelector('.bg-image') as HTMLElement;
+                    const bgSolid = cardBgLayer.querySelector('.bg-solid') as HTMLElement;
+                    if (bgImg) bgImg.style.display = 'none';
+                    if (bgSolid) {
+                        bgSolid.style.display = 'block';
+                        bgSolid.style.backgroundColor = '#09090b';
+                    }
+                }
+            } else {
+                // Classic
+                applyLayout('default');
+                const classicColor = '#8b5cf6';
+                document.documentElement.style.setProperty('--card-accent', classicColor);
+                if (cardBgLayer) {
+                    cardBgLayer.className = 'card-bg';
+                    const bgImg = cardBgLayer.querySelector('.bg-image') as HTMLElement;
+                    const bgSolid = cardBgLayer.querySelector('.bg-solid') as HTMLElement;
+                    if (bgImg) bgImg.style.display = 'block';
+                    if (bgSolid) bgSolid.style.display = 'none';
+                }
+            }
+
+            const accent = document.documentElement.style.getPropertyValue('--card-accent');
+            const accentEls = document.querySelectorAll('.accent-text');
+            accentEls.forEach((el) => (el as HTMLElement).style.color = accent);
+            const accentBgs = document.querySelectorAll('.accent-bg');
+            accentBgs.forEach((el) => (el as HTMLElement).style.backgroundColor = accent);
+            const accentFills = document.querySelectorAll('.accent-fill');
+            accentFills.forEach((el) => (el as HTMLElement).style.fill = accent);
+        });
+    });
+
+    // AI Suggest Quote
+    suggestQuoteBtn?.addEventListener('click', async () => {
+        const slug = currentEpisodeSlug || modal?.dataset.slug;
+        if (!slug) {
+            showStatus('Falta el slug del episodio para analizar', true);
+            return;
+        }
+
+        const originalBtnHTML = suggestQuoteBtn.innerHTML;
+        suggestQuoteBtn.innerHTML = '<span>Pensando...</span>';
+        (suggestQuoteBtn as HTMLButtonElement).disabled = true;
+
+        try {
+            const res = await fetch('/api/episodes/suggest-quote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slug }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !Array.isArray(data.quotes) || data.quotes.length === 0) {
+                showStatus(data.error || 'No se encontraron citas en la transcripción', true);
+                return;
+            }
+
+            if (aiQuotesSuggestions) {
+                aiQuotesSuggestions.innerHTML = '';
+                aiQuotesSuggestions.classList.remove('hidden');
+
+                data.quotes.forEach((q: { quote: string; speaker?: string; time?: string }) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'ai-quote-chip';
+                    btn.style.cssText = 'padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(139,92,246,0.3); background: rgba(139,92,246,0.08); color: #fff; font-size: 0.8rem; text-align: left; cursor: pointer; transition: all 0.15s;';
+                    btn.innerHTML = `"${q.quote}" ${q.speaker ? `<strong style="color: #c084fc;">— ${q.speaker}</strong>` : ''} ${q.time ? `<span style="opacity: 0.6;">(${q.time})</span>` : ''}`;
+
+                    btn.addEventListener('click', () => {
+                        if (quoteInput) {
+                            quoteInput.value = q.quote;
+                            updatePreview();
+                            showStatus('Cita aplicada');
+                        }
+                    });
+
+                    aiQuotesSuggestions.appendChild(btn);
+                });
+            }
+        } catch (err) {
+            console.error('Suggest quote error:', err);
+            showStatus('Error al conectar con el servicio de IA', true);
+        } finally {
+            suggestQuoteBtn.innerHTML = originalBtnHTML;
+            (suggestQuoteBtn as HTMLButtonElement).disabled = false;
+        }
+    });
     const showStatus = (msg: string, isError = false) => {
         if (!exportStatus) return;
         exportStatus.textContent = msg;
@@ -933,7 +1232,7 @@ const lowerTitle = displayTitle.toLowerCase();
     const getRenderOptions = () => ({
         quality: 0.95,
         width: 1080,
-        height: 1920,
+        height: currentFormat === 'post' ? 1080 : 1920,
         cacheBust: true,
         skipAutoScale: true,
         style: { transform: 'none' },
@@ -1016,6 +1315,55 @@ const lowerTitle = displayTitle.toLowerCase();
             }
         } finally {
             setExportingState(shareNativeBtn, false, originalHTML);
+        }
+    });
+
+    // Save to Library
+    const saveLibraryBtn = document.getElementById('save-library-btn');
+    saveLibraryBtn?.addEventListener('click', async () => {
+        const originalHTML = saveLibraryBtn.innerHTML;
+        saveLibraryBtn.innerHTML = '<span>Guardando...</span>';
+        (saveLibraryBtn as HTMLButtonElement).disabled = true;
+
+        try {
+            const currentAccent = document.documentElement.style.getPropertyValue('--card-accent') || '#8b5cf6';
+            const model = {
+                lookId: document.querySelector('.look-btn.active')?.getAttribute('data-look') || 'classic',
+                format: currentFormat,
+                accent: currentAccent,
+                title: titleInput?.value || '',
+                guests: guestInput?.value || '',
+                quote: quoteInput?.value || '',
+                background: { kind: 'cover', blur: 100, brightness: 0.4 },
+                coverImageUrl: currentEpisodeImage,
+                websiteLabel: 'veredillasfm.es',
+                elements: elementStates,
+            };
+
+            const res = await fetch('/api/share/library', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model,
+                    name: titleInput?.value || 'Mi Historia',
+                    slug: currentEpisodeSlug || modal?.dataset.slug || null,
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                showStatus('¡Guardado en "Mis Stories"!');
+            } else if (res.status === 401) {
+                showStatus('Inicia sesión para guardar en tu biblioteca', true);
+            } else {
+                showStatus(data.error || 'Error al guardar', true);
+            }
+        } catch (err) {
+            console.error('Error saving to library:', err);
+            showStatus('Error al conectar con la biblioteca', true);
+        } finally {
+            saveLibraryBtn.innerHTML = originalHTML;
+            (saveLibraryBtn as HTMLButtonElement).disabled = false;
         }
     });
 

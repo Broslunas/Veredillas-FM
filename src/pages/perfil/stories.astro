@@ -1,0 +1,370 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { getUserFromCookie } from '@/lib/auth';
+import dbConnect from '@/lib/mongodb';
+import ShareDesign from '@/models/ShareDesign';
+
+export const prerender = false;
+
+const cookieHeader = Astro.request.headers.get('cookie');
+const userPayload = getUserFromCookie(cookieHeader);
+
+if (!userPayload) {
+  return Astro.redirect('/?auth=login&redirect=/perfil/stories');
+}
+
+let stories: any[] = [];
+try {
+  await dbConnect();
+  stories = await ShareDesign.find({ userId: userPayload.userId })
+    .sort({ createdAt: -1 })
+    .lean();
+} catch (err) {
+  console.error('[perfil/stories] Error loading stories:', err);
+}
+---
+
+<Layout title="Mis Stories | Veredillas FM">
+  <div class="stories-container">
+    <div class="stories-header">
+      <div class="header-left">
+        <a href="/perfil" class="back-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Volver a perfil
+        </a>
+        <h1 class="page-title">✨ Mis Stories</h1>
+        <p class="page-subtitle">Tus tarjetas de diseño guardadas y listas para compartir o editar.</p>
+      </div>
+    </div>
+
+    {stories.length === 0 ? (
+      <div class="empty-library frosted-glass">
+        <div class="empty-icon">🎨</div>
+        <h2>Aún no has guardado ninguna Story</h2>
+        <p>Abre el Creador de Stories en cualquier episodio y pulsa <strong>"Guardar en Mis Stories"</strong> para conservarla aquí.</p>
+        <a href="/ep" class="explore-btn">Explorar episodios</a>
+      </div>
+    ) : (
+      <div class="stories-grid">
+        {stories.map((story) => {
+          const model = story.model || {};
+          const isPost = model.format === 'post';
+          const lookName = model.lookId || 'Clásico';
+          const creationDate = new Date(story.createdAt).toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          });
+
+          return (
+            <div class="story-card frosted-glass" data-id={story._id.toString()}>
+              <div class={`card-preview ${isPost ? 'preview-square' : 'preview-vertical'}`}>
+                {model.coverImageUrl && (
+                  <img src={model.coverImageUrl} alt={story.name || 'Story'} class="cover-bg" />
+                )}
+                <div class="preview-overlay">
+                  <span class="preview-badge" style={`background: ${model.accent || '#8b5cf6'}`}>
+                    {isPost ? '1:1 Post' : '9:16 Story'} · {lookName}
+                  </span>
+                  <p class="preview-title">{model.title || story.name || 'Sin título'}</p>
+                </div>
+              </div>
+
+              <div class="card-meta">
+                <div class="meta-info">
+                  <h3 class="meta-title">{story.name || model.title || 'Mi Story'}</h3>
+                  <span class="meta-date">{creationDate}</span>
+                </div>
+
+                <div class="card-actions">
+                  <a
+                    href={`/ep/share-qr/${story.shortId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="action-btn view-btn"
+                    title="Ver en pantalla completa"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Ver
+                  </a>
+                  <button
+                    class="action-btn delete-btn"
+                    data-delete-id={story._id.toString()}
+                    title="Eliminar diseño"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+
+  <style>
+    .stories-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+      min-height: 80vh;
+    }
+
+    .stories-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: white;
+    }
+
+    .page-title {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: white;
+      margin: 0 0 0.5rem;
+    }
+
+    .page-subtitle {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 1.05rem;
+      margin: 0;
+    }
+
+    .frosted-glass {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.25rem;
+    }
+
+    .empty-library {
+      text-align: center;
+      padding: 4rem 2rem;
+      max-width: 540px;
+      margin: 3rem auto;
+    }
+
+    .empty-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-library h2 {
+      font-size: 1.5rem;
+      color: white;
+      margin: 0 0 0.5rem;
+    }
+
+    .empty-library p {
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.5;
+      margin-bottom: 1.75rem;
+    }
+
+    .explore-btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      color: white;
+      font-weight: 600;
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .explore-btn:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    .stories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .story-card {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .story-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .card-preview {
+      position: relative;
+      background: #0f172a;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      padding: 1rem;
+    }
+
+    .preview-vertical {
+      aspect-ratio: 9 / 16;
+      max-height: 380px;
+    }
+
+    .preview-square {
+      aspect-ratio: 1 / 1;
+    }
+
+    .cover-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.65) blur(2px);
+    }
+
+    .preview-overlay {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+    }
+
+    .preview-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .preview-title {
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+
+    .card-meta {
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .meta-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .meta-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: white;
+      margin: 0 0 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meta-date {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .view-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .view-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .delete-btn {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      padding: 0.45rem;
+    }
+
+    .delete-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+  </style>
+
+  <script>
+    document.querySelectorAll('.delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const id = target.dataset.deleteId;
+        if (!id) return;
+
+        if (!confirm('¿Seguro que quieres eliminar este diseño de tu biblioteca?')) return;
+
+        try {
+          const res = await fetch(`/api/share/library/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            const card = document.querySelector(`.story-card[data-id="${id}"]`);
+            card?.remove();
+          } else {
+            alert('Error al eliminar el diseño');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error de conexión');
+        }
+      });
+    });
+  </script>
+</Layout>

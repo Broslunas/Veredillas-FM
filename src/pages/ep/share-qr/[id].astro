@@ -1,26 +1,33 @@
 ---
 import dbConnect from '@/lib/mongodb';
 import ShareDesign from '@/models/ShareDesign';
+import { migrateLegacyDesign } from '@/lib/story-card/legacy';
+import type { CardModel } from '@/lib/story-card/types';
+
+export const prerender = false;
 
 const { id } = Astro.params;
 
 if (!id) return Astro.redirect('/');
 
-let state = null;
+let model: CardModel | null = null;
+
 try {
     await dbConnect();
     const design = await ShareDesign.findOne({ shortId: id.toUpperCase() });
     if (design) {
-        state = design.data;
+        if (design.version === 2 && design.model) {
+            model = design.model as CardModel;
+        } else if (design.data) {
+            model = migrateLegacyDesign(design.data);
+        }
     }
 } catch (e) {
     console.error('Error fetching share state', e);
 }
 
-const title = state?.t || 'Veredillas FM';
-const rawImage = state?.img || '/logo.webp';
-const image = rawImage.startsWith('http') || rawImage.startsWith('/') ? rawImage : `/${rawImage}`;
-const accentColor = state?.c || '#8b5cf6';
+const title = model?.title || 'Veredillas FM';
+const accentColor = model?.accent || '#8b5cf6';
 ---
 
 <!DOCTYPE html>
@@ -28,7 +35,7 @@ const accentColor = state?.c || '#8b5cf6';
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>{title} </title>
+    <title>{title}</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,8 +46,8 @@ const accentColor = state?.c || '#8b5cf6';
             --bg: #000;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { 
-            margin: 0; padding: 0; background: var(--bg); color: white; width: 100%; height: 100%; 
+        body, html {
+            margin: 0; padding: 0; background: var(--bg); color: white; width: 100%; height: 100%;
             overflow: hidden; font-family: 'Outfit', sans-serif;
         }
 
@@ -50,7 +57,7 @@ const accentColor = state?.c || '#8b5cf6';
         }
         .mesh {
             position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: 
+            background:
                 radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.2) 0%, transparent 40%),
                 radial-gradient(circle at 85% 80%, rgba(217, 70, 239, 0.15) 0%, transparent 40%),
                 radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.1) 0%, transparent 60%);
@@ -67,140 +74,84 @@ const accentColor = state?.c || '#8b5cf6';
             overflow: hidden;
         }
 
-        /* Top Logo Bar */
         .top-bar {
             width: 100%; padding: 15px 0; text-align: center; flex: none;
             opacity: 0; animation: fadeInDown 0.6s ease-out forwards;
         }
         .logo-text { font-size: 0.9rem; font-weight: 900; letter-spacing: 0.3em; margin: 0; text-transform: uppercase; color: rgba(255,255,255,0.6); }
 
-        /* Main Card Arena */
         .card-arena {
             flex: 1; width: 100%; position: relative; display: flex; align-items: center; justify-content: center;
             perspective: 2000px; overflow: hidden;
-            opacity: 0; animation: scaleIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
         }
 
         .card-scaler {
-            width: 1080px; height: 1920px; position: absolute;
+            position: absolute; top: 50%; left: 50%; width: 1080px; height: 1920px;
             transform-origin: center center;
-            left: 50%; top: 50%;
-            box-shadow: 0 80px 160px rgba(0,0,0,0.8);
-            border-radius: 4px; overflow: hidden;
-            visibility: hidden; /* Shown after script fits it */
+            box-shadow: 0 30px 100px -20px rgba(0,0,0,0.8), 0 0 40px rgba(139, 92, 246, 0.2);
+            border-radius: 40px;
+            visibility: hidden;
+            animation: cardPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        #share-card {
-            width: 1080px; height: 1920px; position: relative;
-            background: #000;
+        .frosted-glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* --- CARD INTERNAL STYLES (MATCH EDITOR) --- */
-        .share-card { position: relative; color: white; display: flex; flex-direction: column; overflow: hidden; font-family: 'Outfit', sans-serif; }
-        .card-bg { position: absolute; inset: 0; z-index: 1; }
-        .bg-image { width: 100%; height: 100%; object-fit: cover; filter: blur(100px) brightness(0.4); transform: scale(1.3); }
-        .bg-overlay { position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, transparent 0%, rgba(0,0,0,0.8) 100%); }
-        .bg-solid { position: absolute; inset: 0; }
-        
-        .card-content { position: absolute; inset: 0; z-index: 10; padding: 120px 80px 100px 80px; display: flex; flex-direction: column; }
-        .card-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 80px; }
-        .brand-badge { display: flex; align-items: center; gap: 24px; padding: 16px 36px 16px 16px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.15); }
-        .brand-logo { width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); }
-        .brand-name { font-size: 32px; font-weight: 800; letter-spacing: 0.15em; }
-        .episode-pill { background: rgba(255,255,255,0.95); color: #000; padding: 20px 40px; border-radius: 100px; font-size: 26px; font-weight: 800; letter-spacing: 0.1em; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .pulse-dot { width: 14px; height: 14px; background: #e11d48; border-radius: 50%; box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2); }
-        
-        .main-visual { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
-        .cover-wrapper { position: relative; border-radius: 40px; display: inline-flex; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.6); }
-        .cover-image { max-width: 1000px; max-height: 1200px; width: auto; height: auto; object-fit: contain; border-radius: 40px; }
-        
-        .text-content { flex: none; display: flex; flex-direction: column; margin-top: 80px; padding: 0 40px; }
-        .card-title-text { font-size: 85px; line-height: 1.05; font-weight: 900; letter-spacing: -0.02em; margin: 0 0 40px 0; width: 100%; text-shadow: 0 20px 40px rgba(0,0,0,0.8); }
-        .card-guest-text { display: flex; flex-direction: column; gap: 12px; margin-bottom: 50px; width: 100%; }
-        .guest-label { font-size: 22px; font-weight: 800; letter-spacing: 0.2em; padding: 6px 16px; border-radius: 6px; color: #fff; display: inline-block; width: fit-content; }
-        .guest-name { font-size: 56px; font-weight: 800; line-height: 1.1; margin-top: 10px; }
-        
-        .card-quote-container { padding: 50px; border-radius: 40px; margin-top: 20px; position: relative; width: 100%; }
-        .card-quote-text { font-size: 42px; line-height: 1.4; font-weight: 600; padding-left: 70px; font-style: italic; margin: 0; }
-        .quote-icon { position: absolute; top: 40px; left: 40px; opacity: 0.5; }
-        
-        .card-footer { margin-top: auto; padding-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; width: 100%; }
-        .website-pill { display: flex; align-items: center; gap: 24px; padding: 16px 48px 16px 16px; border-radius: 100px; }
-        .play-icon-circle { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .website-text { font-size: 32px; font-weight: 500; color: rgba(255,255,255,0.9); }
-        .frosted-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-
-        /* Floating Controls */
         .bottom-bar {
-            width: 100%; max-width: 400px; padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; flex: none;
-            opacity: 0; animation: fadeInUp 0.6s ease-out forwards 0.4s;
+            width: 100%; max-width: 400px; padding: 10px 0 20px 0; display: flex; flex-direction: column;
+            gap: 12px; z-index: 10;
         }
 
         .save-button {
-            width: 100%; background: #fff; color: #000; border: none; padding: 18px; border-radius: 100px;
-            font-size: 1.1rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5); transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+            background: white; color: black; border: none; font-size: 1.05rem; font-weight: 700;
+            padding: 16px; border-radius: 100px; display: flex; align-items: center; justify-content: center;
+            gap: 10px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.4);
+            width: 100%;
         }
-        .save-button:active { transform: scale(0.96); }
-        
-        .listen-link { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; padding: 10px; }
-        
-        /* Outline Action */
+        .save-button:active { transform: scale(0.97); }
+
         .outline-button {
-            width: 100%; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); 
-            padding: 18px; border-radius: 100px; font-size: 1.1rem; font-weight: 900; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; gap: 12px;
-            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.08); color: white; border: 1.5px solid rgba(255, 255, 255, 0.15);
+            font-size: 0.95rem; font-weight: 600; padding: 14px; border-radius: 100px; display: flex;
+            align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+            backdrop-filter: blur(10px);
+            width: 100%;
         }
-        .outline-button:active { background: rgba(255,255,255,0.05); }
-        
-        /* Helpers */
-        .text-center { text-align: center !important; } .text-right { text-align: right !important; }
-        .items-center { align-items: center !important; } .items-end { align-items: flex-end !important; }
-        .justify-center { justify-content: center !important; } .justify-end { justify-content: flex-end !important; }
-        .spin { width: 24px; height: 24px; border: 3px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
 
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scaleIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* Not Found */
-        .not-found { text-align: center; margin-top: 30vh; }
-        .not-found a { color: #fff; text-decoration: underline; margin-top: 20px; display: block; }
-
-        /* Audio Waves Decoration */
-        .audio-wave-decoration {
-            position: absolute; top: 35%; left: 0; right: 0; height: 600px;
-            display: flex; align-items: center; justify-content: center; gap: 40px;
-            z-index: 2; opacity: 0.15;
+        .listen-link {
+            color: rgba(255, 255, 255, 0.5); font-size: 0.85rem; font-weight: 600; text-decoration: none;
+            text-align: center; margin-top: 4px;
         }
-        .audio-wave-decoration .wave {
-            width: 25px; background: var(--accent); border-radius: 20px;
-            animation: soundwave 2s infinite ease-in-out;
+
+        .not-found { text-align: center; margin: auto; }
+        .not-found h2 { font-size: 1.5rem; margin-bottom: 12px; }
+        .not-found a { color: var(--accent); text-decoration: none; font-weight: 700; }
+
+        @keyframes cardPop {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
-        @keyframes soundwave { 0%, 100% { height: 15%; } 50% { height: 100%; } }
-        .audio-wave-decoration .wave:nth-child(1) { animation-duration: 1.7s; }
-        .audio-wave-decoration .wave:nth-child(2) { animation-duration: 2.1s; animation-delay: 0.2s; }
-        .audio-wave-decoration .wave:nth-child(3) { animation-duration: 1.5s; animation-delay: 0.4s; }
-        .audio-wave-decoration .wave:nth-child(4) { animation-duration: 1.9s; animation-delay: 0.1s; }
-        .audio-wave-decoration .wave:nth-child(5) { animation-duration: 2.3s; animation-delay: 0.5s; }
-        .audio-wave-decoration .wave:nth-child(6) { animation-duration: 1.6s; animation-delay: 0.3s; }
-
-        /* Layout Overrides */
-        .layout-classic .main-visual { display: none; }
-        .layout-split .card-content { justify-content: flex-start; }
-
-        .bg-solid.gradient-aurora { background: linear-gradient(135deg, #1e3a8a 0%, #a21caf 100%); }
-        .bg-solid.gradient-sunset { background: linear-gradient(135deg, #f97316 0%, #db2777 100%); }
-        .bg-solid.gradient-midnight { background: linear-gradient(0deg, #09090b 0%, #18181b 100%); }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .spin {
+            width: 20px; height: 20px; border: 2px solid rgba(0,0,0,0.2); border-top-color: black;
+            border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="page-bg"><div class="mesh"></div></div>
 
     <div class="share-wrapper" style={`--accent: ${accentColor}`}>
-        {state ? (
+        {model ? (
             <>
                 <header class="top-bar">
                     <p class="logo-text">Veredillas FM</p>
@@ -208,79 +159,8 @@ const accentColor = state?.c || '#8b5cf6';
 
                 <div class="card-arena">
                     <div class="card-scaler" id="card-scaler">
-                        <div id="share-card" class={`share-card layout-${state.l || 'default'} ${state.b}`}>
-                            <div class="card-bg">
-                                {(state.b === 'cover' || state.b === 'card-bg' || !state.b) ? (
-                                    <img src={image} alt="" class="bg-image" />
-                                ) : (
-                                    <div class:list={["bg-solid", state.b]} style={state.b === 'solid' ? `background-color: ${state.bc || '#09090b'}` : ''}></div>
-                                )}
-                                <div class="bg-overlay"></div>
-                            </div>
-
-                            {state.v?.wv && (
-                                <div class="audio-wave-decoration">
-                                    <div class="wave"></div><div class="wave"></div><div class="wave"></div>
-                                    <div class="wave"></div><div class="wave"></div><div class="wave"></div>
-                                </div>
-                            )}
-
-                            <div class="card-content">
-                                <div class="card-top-bar">
-                                    {state.v?.l && (
-                                        <div class="brand-badge frosted-glass" style={`transform: translate(${state.es.logo.x}px, ${state.es.logo.y}px) scale(${state.es.logo.s})`}>
-                                            <img src="/logo.webp" alt="Logo" class="brand-logo" />
-                                            <span class="brand-name">VEREDILLAS FM</span>
-                                        </div>
-                                    )}
-                                    <div class="episode-pill frosted-glass" style={`transform: translate(${state.es.tag.x}px, ${state.es.tag.y}px) scale(${state.es.tag.s})`}>
-                                        <div class="pulse-dot"></div>
-                                        <span>ESCUCHA</span>
-                                    </div>
-                                </div>
-
-                                <div class="main-visual">
-                                    {state.v?.cv && (
-                                        <div class="cover-wrapper" style={`transform: translate(${state.es.cover.x}px, ${state.es.cover.y}px) scale(${state.es.cover.s})`}>
-                                            <img src={image} alt="Cover" class="cover-image" />
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div class="text-content">
-                                    <h1 class={`card-title-text text-${state.es.title.align}`} style={`transform: translate(${state.es.title.x}px, ${state.es.title.y}px) scale(${state.es.title.s})`}>
-                                        {state.t}
-                                    </h1>
-                                    
-                                    {state.g && (
-                                        <div class={`card-guest-text items-${state.es.guest.align === 'center' ? 'center' : state.es.guest.align === 'right' ? 'end' : 'start'}`} style={`transform: translate(${state.es.guest.x}px, ${state.es.guest.y}px) scale(${state.es.guest.s})`}>
-                                            <span class="guest-label" style={`background: var(--accent)`}>INVITADOS</span>
-                                            <span class="guest-name" style={`color: var(--accent)`}>{state.g}</span>
-                                        </div>
-                                    )}
-
-                                    {state.q && (
-                                        <div class={`card-quote-container frosted-glass text-${state.es.quote.align}`} style={`transform: translate(${state.es.quote.x}px, ${state.es.quote.y}px) scale(${state.es.quote.s})`}>
-                                            <div class="quote-icon">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="var(--accent)" opacity="0.4"><path d="M14.017 21L14.017 18C14.017 15.238 16.255 13 19.017 13L19.017 11C15.151 11 12.017 14.134 12.017 18L12.017 21L14.017 21ZM5.017 21L5.017 18C5.017 15.238 7.255 13 10.017 13L10.017 11C6.151 11 3.017 14.134 3.017 18L3.017 21L5.017 21Z"></path></svg>
-                                            </div>
-                                            <p class="card-quote-text">{state.q}</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div class="card-footer">
-                                    {state.v?.w && (
-                                        <div class="website-pill frosted-glass" style={`transform: translate(${state.es.website.x}px, ${state.es.website.y}px) scale(${state.es.website.s})`}>
-                                            <div class="play-icon-circle" style={`background: var(--accent)`}>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="black"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                            </div>
-                                            <span class="website-text">Escucha en <strong style={`color: var(--accent)`}>vrdfm.es</strong></span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Card mounted via shared story-card engine -->
+                        <div id="card-mount-container" style="width:1080px;height:1920px;"></div>
                     </div>
                 </div>
 
@@ -293,8 +173,11 @@ const accentColor = state?.c || '#8b5cf6';
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                         <span>Enviar por Correo / App</span>
                     </button>
-                    <a href={state.u} class="listen-link">Volver al Episodio</a>
+                    <a href={model.websiteLabel ? `https://${model.websiteLabel}` : '/'} class="listen-link">Volver al Episodio</a>
                 </div>
+
+                <!-- Embed model data for client-side rendering -->
+                <script id="card-model-data" type="application/json" set:html={JSON.stringify(model)} />
             </>
         ) : (
             <div class="not-found">
@@ -306,11 +189,28 @@ const accentColor = state?.c || '#8b5cf6';
 
     <script>
         import * as htmlToImage from 'html-to-image';
+        import { composeCardTree } from '@/lib/story-card/composeCard';
+        import { renderCardIntoDom } from '@/lib/story-card/renderDom';
+        import { classic } from '@/lib/story-card/looks/classic';
+        import type { CardModel } from '@/lib/story-card/types';
+
+        const dataScript = document.getElementById('card-model-data');
+        const mountContainer = document.getElementById('card-mount-container');
+
+        if (dataScript && mountContainer && dataScript.textContent) {
+            try {
+                const model: CardModel = JSON.parse(dataScript.textContent);
+                const tree = composeCardTree(model, classic);
+                renderCardIntoDom(tree, mountContainer);
+            } catch (err) {
+                console.error('[share-qr] Failed to render card tree:', err);
+            }
+        }
 
         const btn = document.getElementById('save-btn');
         const shareNativeBtn = document.getElementById('share-native-btn');
-        const card = document.getElementById('share-card');
         const scaler = document.getElementById('card-scaler');
+        const card = mountContainer?.querySelector('#share-card') || mountContainer;
 
         const nav = navigator as any;
 
@@ -327,11 +227,11 @@ const accentColor = state?.c || '#8b5cf6';
             const padding = 40;
             const availableW = arena.clientWidth - padding;
             const availableH = arena.clientHeight - padding;
-            
+
             const scaleW = availableW / 1080;
             const scaleH = availableH / 1920;
             const scale = Math.min(scaleW, scaleH);
-            
+
             scaler.style.transform = `translate(-50%, -50%) scale(${scale})`;
             scaler.style.visibility = 'visible';
         };
@@ -341,16 +241,17 @@ const accentColor = state?.c || '#8b5cf6';
         document.fonts.ready.then(fitCard);
 
         const generateBlob = async () => {
-            if (!card) return null;
-            const imgs = Array.from(card.querySelectorAll('img'));
+            const targetEl = mountContainer?.querySelector('#share-card') as HTMLElement || mountContainer;
+            if (!targetEl) return null;
+            const imgs = Array.from(targetEl.querySelectorAll('img'));
             await Promise.all(imgs.map(img => {
                 if (img.complete) return Promise.resolve();
                 return new Promise(r => { img.onload = r; img.onerror = r; });
             }));
-            
+
             await new Promise(r => setTimeout(r, 200));
 
-            return await htmlToImage.toBlob(card, {
+            return await htmlToImage.toBlob(targetEl, {
                 pixelRatio: 2.2,
                 width: 1080,
                 height: 1920,
@@ -375,9 +276,9 @@ const accentColor = state?.c || '#8b5cf6';
             try {
                 const blob = await generateBlob();
                 if (!blob) throw new Error('Render failed');
-                
+
                 const file = new File([blob], `Veredillas_Story_${Date.now()}.png`, { type: 'image/png' });
-                
+
                 if (nav.canShare && nav.canShare({ files: [file] })) {
                     await nav.share({
                         title: 'Episodio de Veredillas FM',
@@ -396,8 +297,8 @@ const accentColor = state?.c || '#8b5cf6';
         });
 
         btn?.addEventListener('click', async () => {
-            if (!card || !btn) return;
-            
+            if (!btn) return;
+
             const originalHTML = btn.innerHTML;
             btn.innerHTML = '<span class="spin"></span>';
             (btn as HTMLButtonElement).disabled = true;
@@ -405,31 +306,21 @@ const accentColor = state?.c || '#8b5cf6';
             try {
                 const blob = await generateBlob();
                 if (!blob) throw new Error('Render failed');
-                
+
                 const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = `Veredillas_Story_${Date.now()}.png`;
-                link.href = url;
-                link.click();
-                
-                // Clean up URL object
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                
-                btn.innerHTML = '¡Guardado!';
-                btn.style.background = '#22c55e';
-                btn.style.color = '#fff';
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Veredillas_Story_${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             } catch (err) {
-                console.error(err);
-                btn.innerHTML = 'Error';
+                console.error('Error saving image:', err);
+                alert('Error al generar la imagen. Prueba a hacer una captura de pantalla.');
             } finally {
-                setTimeout(() => {
-                    if (btn) {
-                        btn.innerHTML = originalHTML;
-                        btn.style.background = '#fff';
-                        btn.style.color = '#000';
-                        (btn as HTMLButtonElement).disabled = false;
-                    }
-                }, 4000);
+                btn.innerHTML = originalHTML;
+                (btn as HTMLButtonElement).disabled = false;
             }
         });
     </script>
