@@ -691,12 +691,10 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     setIsBuffering(true);
   };
 
-  // Select another episode (swap source in-place, no page navigation)
+  // Select another episode -> navigate to its dedicated page
   const handleSelectEpisode = useCallback((ep: EpisodeInfo) => {
-    setCurrentEpisode(ep);
     setShowEpisodeDrawer(false);
-    resetPlaybackState();
-    setIsPlaying(true);
+    window.location.href = `/ep/${ep.slug}`;
   }, []);
 
   const handleReplay = useCallback(() => {
