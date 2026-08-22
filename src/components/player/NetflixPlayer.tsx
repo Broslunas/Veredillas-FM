@@ -267,12 +267,20 @@ const IconSettings = ({ className = 'w-5 h-5' }: { className?: string }) => (
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </svg>
 );
+const IconMoon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 1 0 20.354 15.354Z" fill="currentColor" stroke="none" />
+  </svg>
+);
 
 /* ---------------------------------------------------------------------- */
 
 const ctrlBtn =
   'flex items-center justify-center text-zinc-300 hover:text-white transition-all p-2 rounded-lg hover:bg-white/10 active:scale-90';
 const ctrlBtnActive = 'bg-primary/25 text-primary hover:text-primary hover:bg-primary/30';
+
+const SLEEP_TIMER_PRESETS = [10, 15, 30, 45, 60, 90]; // minutes
+const SLEEP_FADE_MS = 8000; // fade-out duration when the sleep timer expires
 
 export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   slug: initialSlug,
@@ -342,11 +350,22 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
   const [hoverPosition, setHoverPosition] = useState<number>(0);
   const [showVolumePanel, setShowVolumePanel] = useState(false);
 
+  // Sleep timer state
+  const [showSleepMenu, setShowSleepMenu] = useState(false);
+  const [sleepTimerActive, setSleepTimerActive] = useState(false);
+  const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
+  const [sleepTimerRemaining, setSleepTimerRemaining] = useState(0); // seconds left
+  const [isSleepFading, setIsSleepFading] = useState(false);
+
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSyncTimeRef = useRef<number>(0);
   const pendingResumeRef = useRef<number>(initialProgress || 0);
   const resumeAppliedRef = useRef(false);
   const modeSwitchResumeRef = useRef<{ time: number; wasPlaying: boolean } | null>(null);
+  const sleepTimerEndAtRef = useRef<number | null>(null);
+  const sleepTimerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sleepFadeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sleepWarningShownRef = useRef(false);
 
   const isVideo = Boolean(currentEpisode.videoUrl) && mediaMode === 'video';
 
@@ -511,6 +530,72 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     }
     setShowSpeedMenu(false);
   }, []);
+
+  // Sleep timer: stop playback automatically after N minutes, with a 1-minute-left
+  // warning and a gradual volume fade-out right before pausing.
+  const clearSleepTimer = useCallback(() => {
+    sleepTimerEndAtRef.current = null;
+    if (sleepTimerIntervalRef.current) {
+      clearInterval(sleepTimerIntervalRef.current);
+      sleepTimerIntervalRef.current = null;
+    }
+    if (sleepFadeIntervalRef.current) {
+      clearInterval(sleepFadeIntervalRef.current);
+      sleepFadeIntervalRef.current = null;
+    }
+    sleepWarningShownRef.current = false;
+    setSleepTimerActive(false);
+    setSleepTimerMinutes(null);
+    setSleepTimerRemaining(0);
+    setIsSleepFading(false);
+    // Restore full (user-preferred) volume in case a fade-out was interrupted mid-way
+    if (videoRef.current) videoRef.current.volume = volume;
+    if (dubAudioRef.current) dubAudioRef.current.volume = volume;
+  }, [volume]);
+
+  const runSleepFadeOutAndPause = useCallback(() => {
+    if (sleepFadeIntervalRef.current) return; // already fading
+    setIsSleepFading(true);
+    const stepMs = 100;
+    const steps = SLEEP_FADE_MS / stepMs;
+    const startVol = videoRef.current?.volume ?? volume;
+    let step = 0;
+    sleepFadeIntervalRef.current = setInterval(() => {
+      step += 1;
+      const factor = Math.max(0, 1 - step / steps);
+      if (videoRef.current) videoRef.current.volume = startVol * factor;
+      if (dubAudioRef.current) dubAudioRef.current.volume = startVol * factor;
+      if (step >= steps) {
+        if (sleepFadeIntervalRef.current) {
+          clearInterval(sleepFadeIntervalRef.current);
+          sleepFadeIntervalRef.current = null;
+        }
+        videoRef.current?.pause();
+        // Restore the user's normal volume for the next time they hit play
+        if (videoRef.current) videoRef.current.volume = volume;
+        if (dubAudioRef.current) dubAudioRef.current.volume = volume;
+        setIsSleepFading(false);
+        if (typeof window !== 'undefined' && (window as any).showToast) {
+          (window as any).showToast('Reproducción pausada por el temporizador de apagado', 'info');
+        }
+      }
+    }, stepMs);
+  }, [volume]);
+
+  const startSleepTimer = useCallback((minutes: number) => {
+    sleepTimerEndAtRef.current = Date.now() + minutes * 60000;
+    sleepWarningShownRef.current = false;
+    setSleepTimerMinutes(minutes);
+    setSleepTimerActive(true);
+    setSleepTimerRemaining(minutes * 60);
+    setShowSleepMenu(false);
+    try { (window as any).umami?.track('Temporizador de apagado', { minutes }); } catch {}
+  }, []);
+
+  const cancelSleepTimer = useCallback(() => {
+    clearSleepTimer();
+    setShowSleepMenu(false);
+  }, [clearSleepTimer]);
 
   const toggleCaptions = useCallback(() => {
     setShowCaptions((prev) => {
@@ -850,6 +935,7 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
           setShowCaptionSettings(false);
           setShowAudioSettings(false);
           setShowVolumePanel(false);
+          setShowSleepMenu(false);
           break;
       }
     };
@@ -865,6 +951,50 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
     };
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  // Sleep timer countdown — ticks every second, warns 1 minute before expiry, then
+  // fades the volume out and pauses when it hits zero. Runs independently of episode
+  // changes (it's a "stop soon" intent, not tied to a specific episode).
+  useEffect(() => {
+    if (!sleepTimerActive) return;
+    sleepTimerIntervalRef.current = setInterval(() => {
+      const endAt = sleepTimerEndAtRef.current;
+      if (!endAt) return;
+      const remaining = Math.round((endAt - Date.now()) / 1000);
+      if (remaining <= 0) {
+        if (sleepTimerIntervalRef.current) {
+          clearInterval(sleepTimerIntervalRef.current);
+          sleepTimerIntervalRef.current = null;
+        }
+        setSleepTimerActive(false);
+        setSleepTimerMinutes(null);
+        setSleepTimerRemaining(0);
+        runSleepFadeOutAndPause();
+        return;
+      }
+      setSleepTimerRemaining(remaining);
+      if (remaining <= 60 && !sleepWarningShownRef.current) {
+        sleepWarningShownRef.current = true;
+        if (typeof window !== 'undefined' && (window as any).showToast) {
+          (window as any).showToast('El reproductor se pausará en 1 minuto (temporizador de apagado)', 'info');
+        }
+      }
+    }, 1000);
+    return () => {
+      if (sleepTimerIntervalRef.current) {
+        clearInterval(sleepTimerIntervalRef.current);
+        sleepTimerIntervalRef.current = null;
+      }
+    };
+  }, [sleepTimerActive, runSleepFadeOutAndPause]);
+
+  // Clean up any pending sleep timer / fade-out on unmount
+  useEffect(() => {
+    return () => {
+      if (sleepTimerIntervalRef.current) clearInterval(sleepTimerIntervalRef.current);
+      if (sleepFadeIntervalRef.current) clearInterval(sleepFadeIntervalRef.current);
+    };
   }, []);
 
   // Reset to the original audio whenever the loaded episode changes (dubs only apply
@@ -1467,6 +1597,56 @@ export const NetflixPlayer: React.FC<NetflixPlayerProps> = ({
                         {rate}× {playbackRate === rate && <IconCheck className="w-3.5 h-3.5" />}
                       </button>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Sleep Timer */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowSleepMenu((v) => !v)}
+                  className={`${ctrlBtn} ${sleepTimerActive || isSleepFading || showSleepMenu ? ctrlBtnActive : ''}`}
+                  aria-label="Temporizador de apagado"
+                  title="Temporizador de apagado"
+                >
+                  <IconMoon className="w-5 h-5" />
+                </button>
+
+                {sleepTimerActive && (
+                  <span className="absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 flex items-center justify-center rounded-full bg-primary text-[9px] font-bold font-mono text-white leading-none pointer-events-none">
+                    {sleepTimerRemaining < 60 ? Math.ceil(sleepTimerRemaining) : Math.ceil(sleepTimerRemaining / 60)}
+                  </span>
+                )}
+
+                {showSleepMenu && (
+                  <div className="absolute bottom-11 right-0 bg-zinc-950/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-3.5 flex flex-col gap-1.5 z-50 w-56">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Apagado automático</p>
+                      {sleepTimerActive && (
+                        <span className="text-xs font-mono font-bold tabular-nums text-primary">{formatTime(sleepTimerRemaining)}</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {SLEEP_TIMER_PRESETS.map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => startSleepTimer(m)}
+                          className={`text-xs px-2 py-1.5 rounded-lg font-semibold transition ${
+                            sleepTimerActive && sleepTimerMinutes === m ? 'bg-primary text-white' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+                          }`}
+                        >
+                          {m}min
+                        </button>
+                      ))}
+                    </div>
+                    {sleepTimerActive && (
+                      <button
+                        onClick={cancelSleepTimer}
+                        className="mt-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 transition"
+                      >
+                        Cancelar temporizador
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
