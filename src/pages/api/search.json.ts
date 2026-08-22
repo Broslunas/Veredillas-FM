@@ -3,62 +3,53 @@ import dbConnect from '@/lib/mongodb';
 import Team from '@/models/Team';
 
 export async function GET() {
-  // Needs the full transcript to build the search index below.
-  const episodios = await getCollection('episodios', undefined, { includeHeavyFields: true });
+  // getCollection usa EPISODE_LIGHT_EXCLUDE por defecto (sin heavy fields: transcripción, quiz, dubs)
+  const episodios = await getCollection('episodios');
   const posts = await getCollection('blog');
 
   await dbConnect();
-  const teamMembers = await Team.find({ deletedAt: null }).lean();
+  const teamMembers = await Team.find({ deletedAt: null }).select('name role department slug image').lean();
 
   const allContent = [
     ...episodios.map((episode) => ({
+      id: `ep-${episode.slug}`,
       title: episode.data.title,
-      description: episode.data.description,
+      description: episode.data.description || '',
       slug: `/ep/${episode.slug}`,
       type: 'Episodio',
       date: episode.data.pubDate,
       image: episode.data.image,
       tags: episode.data.tags || [],
       participants: episode.data.participants || [],
-      transcription: episode.data.transcription ? episode.data.transcription.map((t: any) => ({ text: t.text, time: t.time })) : undefined,
-      transcriptionText: episode.data.transcription ? episode.data.transcription.map((t: any) => t.text).join(' ') : '',
     })),
     ...posts.map((post) => ({
+      id: `blog-${post.slug}`,
       title: post.data.title,
-      description: post.data.description,
+      description: post.data.description || '',
       slug: `/blog/${post.slug}`,
       type: 'Artículo',
       date: post.data.pubDate,
       image: post.data.image,
       tags: post.data.tags || [],
+      participants: [],
     })),
-    // Integrantes del Equipo
     ...teamMembers.map((member: any) => ({
+      id: `team-${member.slug}`,
       title: member.name,
-      description: [member.role, member.department].filter(Boolean).join(' - '),
+      description: [member.role, member.department].filter(Boolean).join(' · '),
       slug: `/equipo/${member.slug}`,
       type: 'Equipo',
-      date: new Date().toISOString(), // Fecha simulada más reciente
+      date: null,
       image: member.image,
+      tags: [],
+      participants: [],
     })),
-    // Páginas Estáticas (Acciones Rápidas)
-    { title: 'Inicio', description: 'Ir a la página principal', slug: '/', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'Blog', description: 'Ver todos los artículos', slug: '/blog', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'Episodios', description: 'Escuchar el podcast', slug: '/ep', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'Equipo', description: 'Conoce a los creadores', slug: '/equipo', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'Contacto', description: 'Envíanos un mensaje', slug: '/contacto', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'Newsletter', description: 'Suscríbete a nuestro newsletter', slug: '/newsletter', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'Calendario', description: 'Ver calendario de eventos', slug: '/calendario', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'Galeria', description: 'Ver galeria de imagenes', slug: '/galeria', type: 'Navegación', date: new Date().toISOString(), image: '/favicon.png' },
-    { title: 'IA Veredillas', description: 'Chat con inteligencia artificial', slug: '#chat-toggle-btn', type: 'Herramienta', date: new Date().toISOString(), image: '/logo.webp' },
   ];
-
-  // Ordenar por fecha (más reciente primero)
-  allContent.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return new Response(JSON.stringify(allContent), {
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=30, s-maxage=60',
     },
   });
 }
